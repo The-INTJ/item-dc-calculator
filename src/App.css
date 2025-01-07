@@ -1,0 +1,82 @@
+.App-container {
+  padding: 30px;
+}
+
+.dc-display {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.effects-container {
+  display: grid;
+  grid-template-rows: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: auto auto auto;
+  gap: 20px;
+}
+
+.effect-row {
+  display: grid;
+  grid: 1fr 1fr / 1fr 1fr 1fr;
+  background-color: rgb(0, 166, 255, 0.5);
+  border-radius: 20px;
+}
+
+.effect-field {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.effect-field label {
+  margin-right: 5px;
+  font-weight: bold;
+}
+
+.effect-field select {
+  width: 100%;
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.effect-field input {
+  width: 90%;
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+
+.add-effect-btn,
+.toggle-breakdown-btn {
+  margin-right: 10px;
+  margin-bottom: 10px;
+  padding: 8px 15px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.breakdown-container {
+  margin-top: 20px;
+  background: #f9f9f9;
+  border: 1px dashed #ccc;
+  padding: 15px;
+  border-radius: 5px;
+}
+
+.breakdown-container h2 {
+  margin-top: 0;
+}
+
+/* shard styling */
+.shard-container {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.shard-row {
+  flex: 0 0 33%;
+  padding: 5px 0;
+}
