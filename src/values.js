@@ -1,16 +1,23 @@
 const values = {
   effectBaseValues: {
-    attackBonus: 5,
-    damageBonus: 5,
-    acBonus: 8,
-    skillSaveBonus: 6,
-    movementSpeed: 10,
-    resistances: 15,
-    immunities: 20,
-    extraDamage: 5,
-    spellSlot: 10,
-    LowUtilityEffect: 10,
-    highUtilityEffect: 20
+    'Attack mod': 5,
+    'Damage mod': 5,
+    'AC mod': 8,
+    'Save bonus': 6,
+    'Move speed': 10,
+    'Fly speed': 20,
+    'Resistance': 15,
+    'Immunity': 20,
+    'Spell slot': 20,
+    'Low utility': 10,
+    'Medium utility': 15,
+    'High utility': 20,
+    '+1 Sword': 5,
+    '+1 Armor': 10,
+    '+2 Sword': 100,
+    '+2 Armor': 120,
+    '+3 Sword': 200,
+    '+3 Armor': 240,
   },
   powerLevelModifiers: [0.5, 1.0, 1.5, 2.0, 3.0, 5.0],
   frequencyModifiers: {
@@ -21,7 +28,7 @@ const values = {
     'single-use': 0.5,
   },
   complexityModifiers: {
-    'always-on': 2.0,
+    'Always': 2.0,
     wearable: 1.5,
     usable: 1.25,
     situational: 1.0,
@@ -43,3 +50,13 @@ const values = {
 };
 
 export default values;
+
+export const defaultEffectState = {
+    effectType: 'Attack mod',
+    baseValue: values.effectBaseValues['Attack mod'],
+    dieValue: values.dieBonusValues[0],
+    dieAmount: 0,
+    powerLevel: 0,      // index in powerLevelModifiers
+    frequency: 'always-on',
+    complexity: 'Always',
+  };

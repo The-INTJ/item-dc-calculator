@@ -1,0 +1,132 @@
+ $border-radius-small: 5px;
+$border-radius-medium: 10px;
+ $border-radius-large: 20px;
+
+.App-container {
+  padding: 30px;
+}
+
+.dc-display {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.effects-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.effect-row {
+  display: grid;
+  grid: 1fr 1fr / 1fr 1fr 1fr;
+  background-color: rgb(0, 166, 255, 0.5);
+  border-radius: 20px;
+  width: 370px;
+}
+
+.effect-field {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.effect-field label {
+  margin-right: 5px;
+  font-weight: bold;
+}
+
+.effect-field select {
+  width: 100%;
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.effect-field input {
+  width: 90%;
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+
+.add-effect-btn,
+.toggle-breakdown-btn {
+  margin-right: 10px;
+  margin-bottom: 10px;
+  padding: 8px 15px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.breakdown-container {
+  margin-top: 20px;
+  background: #f9f9f9;
+  border: 1px dashed #ccc;
+  padding: 15px;
+  border-radius: 5px;
+}
+
+.breakdown-container h2 {
+  margin-top: 0;
+}
+
+/* shard styling */
+.shard-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.shard-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: $border-radius-medium;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.shard-num {
+  background-color: #f9f9f9;
+  border-radius: 50%;
+  font-size: 1rem;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  text-align: center;
+  line-height: 17px;
+  font-weight: 600;
+}
+
+.shard-btn {
+  background-color: transparent;
+  height: 35px;
+  width: 43px;
+  padding: 5px 15px 5px;
+  color: white;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+    transform: scale(1.2);
+    border: 1px solid transparent;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.shard-btn.add {
+  border-radius: $border-radius-medium $border-radius-medium 0 0;
+}
+.shard-btn.sub {
+  border-radius: 0 0 $border-radius-medium $border-radius-medium;
+}
+
+/* Player chance */
+.player-effects-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}

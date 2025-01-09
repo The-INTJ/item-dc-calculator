@@ -2,7 +2,7 @@
 
 import React from 'react';
 import EffectRow from './EffectRow';
-import values from './values';
+import values, { defaultEffectState } from './values';
 
 /**
  * Container for an array of effects.
@@ -14,15 +14,7 @@ import values from './values';
 function EffectSection({ effects, setEffects }) {
 
   // Default shape for a new Effect
-  const defaultEffect = {
-    effectType: 'attackBonus',
-    baseValue: values.effectBaseValues['attackBonus'],
-    dieValue: values.dieBonusValues[0],
-    dieAmount: 0,
-    powerLevel: 0,      // index in powerLevelModifiers
-    frequency: 'always-on',
-    complexity: 'always-on',
-  };
+  const defaultEffect = defaultEffectState;
 
   function handleEffectChange(effectIndex, fieldName, newValue) {
     const clonedEffects = [...effects];

@@ -4,7 +4,8 @@ import React from 'react';
 import {
   calculateD20Rolls,
   calculateDistinctShardColorsUsed,
-  calculatePlayerChance
+  calculatePlayerChance,
+  retrieveTriviality,
 } from './playerChanceCalculations';
 
 /**
@@ -15,10 +16,11 @@ import {
  *   playerModifier: number
  *   onPlayerModifierChange: function(event) => void
  */
-function PlayerChance({ shardCounts, playerModifier, onPlayerModifierChange }) {
+function PlayerChance({ shardCounts, playerModifier, onPlayerModifierChange, totalDC }) {
   const totalD20Rolls = calculateD20Rolls(shardCounts);
   const distinctColorsUsed = calculateDistinctShardColorsUsed(shardCounts);
-  const chanceValue = calculatePlayerChance(totalD20Rolls, playerModifier, distinctColorsUsed);
+  const chanceValue = calculatePlayerChance(totalD20Rolls, playerModifier, distinctColorsUsed, totalDC);
+  const trivality = retrieveTriviality(chanceValue);
 
   return (
     <div style={{ marginTop: '20px', marginBottom: '20px' }}>
@@ -44,9 +46,9 @@ function PlayerChance({ shardCounts, playerModifier, onPlayerModifierChange }) {
         <strong>Player Modifier:</strong> {playerModifier}
         <br />
         <strong>Player Chance Formula:</strong> 
-        {' '} (d20 rolls × 10) + (modifier × distinct colors)
+        {' '} Total DC - ((d20 rolls × 10) - 10) + ((modifier × distinct colors) - modifier)
         <br />
-        <strong>Result:</strong> {chanceValue}
+        <strong>Result:</strong> {chanceValue} ({trivality})
       </p>
     </div>
   );

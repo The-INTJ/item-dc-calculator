@@ -28,6 +28,32 @@ export function calculateDistinctShardColorsUsed(shardArray) {
  * The final "player chance" formula:
  *  (totalD20Rolls * 10) + (playerModifier * numberOfDistinctColorsUsed)
  */
-export function calculatePlayerChance(totalD20Rolls, playerModifier, distinctShardColorsUsed) {
-  return Math.ceil((totalD20Rolls * 10)) + (playerModifier * distinctShardColorsUsed);
+export function calculatePlayerChance(totalD20Rolls, playerModifier, distinctShardColorsUsed, totalDC) {
+  const playerChance = Math.ceil((totalD20Rolls * 10)) + (playerModifier * distinctShardColorsUsed) - (10 + playerModifier);
+  return totalDC - playerChance;
+}
+
+/**
+ * Returns a string indicating the trivality of the chance value.
+ */
+export function retrieveTriviality(chanceValue) {
+  if (chanceValue >= 30) {
+    return 'Inconceivable effort';
+  }
+  if (chanceValue >= 25) {
+    return 'Nearly Impossible';
+  }
+  if (chanceValue >= 20) {
+    return 'Daunting';
+  }
+  if (chanceValue >= 15) {
+    return 'Difficult';
+  }
+  if (chanceValue >= 10) {
+    return 'Moderate';
+  }
+  if (chanceValue >= 5) {
+    return 'Easy';
+  }
+  return 'Trivial';
 }

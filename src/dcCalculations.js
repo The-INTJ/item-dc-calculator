@@ -11,6 +11,7 @@ export function calculateBaseDC(effectsArray) {
 
   for (let effectIndex = 0; effectIndex < effectsArray.length; effectIndex++) {
     const currentEffect = effectsArray[effectIndex];
+    console.log(currentEffect);
 
     const baseValue = currentEffect.baseValue;
     const dieValue = currentEffect.dieValue;
@@ -25,7 +26,10 @@ export function calculateBaseDC(effectsArray) {
     const complexityModifier = values.complexityModifiers[complexity];
 
     // Die contribution
-    const diceContribution = dieValue * dieAmount;
+    let diceContribution = dieValue * dieAmount;
+    if (dieAmount >= 1) {
+      diceContribution += 10;
+    }
 
     // Calculate partial DC for this effect
     const partialDC =

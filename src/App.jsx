@@ -1,9 +1,9 @@
 // App.js
 
 import React, { useState } from 'react';
-import './App.css';
+import './App.scss';
 
-import values from './values';
+import values, { defaultEffectState } from './values';
 
 // Our custom modules
 import { calculateBaseDC } from './dcCalculations';
@@ -20,15 +20,7 @@ function App() {
   // --------------------------------------
   const [effects, setEffects] = useState([
     // We'll initialize with one effect
-    {
-      effectType: 'attackBonus',
-      baseValue: values.effectBaseValues['attackBonus'],
-      dieValue: values.dieBonusValues[0],
-      dieAmount: 0,
-      powerLevel: 0,
-      frequency: 'always-on',
-      complexity: 'always-on',
-    },
+    defaultEffectState
   ]);
 
   // --------------------------------------
@@ -100,18 +92,21 @@ function App() {
       {/* Effects Section */}
       <EffectSection effects={effects} setEffects={setEffects} />
 
-      {/* Shards Section */}
-      <ShardSection
-        shardCounts={shardCounts}
-        onShardCountChange={handleShardCountChange}
-      />
+      <div className="player-effects-container">
+        {/* Shards Section */}
+        <ShardSection
+          shardCounts={shardCounts}
+          onShardCountChange={handleShardCountChange}
+        />
 
-      {/* Player Chance */}
-      <PlayerChance
-        shardCounts={shardCounts}
-        playerModifier={playerModifier}
-        onPlayerModifierChange={handlePlayerModifierChange}
-      />
+        {/* Player Chance */}
+        <PlayerChance
+          shardCounts={shardCounts}
+          playerModifier={playerModifier}
+          onPlayerModifierChange={handlePlayerModifierChange}
+          totalDC={finalDC}
+        />
+      </div>
 
         <div className="breakdown-container">
           <h2>Calculation Breakdown</h2>
