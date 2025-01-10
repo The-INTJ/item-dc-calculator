@@ -3,44 +3,61 @@
 import values from './values';
 
 /**
- * Calculates the base DC from an array of effects.
- * Also adds +5 per effect (as requested).
+ * Calculates the total DC by summing each effect's DC, 
+ * then adds +5 for each effect.
  */
 export function calculateBaseDC(effectsArray) {
   let accumulatedDC = 0;
 
-  for (let effectIndex = 0; effectIndex < effectsArray.length; effectIndex++) {
-    const currentEffect = effectsArray[effectIndex];
-    console.log(currentEffect);
-
-    const baseValue = currentEffect.baseValue;
-    const dieValue = currentEffect.dieValue;
-    const dieAmount = currentEffect.dieAmount;
-    const powerLevel = currentEffect.powerLevel;
-    const frequency = currentEffect.frequency;
-    const complexity = currentEffect.complexity;
-
-    // Retrieve multipliers
-    const powerLevelModifier = values.powerLevelModifiers[powerLevel];
-    const frequencyModifier = values.frequencyModifiers[frequency];
-    const complexityModifier = values.complexityModifiers[complexity];
-
-    // Die contribution
-    let diceContribution = dieValue * dieAmount;
-    if (dieAmount >= 1) {
-      diceContribution += 10;
-    }
-
-    // Calculate partial DC for this effect
-    const partialDC =
-      (baseValue * powerLevelModifier * frequencyModifier * complexityModifier)
-      + diceContribution;
-
-    accumulatedDC += partialDC;
+  for (let i = 0; i < effectsArray.length; i++) {
+    const currentEffect = effectsArray[i];
+    // For now, we switch on effectType but always call original logic
+    accumulatedDC += calculateEffectDC(currentEffect);
   }
 
   // Add 5 for each effect
-  accumulatedDC += (effectsArray.length * 5);
+  accumulatedDC += effectsArray.length * 5;
 
   return Math.ceil(accumulatedDC);
+}
+
+/**
+ * Prepares the ground for multiple effect type calculations.
+ * For now, just calls the original method for any effectType.
+ */
+function calculateEffectDC(effect) {
+  switch (effect.effectType) {
+    default:
+      // In the future, add more cases here for unique effect calculations
+      return originalEffectDCMethod(effect);
+  }
+}
+
+/**
+ * The original logic for calculating an effect's partial DC.
+ * No changes here, just moved it into its own function.
+ */
+function originalEffectDCMethod(effect) {
+  const baseValue = effect.baseValue;
+  const dieValue = effect.dieValue;
+  const dieAmount = effect.dieAmount;
+  const powerLevel = effect.powerLevel;
+  const frequency = effect.frequency;
+  const complexity = effect.complexity;
+
+  const powerLevelModifier = values.powerLevelModifiers[powerLevel];
+  const frequencyModifier = values.frequencyModifiers[frequency];
+  const complexityModifier = values.complexityModifiers[complexity];
+
+  let diceContribution = dieValue * dieAmount;
+  if (dieAmount >= 1) {
+    // Add a flat 10 if there's at least one die
+    diceContribution += 10;
+  }
+
+  const partialDC =
+    baseValue * powerLevelModifier * frequencyModifier * complexityModifier +
+    diceContribution;
+
+  return partialDC;
 }

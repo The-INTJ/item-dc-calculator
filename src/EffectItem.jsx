@@ -1,33 +1,125 @@
 // EffectItem.js
+import './EffectItem.scss';
 
-import React from 'react';
+// Import each sub-component
+import DiceDamageAttackUI from './Effects/DiceDamageAttackUI';
+import SaveBonusUI from './Effects/SaveBonusUI';
+import MoveSpeedUI from './Effects/MoveSpeedUI';
+import FlySpeedUI from './Effects/FlySpeedUI';
+import ResistanceUI from './Effects/ResistanceUI';
+import ImmunityUI from './Effects/ImmunityUI';
+import SpellSlotUI from './Effects/SpellSlotUI';
+import UtilityUI from './Effects/UtilityUI';
+import PlusXItemUI from './Effects/PlusXItemUI';
+
 import values from './values';
 
 /**
- * Renders a single effect row (form controls for effect properties).
+ * Renders the correct UI for the chosen effectType.
  * 
  * Props:
  *   effect: the current effect object
- *   onEffectChange: function(effectField, newValue) => void
- *   index: the index of this effect in the parent array
+ *   onEffectChange: function(index, fieldName, newValue)
+ *   index: the index of this effect
  */
 function EffectItem({ effect, onEffectChange, index }) {
-  function handleSelectChange(event, fieldName) {
-    onEffectChange(index, fieldName, event.target.value);
+  // When user changes effectType in the dropdown
+  function handleEffectTypeChange(e) {
+    onEffectChange(index, 'effectType', e.target.value);
   }
 
-  function handleNumberChange(event, fieldName) {
-    onEffectChange(index, fieldName, Number(event.target.value));
+  // Helper to pass changes to the parent
+  function handleFieldChange(fieldName, newValue) {
+    onEffectChange(index, fieldName, newValue);
+  }
+
+  // Renders the sub-UI based on effectType
+  function renderEffectSpecificUI() {
+    switch (effect.effectType) {
+      case 'Dice attack damage':
+        return (
+          <DiceDamageAttackUI
+            effect={effect}
+            onEffectFieldChange={handleFieldChange}
+          />
+        );
+      case 'Save bonus':
+        return (
+          <SaveBonusUI
+            effect={effect}
+            onEffectFieldChange={handleFieldChange}
+          />
+        );
+      case 'Move speed':
+        return (
+          <MoveSpeedUI
+            effect={effect}
+            onEffectFieldChange={handleFieldChange}
+          />
+        );
+      case 'Fly speed':
+        return (
+          <FlySpeedUI
+            effect={effect}
+            onEffectFieldChange={handleFieldChange}
+          />
+        );
+      case 'Resistance':
+        return (
+          <ResistanceUI
+            effect={effect}
+            onEffectFieldChange={handleFieldChange}
+          />
+        );
+      case 'Immunity':
+        return (
+          <ImmunityUI
+            effect={effect}
+            onEffectFieldChange={handleFieldChange}
+          />
+        );
+      case 'Spell slot':
+        return (
+          <SpellSlotUI
+            effect={effect}
+            onEffectFieldChange={handleFieldChange}
+          />
+        );
+      case 'Low utility':
+      case 'Medium utility':
+      case 'High utility':
+        return (
+          <UtilityUI
+            effect={effect}
+            onEffectFieldChange={handleFieldChange}
+          />
+        );
+      case '+1 Sword':
+      case '+1 Armor':
+      case '+2 Sword':
+      case '+2 Armor':
+      case '+3 Sword':
+      case '+3 Armor':
+        return (
+          <PlusXItemUI
+        effect={effect}
+        onEffectFieldChange={handleFieldChange}
+          />
+        );
+      default:
+        // If not recognized, just show nothing or a note
+        return <p>No specialized UI for this effect type.</p>;
+    }
   }
 
   return (
-    <div className="effect-row">
-      {/* Effect Type */}
+    <div className="effect-item">
       <div className="effect-field">
+        <label>Effect Type:</label>
         <label>Effect Type:</label>
         <select
           value={effect.effectType}
-          onChange={(event) => handleSelectChange(event, 'effectType')}
+          onChange={(event) => handleEffectTypeChange(event, 'effectType')}
         >
           {Object.keys(values.effectBaseValues).map((effectKey) => (
             <option key={effectKey} value={effectKey}>
@@ -37,76 +129,8 @@ function EffectItem({ effect, onEffectChange, index }) {
         </select>
       </div>
 
-      {/* Die Value */}
-      <div className="effect-field">
-        <label>Die Value:</label>
-        <select
-          value={effect.dieValue}
-          onChange={(event) => handleNumberChange(event, 'dieValue')}
-        >
-          {values.dieBonusValues.map((dieOption) => (
-            <option key={dieOption} value={dieOption}>
-              {dieOption}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Die Amount */}
-      <div className="effect-field">
-        <label>Die Amount:</label>
-        <input
-          type="number"
-          min="0"
-          value={effect.dieAmount}
-          onChange={(event) => handleNumberChange(event, 'dieAmount')}
-        />
-      </div>
-
-      {/* Power Level */}
-      <div className="effect-field">
-        <label>Power Level:</label>
-        <select
-          value={effect.powerLevel}
-          onChange={(event) => handleNumberChange(event, 'powerLevel')}
-        >
-          {values.powerLevelModifiers.map((powerModifier, powerIndex) => (
-            <option key={powerIndex} value={powerIndex}>
-              {`Index ${powerIndex} => x${powerModifier}`}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Frequency */}
-      <div className="effect-field">
-        <label>Frequency:</label>
-        <select
-          value={effect.frequency}
-          onChange={(event) => handleSelectChange(event, 'frequency')}
-        >
-          {Object.keys(values.frequencyModifiers).map((freqKey) => (
-            <option key={freqKey} value={freqKey}>
-              {freqKey}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Complexity */}
-      <div className="effect-field">
-        <label>Complexity:</label>
-        <select
-          value={effect.complexity}
-          onChange={(event) => handleSelectChange(event, 'complexity')}
-        >
-          {Object.keys(values.complexityModifiers).map((compKey) => (
-            <option key={compKey} value={compKey}>
-              {compKey}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* Render sub-UI */}
+      {renderEffectSpecificUI()}
     </div>
   );
 }

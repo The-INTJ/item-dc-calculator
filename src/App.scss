@@ -12,48 +12,6 @@ $border-radius-medium: 10px;
   margin-bottom: 20px;
 }
 
-.effects-container {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.effect-row {
-  display: grid;
-  grid: 1fr 1fr / 1fr 1fr 1fr;
-  background-color: rgb(0, 166, 255, 0.5);
-  border-radius: 20px;
-  width: 370px;
-}
-
-.effect-field {
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-}
-
-.effect-field label {
-  margin-right: 5px;
-  font-weight: bold;
-}
-
-.effect-field select {
-  width: 100%;
-  padding: 5px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
-
-.effect-field input {
-  width: 90%;
-  padding: 5px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
-
-
-.add-effect-btn,
 .toggle-breakdown-btn {
   margin-right: 10px;
   margin-bottom: 10px;

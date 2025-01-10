@@ -1,8 +1,6 @@
 const values = {
   effectBaseValues: {
-    'Attack mod': 5,
-    'Damage mod': 5,
-    'AC mod': 8,
+    'Dice attack damage': 5,
     'Save bonus': 6,
     'Move speed': 10,
     'Fly speed': 20,
@@ -33,7 +31,7 @@ const values = {
     usable: 1.25,
     situational: 1.0,
   },
-  dieBonusValues: [6, 8, 10, 12, 20],
+  dieBonusValues: [16, 18, 20, 22, 30],
   shardValues: [
     { shardColor: 'Blue',   shardValue:  1 },
     { shardColor: 'Red',  shardValue: 2 },
@@ -52,8 +50,8 @@ const values = {
 export default values;
 
 export const defaultEffectState = {
-    effectType: 'Attack mod',
-    baseValue: values.effectBaseValues['Attack mod'],
+    effectType: 'Dice attack damage',
+    baseValue: values.effectBaseValues['Dice attack damage'],
     dieValue: values.dieBonusValues[0],
     dieAmount: 0,
     powerLevel: 0,      // index in powerLevelModifiers

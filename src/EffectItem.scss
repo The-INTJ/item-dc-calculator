@@ -1,0 +1,40 @@
+.effects-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.effect-item {
+    display: grid;
+    grid-template-rows: auto auto;
+    grid-template-columns: auto auto auto;
+    background-color: rgba(0, 166, 255, 0.5);
+    border-radius: 20px;
+}
+
+.effect-field {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+
+    label {
+        margin-right: 5px;
+        font-weight: bold;
+        width: 100%;
+    }
+
+    select {
+        width: min-content;
+        padding: 5px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+
+    input {
+        padding: 5px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        width: min-content;
+    }
+}
