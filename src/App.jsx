@@ -10,22 +10,18 @@ import { calculateBaseDC } from './dcCalculations';
 import EffectSection from './EffectSection';
 import ShardSection from './ShardSection';
 import PlayerChance from './PlayerChance';
+import TitleBar from './Header/TitleBar';
 
 /**
  * Main Application
  */
 function App() {
-  // --------------------------------------
-  // Effects State
-  // --------------------------------------
+
   const [effects, setEffects] = useState([
     // We'll initialize with one effect
     defaultEffectState
   ]);
 
-  // --------------------------------------
-  // Shards State
-  // --------------------------------------
   const initialShardState = values.shardValues.map((shardObject) => {
     return {
       shardColor: shardObject.shardColor,
@@ -35,20 +31,11 @@ function App() {
   });
   const [shardCounts, setShardCounts] = useState(initialShardState);
 
-  // --------------------------------------
-  // Player Modifier
-  // --------------------------------------
   const [playerModifier, setPlayerModifier] = useState(0);
 
-  // --------------------------------------
-  // Calculate final DC using our helper
-  // --------------------------------------
   const baseDC = calculateBaseDC(effects);
   const finalDC = baseDC; // In your new specs, shards do not affect DC
 
-  // --------------------------------------
-  // Handlers
-  // --------------------------------------
   function handleShardCountChange(shardIndex, newCountString) {
     const newShardCounts = [...shardCounts];
     newShardCounts[shardIndex] = {
@@ -63,9 +50,6 @@ function App() {
     setPlayerModifier(newModifierValue);
   }
 
-  // --------------------------------------
-  // Optional: DC Breakdown
-  // --------------------------------------
   // We'll compute a small breakdown for the effects only
   function renderEffectsBreakdown() {
     return effects.map((currentEffect, index) => {
@@ -85,9 +69,14 @@ function App() {
     });
   }
 
+   function handleSave() {
+    // Example: pop up an alert or do your actual save logic
+    alert('Saving the current item...');
+  }
+
   return (
     <div className="App-container">
-      <h1 className="dc-display">Final DC: {finalDC.toFixed(2)}</h1>
+      <TitleBar finalDC={finalDC} onSave={handleSave} />
 
       {/* Effects Section */}
       <EffectSection effects={effects} setEffects={setEffects} />

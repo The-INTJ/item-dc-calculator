@@ -1,0 +1,6 @@
+.effect-item {
+    &.sword-1, &.sword-2, &.sword-3, *.armor-1, &.armor-2, &.armor-3 {
+        grid: auto / auto auto;
+        height: fit-content;
+    }
+}

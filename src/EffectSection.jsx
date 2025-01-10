@@ -12,27 +12,38 @@ import values, { defaultEffectState } from './values';
  *   setEffects: function(newEffectsArray) => void
  */
 function EffectSection({ effects, setEffects }) {
-  // Default shape for a new Effect
-  const defaultEffect = defaultEffectState;
 
   function handleEffectChange(effectIndex, fieldName, newValue) {
+    // Make a shallow copy of the effects array
     const clonedEffects = [...effects];
+
+    // If the user wants to delete this effect, remove it and return
+    if (fieldName === 'effectType' && newValue === 'delete') {
+      clonedEffects.splice(effectIndex, 1);
+      setEffects(clonedEffects);
+      return;
+    }
+
+    // Otherwise, update the specified effect
     const effectToUpdate = { ...clonedEffects[effectIndex] };
 
     if (fieldName === 'effectType') {
-      // Update effectType and baseValue at the same time
+      // Update effectType and baseValue together
       effectToUpdate.effectType = newValue;
       effectToUpdate.baseValue = values.effectBaseValues[newValue];
     } else {
+      // Just change the single field
       effectToUpdate[fieldName] = newValue;
     }
 
+    // Place the updated effect back into the array
     clonedEffects[effectIndex] = effectToUpdate;
     setEffects(clonedEffects);
   }
 
+
   function addNewEffect() {
-    setEffects([...effects, defaultEffect]);
+    setEffects([...effects, defaultEffectState]);
   }
 
   return (

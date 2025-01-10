@@ -1,7 +1,7 @@
 // /Effects/ResistanceUI.js
 
 import React from 'react';
-import { ValueInput, FrequencyPicker } from './Common';
+import { ComplexityPicker, DurationPicker, FrequencyPicker, ResistancePicker } from './Common';
 
 /**
  * Resistance effect requires:
@@ -11,14 +11,21 @@ import { ValueInput, FrequencyPicker } from './Common';
 function ResistanceUI({ effect, onEffectFieldChange }) {
   return (
     <div className="resistance-ui">
-      <ValueInput
-        label="Resistance Value"
-        value={effect.value || 0}
+      <ResistancePicker
+        value={effect.resistanceType}
         onChange={(val) => onEffectFieldChange('value', val)}
       />
       <FrequencyPicker
         value={effect.frequency}
         onChange={(val) => onEffectFieldChange('frequency', val)}
+      />
+      <DurationPicker
+        value={effect.duration}
+        onChange={(val) => onEffectFieldChange('duration', val)}
+      />
+      <ComplexityPicker
+        value={effect.complexity}
+        onChange={(val) => onEffectFieldChange('complexity', val)}
       />
     </div>
   );

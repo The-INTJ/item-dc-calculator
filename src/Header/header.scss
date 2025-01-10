@@ -1,0 +1,40 @@
+/* header.scss */
+.title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 1rem 0;
+}
+
+.title-bar-left,
+.title-bar-right {
+  display: flex;
+  align-items: center;
+}
+
+.dc-display {
+  margin: 0 1rem;
+}
+
+/* modal.scss */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* or some high value */
+}
+
+.modal-content {
+  background: #fff;
+  padding: 1rem;
+  border-radius: 4px;
+  min-width: 300px;
+  max-height: 80vh;
+  overflow-y: auto; /* optional scroll if needed */
+}

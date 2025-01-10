@@ -1,5 +1,6 @@
 // EffectItem.js
 import './EffectItem.scss';
+import './Effects/Effects.scss';
 
 // Import each sub-component
 import DiceDamageAttackUI from './Effects/DiceDamageAttackUI';
@@ -65,15 +66,9 @@ function EffectItem({ effect, onEffectChange, index }) {
           />
         );
       case 'Resistance':
-        return (
-          <ResistanceUI
-            effect={effect}
-            onEffectFieldChange={handleFieldChange}
-          />
-        );
       case 'Immunity':
         return (
-          <ImmunityUI
+          <ResistanceUI
             effect={effect}
             onEffectFieldChange={handleFieldChange}
           />
@@ -94,12 +89,12 @@ function EffectItem({ effect, onEffectChange, index }) {
             onEffectFieldChange={handleFieldChange}
           />
         );
-      case '+1 Sword':
-      case '+1 Armor':
-      case '+2 Sword':
-      case '+2 Armor':
-      case '+3 Sword':
-      case '+3 Armor':
+      case 'Sword +1':
+      case 'Armor +1':
+      case 'Sword +2':
+      case 'Armor +2':
+      case 'Sword +3':
+      case 'Armor +3':
         return (
           <PlusXItemUI
         effect={effect}
@@ -108,14 +103,14 @@ function EffectItem({ effect, onEffectChange, index }) {
         );
       default:
         // If not recognized, just show nothing or a note
+        // This catches naming errors pretty well too
         return <p>No specialized UI for this effect type.</p>;
     }
   }
 
   return (
-    <div className="effect-item">
+    <div className={`effect-item ${effect.effectType.replace(/\s+/g, '-').replace(/\+/g, '').toLowerCase()}`}>
       <div className="effect-field">
-        <label>Effect Type:</label>
         <label>Effect Type:</label>
         <select
           value={effect.effectType}
@@ -127,10 +122,18 @@ function EffectItem({ effect, onEffectChange, index }) {
             </option>
           ))}
         </select>
+        <label>Cursed?</label>
+        <input
+          type="checkbox"
+          checked={effect.cursed || false}
+          onChange={(e) => handleFieldChange('cursed', e.target.checked)}
+        />
       </div>
 
       {/* Render sub-UI */}
       {renderEffectSpecificUI()}
+      {/* A checkbox "Cursed?" */}
+
     </div>
   );
 }

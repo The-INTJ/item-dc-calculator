@@ -56,12 +56,13 @@ export function FrequencyPicker({ value, onChange }) {
 
 // Value Input (generic numeric input)
 export function ValueInput({ label, value, onChange }) {
+  noZero(value, onChange);
   return (
     <div className="effect-field">
       <label>{label}</label>
       <input
         type="number"
-        min="0"
+        min="1"
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
       />
@@ -101,11 +102,44 @@ export function ComplexityPicker({ value, onChange }) {
   );
 }
 
-// IsArmor Checkbox
+// Resistance Picker
+export function ResistancePicker({ value, onChange }) {
+  console.log('value:', value);
+  return (
+    <div className="effect-field">
+      <label>Type:</label>
+      <select value={value} onChange={(e) => onChange(e.target.value)}>
+        {Object.keys(values.resistanceRarity).map((compKey) => (
+          <option key={compKey} value={compKey}>
+            {compKey}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+// Duration Picker
+export function DurationPicker({ value, onChange }) {
+  return (
+    <div className="effect-field">
+      <label>Duration:</label>
+      <select value={value} onChange={(e) => onChange(e.target.value)}>
+        {Object.keys(values.durationValues).map((compKey) => (
+          <option key={compKey} value={compKey}>
+            {compKey}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+// IsUniversal Checkbox
 export function IsArmorCheckbox({ value, onChange }) {
   return (
     <div className="effect-field">
-      <label>Is Armor?</label>
+      <label>Universal?</label>
       <input
         type="checkbox"
         checked={value === true}
@@ -113,4 +147,14 @@ export function IsArmorCheckbox({ value, onChange }) {
       />
     </div>
   );
+}
+
+/**
+ * Helpers
+ */
+
+function noZero(value, onChange) {
+  if (value < 1) {
+    onChange(1);
+  }
 }
