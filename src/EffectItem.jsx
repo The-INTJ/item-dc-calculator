@@ -1,4 +1,4 @@
-// EffectRow.js
+// EffectItem.js
 
 import React from 'react';
 import values from './values';
@@ -11,7 +11,7 @@ import values from './values';
  *   onEffectChange: function(effectField, newValue) => void
  *   index: the index of this effect in the parent array
  */
-function EffectRow({ effect, onEffectChange, index }) {
+function EffectItem({ effect, onEffectChange, index }) {
   function handleSelectChange(event, fieldName) {
     onEffectChange(index, fieldName, event.target.value);
   }
@@ -111,4 +111,4 @@ function EffectRow({ effect, onEffectChange, index }) {
   );
 }
 
-export default EffectRow;
+export default EffectItem;

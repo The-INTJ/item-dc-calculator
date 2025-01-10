@@ -1,7 +1,7 @@
 // EffectSection.js
 
 import React from 'react';
-import EffectRow from './EffectRow';
+import EffectItem from './EffectItem';
 import values, { defaultEffectState } from './values';
 
 /**
@@ -24,7 +24,7 @@ function EffectSection({ effects, setEffects }) {
       effectToUpdate.effectType = newValue;
       effectToUpdate.baseValue = values.effectBaseValues[newValue];
     } else {
-      // For numeric fields, we might already have done Number() in EffectRow
+      // For numeric fields, we might already have done Number() in EffectItem
       effectToUpdate[fieldName] = newValue;
     }
 
@@ -40,7 +40,7 @@ function EffectSection({ effects, setEffects }) {
     <div className="effects-container">
       {effects.map((currentEffect, index) => {
         return (
-          <EffectRow
+          <EffectItem
             key={index}
             index={index}
             effect={currentEffect}
