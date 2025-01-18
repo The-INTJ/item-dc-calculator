@@ -3,10 +3,11 @@
 import React, { useState } from 'react';
 import './App.scss';
 
-import values, { defaultEffectState } from './values';
+import { defaultEffectState, initialShardState } from './values';
+import { saveEffectsToFile } from './fileManipulations';
 
 // Our custom modules
-import { calculateBaseDC } from './dcCalculations';
+import { calculateFinalDC, calculateEffectDC, calculateEffectSum, calculateEffectCountDC } from './dcCalculations';
 import EffectSection from './EffectSection';
 import ShardSection from './ShardSection';
 import PlayerChance from './PlayerChance';
@@ -18,23 +19,14 @@ import TitleBar from './Header/TitleBar';
 function App() {
 
   const [effects, setEffects] = useState([
-    // We'll initialize with one effect
     defaultEffectState
   ]);
-
-  const initialShardState = values.shardValues.map((shardObject) => {
-    return {
-      shardColor: shardObject.shardColor,
-      shardValue: shardObject.shardValue,
-      count: 0,
-    };
-  });
   const [shardCounts, setShardCounts] = useState(initialShardState);
-
   const [playerModifier, setPlayerModifier] = useState(0);
 
-  const baseDC = calculateBaseDC(effects);
-  const finalDC = baseDC; // In your new specs, shards do not affect DC
+  const baseDC = calculateEffectSum(effects);
+  const effectCountDC = calculateEffectCountDC(effects);
+  const finalDC = calculateFinalDC(effects);
 
   function handleShardCountChange(shardIndex, newCountString) {
     const newShardCounts = [...shardCounts];
@@ -45,20 +37,23 @@ function App() {
     setShardCounts(newShardCounts);
   }
 
+  const handleSave = async () => {
+      try {
+        await saveEffectsToFile(effects);
+        console.log('Effects saved successfully');
+      } catch (error) {
+        console.error('Error saving effects:', error);
+      }
+    };
+
   function handlePlayerModifierChange(event) {
     const newModifierValue = Number(event.target.value);
     setPlayerModifier(newModifierValue);
   }
 
-  // We'll compute a small breakdown for the effects only
   function renderEffectsBreakdown() {
     return effects.map((currentEffect, index) => {
-      const partialDC = 
-        (currentEffect.baseValue 
-          * values.powerLevelModifiers[currentEffect.powerLevel]
-          * values.frequencyModifiers[currentEffect.frequency]
-          * values.complexityModifiers[currentEffect.complexity])
-        + (currentEffect.dieValue * currentEffect.dieAmount);
+      const partialDC = calculateEffectDC(currentEffect);
 
       return (
         <li key={`effect-${index}`}>
@@ -67,11 +62,6 @@ function App() {
         </li>
       );
     });
-  }
-
-   function handleSave() {
-    // Example: pop up an alert or do your actual save logic
-    alert('Saving the current item...');
   }
 
   return (
@@ -100,8 +90,8 @@ function App() {
         <div className="breakdown-container">
           <h2>Calculation Breakdown</h2>
           <ul>{renderEffectsBreakdown()}</ul>
-          <p>+5 DC for each effect: {effects.length * 5}</p>
-          <p><strong>Base DC (with effect additions):</strong> {baseDC.toFixed(2)}</p>
+          <p><strong>Base DC:</strong> {baseDC.toFixed(2)}</p>
+          <p>+5 DC for each new effect past the first: {effectCountDC.toFixed(2)}</p>
           <p><strong>Final DC:</strong> {finalDC.toFixed(2)}</p>
         </div>
     </div>

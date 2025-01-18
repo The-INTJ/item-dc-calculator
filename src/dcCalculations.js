@@ -3,11 +3,10 @@
 import values from './values';
 
 /**
- * Calculates the total DC by summing each effect's DC,
- * then adds +5 for each effect.
+ * Calculates sum of all effects' partial DCs
  */
-export function calculateBaseDC(effectsArray) {
-  let accumulatedDC = 0;
+export function calculateEffectSum(effectsArray) {
+let accumulatedDC = 0;
 
   for (let i = 0; i < effectsArray.length; i++) {
     let effectDC = calculateEffectDC(effectsArray[i]);
@@ -16,18 +15,36 @@ export function calculateBaseDC(effectsArray) {
     }
     accumulatedDC += effectDC;
   }
-
-  // Add +5 per effect, except the first one
-  accumulatedDC += (effectsArray.length - 1) * 5;
-
   return Math.ceil(accumulatedDC);
+}
+
+/**
+ * Calculate additional DC from number of effects
+ */
+export function calculateEffectCountDC(effectsArray) {
+  let accumulatedDC = 0;
+  for (let i = 1; i < effectsArray.length; i++) {
+    // Add +5 per effect, except the first one, and old effects
+    if (effectsArray[i].isNew) {
+      accumulatedDC += 5;
+    }
+  }
+  return Math.ceil(accumulatedDC);
+}
+/**
+ * Calculates the final DC
+ */
+export function calculateFinalDC(effectsArray) {
+  const effectSum = calculateEffectSum(effectsArray);
+  const effectCount = calculateEffectCountDC(effectsArray);
+  return effectSum + effectCount;
 }
 
 /**
  * Routes to a specialized calculation based on effectType.
  * If none is matched, calls the originalEffectDCMethod as a fallback.
  */
-function calculateEffectDC(effect) {
+export function calculateEffectDC(effect) {
   switch (effect.effectType) {
     case 'Dice attack damage':
       return calculateDiceDamageAttackDC(effect);

@@ -1,7 +1,7 @@
 const values = {
   effectBaseValues: {
     'delete': 0,
-    'Sword +1': 5,
+    'Sword +1': 10,
     'Armor +1': 10,
     'Sword +2': 100,
     'Armor +2': 120,
@@ -86,4 +86,13 @@ export const defaultEffectState = {
     duration: 'NA',
     resistanceType: 'Acid',
     cursed: false,
+    isNew: true
   };
+
+export const initialShardState = values.shardValues.map((shardObject) => {
+    return {
+      shardColor: shardObject.shardColor,
+      shardValue: shardObject.shardValue,
+      count: 0,
+    };
+  });

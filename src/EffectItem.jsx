@@ -8,7 +8,6 @@ import SaveBonusUI from './Effects/SaveBonusUI';
 import MoveSpeedUI from './Effects/MoveSpeedUI';
 import FlySpeedUI from './Effects/FlySpeedUI';
 import ResistanceUI from './Effects/ResistanceUI';
-import ImmunityUI from './Effects/ImmunityUI';
 import SpellSlotUI from './Effects/SpellSlotUI';
 import UtilityUI from './Effects/UtilityUI';
 import PlusXItemUI from './Effects/PlusXItemUI';
@@ -109,7 +108,9 @@ function EffectItem({ effect, onEffectChange, index }) {
   }
 
   return (
-    <div className={`effect-item ${effect.effectType.replace(/\s+/g, '-').replace(/\+/g, '').toLowerCase()}`}>
+    <div
+      className={`effect-item ${effect.effectType.replace(/\s+/g, '-').replace(/\+/g, '').toLowerCase()}`}
+    >
       <div className="effect-field">
         <label>Effect Type:</label>
         <select
@@ -125,14 +126,19 @@ function EffectItem({ effect, onEffectChange, index }) {
         <label>Cursed?</label>
         <input
           type="checkbox"
-          checked={effect.cursed || false}
+          checked={effect.cursed}
           onChange={(e) => handleFieldChange('cursed', e.target.checked)}
+        />
+        <label>New Effect?</label>
+        <input
+          type="checkbox"
+          checked={effect.isNew}
+          onChange={(e) => handleFieldChange('isNew', e.target.checked)}
         />
       </div>
 
       {/* Render sub-UI */}
       {renderEffectSpecificUI()}
-      {/* A checkbox "Cursed?" */}
 
     </div>
   );
