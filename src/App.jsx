@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import './App.scss';
 
 import { defaultEffectState, initialShardState } from './values';
-import { saveEffectsToFile } from './fileManipulations';
+import { saveEffectsToFile, loadEffectsFromFile } from './fileManipulations';
 
 // Our custom modules
 import { calculateFinalDC, calculateEffectDC, calculateEffectSum, calculateEffectCountDC } from './dcCalculations';
@@ -46,6 +46,16 @@ function App() {
       }
     };
 
+  const handleLoad = async () => {
+      try {
+        const loadedEffects = await loadEffectsFromFile();
+        setEffects(loadedEffects);
+        console.log('Effects loaded successfully');
+      } catch (error) {
+        console.error('Error loading effects:', error);
+      }
+    };
+
   function handlePlayerModifierChange(event) {
     const newModifierValue = Number(event.target.value);
     setPlayerModifier(newModifierValue);
@@ -66,7 +76,7 @@ function App() {
 
   return (
     <div className="App-container">
-      <TitleBar finalDC={finalDC} onSave={handleSave} />
+      <TitleBar finalDC={finalDC} onSave={handleSave} onLoad={handleLoad} />
 
       {/* Effects Section */}
       <EffectSection effects={effects} setEffects={setEffects} />

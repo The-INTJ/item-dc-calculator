@@ -16,6 +16,16 @@ app.post('/save-effects', (req, res) => {
     res.sendStatus(200);
 });
 
+app.get('/load-effects', (req, res) => {
+    if (fs.existsSync(saveFilePath)) {
+        const effectsJson = fs.readFileSync(saveFilePath, 'utf8');
+        const effects = JSON.parse(effectsJson);
+        res.json(effects);
+    } else {
+        res.status(404).send('File not found');
+    }
+});
+
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });

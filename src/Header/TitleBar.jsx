@@ -11,7 +11,7 @@ import LoadItemModal from './LoadItemModal';
  *   finalDC (number): The calculated DC to display
  *   onSave (function): Handler for saving the item
  */
-function TitleBar({ finalDC, onSave }) {
+function TitleBar({ finalDC, onSave, onLoad }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   function handleOpenModal() {
@@ -46,7 +46,7 @@ function TitleBar({ finalDC, onSave }) {
       </div>
 
       {/* The Modal for loading an item (hidden if !isModalOpen) */}
-      <LoadItemModal isOpen={isModalOpen} onClose={handleCloseModal} />
+      <LoadItemModal isOpen={isModalOpen} onClose={handleCloseModal} onLoad={onLoad} />
     </div>
   );
 }
