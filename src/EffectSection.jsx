@@ -1,6 +1,6 @@
 // EffectSection.js
 
-import React from 'react';
+import { useState } from 'react';
 import EffectItem from './EffectItem';
 import values, { defaultEffectState } from './values';
 
@@ -12,6 +12,9 @@ import values, { defaultEffectState } from './values';
  *   setEffects: function(newEffectsArray) => void
  */
 function EffectSection({ effects, setEffects }) {
+  const [title, setTitle] = useState("My Item Title");
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+
 
   function handleEffectChange(effectIndex, fieldName, newValue) {
     // Make a shallow copy of the effects array
@@ -41,24 +44,43 @@ function EffectSection({ effects, setEffects }) {
     setEffects(clonedEffects);
   }
 
+  function EditableTitle () {
+    return isEditingTitle ? (
+      <input
+        className="editable-title-input"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        onBlur={() => setIsEditingTitle(false)}
+        autoFocus
+      />
+    ) : (
+      <h2 className="editable-title" onClick={() => setIsEditingTitle(true)}>
+        {title}
+      </h2>
+    )
+  }
+
 
   function addNewEffect() {
     setEffects([...effects, defaultEffectState]);
   }
 
   return (
-    <div className="effects-container">
-      {effects.map((currentEffect, index) => (
-        <EffectItem
-          key={index}
-          index={index}
-          effect={currentEffect}
-          onEffectChange={handleEffectChange}
-        />
-      ))}
-      <button className="add-effect-btn" onClick={addNewEffect}>
-        + Add Another Effect
-      </button>
+    <div className="whole-item">
+      <EditableTitle />
+      <div className="effects-container">
+        {effects.map((currentEffect, index) => (
+          <EffectItem
+            key={index}
+            index={index}
+            effect={currentEffect}
+            onEffectChange={handleEffectChange}
+          />
+        ))}
+        <button className="add-effect-btn" onClick={addNewEffect}>
+          + Add Another Effect
+        </button>
+      </div>
     </div>
   );
 }

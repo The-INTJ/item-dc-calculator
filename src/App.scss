@@ -88,3 +88,22 @@ $border-radius-medium: 10px;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
+
+.whole-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.editable-title {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  cursor: pointer;
+}
+
+.editable-title-input {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  border: none;
+  border-bottom: 2px solid #ccc;
+  outline: none;
+}
