@@ -1,0 +1,56 @@
+{
+  "items": [
+    {
+      "name": "Glamdring",
+      "effectsArray": [
+        {
+          "effectType": "Dice attack damage",
+          "baseValue": 0,
+          "dieValue": 6,
+          "dieAmount": 1,
+          "powerLevel": 0,
+          "frequency": "always-on",
+          "complexity": "Always",
+          "universal": false,
+          "duration": "NA",
+          "resistanceType": "Acid",
+          "cursed": false,
+          "isNew": true
+        }
+      ]
+    },
+    {
+      "name": "Lizard",
+      "effectsArray": [
+        {
+          "effectType": "Sword +1",
+          "baseValue": 10,
+          "dieValue": 6,
+          "dieAmount": 1,
+          "powerLevel": 0,
+          "frequency": "always-on",
+          "complexity": "Always",
+          "universal": false,
+          "duration": "NA",
+          "resistanceType": "Acid",
+          "cursed": false,
+          "isNew": true
+        },
+        {
+          "effectType": "Dice attack damage",
+          "baseValue": 0,
+          "dieValue": 6,
+          "dieAmount": 1,
+          "powerLevel": 0,
+          "frequency": "always-on",
+          "complexity": "Always",
+          "universal": false,
+          "duration": "NA",
+          "resistanceType": "Acid",
+          "cursed": false,
+          "isNew": false
+        }
+      ]
+    }
+  ]
+}

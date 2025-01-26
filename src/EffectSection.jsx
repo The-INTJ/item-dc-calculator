@@ -11,8 +11,7 @@ import values, { defaultEffectState } from './values';
  *   effects: Array of effect objects
  *   setEffects: function(newEffectsArray) => void
  */
-function EffectSection({ effects, setEffects }) {
-  const [title, setTitle] = useState("My Item Title");
+function EffectSection({ effects, setEffects, itemName, setItemName }) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
 
 
@@ -48,14 +47,14 @@ function EffectSection({ effects, setEffects }) {
     return isEditingTitle ? (
       <input
         className="editable-title-input"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        value={itemName}
+        onChange={(e) => setItemName(e.target.value)}
         onBlur={() => setIsEditingTitle(false)}
         autoFocus
       />
     ) : (
       <h2 className="editable-title" onClick={() => setIsEditingTitle(true)}>
-        {title}
+        {itemName}
       </h2>
     )
   }

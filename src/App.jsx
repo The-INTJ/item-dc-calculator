@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import './App.scss';
 
 import { defaultEffectState, initialShardState } from './values';
-import { saveEffectsToFile, loadEffectsFromFile } from './fileManipulations';
 
 // Our custom modules
 import { calculateFinalDC, calculateEffectDC, calculateEffectSum, calculateEffectCountDC } from './dcCalculations';
@@ -18,6 +17,7 @@ import TitleBar from './Header/TitleBar';
  */
 function App() {
 
+  const [itemName, setItemName] = useState('Glamdring');
   const [effects, setEffects] = useState([
     defaultEffectState
   ]);
@@ -37,19 +37,32 @@ function App() {
     setShardCounts(newShardCounts);
   }
 
-  const handleSave = async () => {
-      try {
-        await saveEffectsToFile(effects);
-        console.log('Effects saved successfully');
-      } catch (error) {
-        console.error('Error saving effects:', error);
-      }
-    };
+    // Save the item to the server by name
+  async function handleSave() {
+    try {
+      await fetch('http://localhost:3000/save-item', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: itemName,
+          effectsArray: effects,
+        }),
+      });
+      console.log('Item saved successfully.');
+    } catch (error) {
+      console.error('Error saving item:', error);
+    }
+  }
 
-  const handleLoad = async () => {
+  const handleItemLoad = async (item) => {
       try {
-        const loadedEffects = await loadEffectsFromFile();
-        setEffects(loadedEffects);
+        const response = await fetch(`http://localhost:3000/load-item/${item.name}`);
+        if (!response.ok) {
+          throw new Error('Failed to load item');
+        }
+        const loadedItem = await response.json();
+        setEffects(loadedItem.effectsArray);
+        setItemName(loadedItem.name);
         console.log('Effects loaded successfully');
       } catch (error) {
         console.error('Error loading effects:', error);
@@ -76,10 +89,19 @@ function App() {
 
   return (
     <div className="App-container">
-      <TitleBar finalDC={finalDC} onSave={handleSave} onLoad={handleLoad} />
+      <TitleBar 
+        finalDC={finalDC} 
+        handleSave={handleSave} 
+        handleItemLoad={handleItemLoad}
+      />
 
       {/* Effects Section */}
-      <EffectSection effects={effects} setEffects={setEffects} />
+      <EffectSection 
+        effects={effects} 
+        setEffects={setEffects} 
+        itemName={itemName}
+        setItemName={setItemName}
+      />
 
       <div className="player-effects-container">
         {/* Shards Section */}

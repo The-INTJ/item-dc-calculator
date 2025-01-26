@@ -1,7 +1,5 @@
-// TitleBar.jsx
-
 import React, { useState } from 'react';
-import './header.scss';          // <-- New SCSS import
+import './header.scss';          
 import LoadItemModal from './LoadItemModal';
 
 /**
@@ -9,23 +7,17 @@ import LoadItemModal from './LoadItemModal';
  *
  * Props:
  *   finalDC (number): The calculated DC to display
- *   onSave (function): Handler for saving the item
+ *   effectsArray (array): The array of current effects the user wants to save
  */
-function TitleBar({ finalDC, onSave, onLoad }) {
+function TitleBar({ finalDC, handleSave, handleItemLoad }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Open/close the "Load Item" modal
   function handleOpenModal() {
     setIsModalOpen(true);
   }
-
   function handleCloseModal() {
     setIsModalOpen(false);
-  }
-
-  function handleSaveClick() {
-    if (onSave) {
-      onSave();
-    }
   }
 
   return (
@@ -35,18 +27,20 @@ function TitleBar({ finalDC, onSave, onLoad }) {
         <button onClick={handleOpenModal}>Load</button>
       </div>
 
-      {/* Center: Final DC Title */}
+      {/* Center: Final DC Display */}
       <h1 className="dc-display">
         Final DC: {finalDC.toFixed(2)}
       </h1>
 
-      {/* Right: Save Button */}
-      <div className="title-bar-right">
-        <button onClick={handleSaveClick}>Save</button>
-      </div>
 
-      {/* The Modal for loading an item (hidden if !isModalOpen) */}
-      <LoadItemModal isOpen={isModalOpen} onClose={handleCloseModal} onLoad={onLoad} />
+      <button onClick={handleSave}>Save</button>
+
+      {/* LoadItemModal: Hidden unless isModalOpen = true */}
+      <LoadItemModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        handleItemLoad={handleItemLoad}
+      />
     </div>
   );
 }

@@ -1,27 +1,16 @@
-// LoadItemModal.jsx
-
 import React, { useState, useEffect } from 'react';
 
-/**
- * A simple modal to load items.
- *
- * Props:
- *   isOpen (boolean): Whether the modal is visible
- *   onClose (function): Close the modal
- *   onLoad (function): Load the selected item
- */
-function LoadItemModal({ isOpen, onClose, onLoad }) {
+function LoadItemModal({ isOpen, onClose, handleItemLoad }) {
   const [items, setItems] = useState([]);
 
   useEffect(() => {
     if (isOpen) {
-      // Fetch items from the server when the modal opens
       fetchItems();
     }
   }, [isOpen]);
 
   function fetchItems() {
-    fetch('http://localhost:3000/load-effects')
+    fetch('http://localhost:3000/load-items')
       .then(response => response.json())
       .then(data => {
         console.log('Fetched items:', data);
@@ -35,7 +24,7 @@ function LoadItemModal({ isOpen, onClose, onLoad }) {
   }
 
   function handleItemClick(item) {
-    onLoad(item);
+    handleItemLoad(item);  // Pass the entire item (name + effects) back up
     onClose();
   }
 
@@ -47,7 +36,7 @@ function LoadItemModal({ isOpen, onClose, onLoad }) {
           {items.map((item, index) => (
             <li key={index}>
               <button onClick={() => handleItemClick(item)}>
-                {`Item ${index + 1}`}
+                {item.name || `Item ${index + 1}`}
               </button>
             </li>
           ))}

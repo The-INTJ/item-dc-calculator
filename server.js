@@ -1,31 +1,60 @@
 import express from 'express';
-import fs from 'fs';
 import cors from 'cors';
+import { JSONFilePreset } from 'lowdb/node';
 
 const app = express();
 const port = 3000;
-const saveFilePath = './saveFile.txt';
 
-app.use(cors()); // Enable CORS for all routes
+// Create and initialize the database
+const db = await JSONFilePreset('db.json', { items: [] });
+
+app.use(cors());
 app.use(express.json());
 
-app.post('/save-effects', (req, res) => {
-    const effects = req.body;
-    const effectsJson = JSON.stringify(effects, null, 2);
-    fs.writeFileSync(saveFilePath, effectsJson, 'utf8');
-    res.sendStatus(200);
-});
+// -----------------------------------
+// Save (Create/Update) an item by name
+// -----------------------------------
+app.post('/save-item', async (req, res) => {
+  const { name, effectsArray } = req.body;
 
-app.get('/load-effects', (req, res) => {
-    if (fs.existsSync(saveFilePath)) {
-        const effectsJson = fs.readFileSync(saveFilePath, 'utf8');
-        const effects = JSON.parse(effectsJson);
-        res.json(effects);
+  await db.update(({ items }) => {
+    // Check if the item already exists
+    const existingItemIndex = items.findIndex((item) => item.name === name);
+
+    if (existingItemIndex >= 0) {
+      // Update existing item
+      items[existingItemIndex].effectsArray = effectsArray;
     } else {
-        res.status(404).send('File not found');
+      // Add new item
+      items.push({ name, effectsArray });
     }
+  });
+
+  res.sendStatus(200);
 });
 
+// -----------------------------------
+// Load all items
+// -----------------------------------
+app.get('/load-items', async (req, res) => {
+  const { items } = db.data;
+  res.json(items);
+});
+
+// (Optional) Load a single item by name
+app.get('/load-item/:name', async (req, res) => {
+  const { name } = req.params;
+  const { items } = db.data;
+
+  const item = items.find((item) => item.name === name);
+  if (!item) {
+    return res.status(404).send('Item not found');
+  }
+
+  res.json(item);
+});
+
+// Start the server
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server running at http://localhost:${port}`);
 });
