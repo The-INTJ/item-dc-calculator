@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './Effects.scss';
 
-function Description(effect, onDescriptionChange) {
+function Description({effect, onEffectFieldChange}) {
     const [isEditingTitle, setIsEditingTitle] = useState(false);
 
     const Editable = () => {
@@ -9,13 +9,16 @@ function Description(effect, onDescriptionChange) {
       <input
         className="editable-title"
         value={effect.description}
-        onChange={(e) => onDescriptionChange('description', e.target.value)}
+        onChange={(e) => onEffectFieldChange('description', e.target.value)}
         onBlur={() => setIsEditingTitle(false)}
         autoFocus
       />
     ) : (
-      <p className="editable-title" onClick={() => setIsEditingTitle(true)} onFocus={() => setIsEditingTitle(true)}>
-        {effect.description}
+      <p className="editable-title" 
+        onClick={() => setIsEditingTitle(true)} 
+        onFocus={() => setIsEditingTitle(true)}
+      >
+        {effect.description || 'And some things that should not have been forgotten... were lost.'}
       </p>
     );
 }

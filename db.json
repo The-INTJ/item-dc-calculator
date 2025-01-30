@@ -119,7 +119,8 @@
           "duration": "NA",
           "resistanceType": "Acid",
           "cursed": false,
-          "isNew": true
+          "isNew": true,
+          "description": "advantage on investigation"
         },
         {
           "effectType": "Low utility",
@@ -133,7 +134,8 @@
           "duration": "NA",
           "resistanceType": "Acid",
           "cursed": false,
-          "isNew": false
+          "isNew": false,
+          "description": "activate to shine light"
         },
         {
           "effectType": "Armor +2",
@@ -147,7 +149,8 @@
           "duration": "NA",
           "resistanceType": "Acid",
           "cursed": false,
-          "isNew": false
+          "isNew": false,
+          "description": "standard armor"
         }
       ]
     }

@@ -147,8 +147,8 @@ function EffectItem({ effect, onEffectChange, index }) {
       {renderEffectSpecificUI()}
 
       <Description
-        description={effect.description || 'I find your lack of description disturbing.'}
-        onChange={handleFieldChange}
+        effect={effect}
+        onEffectFieldChange={handleFieldChange}
       />
     </div>
   );
