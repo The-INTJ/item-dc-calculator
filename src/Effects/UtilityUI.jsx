@@ -6,7 +6,8 @@ import {
   DieAmountPicker,
   FrequencyPicker,
   ComplexityPicker,
-  PowerLevelPicker
+  PowerLevelPicker,
+  Checkbox
 } from './Common';
 
 /**

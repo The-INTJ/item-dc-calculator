@@ -1,6 +1,5 @@
 // PlayerChance.js
 
-import React from 'react';
 import {
   calculateD20Rolls,
   calculateDistinctShardColorsUsed,
@@ -43,7 +42,7 @@ function PlayerChance({ shardCounts, playerModifier, onPlayerModifierChange, tot
         <br />
         <strong>Distinct Shard Colors Used:</strong> {distinctColorsUsed}
         <br />
-        <strong>Player Modifier:</strong> {playerModifier}
+        <strong>Player Modifier:</strong>   {playerModifier}
         <br />
         <strong>Player Chance Formula:</strong> 
         {' '} Total DC - ((d20 rolls × 10) - 10) + ((modifier × distinct colors) - modifier)

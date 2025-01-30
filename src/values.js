@@ -8,7 +8,6 @@ const values = {
     'Sword +3': 200,
     'Armor +3': 240,
     'Dice attack damage': 0,
-    'Save bonus': 6,
     'Move speed': 10,
     'Fly speed': 20,
     'Resistance': 15,
@@ -34,7 +33,7 @@ const values = {
     'When equipped and activated': 1.25,
     situational: 1.0,
   },
-  dieBonusValues: [6, 8, 10, 12, 20],
+  dieBonusValues: [4, 6, 8, 10, 12, 20],
   resistanceRarity: {
     'Acid': 15,
     'Cold': 15,
@@ -84,13 +83,15 @@ export const defaultEffectState = {
     powerLevel: 0,      // index in powerLevelModifiers
     frequency: 'Always',
     complexity: 'Always',
-    universal: false,
     duration: 'NA',
     resistanceType: 'Acid',
     cursed: false,
     isNew: true,
     scalesWithLevel: false,
-    nonCaster: false,
+    caster: true,
+    unarmed: false,
+    outsideClass: false,
+    description: 'Effect description here',
   };
 
 export const initialShardState = values.shardValues.map((shardObject) => {

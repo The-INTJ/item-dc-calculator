@@ -1,7 +1,7 @@
 // /Effects/DiceDamageAttackUI.js
 
 import React from 'react';
-import { DieValuePicker, DieAmountPicker, FrequencyPicker } from './Common';
+import { DieValuePicker, DieAmountPicker, FrequencyPicker, Checkbox } from './Common';
 
 /**
  * Dice Damage Attack effect requires:
@@ -23,6 +23,11 @@ function DiceDamageAttackUI({ effect, onEffectFieldChange }) {
       <FrequencyPicker
         value={effect.frequency}
         onChange={(val) => onEffectFieldChange('frequency', val)}
+      />
+      <Checkbox
+        label="Unarmed?"
+        value={effect.unarmed}
+        onChange={(val) => onEffectFieldChange('unarmed', val)}
       />
     </div>
   );

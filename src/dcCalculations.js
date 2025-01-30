@@ -4,6 +4,7 @@ import values from './values';
 
 /**
  * Calculates sum of all effects' partial DCs
+ * Calculate global effect changes here
  */
 export function calculateEffectSum(effectsArray) {
 let accumulatedDC = 0;
@@ -12,6 +13,9 @@ let accumulatedDC = 0;
     let effectDC = calculateEffectDC(effectsArray[i]);
     if (effectsArray[i].cursed) {
       effectDC = -Math.abs(effectDC); // Make the effect negative if cursed
+    }
+    if (effectsArray[i].outsideClass) {
+      effectDC += 20; // Effectively requires an additional shard investment from another class
     }
     accumulatedDC += effectDC;
   }
@@ -91,15 +95,9 @@ function calculateDiceDamageAttackDC(effect) {
   if (partialDC > 0) {
     partialDC -= 14; // Magic amount that puts the DC for 1d6 in a good spot
   }
-  return partialDC;
-}
-
-function calculateSaveBonusDC(effect) {
-  // Very similar to DiceDamageAttack
-  const freqMod = getFrequencyMod(effect.frequency);
-  const dice = calculateDiceContribution(effect.dieValue, effect.dieAmount);
-
-  const partialDC = (effect.baseValue * freqMod) + dice;
+  if (effect.unarmed) {
+    partialDC *= 1.65;
+  }
   return partialDC;
 }
 
@@ -137,16 +135,20 @@ function calculateSpellSlotDC(effect) {
   const freqMod = getFrequencyMod(effect.frequency);
   const compMod = getComplexityMod(effect.complexity);
 
+  let partialDC = 0;
+
   if (effect.effectType === 'Cantrip') {
-    console.log('Calculating Cantrip DC');
     const scalesWithLevel = effect.scalesWithLevel ? 5 : 0;
     const alwaysChangeable = effect.frequency === 'Always' ? 50 : 0;
-    const partialDC = effect.baseValue + scalesWithLevel + alwaysChangeable;
-    return partialDC * pwrMod * freqMod * compMod;
+    partialDC = effect.baseValue + scalesWithLevel + alwaysChangeable;
+    partialDC *= freqMod * compMod;
   } else {
-    const partialDC = effect.baseValue * pwrMod * freqMod * compMod;
-    return partialDC;
+    partialDC = effect.baseValue * pwrMod * freqMod * compMod;
   }
+
+  partialDC += effect.caster ? 0 : 20; // additional shard investment from non-caster
+
+  return partialDC;
 }
 
 function calculateUtilityDC(effect) {
@@ -162,9 +164,6 @@ function calculateUtilityDC(effect) {
 }
 
 function calculatePlusXItemDC(effect) {
-  if (effect.universal) {
-    return effect.baseValue * 2;
-  }
   return effect.baseValue;
 }
 

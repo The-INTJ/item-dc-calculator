@@ -11,8 +11,10 @@ import ResistanceUI from './Effects/ResistanceUI';
 import SpellSlotUI from './Effects/SpellSlotUI';
 import UtilityUI from './Effects/UtilityUI';
 import PlusXItemUI from './Effects/PlusXItemUI';
+import { Checkbox } from './Effects/Common';
 
 import values from './values';
+import Description from './Effects/Description';
 
 /**
  * Renders the correct UI for the chosen effectType.
@@ -124,23 +126,30 @@ function EffectItem({ effect, onEffectChange, index }) {
             </option>
           ))}
         </select>
-        <label>Cursed?</label>
-        <input
-          type="checkbox"
-          checked={effect.cursed}
-          onChange={(e) => handleFieldChange('cursed', e.target.checked)}
+        <Checkbox
+          label="Cursed?"
+          value={effect.cursed}
+          onChange={(val) => handleFieldChange('cursed', val)}
         />
-        <label>New Effect?</label>
-        <input
-          type="checkbox"
-          checked={effect.isNew}
-          onChange={(e) => handleFieldChange('isNew', e.target.checked)}
+        <Checkbox
+          label="New Effect?"
+          value={effect.isNew}
+          onChange={(val) => handleFieldChange('isNew', val)}
+        />
+        <Checkbox
+          label="Non-class ability?"
+          value={effect.outsideClass}
+          onChange={(val) => handleFieldChange('outsideClass', val)}
         />
       </div>
 
       {/* Render sub-UI */}
       {renderEffectSpecificUI()}
 
+      <Description
+        description={effect.description || 'I find your lack of description disturbing.'}
+        onChange={handleFieldChange}
+      />
     </div>
   );
 }

@@ -137,10 +137,10 @@ export function DurationPicker({ value, onChange }) {
 
 // Universal Checkbox
 
-export function Checkbox({ value, onChange, title }) {
+export function Checkbox({ value, onChange, label }) {
   return (
     <div className="effect-field">
-      <label>{title}</label>
+      <label>{label}</label>
       <input
         type="checkbox"
         checked={value === true}
