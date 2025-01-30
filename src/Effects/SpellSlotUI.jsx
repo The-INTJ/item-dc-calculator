@@ -4,7 +4,8 @@ import React from 'react';
 import {
   PowerLevelPicker,
   FrequencyPicker,
-  ComplexityPicker
+  ComplexityPicker,
+  Checkbox
 } from './Common';
 
 /**
@@ -14,6 +15,7 @@ import {
  * - Complexity
  */
 function SpellSlotUI({ effect, onEffectFieldChange }) {
+  const isCantrip = effect.effectType === 'Cantrip';
   return (
     <div className="spell-slot-ui">
       <PowerLevelPicker
@@ -23,10 +25,16 @@ function SpellSlotUI({ effect, onEffectFieldChange }) {
       <FrequencyPicker
         value={effect.frequency}
         onChange={(val) => onEffectFieldChange('frequency', val)}
+        optionalTitle={isCantrip && 'Change Cantrip:'}
       />
       <ComplexityPicker
         value={effect.complexity}
         onChange={(val) => onEffectFieldChange('complexity', val)}
+      />
+      <Checkbox
+        value={effect.scalesWithLevel}
+        onChange={(val) => onEffectFieldChange('scalesWithLevel', val)}
+        title="Scales with Level"
       />
     </div>
   );

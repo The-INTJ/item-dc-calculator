@@ -73,6 +73,7 @@ function EffectItem({ effect, onEffectChange, index }) {
           />
         );
       case 'Spell slot':
+      case 'Cantrip':
         return (
           <SpellSlotUI
             effect={effect}

@@ -39,10 +39,10 @@ export function DieAmountPicker({ value, onChange }) {
 }
 
 // Frequency Picker
-export function FrequencyPicker({ value, onChange }) {
+export function FrequencyPicker({ value, onChange, optionalTitle }) {
   return (
     <div className="effect-field">
-      <label>Frequency:</label>
+      <label>{optionalTitle || "Frequency:"}</label>
       <select value={value} onChange={(e) => onChange(e.target.value)}>
         {Object.keys(values.frequencyModifiers).map((freqKey) => (
           <option key={freqKey} value={freqKey}>
@@ -90,7 +90,7 @@ export function PowerLevelPicker({ value, onChange }) {
 export function ComplexityPicker({ value, onChange }) {
   return (
     <div className="effect-field">
-      <label>Complexity:</label>
+      <label>Useable:</label>
       <select value={value} onChange={(e) => onChange(e.target.value)}>
         {Object.keys(values.complexityModifiers).map((compKey) => (
           <option key={compKey} value={compKey}>
@@ -135,11 +135,12 @@ export function DurationPicker({ value, onChange }) {
   );
 }
 
-// IsUniversal Checkbox
-export function IsArmorCheckbox({ value, onChange }) {
+// Universal Checkbox
+
+export function Checkbox({ value, onChange, title }) {
   return (
     <div className="effect-field">
-      <label>Universal?</label>
+      <label>{title}</label>
       <input
         type="checkbox"
         checked={value === true}

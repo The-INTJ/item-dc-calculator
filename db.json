@@ -51,6 +51,105 @@
           "isNew": false
         }
       ]
+    },
+    {
+      "name": "Helmet of AC",
+      "effectsArray": [
+        {
+          "effectType": "Armor +2",
+          "baseValue": 120,
+          "dieValue": 6,
+          "dieAmount": 0,
+          "powerLevel": 0,
+          "frequency": "always-on",
+          "complexity": "Always",
+          "universal": false,
+          "duration": "NA",
+          "resistanceType": "Acid",
+          "cursed": false,
+          "isNew": true
+        }
+      ]
+    },
+    {
+      "name": "Monocle",
+      "effectsArray": [
+        {
+          "effectType": "Low utility",
+          "baseValue": 10,
+          "dieValue": 6,
+          "dieAmount": 0,
+          "powerLevel": 0,
+          "frequency": "always-on",
+          "complexity": "Always",
+          "universal": false,
+          "duration": "NA",
+          "resistanceType": "Acid",
+          "cursed": false,
+          "isNew": true
+        },
+        {
+          "effectType": "Low utility",
+          "baseValue": 10,
+          "dieValue": 6,
+          "dieAmount": 0,
+          "powerLevel": 0,
+          "frequency": "always-on",
+          "complexity": "situational",
+          "universal": false,
+          "duration": "NA",
+          "resistanceType": "Acid",
+          "cursed": false,
+          "isNew": true
+        }
+      ]
+    },
+    {
+      "name": "Monocle Combined",
+      "effectsArray": [
+        {
+          "effectType": "Low utility",
+          "baseValue": 10,
+          "dieValue": 6,
+          "dieAmount": 0,
+          "powerLevel": 0,
+          "frequency": "always-on",
+          "complexity": "Always",
+          "universal": false,
+          "duration": "NA",
+          "resistanceType": "Acid",
+          "cursed": false,
+          "isNew": true
+        },
+        {
+          "effectType": "Low utility",
+          "baseValue": 10,
+          "dieValue": 6,
+          "dieAmount": 0,
+          "powerLevel": 0,
+          "frequency": "always-on",
+          "complexity": "situational",
+          "universal": false,
+          "duration": "NA",
+          "resistanceType": "Acid",
+          "cursed": false,
+          "isNew": false
+        },
+        {
+          "effectType": "Armor +2",
+          "baseValue": 120,
+          "dieValue": 6,
+          "dieAmount": 0,
+          "powerLevel": 0,
+          "frequency": "always-on",
+          "complexity": "Always",
+          "universal": false,
+          "duration": "NA",
+          "resistanceType": "Acid",
+          "cursed": false,
+          "isNew": false
+        }
+      ]
     }
   ]
 }

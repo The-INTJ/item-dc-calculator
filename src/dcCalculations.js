@@ -59,6 +59,7 @@ export function calculateEffectDC(effect) {
     case 'Immunity':
       return calculateImmunityDC(effect);
     case 'Spell slot':
+    case 'Cantrip':
       return calculateSpellSlotDC(effect);
     case 'Low utility':
     case 'Medium utility':
@@ -131,13 +132,21 @@ function calculateImmunityDC(effect) {
 }
 
 function calculateSpellSlotDC(effect) {
-  // Spell Slot uses powerLevel, frequency, complexity, baseValue
+  // Both use powerLevel, frequency, complexity, baseValue
   const pwrMod = getPowerLevelMod(effect.powerLevel);
   const freqMod = getFrequencyMod(effect.frequency);
   const compMod = getComplexityMod(effect.complexity);
 
-  const partialDC = effect.baseValue * pwrMod * freqMod * compMod;
-  return partialDC;
+  if (effect.effectType === 'Cantrip') {
+    console.log('Calculating Cantrip DC');
+    const scalesWithLevel = effect.scalesWithLevel ? 5 : 0;
+    const alwaysChangeable = effect.frequency === 'Always' ? 50 : 0;
+    const partialDC = effect.baseValue + scalesWithLevel + alwaysChangeable;
+    return partialDC * pwrMod * freqMod * compMod;
+  } else {
+    const partialDC = effect.baseValue * pwrMod * freqMod * compMod;
+    return partialDC;
+  }
 }
 
 function calculateUtilityDC(effect) {
