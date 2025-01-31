@@ -11,6 +11,7 @@ import EffectSection from './EffectSection';
 import ShardSection from './ShardSection';
 import PlayerChance from './PlayerChance';
 import TitleBar from './Header/TitleBar';
+import { db } from './server';
 
 /**
  * Main Application
@@ -37,17 +38,10 @@ function App() {
     setShardCounts(newShardCounts);
   }
 
-    // Save the item to the server by name
+  // Save the item to localStorage by name
   async function handleSave() {
     try {
-      const response = await fetch('http://localhost:3000/save-item', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: itemName,
-          effectsArray: effects,
-        }),
-      });
+      const response = await db.saveItem(itemName, effects);
       console.log('Item saved successfully');
       return response;
     } catch (error) {
@@ -56,20 +50,20 @@ function App() {
     }
   }
 
-  const handleItemLoad = async (item: {name: string, effectsArray: Effect[]}) => {
-      try {
-        const response = await fetch(`http://localhost:3000/load-item/${item.name}`);
-        if (!response.ok) {
-          throw new Error('Failed to load item');
-        }
-        const loadedItem = await response.json();
-        setEffects(loadedItem.effectsArray);
-        setItemName(loadedItem.name);
-        console.log('Effects loaded successfully');
-      } catch (error) {
-        console.error('Error loading effects:', error);
+  // Load a specific item from localStorage
+  const handleItemLoad = async (item: { name: string; effectsArray: any[] }) => {
+    try {
+      const response = await db.loadItem(item.name);
+      if (response.status !== 200) {
+        throw new Error('Failed to load item');
       }
-    };
+      setEffects(response.item.effectsArray);
+      setItemName(response.item.name);
+      console.log('Effects loaded successfully');
+    } catch (error) {
+      console.error('Error loading effects:', error);
+    }
+  };
 
   function handlePlayerModifierChange(event: React.ChangeEvent<HTMLInputElement>) {
     const newModifierValue = Number(event.target.value);

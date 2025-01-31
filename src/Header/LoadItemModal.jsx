@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { db } from '../server';
 
 function LoadItemModal({ isOpen, onClose, handleItemLoad }) {
   const [items, setItems] = useState([]);
@@ -9,14 +10,17 @@ function LoadItemModal({ isOpen, onClose, handleItemLoad }) {
     }
   }, [isOpen]);
 
-  function fetchItems() {
-    fetch('http://localhost:3000/load-items')
-      .then(response => response.json())
-      .then(data => {
-        console.log('Fetched items:', data);
-        setItems(data);
-      })
-      .catch(error => console.error('Error fetching items:', error));
+  async function fetchItems() {
+    try {
+      const response = await db.loadAllItems();
+      if (response.status === 200) {
+        setItems(response.items);
+      } else {
+        console.error('Error fetching items:', response.message);
+      }
+    } catch (error) {
+      console.error('Error fetching items:', error);
+    }
   }
 
   if (!isOpen) {
