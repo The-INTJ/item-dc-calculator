@@ -208,6 +208,65 @@
           "description": "Once per day, may force all enemies within 30 feet to make a DC 14 CHA save, or be frightened for 1 minute"
         }
       ]
+    },
+    {
+      "name": "Hatred's Shard",
+      "effectsArray": [
+        {
+          "effectType": "Sword +3",
+          "baseValue": 200,
+          "dieValue": 4,
+          "dieAmount": 0,
+          "powerLevel": 0,
+          "frequency": "Short-rest",
+          "complexity": "situational",
+          "duration": "NA",
+          "resistanceType": "Acid",
+          "cursed": false,
+          "isNew": true,
+          "scalesWithLevel": false,
+          "caster": true,
+          "unarmed": false,
+          "outsideClass": false,
+          "description": "Tier 3 Sword"
+        },
+        {
+          "effectType": "High utility",
+          "baseValue": 30,
+          "dieValue": 4,
+          "dieAmount": 0,
+          "powerLevel": 0,
+          "frequency": "Always",
+          "complexity": "When Equipped",
+          "duration": "NA",
+          "resistanceType": "Acid",
+          "cursed": false,
+          "isNew": true,
+          "scalesWithLevel": false,
+          "caster": true,
+          "unarmed": false,
+          "outsideClass": false,
+          "description": "On any successful attack, you may chose to lose health. Deal double that in magic damage."
+        },
+        {
+          "effectType": "Medium utility",
+          "baseValue": 17,
+          "dieValue": 6,
+          "dieAmount": 2,
+          "powerLevel": 0,
+          "frequency": "Always",
+          "complexity": "situational",
+          "duration": "NA",
+          "resistanceType": "Acid",
+          "cursed": false,
+          "isNew": true,
+          "scalesWithLevel": false,
+          "caster": true,
+          "unarmed": false,
+          "outsideClass": false,
+          "description": "If you have emotional ties to the target, deal 2d6 extra damage"
+        }
+      ]
     }
   ]
 }

@@ -15,7 +15,7 @@ function Description({effect, onEffectFieldChange}) {
       />
     ) : (
       <p className="editable-description" onClick={() => setIsEditingDescription(true)} onFocus={() => setIsEditingDescription(true)}>
-        {effect.description}
+        {effect.description || 'Your lack of description is disturbing...'}
       </p>
     );
 }
