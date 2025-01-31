@@ -153,6 +153,61 @@
           "description": "standard armor"
         }
       ]
+    },
+    {
+      "name": "Helm of the Dominator",
+      "effectsArray": [
+        {
+          "effectType": "Armor +1",
+          "baseValue": 10,
+          "dieValue": 6,
+          "dieAmount": 1,
+          "powerLevel": 0,
+          "frequency": "always-on",
+          "complexity": "Always",
+          "universal": false,
+          "duration": "NA",
+          "resistanceType": "Acid",
+          "cursed": false,
+          "isNew": true
+        },
+        {
+          "effectType": "High utility",
+          "baseValue": 30,
+          "dieValue": 4,
+          "dieAmount": 0,
+          "powerLevel": 0,
+          "frequency": "Always",
+          "complexity": "When Equipped",
+          "duration": "NA",
+          "resistanceType": "Acid",
+          "cursed": false,
+          "isNew": true,
+          "scalesWithLevel": false,
+          "caster": true,
+          "unarmed": false,
+          "outsideClass": false,
+          "description": "Advantage on intimidation"
+        },
+        {
+          "effectType": "Medium utility",
+          "baseValue": 17,
+          "dieValue": 4,
+          "dieAmount": 0,
+          "powerLevel": 0,
+          "frequency": "Once-daily",
+          "complexity": "When equipped and activated",
+          "duration": "NA",
+          "resistanceType": "Acid",
+          "cursed": false,
+          "isNew": true,
+          "scalesWithLevel": false,
+          "caster": true,
+          "unarmed": false,
+          "outsideClass": false,
+          "description": "Once per day, may force all enemies within 30 feet to make a DC 14 CHA save, or be frightened for 1 minute"
+        }
+      ]
     }
   ]
 }

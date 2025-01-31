@@ -27,14 +27,14 @@ function EffectSection({ effects, setEffects, itemName, setItemName }) {
     }
 
     // Otherwise, update the specified effect
-    let effectToUpdate;
+    const effectToUpdate = { ...clonedEffects[effectIndex] };
 
     if (fieldName === 'effectType') {
-      // Reset the entire effect and apply the new effectType
-      effectToUpdate = { ...defaultEffectState, effectType: newValue, baseValue: values.effectBaseValues[newValue] };
+      // Update effectType and baseValue together
+      effectToUpdate.effectType = newValue;
+      effectToUpdate.baseValue = values.effectBaseValues[newValue];
     } else {
       // Just change the single field
-      effectToUpdate = { ...clonedEffects[effectIndex] };
       effectToUpdate[fieldName] = newValue;
     }
 

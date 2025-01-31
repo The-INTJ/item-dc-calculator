@@ -11,6 +11,7 @@ import LoadItemModal from './LoadItemModal';
  */
 function TitleBar({ finalDC, handleSave, handleItemLoad }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [saveClass, setSaveClass] = useState('');
 
   // Open/close the "Load Item" modal
   function handleOpenModal() {
@@ -20,6 +21,23 @@ function TitleBar({ finalDC, handleSave, handleItemLoad }) {
     setIsModalOpen(false);
   }
 
+  async function reactToSave() {
+    const response = await handleSave();
+    if (response.status === 200) {
+      setSaveClass('success');
+      // unset it after 1 second
+      setTimeout(() => {
+        setSaveClass('');
+      }, 1000);
+    } else {
+      setSaveClass('fail');
+      // unset it after 1 second
+      setTimeout(() => {
+        setSaveClass('');
+      }, 1000);
+    }
+  }
+
   return (
     <div className="title-bar">
       {/* Left: Load Button */}
@@ -27,15 +45,13 @@ function TitleBar({ finalDC, handleSave, handleItemLoad }) {
         <button onClick={handleOpenModal}>Load</button>
       </div>
 
-      {/* Center: Final DC Display */}
-      <h1 className="dc-display">
-        Final DC: {finalDC.toFixed(2)}
-      </h1>
+        <h1 className="dc-display">
+          Final DC: {finalDC.toFixed(2)}
+        </h1>
 
+        <button className={'save-btn ' + saveClass} onClick={reactToSave}>Save</button>
 
-      <button onClick={handleSave}>Save</button>
-
-      {/* LoadItemModal: Hidden unless isModalOpen = true */}
+        {/* LoadItemModal: Hidden unless isModalOpen = true */}
       <LoadItemModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}

@@ -15,9 +15,9 @@ const values = {
     'Cantrip': 5,
     'Spell slot': 20,
     'Slight utility': 5,
-    'Low utility': 10,
-    'Medium utility': 15,
-    'High utility': 20,
+    'Low utility': 7,
+    'Medium utility': 17,
+    'High utility': 30,
   },
   powerLevelModifiers: [0.5, 1.0, 2, 3, 4, 5, 6, 7, 8, 9],
   frequencyModifiers: {

@@ -2,23 +2,20 @@ import React, { useState } from 'react';
 import './Effects.scss';
 
 function Description({effect, onEffectFieldChange}) {
-    const [isEditingTitle, setIsEditingTitle] = useState(false);
+    const [isEditingDescription, setIsEditingDescription] = useState(false);
 
     const Editable = () => {
-    return isEditingTitle ? (
+    return isEditingDescription ? (
       <input
-        className="editable-title"
+        className="editable-description"
         value={effect.description}
         onChange={(e) => onEffectFieldChange('description', e.target.value)}
-        onBlur={() => setIsEditingTitle(false)}
+        onBlur={() => setIsEditingDescription(false)}
         autoFocus
       />
     ) : (
-      <p className="editable-title" 
-        onClick={() => setIsEditingTitle(true)} 
-        onFocus={() => setIsEditingTitle(true)}
-      >
-        {effect.description || 'And some things that should not have been forgotten... were lost.'}
+      <p className="editable-description" onClick={() => setIsEditingDescription(true)} onFocus={() => setIsEditingDescription(true)}>
+        {effect.description}
       </p>
     );
 }

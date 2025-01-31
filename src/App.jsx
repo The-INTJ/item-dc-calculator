@@ -40,7 +40,7 @@ function App() {
     // Save the item to the server by name
   async function handleSave() {
     try {
-      await fetch('http://localhost:3000/save-item', {
+      const response = await fetch('http://localhost:3000/save-item', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -48,9 +48,11 @@ function App() {
           effectsArray: effects,
         }),
       });
-      console.log('Item saved successfully.');
+      console.log('Item saved successfully');
+      return response;
     } catch (error) {
       console.error('Error saving item:', error);
+      return { status: 500 };
     }
   }
 

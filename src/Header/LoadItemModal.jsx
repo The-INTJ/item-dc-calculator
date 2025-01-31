@@ -35,7 +35,7 @@ function LoadItemModal({ isOpen, onClose, handleItemLoad }) {
         <ul>
           {items.map((item, index) => (
             <li key={index}>
-              <button onClick={() => handleItemClick(item)}>
+              <button className='item' onClick={() => handleItemClick(item)}>
                 {item.name || `Item ${index + 1}`}
               </button>
             </li>
