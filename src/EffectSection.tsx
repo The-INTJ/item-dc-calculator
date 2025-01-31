@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import EffectItem from './EffectItem';
-import values, { defaultEffectState } from './values';
+import values, { defaultEffectState, Effect, EffectType } from './values';
 
 /**
  * Container for an array of effects.
@@ -11,11 +11,22 @@ import values, { defaultEffectState } from './values';
  *   effects: Array of effect objects
  *   setEffects: function(newEffectsArray) => void
  */
-function EffectSection({ effects, setEffects, itemName, setItemName }) {
+type EffectSectionProps = {
+  effects: Effect[];
+  setEffects: (effects: Effect[]) => void;
+  itemName: string;
+  setItemName: (name: string) => void;
+}
+
+function EffectSection({ effects, setEffects, itemName, setItemName }: EffectSectionProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
 
 
-  function handleEffectChange(effectIndex, fieldName, newValue) {
+  function handleEffectChange<T extends keyof Effect>(
+    effectIndex: number,
+    fieldName: T,
+    newValue: Effect[T]
+  ) {
     // Make a shallow copy of the effects array
     const clonedEffects = [...effects];
 
@@ -31,11 +42,11 @@ function EffectSection({ effects, setEffects, itemName, setItemName }) {
 
     if (fieldName === 'effectType') {
       // Update effectType and baseValue together
-      effectToUpdate.effectType = newValue;
-      effectToUpdate.baseValue = values.effectBaseValues[newValue];
+      effectToUpdate.effectType = newValue as EffectType;
+      effectToUpdate.baseValue = values.effectBaseValues[newValue as EffectType];
     } else {
       // Just change the single field
-      effectToUpdate[fieldName] = newValue;
+      (effectToUpdate[fieldName]) = newValue;
     }
 
     // Place the updated effect back into the array

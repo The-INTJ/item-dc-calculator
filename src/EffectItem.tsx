@@ -1,4 +1,4 @@
-// EffectItem.js
+// EffectItem.tsx
 import './EffectItem.scss';
 import './Effects/Effects.scss';
 
@@ -13,7 +13,7 @@ import UtilityUI from './Effects/UtilityUI';
 import PlusXItemUI from './Effects/PlusXItemUI';
 import { Checkbox } from './Effects/Common';
 
-import values from './values';
+import values, { Effect, EffectType } from './values';
 import Description from './Effects/Description';
 
 /**
@@ -24,14 +24,20 @@ import Description from './Effects/Description';
  *   onEffectChange: function(index, fieldName, newValue)
  *   index: the index of this effect
  */
-function EffectItem({ effect, onEffectChange, index }) {
+type EffectItemProps = {
+  effect: Effect;
+  onEffectChange: (index: number, fieldName: keyof Effect, newValue: any) => void;
+  index: number;
+};
+
+function EffectItem({ effect, onEffectChange, index }: EffectItemProps) {
   // When user changes effectType in the dropdown
-  function handleEffectTypeChange(e) {
-    onEffectChange(index, 'effectType', e.target.value);
+  function handleEffectTypeChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    onEffectChange(index, 'effectType', e.target.value as EffectType);
   }
 
   // Helper to pass changes to the parent
-  function handleFieldChange(fieldName, newValue) {
+  function handleFieldChange(fieldName: keyof Effect, newValue: any) {
     onEffectChange(index, fieldName, newValue);
   }
 
@@ -41,13 +47,6 @@ function EffectItem({ effect, onEffectChange, index }) {
       case 'Dice attack damage':
         return (
           <DiceDamageAttackUI
-            effect={effect}
-            onEffectFieldChange={handleFieldChange}
-          />
-        );
-      case 'Save bonus':
-        return (
-          <SaveBonusUI
             effect={effect}
             onEffectFieldChange={handleFieldChange}
           />
@@ -99,8 +98,8 @@ function EffectItem({ effect, onEffectChange, index }) {
       case 'Armor +3':
         return (
           <PlusXItemUI
-        effect={effect}
-        onEffectFieldChange={handleFieldChange}
+            effect={effect}
+            onEffectFieldChange={handleFieldChange}
           />
         );
       default:
@@ -118,7 +117,7 @@ function EffectItem({ effect, onEffectChange, index }) {
         <label>Effect Type:</label>
         <select
           value={effect.effectType}
-          onChange={(event) => handleEffectTypeChange(event, 'effectType')}
+          onChange={handleEffectTypeChange}
         >
           {Object.keys(values.effectBaseValues).map((effectKey) => (
             <option key={effectKey} value={effectKey}>
@@ -129,17 +128,17 @@ function EffectItem({ effect, onEffectChange, index }) {
         <Checkbox
           label="Cursed?"
           value={effect.cursed}
-          onChange={(val) => handleFieldChange('cursed', val)}
+          onChange={(val: keyof Effect) => handleFieldChange('cursed', val)}
         />
         <Checkbox
           label="New Effect?"
           value={effect.isNew}
-          onChange={(val) => handleFieldChange('isNew', val)}
+          onChange={(val: keyof Effect) => handleFieldChange('isNew', val)}
         />
         <Checkbox
           label="Non-class ability?"
           value={effect.outsideClass}
-          onChange={(val) => handleFieldChange('outsideClass', val)}
+          onChange={(val: keyof Effect) => handleFieldChange('outsideClass', val)}
         />
       </div>
 
