@@ -1,3 +1,5 @@
+import { calculateFinalDC } from "./dcCalculations";
+
 export type EffectType = keyof typeof values.effectBaseValues;
 export type FrequencyType = keyof typeof values.frequencyModifiers;
 export type ComplexityType = keyof typeof values.complexityModifiers;
@@ -135,3 +137,35 @@ export const initialShardState: ShardState[] = values.shardValues.map((shardObje
   shardHexColor: shardObject.shardHexColor,
   count: 0,
 }));
+
+type StyleProperties = {
+  background: string;
+  willShine: boolean;
+}
+
+export function getNearestShardColor(effectsArray: Effect[]): StyleProperties {
+  const dc = calculateFinalDC(effectsArray);
+  const styleObject: StyleProperties = {
+    background: 'white',
+    willShine: false
+  };
+  for (let i = 0; i < values.shardValues.length; i++) {
+    if (dc <= (values.shardValues[i].shardValue * 10 + 10)) {
+      styleObject.background = values.shardValues[i].shardColor;
+      break;
+    }
+  }
+  if (dc >= 150) {
+    styleObject.willShine = true;
+  }
+  if (effectsArray.some(effect => effect.cursed)) {
+    console.log(styleObject.background);
+    if (styleObject.background != 'Black') {
+      // set to linear gradiant of current shard color & black
+      styleObject.background = `linear-gradient(45deg, ${styleObject.background}, black)`;
+    } else {
+      styleObject.background = `linear-gradient(45deg, darkred, black)`;
+    }
+  }
+  return styleObject;
+}

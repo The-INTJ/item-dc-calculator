@@ -1,13 +1,8 @@
 import { useState } from 'react';
 import './Effects.scss';
-import { Effect } from '../values';
+import { GeneralEffectUIProps } from './Common';
 
-type DescriptionProps = {
-  effect: Effect;
-  onEffectFieldChange: (field: string, value: any) => void;
-};
-
-function Description({effect, onEffectFieldChange}: DescriptionProps) {
+function Description({effect, onEffectFieldChange}: GeneralEffectUIProps) {
     const [isEditingDescription, setIsEditingDescription] = useState(false);
 
     const Editable = () => {

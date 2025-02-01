@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { db } from '../server';
 import { Effect } from '../values';
+import { getNearestShardColor } from '../values';
+import { get } from 'http';
 
 type Item = {
   name: string;
@@ -48,15 +50,21 @@ function LoadItemModal({ isOpen, onClose, handleItemLoad }: LoadItemModalProps) 
     <div className="modal-overlay">
       <div className="modal-content">
         <h2>Load an Item</h2>
-        <ul>
-          {items.map((item, index) => (
-            <li key={index}>
-              <button className='item' onClick={() => handleItemClick(item)}>
+        <div className='item-list-in-modal'>
+          {items.map((item, index) => {
+            const styleObject = getNearestShardColor(item.effectsArray);
+            return (
+              <button 
+                key={index} 
+                className={`item ${styleObject.willShine ? 'shine' : ''}`}
+                style={{background: styleObject.background}}
+                onClick={() => handleItemClick(item)}
+              >
                 {item.name || `Item ${index + 1}`}
               </button>
-            </li>
-          ))}
-        </ul>
+            );
+          })}
+        </div>
         <button onClick={onClose}>Close</button>
       </div>
     </div>

@@ -81,6 +81,7 @@ function EffectItem({ effect, onEffectChange, index }: EffectItemProps) {
             onEffectFieldChange={handleFieldChange}
           />
         );
+      case 'Slight utility':
       case 'Low utility':
       case 'Medium utility':
       case 'High utility':
@@ -128,17 +129,17 @@ function EffectItem({ effect, onEffectChange, index }: EffectItemProps) {
         <Checkbox
           label="Cursed?"
           value={effect.cursed}
-          onChange={(val: keyof Effect) => handleFieldChange('cursed', val)}
+          onChange={(val: boolean) => handleFieldChange('cursed', val)}
         />
         <Checkbox
           label="New Effect?"
           value={effect.isNew}
-          onChange={(val: keyof Effect) => handleFieldChange('isNew', val)}
+          onChange={(val: boolean) => handleFieldChange('isNew', val)}
         />
         <Checkbox
           label="Non-class ability?"
           value={effect.outsideClass}
-          onChange={(val: keyof Effect) => handleFieldChange('outsideClass', val)}
+          onChange={(val: boolean) => handleFieldChange('outsideClass', val)}
         />
       </div>
 

@@ -51,34 +51,93 @@
 }
 
 .modal-content {
-  background: #fff;
+  background: #bbbbbb;
+  color: black;
   padding: 1rem;
   border-radius: 4px;
   min-width: 300px;
   max-height: 80vh;
   overflow-y: auto; /* optional scroll if needed */
-  .item {
-    margin: $margin-small;
-    background: linear-gradient(135deg, #712b75 0%, #b83bd0 100%);
-    color: #f8f8f8;
-    padding: 0.8rem 1.6rem;
-    border: none;
-    border-radius: 8px;
-    font-family: 'Cinzel', serif; // a nice fantasy vibe
-    font-size: 1rem;
-    cursor: pointer;
-    text-shadow: 1px 1px 2px #000;
-    box-shadow: 0 0 10px rgba(178, 67, 234, 0.6), inset 0 0 5px rgba(234, 112, 255, 0.4);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
 
+  .item-list-in-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  .item {
+    // spacing
+    margin: $margin-small;
+    padding: $padding-small;
+    border-radius: 8px;
+
+    // text size
+    font-size: 2rem;
+    font-weight: 700;
+    font-family: 'Cinzel', serif; // a nice fantasy vibe
+
+    // text color
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text!important;
+    color: transparent;
+    
+    // misc
+    border: none;
+    cursor: pointer;
+    text-shadow: 1px 1px 1px #000000ac;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    
     &:hover {
       transform: scale(1.05);
-      box-shadow: 0 0 15px rgba(178, 67, 234, 0.8), 0 0 5px rgba(234, 112, 255, 0.6);
     }
 
     &:active {
       transform: scale(0.97);
-      box-shadow: 0 0 5px rgba(178, 67, 234, 0.8), 0 0 3px rgba(234, 112, 255, 0.6);
     }
+
+    @keyframes shimmer {
+      0% {
+        text-shadow: 0 0 1px #fff, 0 0 1px #f8f8f8, 0 0 1px #f0f0f0, 0 0 1px #f8f8f8, 0 0 1px #fff;
+      }
+      16.67% {
+        text-shadow: 0 0 2px #fff, 0 0 2px #f8f8f8, 0 0 2px #f0f0f0, 0 0 2px #f8f8f8, 0 0 2px #fff;
+      }
+      33.33% {
+        text-shadow: 0 0 3px #fff, 0 0 3px #f8f8f8, 0 0 3px #f0f0f0, 0 0 3px #f8f8f8, 0 0 3px #fff;
+      }
+      50% {
+        text-shadow: 0 0 4px #fff, 0 0 4px #f8f8f8, 0 0 4px #f0f0f0, 0 0 4px #f8f8f8, 0 0 4px #fff;
+      }
+      66.67% {
+        text-shadow: 0 0 3px #fff, 0 0 3px #f8f8f8, 0 0 3px #f0f0f0, 0 0 3px #f8f8f8, 0 0 3px #fff;
+      }
+      83.33% {
+        text-shadow: 0 0 2px #fff, 0 0 2px #f8f8f8, 0 0 2px #f0f0f0, 0 0 2px #f8f8f8, 0 0 2px #fff;
+      }
+      100% {
+        text-shadow: 0 0 1px #fff, 0 0 1px #f8f8f8, 0 0 1px #f0f0f0, 0 0 1px #f8f8f8, 0 0 1px #fff;
+      }
+    }
+
+    &.shine {
+      font-size: 2em;
+      font-weight: bold;
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: transparent;
+      animation: shimmer 2s infinite;
+    }
+
   }
+
+  @media (prefers-color-scheme: dark) {
+    background: #333;
+    color: white;
+    .item {
+     text-shadow: 1px 1px 1px #ffffff96;
+    }
+  } 
 }

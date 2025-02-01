@@ -2,7 +2,7 @@
     margin: 0;
     grid-column-start: 1;
     max-width: 400px;
-    @media screen and (min-width: 450px) {
+    @media screen and (min-width: 400px) {
         grid-column-end: none;
     }
 }

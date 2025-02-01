@@ -4,15 +4,9 @@ import {
   ComplexityPicker,
   Checkbox
 } from './Common';
+import { GeneralEffectUIProps } from './Common';
 
-import { Effect } from '../values';
-
-type SpellSlotUIProps = {
-  effect: Effect;
-  onEffectFieldChange: (field: string, value: any) => void;
-};
-
-function SpellSlotUI({ effect, onEffectFieldChange }: SpellSlotUIProps) {
+function SpellSlotUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
   const isCantrip = effect.effectType === 'Cantrip';
   return (
     <div className="spell-slot-ui">

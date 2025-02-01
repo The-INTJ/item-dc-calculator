@@ -3,17 +3,10 @@ import {
   DieAmountPicker,
   FrequencyPicker,
   ComplexityPicker,
-  PowerLevelPicker
+  PowerLevelPicker,
+  GeneralEffectUIProps
 } from './Common';
-
-import { Effect } from '../values';
-
-type UtilityUIProps = {
-  effect: Effect;
-  onEffectFieldChange: (field: string, value: any) => void;
-};
-
-function UtilityUI({ effect, onEffectFieldChange }: UtilityUIProps) {
+function UtilityUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
   return (
     <div className="utility-ui">
       <DieValuePicker

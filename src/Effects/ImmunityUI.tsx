@@ -1,19 +1,13 @@
 import { ValueInput, FrequencyPicker } from './Common';
+import { GeneralEffectUIProps } from './Common';
 
-import { Effect } from '../values';
-
-type ResistanceUIProps = {
-  effect: Effect;
-  onEffectFieldChange: (field: string, value: any) => void;
-};
-
-function ResistanceUI({ effect, onEffectFieldChange }: ResistanceUIProps) {
+function ResistanceUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
   return (
     <div className="resistance-ui">
       <ValueInput
         label="Resistance Value"
         value={effect.amountValue || 0}
-        onChange={(val) => onEffectFieldChange('value', val)}
+        onChange={(val) => onEffectFieldChange('amountValue', val)}
       />
       <FrequencyPicker
         value={effect.frequency}

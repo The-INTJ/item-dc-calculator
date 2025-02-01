@@ -7,6 +7,11 @@ import values, { Effect, FrequencyType, ComplexityType, ResistanceType, Duration
  * Common pickers used across multiple effect types.
  */
 
+export type GeneralEffectUIProps = {
+  effect: Effect;
+  onEffectFieldChange: (field: keyof Effect, value: any) => void;
+}
+
 // Die Value Picker
 export function DieValuePicker({ value, onChange }: { value: number; onChange: (value: number) => void }) {
   return (

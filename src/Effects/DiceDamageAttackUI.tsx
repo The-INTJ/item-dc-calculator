@@ -1,12 +1,7 @@
 import { DieValuePicker, DieAmountPicker, FrequencyPicker, Checkbox } from './Common';
-import { Effect } from '../values';
+import { GeneralEffectUIProps } from './Common';
 
-type DiceDamageAttackUIProps = {
-  effect: Effect;
-  onEffectFieldChange: (field: string, value: any) => void;
-};
-
-function DiceDamageAttackUI({ effect, onEffectFieldChange }: DiceDamageAttackUIProps) {
+function DiceDamageAttackUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
   return (
     <div className="dice-damage-attack-ui">
       <DieValuePicker

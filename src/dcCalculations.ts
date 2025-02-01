@@ -10,7 +10,8 @@ export function calculateEffectSum(effectsArray: Effect[]): number {
   for (let i = 0; i < effectsArray.length; i++) {
     let effectDC = calculateEffectDC(effectsArray[i]);
     if (effectsArray[i].cursed) {
-      effectDC = -Math.abs(effectDC); // Make the effect negative if cursed
+      // not sure about this yet
+      // effectDC = -Math.abs(effectDC); // Make the effect negative if cursed
     }
     if (effectsArray[i].outsideClass) {
       effectDC += 20; // Effectively requires an additional shard investment from another class

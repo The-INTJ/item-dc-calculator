@@ -1,11 +1,6 @@
-import { Effect } from '../values';
+import { GeneralEffectUIProps } from './Common';
 
-type PlusXItemUIProps = {
-  effect: Effect;
-  onEffectFieldChange: (field: string, value: any) => void;
-};
-
-function PlusXItemUI({ effect, onEffectFieldChange }: PlusXItemUIProps) {
+function PlusXItemUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
   return (
     <div className="+x-item-ui">
       {/* Nothing specific so far... */}
