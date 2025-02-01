@@ -91,18 +91,18 @@ const values = {
     '1 hour': 60,
   } as const,
   shardValues: [
-    { shardColor: 'Blue',   shardValue:  1 },
-    { shardColor: 'Red',  shardValue: 2 },
-    { shardColor: 'Green',    shardValue: 3 },
-    { shardColor: 'Purple', shardValue: 4 },
-    { shardColor: 'Teal',   shardValue: 5 },
-    { shardColor: 'Yellow', shardValue: 6 },
-    { shardColor: 'Orange', shardValue: 7 },
-    { shardColor: 'Silver', shardValue: 8 },
-    { shardColor: 'Gold',   shardValue: 9 },
-    { shardColor: 'White',  shardValue: 10 },
-    { shardColor: 'Black',  shardValue: 12 },
-  ] as const,
+  { shardColor: 'Blue',   shardValue:  1, shardHexColor: '#3498DB' },  // A clear, magical blue
+  { shardColor: 'Red',    shardValue:  2, shardHexColor: '#E74C3C' },  // A warm, vibrant scarlet
+  { shardColor: 'Green',  shardValue:  3, shardHexColor: '#2ECC71' },  // A lush, enchanted green
+  { shardColor: 'Purple', shardValue:  4, shardHexColor: '#9B59B6' },  // A mystical amethyst purple
+  { shardColor: 'Teal',   shardValue:  5, shardHexColor: '#1ABC9C' },  // A deep, watery teal
+  { shardColor: 'Yellow', shardValue:  6, shardHexColor: '#F1C40F' },  // A radiant, otherworldly yellow
+  { shardColor: 'Orange', shardValue:  7, shardHexColor: '#E67E22' },  // A fiery, adventurous orange
+  { shardColor: 'Silver', shardValue:  8, shardHexColor: '#BDC3C7' },  // A soft, enchanted silver
+  { shardColor: 'Gold',   shardValue:  9, shardHexColor: '#D4AF37' },  // A classic, mystic gold
+  { shardColor: 'White',  shardValue: 10, shardHexColor: '#ECF0F1' },  // A gentle, moonlit white
+  { shardColor: 'Black',  shardValue: 12, shardHexColor: '#2C3E50' },  // A deep, shadowed black-blue
+] as const,
 };
 
 export default values;
@@ -129,5 +129,6 @@ export const defaultEffectState: Effect = {
 export const initialShardState: ShardState[] = values.shardValues.map((shardObject) => ({
   shardColor: shardObject.shardColor,
   shardValue: shardObject.shardValue,
+  shardHexColor: shardObject.shardHexColor,
   count: 0,
 }));

@@ -1,5 +1,5 @@
-// PlayerChance.js
-
+import React from 'react';
+import './PlayerChance.scss';
 import {
   calculateD20Rolls,
   calculateDistinctShardColorsUsed,
@@ -22,18 +22,18 @@ function PlayerChance({ shardCounts, playerModifier, onPlayerModifierChange, tot
   const trivality = retrieveTriviality(chanceValue);
 
   return (
-    <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+    <div className="player-chance-container">
       <h2>Player Chance</h2>
 
-      <div style={{ marginBottom: '10px' }}>
-        <label style={{ fontWeight: 'bold', marginRight: '10px' }}>
+      <div className="player-chance-details">
+        <label className="player-chance-label">
           Player Modifier:
         </label>
         <input
           type="number"
           value={playerModifier}
           onChange={onPlayerModifierChange}
-          style={{ width: '80px' }}
+          className="player-chance-input"
         />
       </div>
 

@@ -11,7 +11,7 @@
     display: grid;
     grid-template-rows: auto auto auto;
     grid-template-columns: auto auto auto;
-    background-color: rgba(0, 166, 255, 0.5);
+    background-color: rgb(105, 185, 238);
     border-radius: 20px;
     gap: $margin-medium;
     padding: $padding-medium;
@@ -32,6 +32,7 @@
         padding: 5px;
         border-radius: 5px;
         border: 1px solid #ccc;
+        min-height: 30px;
     }
 
     input {
@@ -39,5 +40,11 @@
         border-radius: 5px;
         border: 1px solid #ccc;
         width: min-content;
+        min-height: 20px;
+    }
+    
+    input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
     }
 }

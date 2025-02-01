@@ -21,24 +21,25 @@ function ShardSection({ shardCounts, onShardCountChange }) {
 
       <div className="shard-container">
         {shardCounts.map((shardData, shardIndex) => {
+          console.log(shardData.shardColor);
             return (
             <div
               className="shard-item"
               key={shardData.shardColor}
-              style={{ backgroundColor: shardData.shardColor}}
+              style={{ backgroundColor: shardData.shardHexColor}}
             >
               <button
-                className='shard-btn add'
-                onClick={() => onShardCountChange(shardIndex, shardData.count + 1)}
+              className={`shard-btn add ${shardData.shardColor}`}
+              onClick={() => onShardCountChange(shardIndex, shardData.count + 1)}
               >
               +
               </button>
               <p className="shard-num">
-                {shardData.count}
+              {shardData.count}
               </p>
               <button
-                className='shard-btn sub'
-                onClick={() => onShardCountChange(shardIndex, shardData.count - 1)}
+              className={`shard-btn sub ${shardData.shardColor}`}
+              onClick={() => onShardCountChange(shardIndex, shardData.count - 1)}
               >
               -
               </button>
