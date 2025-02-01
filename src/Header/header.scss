@@ -5,6 +5,15 @@
   align-items: center;
   justify-content: space-between;
   margin: 1rem 0;
+
+  button {
+    color: black;
+
+    @media (prefers-color-scheme: dark) {
+      color: white;
+      background-color: black;
+    }
+  }
 }
 
 .title-bar-left,

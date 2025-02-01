@@ -10,21 +10,14 @@
   margin-bottom: 20px;
 }
 
-.toggle-breakdown-btn {
-  margin-right: 10px;
-  margin-bottom: 10px;
-  padding: 8px 15px;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
 .breakdown-container {
   margin-top: 20px;
-  background: lightgrey;
   border: none;
-  padding: 15px;
-  border-radius: 10px;
   color: black;
+
+  @media (prefers-color-scheme: dark) {
+    color: white;
+  }
 }
 
 .breakdown-container h2 {

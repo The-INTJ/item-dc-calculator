@@ -1,12 +1,10 @@
-.effect-item {
-    grid: auto auto / auto auto;
-}
-
 .description {
     margin: 0;
     grid-column-start: 1;
-    grid-column-end: 4;
     max-width: 400px;
+    @media screen and (min-width: 450px) {
+        grid-column-end: none;
+    }
 }
 .editable-description {
     font-size: 1rem;
