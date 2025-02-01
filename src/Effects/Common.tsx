@@ -1,14 +1,14 @@
 // /Effects/Common.js
 
 import React from 'react';
-import values from '../values'; // adjust path if needed
+import values, { Effect, FrequencyType, ComplexityType, ResistanceType, DurationType } from '../values'; // adjust path if needed
 
 /**
  * Common pickers used across multiple effect types.
  */
 
 // Die Value Picker
-export function DieValuePicker({ value, onChange }) {
+export function DieValuePicker({ value, onChange }: { value: number; onChange: (value: number) => void }) {
   return (
     <div className="effect-field">
       <label>Die Value:</label>
@@ -24,7 +24,7 @@ export function DieValuePicker({ value, onChange }) {
 }
 
 // Die Amount Picker
-export function DieAmountPicker({ value, onChange }) {
+export function DieAmountPicker({ value, onChange }: { value: number; onChange: (value: number) => void }) {
   return (
     <div className="effect-field">
       <label>Die Amount:</label>
@@ -39,11 +39,11 @@ export function DieAmountPicker({ value, onChange }) {
 }
 
 // Frequency Picker
-export function FrequencyPicker({ value, onChange, optionalTitle }) {
+export function FrequencyPicker({ value, onChange, optionalTitle }: { value: FrequencyType; onChange: (value: FrequencyType) => void; optionalTitle?: string | boolean }) {
   return (
     <div className="effect-field">
       <label>{optionalTitle || "Frequency:"}</label>
-      <select value={value} onChange={(e) => onChange(e.target.value)}>
+      <select value={value} onChange={(e) => onChange(e.target.value as FrequencyType)}>
         {Object.keys(values.frequencyModifiers).map((freqKey) => (
           <option key={freqKey} value={freqKey}>
             {freqKey}
@@ -55,7 +55,7 @@ export function FrequencyPicker({ value, onChange, optionalTitle }) {
 }
 
 // Value Input (generic numeric input)
-export function ValueInput({ label, value, onChange }) {
+export function ValueInput({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
   noZero(value, onChange);
   return (
     <div className="effect-field">
@@ -71,7 +71,7 @@ export function ValueInput({ label, value, onChange }) {
 }
 
 // Power Level Picker
-export function PowerLevelPicker({ value, onChange }) {
+export function PowerLevelPicker({ value, onChange }: { value: number; onChange: (value: number) => void }) {
   return (
     <div className="effect-field">
       <label>Power Level:</label>
@@ -87,11 +87,11 @@ export function PowerLevelPicker({ value, onChange }) {
 }
 
 // Complexity Picker
-export function ComplexityPicker({ value, onChange }) {
+export function ComplexityPicker({ value, onChange }: { value: ComplexityType; onChange: (value: ComplexityType) => void }) {
   return (
     <div className="effect-field">
       <label>Useable:</label>
-      <select value={value} onChange={(e) => onChange(e.target.value)}>
+      <select value={value} onChange={(e) => onChange(e.target.value as ComplexityType)}>
         {Object.keys(values.complexityModifiers).map((compKey) => (
           <option key={compKey} value={compKey}>
             {compKey}
@@ -103,12 +103,11 @@ export function ComplexityPicker({ value, onChange }) {
 }
 
 // Resistance Picker
-export function ResistancePicker({ value, onChange }) {
-  console.log('value:', value);
+export function ResistancePicker({ value, onChange }: { value: ResistanceType; onChange: (value: ResistanceType) => void }) {
   return (
     <div className="effect-field">
       <label>Type:</label>
-      <select value={value} onChange={(e) => onChange(e.target.value)}>
+      <select value={value} onChange={(e) => onChange(e.target.value as ResistanceType)}>
         {Object.keys(values.resistanceRarity).map((compKey) => (
           <option key={compKey} value={compKey}>
             {compKey}
@@ -120,11 +119,11 @@ export function ResistancePicker({ value, onChange }) {
 }
 
 // Duration Picker
-export function DurationPicker({ value, onChange }) {
+export function DurationPicker({ value, onChange }: { value: DurationType; onChange: (value: DurationType) => void }) {
   return (
     <div className="effect-field">
       <label>Duration:</label>
-      <select value={value} onChange={(e) => onChange(e.target.value)}>
+      <select value={value} onChange={(e) => onChange(e.target.value as DurationType)}>
         {Object.keys(values.durationValues).map((compKey) => (
           <option key={compKey} value={compKey}>
             {compKey}
@@ -136,14 +135,13 @@ export function DurationPicker({ value, onChange }) {
 }
 
 // Universal Checkbox
-
-export function Checkbox({ value, onChange, label }) {
+export function Checkbox({ value, onChange, label }: { value: boolean; onChange: (value: boolean) => void; label: string }) {
   return (
     <div className="effect-field">
       <label>{label}</label>
       <input
         type="checkbox"
-        checked={value === true}
+        checked={value}
         onChange={(e) => onChange(e.target.checked)}
       />
     </div>
@@ -154,7 +152,7 @@ export function Checkbox({ value, onChange, label }) {
  * Helpers
  */
 
-function noZero(value, onChange) {
+function noZero(value: number, onChange: (value: number) => void) {
   if (value < 1) {
     onChange(1);
   }

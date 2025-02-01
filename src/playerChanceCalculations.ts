@@ -1,11 +1,11 @@
-// playerChanceCalculations.js
+import { ShardState } from './values';
 
 /**
  * Returns total d20 rolls from the shard array.
  * shard.shardValue = how many d20 rolls that color grants
  * shard.count = how many shards of that color
  */
-export function calculateD20Rolls(shardArray) {
+export function calculateD20Rolls(shardArray: ShardState[]): number {
   return shardArray.reduce((accumulatedRolls, shard) => {
     const totalForColor = shard.shardValue * shard.count;
     return accumulatedRolls + totalForColor;
@@ -15,7 +15,7 @@ export function calculateD20Rolls(shardArray) {
 /**
  * Returns how many *distinct* shard colors have count > 0
  */
-export function calculateDistinctShardColorsUsed(shardArray) {
+export function calculateDistinctShardColorsUsed(shardArray: ShardState[]): number {
   return shardArray.reduce((distinctCount, shard) => {
     if (shard.count > 0) {
       return distinctCount + 1;
@@ -28,7 +28,7 @@ export function calculateDistinctShardColorsUsed(shardArray) {
  * The final "player chance" formula:
  *  (totalD20Rolls * 10) + (playerModifier * numberOfDistinctColorsUsed)
  */
-export function calculatePlayerChance(totalD20Rolls, playerModifier, distinctShardColorsUsed, totalDC) {
+export function calculatePlayerChance(totalD20Rolls: number, playerModifier: number, distinctShardColorsUsed: number, totalDC: number): number {
   const playerChance = Math.ceil((totalD20Rolls * 10)) + (playerModifier * distinctShardColorsUsed) - (10 + playerModifier);
   return totalDC - playerChance;
 }
@@ -36,7 +36,7 @@ export function calculatePlayerChance(totalD20Rolls, playerModifier, distinctSha
 /**
  * Returns a string indicating the trivality of the chance value.
  */
-export function retrieveTriviality(chanceValue) {
+export function retrieveTriviality(chanceValue: number): string {
   if (chanceValue >= 30) {
     return 'Inconceivable effort';
   }

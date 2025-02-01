@@ -1,24 +1,19 @@
-// /Effects/UtilityUI.js
-
-import React from 'react';
 import {
   DieValuePicker,
   DieAmountPicker,
   FrequencyPicker,
   ComplexityPicker,
-  PowerLevelPicker,
-  Checkbox
+  PowerLevelPicker
 } from './Common';
 
-/**
- * LowUtility, MediumUtility, HighUtility share the same UI:
- * - Die Value
- * - Die Amount
- * - Frequency
- * - Complexity
- * - Power Level
- */
-function UtilityUI({ effect, onEffectFieldChange }) {
+import { Effect } from '../values';
+
+type UtilityUIProps = {
+  effect: Effect;
+  onEffectFieldChange: (field: string, value: any) => void;
+};
+
+function UtilityUI({ effect, onEffectFieldChange }: UtilityUIProps) {
   return (
     <div className="utility-ui">
       <DieValuePicker

@@ -22,30 +22,28 @@ function App() {
   const [effects, setEffects] = useState([
     defaultEffectState
   ]);
-  const [shardCounts, setShardCounts] = useState(initialShardState);
+  const [shards, setShards] = useState(initialShardState);
   const [playerModifier, setPlayerModifier] = useState(0);
 
   const baseDC = calculateEffectSum(effects);
   const effectCountDC = calculateEffectCountDC(effects);
   const finalDC = calculateFinalDC(effects);
 
-  function handleShardCountChange(shardIndex: number, newCountString: string) {
-    const newShardCounts = [...shardCounts];
-    newShardCounts[shardIndex] = {
-      ...newShardCounts[shardIndex],
-      count: Number(newCountString),
+  function handleShardCountChange(shardIndex: number, newCountString: number) {
+    const newShards = [...shards];
+    newShards[shardIndex] = {
+      ...newShards[shardIndex],
+      count: newCountString,
     };
-    setShardCounts(newShardCounts);
+    setShards(newShards);
   }
 
   // Save the item to localStorage by name
   async function handleSave() {
     try {
       const response = await db.saveItem(itemName, effects);
-      console.log('Item saved successfully');
       return response;
     } catch (error) {
-      console.error('Error saving item:', error);
       return { status: 500 };
     }
   }
@@ -59,9 +57,7 @@ function App() {
       }
       setEffects(response.item.effectsArray);
       setItemName(response.item.name);
-      console.log('Effects loaded successfully');
     } catch (error) {
-      console.error('Error loading effects:', error);
     }
   };
 
@@ -102,13 +98,13 @@ function App() {
       <div className="player-effects-container">
         {/* Shards Section */}
         <ShardSection
-          shardCounts={shardCounts}
-          onShardCountChange={handleShardCountChange}
+          shards={shards}
+          onShardChange={handleShardCountChange}
         />
 
         {/* Player Chance */}
         <PlayerChance
-          shardCounts={shardCounts}
+          shards={shards}
           playerModifier={playerModifier}
           onPlayerModifierChange={handlePlayerModifierChange}
           totalDC={finalDC}

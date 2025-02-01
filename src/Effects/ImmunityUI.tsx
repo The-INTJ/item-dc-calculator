@@ -1,19 +1,18 @@
-// /Effects/ResistanceUI.js
-
-import React from 'react';
 import { ValueInput, FrequencyPicker } from './Common';
 
-/**
- * Resistance effect requires:
- * - value
- * - frequency
- */
-function ResistanceUI({ effect, onEffectFieldChange }) {
+import { Effect } from '../values';
+
+type ResistanceUIProps = {
+  effect: Effect;
+  onEffectFieldChange: (field: string, value: any) => void;
+};
+
+function ResistanceUI({ effect, onEffectFieldChange }: ResistanceUIProps) {
   return (
     <div className="resistance-ui">
       <ValueInput
         label="Resistance Value"
-        value={effect.value || 0}
+        value={effect.amountValue || 0}
         onChange={(val) => onEffectFieldChange('value', val)}
       />
       <FrequencyPicker

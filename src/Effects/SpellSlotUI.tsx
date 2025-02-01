@@ -1,6 +1,3 @@
-// /Effects/SpellSlotUI.js
-
-import React from 'react';
 import {
   PowerLevelPicker,
   FrequencyPicker,
@@ -8,13 +5,14 @@ import {
   Checkbox
 } from './Common';
 
-/**
- * Spell Slot effect requires:
- * - Power Level
- * - Frequency
- * - Complexity
- */
-function SpellSlotUI({ effect, onEffectFieldChange }) {
+import { Effect } from '../values';
+
+type SpellSlotUIProps = {
+  effect: Effect;
+  onEffectFieldChange: (field: string, value: any) => void;
+};
+
+function SpellSlotUI({ effect, onEffectFieldChange }: SpellSlotUIProps) {
   const isCantrip = effect.effectType === 'Cantrip';
   return (
     <div className="spell-slot-ui">

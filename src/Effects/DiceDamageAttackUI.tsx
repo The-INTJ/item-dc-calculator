@@ -1,15 +1,12 @@
-// /Effects/DiceDamageAttackUI.js
-
-import React from 'react';
 import { DieValuePicker, DieAmountPicker, FrequencyPicker, Checkbox } from './Common';
+import { Effect } from '../values';
 
-/**
- * Dice Damage Attack effect requires:
- * - Die Value
- * - Die Amount
- * - Frequency
- */
-function DiceDamageAttackUI({ effect, onEffectFieldChange }) {
+type DiceDamageAttackUIProps = {
+  effect: Effect;
+  onEffectFieldChange: (field: string, value: any) => void;
+};
+
+function DiceDamageAttackUI({ effect, onEffectFieldChange }: DiceDamageAttackUIProps) {
   return (
     <div className="dice-damage-attack-ui">
       <DieValuePicker

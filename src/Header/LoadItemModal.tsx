@@ -1,8 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { db } from '../server';
+import { Effect } from '../values';
 
-function LoadItemModal({ isOpen, onClose, handleItemLoad }) {
-  const [items, setItems] = useState([]);
+type Item = {
+  name: string;
+  effectsArray: Effect[];
+};
+
+type LoadItemModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  handleItemLoad: (item: Item) => void;
+};
+
+function LoadItemModal({ isOpen, onClose, handleItemLoad }: LoadItemModalProps) {
+  const [items, setItems] = useState<Item[]>([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -16,7 +28,7 @@ function LoadItemModal({ isOpen, onClose, handleItemLoad }) {
       if (response.status === 200) {
         setItems(response.items);
       } else {
-        console.error('Error fetching items:', response.message);
+        console.error('Uknown error fetching items', response.status);
       }
     } catch (error) {
       console.error('Error fetching items:', error);
@@ -27,7 +39,7 @@ function LoadItemModal({ isOpen, onClose, handleItemLoad }) {
     return null;
   }
 
-  function handleItemClick(item) {
+  function handleItemClick(item: Item) {
     handleItemLoad(item);  // Pass the entire item (name + effects) back up
     onClose();
   }

@@ -8,7 +8,14 @@ import { ComplexityPicker, DurationPicker, FrequencyPicker, ResistancePicker } f
  * - value
  * - frequency
  */
-function ResistanceUI({ effect, onEffectFieldChange }) {
+import { Effect } from '../values';
+
+type ResistanceUIProps = {
+  effect: Effect;
+  onEffectFieldChange: (field: string, value: any) => void;
+};
+
+function ResistanceUI({ effect, onEffectFieldChange }: ResistanceUIProps) {
   return (
     <div className="resistance-ui">
       <ResistancePicker

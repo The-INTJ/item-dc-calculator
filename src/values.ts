@@ -8,6 +8,7 @@ export type ShardColor = (typeof values.shardValues)[number]['shardColor'];
 export interface Effect {
   effectType: EffectType;
   baseValue: number;
+  amountValue: number; // For things like move and fly speed
   dieValue: number;
   dieAmount: number;
   powerLevel: number; // index in powerLevelModifiers
@@ -27,6 +28,7 @@ export interface Effect {
 export interface ShardState {
   shardColor: ShardColor;
   shardValue: number;
+  shardHexColor: string;
   count: number;
 }
 
@@ -110,6 +112,7 @@ export default values;
 export const defaultEffectState: Effect = {
   effectType: 'Dice attack damage',
   baseValue: values.effectBaseValues['Dice attack damage'],
+  amountValue: 0,
   dieValue: values.dieBonusValues[0],
   dieAmount: 0,
   powerLevel: 0, // index in powerLevelModifiers

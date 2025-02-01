@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import './header.scss';          
 import LoadItemModal from './LoadItemModal';
 
-/**
- * Displays the Final DC and provides "Load" and "Save" buttons.
- *
- * Props:
- *   finalDC (number): The calculated DC to display
- *   effectsArray (array): The array of current effects the user wants to save
- */
-function TitleBar({ finalDC, handleSave, handleItemLoad }) {
+type TitleBarProps = {
+  finalDC: number;
+  handleSave: () => Promise<any>;
+  handleItemLoad: (item: { name: string; effectsArray: any[] }) => void;
+};
+
+function TitleBar({ finalDC, handleSave, handleItemLoad }: TitleBarProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saveClass, setSaveClass] = useState('');
 

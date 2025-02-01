@@ -1,19 +1,18 @@
-// /Effects/FlySpeedUI.js
-
-import React from 'react';
 import { ValueInput, FrequencyPicker } from './Common';
 
-/**
- * Fly Speed effect requires:
- * - value
- * - frequency
- */
-function FlySpeedUI({ effect, onEffectFieldChange }) {
+import { Effect } from '../values';
+
+type FlySpeedUIProps = {
+  effect: Effect;
+  onEffectFieldChange: (field: string, value: any) => void;
+};
+
+function FlySpeedUI({ effect, onEffectFieldChange }: FlySpeedUIProps) {
   return (
     <div className="fly-speed-ui">
       <ValueInput
         label="Fly Speed (units)"
-        value={effect.value || 0}
+        value={effect.amountValue || 0}
         onChange={(val) => onEffectFieldChange('value', val)}
       />
       <FrequencyPicker

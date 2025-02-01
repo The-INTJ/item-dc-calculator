@@ -1,13 +1,11 @@
-// dcCalculations.js
-
-import values from './values';
+import values, { ComplexityType, Effect, FrequencyType } from './values';
 
 /**
  * Calculates sum of all effects' partial DCs
  * Calculate global effect changes here
  */
-export function calculateEffectSum(effectsArray) {
-let accumulatedDC = 0;
+export function calculateEffectSum(effectsArray: Effect[]): number {
+  let accumulatedDC = 0;
 
   for (let i = 0; i < effectsArray.length; i++) {
     let effectDC = calculateEffectDC(effectsArray[i]);
@@ -25,7 +23,7 @@ let accumulatedDC = 0;
 /**
  * Calculate additional DC from number of effects
  */
-export function calculateEffectCountDC(effectsArray) {
+export function calculateEffectCountDC(effectsArray: Effect[]): number {
   let accumulatedDC = 0;
   for (let i = 1; i < effectsArray.length; i++) {
     // Add +5 per effect, except the first one, and old effects
@@ -35,10 +33,11 @@ export function calculateEffectCountDC(effectsArray) {
   }
   return Math.ceil(accumulatedDC);
 }
+
 /**
  * Calculates the final DC
  */
-export function calculateFinalDC(effectsArray) {
+export function calculateFinalDC(effectsArray: Effect[]): number {
   const effectSum = calculateEffectSum(effectsArray);
   const effectCount = calculateEffectCountDC(effectsArray);
   return effectSum + effectCount;
@@ -48,16 +47,13 @@ export function calculateFinalDC(effectsArray) {
  * Routes to a specialized calculation based on effectType.
  * If none is matched, calls the originalEffectDCMethod as a fallback.
  */
-export function calculateEffectDC(effect) {
+export function calculateEffectDC(effect: Effect): number {
   switch (effect.effectType) {
     case 'Dice attack damage':
       return calculateDiceDamageAttackDC(effect);
-    case 'Save bonus':
-      return calculateSaveBonusDC(effect);
     case 'Move speed':
-      return calculateMoveSpeedDC(effect);
     case 'Fly speed':
-      return calculateFlySpeedDC(effect);
+      return calculateSpeedDC(effect);
     case 'Resistance':
       return calculateResistanceDC(effect);
     case 'Immunity':
@@ -86,7 +82,7 @@ export function calculateEffectDC(effect) {
 //  Specialized calculation functions
 // ------------------------------------------------------------------
 
-function calculateDiceDamageAttackDC(effect) {
+function calculateDiceDamageAttackDC(effect: Effect): number {
   // intended: Base + (DiceVal + 10) * numDice
   const freqMod = getFrequencyMod(effect.frequency);
   const dice = calculateDiceContribution(effect.dieValue, effect.dieAmount);
@@ -101,35 +97,27 @@ function calculateDiceDamageAttackDC(effect) {
   return partialDC;
 }
 
-function calculateMoveSpeedDC(effect) {
+function calculateSpeedDC(effect: Effect): number {
   const freqMod = getFrequencyMod(effect.frequency);
-  const partialDC = effect.value * freqMod;
-  return partialDC + effect.baseValue;
+  const partialDC = effect.amountValue * freqMod;
+  return partialDC + (effect.baseValue * freqMod);
 }
 
-function calculateFlySpeedDC(effect) {
-  // Same pattern as MoveSpeed
-  const freqMod = getFrequencyMod(effect.frequency);
-  const partialDC = effect.value * freqMod;
-  return partialDC + effect.baseValue;
-}
-
-function calculateResistanceDC(effect) {
+function calculateResistanceDC(effect: Effect): number {
   // Uses effect.value & frequency
   const freqMod = getFrequencyMod(effect.frequency);
   const resistanceDC = values.resistanceRarity[effect.resistanceType];
   const durationMod = values.durationValues[effect.duration];
   const complexityMod = getComplexityMod(effect.complexity);
   const partialDC = resistanceDC * freqMod * complexityMod + durationMod;
-  console.log('Resistance DC:', partialDC);
   return partialDC + effect.baseValue;
 }
 
-function calculateImmunityDC(effect) {
+function calculateImmunityDC(effect: Effect): number {
   return calculateResistanceDC(effect) * 2;
 }
 
-function calculateSpellSlotDC(effect) {
+function calculateSpellSlotDC(effect: Effect): number {
   // Both use powerLevel, frequency, complexity, baseValue
   const pwrMod = getPowerLevelMod(effect.powerLevel);
   const freqMod = getFrequencyMod(effect.frequency);
@@ -151,7 +139,7 @@ function calculateSpellSlotDC(effect) {
   return partialDC;
 }
 
-function calculateUtilityDC(effect) {
+function calculateUtilityDC(effect: Effect): number {
   // Utilities: dieValue, dieAmount, frequency, complexity, powerLevel, baseValue
   // This is basically the "original" approach, but skipping any fields you don't track
   const dice = calculateDiceContribution(effect.dieValue, effect.dieAmount);
@@ -163,7 +151,7 @@ function calculateUtilityDC(effect) {
   return partialDC;
 }
 
-function calculatePlusXItemDC(effect) {
+function calculatePlusXItemDC(effect: Effect): number {
   return effect.baseValue;
 }
 
@@ -175,7 +163,7 @@ function calculatePlusXItemDC(effect) {
  * The original logic for calculating an effect's partial DC.
  * This is called if the effectType switch doesn't match.
  */
-function originalEffectDCMethod(effect) {
+function originalEffectDCMethod(effect: Effect): number {
   const baseValue = effect.baseValue;
   const dieValue = effect.dieValue;
   const dieAmount = effect.dieAmount;
@@ -203,32 +191,21 @@ function originalEffectDCMethod(effect) {
 //  Helper functions for repeated logic
 // ------------------------------------------------------------------
 
-function calculateDiceContribution(dieValue, dieAmount) {
+function calculateDiceContribution(dieValue: number, dieAmount: number): number {
   if (dieAmount >= 1) {
     return ((dieValue + 10) * dieAmount);
   }
   return 0;
 }
 
-function getFrequencyMod(frequencyKey) {
-  // Look up the frequency modifier or default to 1
-  if (values.frequencyModifiers[frequencyKey] != null) {
-    return values.frequencyModifiers[frequencyKey];
-  }
-  return 1;
+function getFrequencyMod(frequencyKey: FrequencyType): number {
+    return values.frequencyModifiers[frequencyKey] || 1;
 }
 
-function getPowerLevelMod(powerLevelIndex) {
-  // Some effect types might not define a powerLevel => default 1
-  if (values.powerLevelModifiers[powerLevelIndex] != null) {
-    return values.powerLevelModifiers[powerLevelIndex];
-  }
-  return 1;
+function getPowerLevelMod(powerLevelIndex: number): number {
+    return values.powerLevelModifiers[powerLevelIndex] || 0.5;
 }
 
-function getComplexityMod(complexityKey) {
-  if (values.complexityModifiers[complexityKey] != null) {
-    return values.complexityModifiers[complexityKey];
-  }
-  return 1;
+function getComplexityMod(complexityKey: ComplexityType): number {
+    return values.complexityModifiers[complexityKey] || 2;
 }

@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './Effects.scss';
+import { Effect } from '../values';
 
-function Description({effect, onEffectFieldChange}) {
+type DescriptionProps = {
+  effect: Effect;
+  onEffectFieldChange: (field: string, value: any) => void;
+};
+
+function Description({effect, onEffectFieldChange}: DescriptionProps) {
     const [isEditingDescription, setIsEditingDescription] = useState(false);
 
     const Editable = () => {

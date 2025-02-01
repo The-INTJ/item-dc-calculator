@@ -1,16 +1,21 @@
 // ShardSection.js
 
-import React from 'react';
+import { ShardState } from "./values";
 
 /**
  * Renders inputs to select how many shards of each color to use.
  * 
  * Props:
- *   shardCounts: array of { shardColor, shardValue, count }
+ *   shards: array of { shardColor, shardValue, count }
  *   onShardCountChange: function(shardIndex, newValue)
  */
 
-function ShardSection({ shardCounts, onShardCountChange }) {
+interface ShardSectionProps {
+  shards: ShardState[];
+  onShardChange: (shardIndex: number, newCount: number) => void;
+}
+
+function ShardSection({ shards, onShardChange }: ShardSectionProps) {
   return (
     <div>
       <h2>Shards</h2>
@@ -20,8 +25,7 @@ function ShardSection({ shardCounts, onShardCountChange }) {
       </p>
 
       <div className="shard-container">
-        {shardCounts.map((shardData, shardIndex) => {
-          console.log(shardData.shardColor);
+        {shards.map((shardData, shardIndex) => {
             return (
             <div
               className="shard-item"
@@ -30,7 +34,7 @@ function ShardSection({ shardCounts, onShardCountChange }) {
             >
               <button
               className={`shard-btn add ${shardData.shardColor}`}
-              onClick={() => onShardCountChange(shardIndex, shardData.count + 1)}
+              onClick={() => onShardChange(shardIndex, shardData.count + 1)}
               >
               +
               </button>
@@ -39,7 +43,7 @@ function ShardSection({ shardCounts, onShardCountChange }) {
               </p>
               <button
               className={`shard-btn sub ${shardData.shardColor}`}
-              onClick={() => onShardCountChange(shardIndex, shardData.count - 1)}
+              onClick={() => onShardChange(shardIndex, shardData.count - 1)}
               >
               -
               </button>

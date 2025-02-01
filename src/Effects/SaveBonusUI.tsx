@@ -1,15 +1,12 @@
-// /Effects/SaveBonusUI.js
-
-import React from 'react';
 import { DieValuePicker, DieAmountPicker, FrequencyPicker } from './Common';
+import { Effect } from '../values';
 
-/**
- * Save Bonus effect requires:
- * - Die Value
- * - Die Amount
- * - Frequency
- */
-function SaveBonusUI({ effect, onEffectFieldChange }) {
+type SaveBonusUIProps = {
+  effect: Effect;
+  onEffectFieldChange: (field: string, value: any) => void;
+};
+
+function SaveBonusUI({ effect, onEffectFieldChange }: SaveBonusUIProps) {
   return (
     <div className="save-bonus-ui">
       <DieValuePicker
