@@ -2,6 +2,7 @@
 
 import React from 'react';
 import values, { Effect, FrequencyType, ComplexityType, ResistanceType, DurationType } from '../values'; // adjust path if needed
+import { TextField } from '@mui/material';
 
 /**
  * Common pickers used across multiple effect types.
@@ -33,11 +34,11 @@ export function DieAmountPicker({ value, onChange }: { value: number; onChange: 
   return (
     <div className="effect-field">
       <label>Die Amount:</label>
-      <input
+      <TextField
         type="number"
-        min="0"
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        variant="standard"
       />
     </div>
   );

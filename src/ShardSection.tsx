@@ -19,10 +19,6 @@ function ShardSection({ shards, onShardChange }: ShardSectionProps) {
   return (
     <div>
       <h2>Shards</h2>
-      <p>
-        Select how many of each shard color to use. Each shard color grants a certain 
-        number of d20 rolls.
-      </p>
 
       <div className="shard-container">
         {shards.map((shardData, shardIndex) => {

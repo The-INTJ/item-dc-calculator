@@ -12,6 +12,7 @@ import ShardSection from './ShardSection';
 import PlayerChance from './PlayerChance';
 import TitleBar from './Header/TitleBar';
 import { db } from './server';
+import { Typography } from '@mui/material';
 
 /**
  * Main Application
@@ -71,10 +72,10 @@ function App() {
       const partialDC = calculateEffectDC(currentEffect);
 
       return (
-        <li key={`effect-${index}`}>
+        <Typography key={`effect-${index}`}>
           <strong>Effect {index + 1}:</strong> {currentEffect.effectType} 
           {'\u00A0=>'} {partialDC.toFixed(2)}
-        </li>
+        </Typography>
       );
     });
   }
@@ -113,7 +114,7 @@ function App() {
 
         <div className="breakdown-container">
           <h2>Calculation Breakdown</h2>
-          <ul>{renderEffectsBreakdown()}</ul>
+          {renderEffectsBreakdown()}
           <p><strong>Base DC:</strong> {baseDC.toFixed(2)}</p>
           <p>+5 DC for each new effect past the first: {effectCountDC.toFixed(2)}</p>
           <p><strong>Final DC:</strong> {finalDC.toFixed(2)}</p>

@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import './Effects.scss';
 import { GeneralEffectUIProps } from './Common';
+import TextField from '@mui/material/TextField';
+import { Typography } from '@mui/material';
 
 function Description({effect, onEffectFieldChange}: GeneralEffectUIProps) {
     const [isEditingDescription, setIsEditingDescription] = useState(false);
 
     const Editable = () => {
     return isEditingDescription ? (
-      <input
+      <TextField
         className="editable-description"
         value={effect.description}
         onChange={(e) => onEffectFieldChange('description', e.target.value)}
@@ -15,9 +17,9 @@ function Description({effect, onEffectFieldChange}: GeneralEffectUIProps) {
         autoFocus
       />
     ) : (
-      <p className="editable-description" onClick={() => setIsEditingDescription(true)} onFocus={() => setIsEditingDescription(true)}>
+      <Typography className="editable-description" onClick={() => setIsEditingDescription(true)} onFocus={() => setIsEditingDescription(true)}>
         {effect.description || 'Your lack of description is disturbing...'}
-      </p>
+      </Typography>
     );
 }
 

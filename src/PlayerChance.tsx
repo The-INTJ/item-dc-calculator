@@ -6,6 +6,7 @@ import {
   retrieveTriviality,
 } from './playerChanceCalculations';
 import { ShardState } from './values';
+import { TextField, Typography } from '@mui/material';
 
 type PlayerChanceProps = {
   shards: ShardState[];
@@ -27,16 +28,16 @@ function PlayerChance({ shards, playerModifier, onPlayerModifierChange, totalDC 
         <label className="player-chance-label">
           Player Modifier:
         </label>
-        <input
+        <TextField
           type="number"
           value={playerModifier}
           onChange={onPlayerModifierChange}
-          className="player-chance-input"
+          variant="standard"
         />
       </div>
 
-      <p>
-        <strong>Total d20 Rolls:</strong> {totalD20Rolls}
+      <Typography>
+       {/*  <strong>Total d20 Rolls:</strong> {totalD20Rolls}
         <br />
         <strong>Distinct Shard Colors Used:</strong> {distinctColorsUsed}
         <br />
@@ -44,9 +45,9 @@ function PlayerChance({ shards, playerModifier, onPlayerModifierChange, totalDC 
         <br />
         <strong>Player Chance Formula:</strong> 
         {' '} Total DC - ((d20 rolls × 10) - 10) + ((modifier × distinct colors) - modifier)
-        <br />
+        <br /> */}
         <strong>Result:</strong> {chanceValue} ({trivality})
-      </p>
+      </Typography>
     </div>
   );
 }
