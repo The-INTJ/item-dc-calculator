@@ -1,4 +1,4 @@
-import { ValueInput, FrequencyPicker } from './Common';
+import { ValueInput, FrequencyPicker, ComplexityPicker } from './Common';
 import { GeneralEffectUIProps } from './Common';
 
 function FlySpeedUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
@@ -12,6 +12,10 @@ function FlySpeedUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
       <FrequencyPicker
         value={effect.frequency}
         onChange={(val) => onEffectFieldChange('frequency', val)}
+      />
+      <ComplexityPicker
+        value={effect.complexity}
+        onChange={(val) => onEffectFieldChange('complexity', val)}
       />
     </div>
   );
