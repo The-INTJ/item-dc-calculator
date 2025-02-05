@@ -39,6 +39,13 @@ export function DieAmountPicker({ value, onChange }: { value: number; onChange: 
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         variant="standard"
+        slotProps={{
+          input: {
+            style: {
+              color: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'white' : 'black',
+            },
+          },  
+        }}
       />
     </div>
   );

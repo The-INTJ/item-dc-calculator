@@ -7,23 +7,22 @@ import {
 } from './playerChanceCalculations';
 import { ShardState } from './values';
 import { TextField, Typography } from '@mui/material';
+import { useState } from 'react';
 
 type PlayerChanceProps = {
   shards: ShardState[];
   playerModifier: number;
-  onPlayerModifierChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  totalDC: number;
+  finalDC: number;
 };
-function PlayerChance({ shards, playerModifier, onPlayerModifierChange, totalDC }: PlayerChanceProps) {
+function PlayerChance({ shards, finalDC }: PlayerChanceProps) {
+  const [playerModifier, setPlayerModifier] = useState(0);
   const totalD20Rolls = calculateD20Rolls(shards);
   const distinctColorsUsed = calculateDistinctShardColorsUsed(shards);
-  const chanceValue = calculatePlayerChance(totalD20Rolls, playerModifier, distinctColorsUsed, totalDC);
+  const chanceValue = calculatePlayerChance(totalD20Rolls, playerModifier, distinctColorsUsed, finalDC);
   const trivality = retrieveTriviality(chanceValue);
 
   return (
     <div className="player-chance-container">
-      <h2>Player Chance</h2>
-
       <div className="player-chance-details">
         <label className="player-chance-label">
           Player Modifier:
@@ -31,23 +30,23 @@ function PlayerChance({ shards, playerModifier, onPlayerModifierChange, totalDC 
         <TextField
           type="number"
           value={playerModifier}
-          onChange={onPlayerModifierChange}
+          onChange={(event) => setPlayerModifier(Number(event.target.value))}
           variant="standard"
+          slotProps={{
+            input: {
+              style: {
+                color: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'white' : 'black',
+              },
+            },  
+          }}
         />
       </div>
 
-      <Typography>
-       {/*  <strong>Total d20 Rolls:</strong> {totalD20Rolls}
-        <br />
-        <strong>Distinct Shard Colors Used:</strong> {distinctColorsUsed}
-        <br />
-        <strong>Player Modifier:</strong>   {playerModifier}
-        <br />
-        <strong>Player Chance Formula:</strong> 
-        {' '} Total DC - ((d20 rolls × 10) - 10) + ((modifier × distinct colors) - modifier)
-        <br /> */}
-        <strong>Result:</strong> {chanceValue} ({trivality})
-      </Typography>
+      {totalD20Rolls > 0 && (
+        <Typography>
+          <strong>{trivality} ({chanceValue})</strong>
+        </Typography>
+      )}
     </div>
   );
 }

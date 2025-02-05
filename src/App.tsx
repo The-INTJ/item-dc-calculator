@@ -24,10 +24,8 @@ function App() {
     defaultEffectState
   ]);
   const [shards, setShards] = useState(initialShardState);
-  const [playerModifier, setPlayerModifier] = useState(0);
 
   const baseDC = calculateEffectSum(effects);
-  const effectCountDC = calculateEffectCountDC(effects);
   const finalDC = calculateFinalDC(effects);
 
   function handleShardCountChange(shardIndex: number, newCountString: number) {
@@ -62,24 +60,6 @@ function App() {
     }
   };
 
-  function handlePlayerModifierChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const newModifierValue = Number(event.target.value);
-    setPlayerModifier(newModifierValue);
-  }
-
-  function renderEffectsBreakdown() {
-    return effects.map((currentEffect, index) => {
-      const partialDC = calculateEffectDC(currentEffect);
-
-      return (
-        <Typography key={`effect-${index}`}>
-          <strong>Effect {index + 1}:</strong> {currentEffect.effectType} 
-          {'\u00A0=>'} {partialDC.toFixed(2)}
-        </Typography>
-      );
-    });
-  }
-
   return (
     <div className="App-container">
       <TitleBar 
@@ -101,24 +81,9 @@ function App() {
         <ShardSection
           shards={shards}
           onShardChange={handleShardCountChange}
-        />
-
-        {/* Player Chance */}
-        <PlayerChance
-          shards={shards}
-          playerModifier={playerModifier}
-          onPlayerModifierChange={handlePlayerModifierChange}
-          totalDC={finalDC}
+          finalDC={finalDC}
         />
       </div>
-
-        <div className="breakdown-container">
-          <h2>Calculation Breakdown</h2>
-          {renderEffectsBreakdown()}
-          <p><strong>Base DC:</strong> {baseDC.toFixed(2)}</p>
-          <p>+5 DC for each new effect past the first: {effectCountDC.toFixed(2)}</p>
-          <p><strong>Final DC:</strong> {finalDC.toFixed(2)}</p>
-        </div>
     </div>
   );
 }

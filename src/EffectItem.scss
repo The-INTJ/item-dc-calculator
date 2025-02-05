@@ -9,22 +9,29 @@
 }
 
 .effect-item {
-    display: grid;
-    grid-template-rows: auto auto auto;
-    grid-template-columns: 1fr;
+    display: flex;
+    height: fit-content;
     background-color: white;
     border-radius: 20px;
     gap: $margin-medium;
-    padding: $padding-medium;
     box-shadow: 0 0 8px 4px rgba(0, 0, 0, 0.405);
-    @media screen and (min-width: 400px) {
-        grid-template-rows: auto auto auto;
-        grid-template-columns: auto auto auto;
-    }
-
+    
     @media (prefers-color-scheme: dark) {
         background-color: rgb(0, 0, 0);
         box-shadow: 0 0 8px 4px rgba(255, 255, 255, 0.405);
+    }
+    h3 {
+        padding: $padding-medium;
+    }
+    &.open {
+        display: grid;
+        grid-template-rows: auto auto auto;
+        grid-template-columns: 1fr;
+        padding: $padding-medium;
+        @media screen and (min-width: 400px) {
+            grid-template-rows: auto auto auto;
+            grid-template-columns: auto auto auto;
+        }
     }
 }
 

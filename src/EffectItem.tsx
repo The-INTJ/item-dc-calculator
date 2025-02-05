@@ -1,10 +1,9 @@
-// EffectItem.tsx
+import { useState } from 'react';
+
 import './EffectItem.scss';
 import './Effects/Effects.scss';
 
-// Import each sub-component
 import DiceDamageAttackUI from './Effects/DiceDamageAttackUI';
-import SaveBonusUI from './Effects/SaveBonusUI';
 import MoveSpeedUI from './Effects/MoveSpeedUI';
 import FlySpeedUI from './Effects/FlySpeedUI';
 import ResistanceUI from './Effects/ResistanceUI';
@@ -12,9 +11,9 @@ import SpellSlotUI from './Effects/SpellSlotUI';
 import UtilityUI from './Effects/UtilityUI';
 import PlusXItemUI from './Effects/PlusXItemUI';
 import { Checkbox } from './Effects/Common';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
-import values, { Effect, EffectType } from './values';
 import Description from './Effects/Description';
+import values, { Effect, EffectType } from './values';
+import { calculateEffectDC } from './dcCalculations';
 
 /**
  * Renders the correct UI for the chosen effectType.
@@ -31,6 +30,8 @@ type EffectItemProps = {
 };
 
 function EffectItem({ effect, onEffectChange, index }: EffectItemProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
   // When user changes effectType in the dropdown
   function handleEffectTypeChange(e: React.ChangeEvent<HTMLSelectElement>) {
     onEffectChange(index, 'effectType', e.target.value as EffectType);
@@ -110,46 +111,58 @@ function EffectItem({ effect, onEffectChange, index }: EffectItemProps) {
     }
   }
 
+  const effectClassName = `effect-item ${effect.effectType
+    .replace(/\s+/g, '-')
+    .replace(/\+/g, '')
+    .toLowerCase()}${isOpen ? ' open' : ''}`;
+
   return (
     <div
-      className={`effect-item ${effect.effectType.replace(/\s+/g, '-').replace(/\+/g, '').toLowerCase()}`}
+      className={effectClassName}
     >
-      <div className="effect-field">
-        <label>Effect Type:</label>
-        <select
-          value={effect.effectType}
-          onChange={handleEffectTypeChange}
-        >
-          {Object.keys(values.effectBaseValues).map((effectKey) => (
-            <option key={effectKey} value={effectKey}>
-              {effectKey}
-            </option>
-          ))}
-        </select>
-        <Checkbox
-          label="Cursed?"
-          value={effect.cursed}
-          onChange={(val: boolean) => handleFieldChange('cursed', val)}
-        />
-        <Checkbox
-          label="New Effect?"
-          value={effect.isNew}
-          onChange={(val: boolean) => handleFieldChange('isNew', val)}
-        />
-        <Checkbox
-          label="Non-class ability?"
-          value={effect.outsideClass}
-          onChange={(val: boolean) => handleFieldChange('outsideClass', val)}
-        />
-      </div>
+      {isOpen ? (
+        <>
+          <div
+            className="effect-field"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <label>Effect Type:</label>
+            <select value={effect.effectType} onChange={handleEffectTypeChange}>
+              {Object.keys(values.effectBaseValues).map((effectKey) => (
+                <option key={effectKey} value={effectKey}>
+                  {effectKey}
+                </option>
+              ))}
+            </select>
+            <Checkbox
+              label="Cursed?"
+              value={effect.cursed}
+              onChange={(val: boolean) => handleFieldChange('cursed', val)}
+            />
+            <Checkbox
+              label="New Effect?"
+              value={effect.isNew}
+              onChange={(val: boolean) => handleFieldChange('isNew', val)}
+            />
+            <Checkbox
+              label="Non-class ability?"
+              value={effect.outsideClass}
+              onChange={(val: boolean) => handleFieldChange('outsideClass', val)}
+            />
+          </div>
 
-      {/* Render sub-UI */}
-      {renderEffectSpecificUI()}
+          {/* Render sub-UI */}
+          {renderEffectSpecificUI()}
 
-      <Description
-        effect={effect}
-        onEffectFieldChange={handleFieldChange}
-      />
+          <Description
+            effect={effect}
+            onEffectFieldChange={handleFieldChange}
+          />
+          <button onClick={() => setIsOpen((prev) => !prev)}>Collapse</button>
+        </>
+      ) : (
+        <h3 onClick={() => setIsOpen((prev) => !prev)}>{effect.effectType}: {calculateEffectDC(effect)}</h3>
+      )}
     </div>
   );
 }

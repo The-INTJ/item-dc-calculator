@@ -28,32 +28,45 @@ export function calculateDistinctShardColorsUsed(shardArray: ShardState[]): numb
  * The final "player chance" formula:
  *  (totalD20Rolls * 10) + (playerModifier * numberOfDistinctColorsUsed)
  */
-export function calculatePlayerChance(totalD20Rolls: number, playerModifier: number, distinctShardColorsUsed: number, totalDC: number): number {
-  const playerChance = Math.ceil((totalD20Rolls * 10)) + (playerModifier * distinctShardColorsUsed) - (10 + playerModifier);
-  return totalDC - playerChance;
+export function calculatePlayerChance(
+  totalD20Rolls: number,
+  playerModifier: number,
+  distinctShardColorsUsed: number,
+  finalDC: number
+): number {
+  const baseChance = Math.ceil(totalD20Rolls * 10);
+  const bonusFromColors = playerModifier * distinctShardColorsUsed;
+  const penalty = 10 + playerModifier;
+  const playerChanceScore = baseChance + bonusFromColors - penalty;
+  const finalChance = finalDC - playerChanceScore;
+
+  return finalChance;
 }
 
 /**
  * Returns a string indicating the trivality of the chance value.
  */
 export function retrieveTriviality(chanceValue: number): string {
+  if (chanceValue >= 40) {
+    return "Be careful not to choke on your aspirations.";
+  }
   if (chanceValue >= 30) {
-    return 'Inconceivable effort';
+    return 'Inconceivable! The word means what I think it does';
   }
   if (chanceValue >= 25) {
-    return 'Nearly Impossible';
+    return 'Nearly impossible -- I hope you submitted a session summary';
   }
   if (chanceValue >= 20) {
-    return 'Daunting';
+    return 'Rather daunting if I do say so';
   }
   if (chanceValue >= 15) {
-    return 'Difficult';
+    return 'Difficult tbh';
   }
   if (chanceValue >= 10) {
-    return 'Moderate';
+    return 'Moderatly challenging';
   }
   if (chanceValue >= 5) {
-    return 'Easy';
+    return 'So easy';
   }
-  return 'Trivial';
+  return 'Psh, trivial';
 }

@@ -1,5 +1,6 @@
 // ShardSection.js
 
+import PlayerChance from "./PlayerChance";
 import { ShardState } from "./values";
 
 /**
@@ -13,12 +14,19 @@ import { ShardState } from "./values";
 interface ShardSectionProps {
   shards: ShardState[];
   onShardChange: (shardIndex: number, newCount: number) => void;
+  finalDC: number;
 }
 
-function ShardSection({ shards, onShardChange }: ShardSectionProps) {
+function ShardSection({ shards, onShardChange, finalDC }: ShardSectionProps) {
   return (
     <div>
       <h2>Shards</h2>
+
+      <PlayerChance 
+        shards={shards} 
+        playerModifier={0}
+        finalDC={finalDC}
+      />
 
       <div className="shard-container">
         {shards.map((shardData, shardIndex) => {

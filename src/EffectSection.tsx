@@ -21,7 +21,6 @@ type EffectSectionProps = {
 function EffectSection({ effects, setEffects, itemName, setItemName }: EffectSectionProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
 
-
   function handleEffectChange<T extends keyof Effect>(
     effectIndex: number,
     fieldName: T,

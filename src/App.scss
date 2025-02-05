@@ -20,6 +20,10 @@
   }
 }
 
+.add-effect-btn {
+  height: fit-content;
+}
+
 .breakdown-container h2 {
   margin-top: 0;
 }
@@ -82,9 +86,9 @@
 
 /* Player chance */
 .player-effects-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   gap: 20px;
+  justify-content: center;
 }
 
 .whole-item {
