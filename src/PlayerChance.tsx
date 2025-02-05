@@ -6,7 +6,7 @@ import {
   retrieveTriviality,
 } from './playerChanceCalculations';
 import { ShardState } from './values';
-import { TextField, Typography } from '@mui/material';
+import { InputLabel, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 
 type PlayerChanceProps = {
@@ -24,21 +24,14 @@ function PlayerChance({ shards, finalDC }: PlayerChanceProps) {
   return (
     <div className="player-chance-container">
       <div className="player-chance-details">
-        <label className="player-chance-label">
-          Player Modifier:
-        </label>
+        <InputLabel className="player-chance-label">
+          Player Modifier
+        </InputLabel>
         <TextField
           type="number"
           value={playerModifier}
           onChange={(event) => setPlayerModifier(Number(event.target.value))}
           variant="standard"
-          slotProps={{
-            input: {
-              style: {
-                color: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'white' : 'black',
-              },
-            },  
-          }}
         />
       </div>
 

@@ -8,11 +8,6 @@
 
   button {
     color: black;
-
-    @media (prefers-color-scheme: dark) {
-      color: white;
-      background-color: black;
-    }
   }
 }
 
@@ -51,7 +46,7 @@
 }
 
 .modal-content {
-  background: #bbbbbb;
+  background: white;
   color: black;
   padding: 1rem;
   border-radius: 4px;
@@ -132,12 +127,4 @@
     }
 
   }
-
-  @media (prefers-color-scheme: dark) {
-    background: #333;
-    color: white;
-    .item {
-     text-shadow: 1px 1px 1px #ffffff96;
-    }
-  } 
 }

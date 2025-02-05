@@ -14,6 +14,7 @@ import { Checkbox } from './Effects/Common';
 import Description from './Effects/Description';
 import values, { Effect, EffectType } from './values';
 import { calculateEffectDC } from './dcCalculations';
+import { InputLabel, MenuItem, Select, Button } from '@mui/material';
 
 /**
  * Renders the correct UI for the chosen effectType.
@@ -126,14 +127,14 @@ function EffectItem({ effect, onEffectChange, index }: EffectItemProps) {
             className="effect-field"
             onClick={(e) => e.stopPropagation()}
           >
-            <label>Effect Type:</label>
-            <select value={effect.effectType} onChange={handleEffectTypeChange}>
+            <InputLabel>Effect Type:</InputLabel>
+            <Select value={effect.effectType} onChange={handleEffectTypeChange} size='small'>
               {Object.keys(values.effectBaseValues).map((effectKey) => (
-                <option key={effectKey} value={effectKey}>
+                <MenuItem key={effectKey} value={effectKey}>
                   {effectKey}
-                </option>
+                </MenuItem>
               ))}
-            </select>
+            </Select>
             <Checkbox
               label="Cursed?"
               value={effect.cursed}
@@ -154,14 +155,19 @@ function EffectItem({ effect, onEffectChange, index }: EffectItemProps) {
           {/* Render sub-UI */}
           {renderEffectSpecificUI()}
 
-          <Description
-            effect={effect}
-            onEffectFieldChange={handleFieldChange}
-          />
-          <button onClick={() => setIsOpen((prev) => !prev)}>Collapse</button>
+          <div className="spans-grid">
+            <Description
+              effect={effect}
+              onEffectFieldChange={handleFieldChange}
+            />
+            <Button onClick={() => setIsOpen((prev) => !prev)}>Collapse</Button>
+          </div>
         </>
       ) : (
-        <h3 onClick={() => setIsOpen((prev) => !prev)}>{effect.effectType}: {calculateEffectDC(effect)}</h3>
+        <Button 
+          onClick={() => setIsOpen((prev) => !prev)}>
+            <strong>{effect.effectType}: {calculateEffectDC(effect)}</strong>
+        </Button>
       )}
     </div>
   );

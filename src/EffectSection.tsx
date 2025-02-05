@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import EffectItem from './EffectItem';
 import values, { defaultEffectState, Effect, EffectType } from './values';
+import { Button, TextField, Typography } from '@mui/material';
 
 /**
  * Container for an array of effects.
@@ -55,7 +56,7 @@ function EffectSection({ effects, setEffects, itemName, setItemName }: EffectSec
 
   function EditableTitle () {
     return isEditingTitle ? (
-      <input
+      <TextField
         className="editable-title-input"
         value={itemName}
         onChange={(e) => setItemName(e.target.value)}
@@ -63,9 +64,15 @@ function EffectSection({ effects, setEffects, itemName, setItemName }: EffectSec
         autoFocus
       />
     ) : (
-      <h2 className="editable-title" onClick={() => setIsEditingTitle(true)}>
+      <Typography 
+        className="editable-title" 
+        onClick={() => setIsEditingTitle(true)}
+        component={'h2'}
+        fontSize={'2rem'}
+        sx={{ marginBottom: '0.5rem' }}
+      >
         {itemName}
-      </h2>
+      </Typography>
     )
   }
 
@@ -86,9 +93,9 @@ function EffectSection({ effects, setEffects, itemName, setItemName }: EffectSec
             onEffectChange={handleEffectChange}
           />
         ))}
-        <button className="add-effect-btn" onClick={addNewEffect}>
+        <Button className="add-effect-btn" onClick={addNewEffect}>
           + Add Another Effect
-        </button>
+        </Button>
       </div>
     </div>
   );

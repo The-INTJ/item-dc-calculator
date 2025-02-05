@@ -1,7 +1,13 @@
-.description {
+.spans-grid {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
     margin: 0;
     grid-column-start: 1;
     max-width: 400px;
+    gap: 8px;
     @media screen and (min-width: 400px) {
         grid-column-end: none;
     }

@@ -146,7 +146,7 @@ type StyleProperties = {
 export function getNearestShardColor(effectsArray: Effect[]): StyleProperties {
   const dc = calculateFinalDC(effectsArray);
   const styleObject: StyleProperties = {
-    background: 'white',
+    background: 'black',
     willShine: false
   };
   for (let i = 0; i < values.shardValues.length; i++) {

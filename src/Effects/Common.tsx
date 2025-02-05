@@ -2,7 +2,9 @@
 
 import React from 'react';
 import values, { Effect, FrequencyType, ComplexityType, ResistanceType, DurationType } from '../values'; // adjust path if needed
-import { TextField } from '@mui/material';
+import { TextField, Select, SelectChangeEvent, Checkbox as MUICheckbox } from '@mui/material';
+import MenuItem from '@mui/material/MenuItem';
+import InputLabel from '@mui/material/InputLabel';
 
 /**
  * Common pickers used across multiple effect types.
@@ -17,14 +19,19 @@ export type GeneralEffectUIProps = {
 export function DieValuePicker({ value, onChange }: { value: number; onChange: (value: number) => void }) {
   return (
     <div className="effect-field">
-      <label>Die Value:</label>
-      <select value={value} onChange={(e) => onChange(Number(e.target.value))}>
+      <InputLabel>Die Value:</InputLabel>
+      <Select 
+        value={value} 
+        onChange={(e) => onChange(Number(e.target.value))}
+        defaultValue={values.dieBonusValues[0]}
+        size='small'
+      >
         {values.dieBonusValues.map((dieOption) => (
-          <option key={dieOption} value={dieOption}>
+          <MenuItem key={dieOption} value={dieOption}>
             {dieOption}
-          </option>
+          </MenuItem>
         ))}
-      </select>
+      </Select>
     </div>
   );
 }
@@ -39,13 +46,6 @@ export function DieAmountPicker({ value, onChange }: { value: number; onChange: 
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         variant="standard"
-        slotProps={{
-          input: {
-            style: {
-              color: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'white' : 'black',
-            },
-          },  
-        }}
       />
     </div>
   );
@@ -55,14 +55,14 @@ export function DieAmountPicker({ value, onChange }: { value: number; onChange: 
 export function FrequencyPicker({ value, onChange, optionalTitle }: { value: FrequencyType; onChange: (value: FrequencyType) => void; optionalTitle?: string | boolean }) {
   return (
     <div className="effect-field">
-      <label>{optionalTitle || "Frequency:"}</label>
-      <select value={value} onChange={(e) => onChange(e.target.value as FrequencyType)}>
+      <InputLabel>{optionalTitle || "Frequency:"}</InputLabel>
+      <Select value={value} onChange={(e) => onChange(e.target.value as FrequencyType)} size='small'>
         {Object.keys(values.frequencyModifiers).map((freqKey) => (
-          <option key={freqKey} value={freqKey}>
+          <MenuItem key={freqKey} value={freqKey}>
             {freqKey}
-          </option>
+          </MenuItem>
         ))}
-      </select>
+      </Select>
     </div>
   );
 }
@@ -149,11 +149,12 @@ export function DurationPicker({ value, onChange }: { value: DurationType; onCha
 
 // Universal Checkbox
 export function Checkbox({ value, onChange, label }: { value: boolean; onChange: (value: boolean) => void; label: string }) {
+  const formedLabel = { inputProps: {'aria-label': label}};
   return (
-    <div className="effect-field">
-      <label>{label}</label>
-      <input
-        type="checkbox"
+    <div className="effect-field checkbox">
+      <InputLabel>{label}</InputLabel>
+      <MUICheckbox
+        {...formedLabel}
         checked={value}
         onChange={(e) => onChange(e.target.checked)}
       />

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './header.scss';          
 import LoadItemModal from './LoadItemModal';
+import { Button } from '@mui/material';
 
 type TitleBarProps = {
   finalDC: number;
@@ -41,14 +42,14 @@ function TitleBar({ finalDC, handleSave, handleItemLoad }: TitleBarProps) {
     <div className="title-bar">
       {/* Left: Load Button */}
       <div className="title-bar-left">
-        <button onClick={handleOpenModal}>Load</button>
+        <Button onClick={handleOpenModal} variant='outlined'>Load</Button>
       </div>
 
         <h1 className="dc-display">
           Final DC: {finalDC.toFixed(2)}
         </h1>
 
-        <button className={'save-btn ' + saveClass} onClick={reactToSave}>Save</button>
+        <Button variant='outlined' className={'save-btn ' + saveClass} onClick={reactToSave}>Save</Button>
 
         {/* LoadItemModal: Hidden unless isModalOpen = true */}
       <LoadItemModal

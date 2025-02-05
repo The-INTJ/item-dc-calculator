@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../server';
 import { Effect } from '../values';
 import { getNearestShardColor } from '../values';
-import { get } from 'http';
+import { Button, Typography } from '@mui/material';
 
 type Item = {
   name: string;
@@ -49,7 +49,7 @@ function LoadItemModal({ isOpen, onClose, handleItemLoad }: LoadItemModalProps) 
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h2>Load an Item</h2>
+        <Typography component="h2" size="large">Load an Item</Typography>
         <div className='item-list-in-modal'>
           {items.map((item, index) => {
             const styleObject = getNearestShardColor(item.effectsArray);
@@ -65,7 +65,7 @@ function LoadItemModal({ isOpen, onClose, handleItemLoad }: LoadItemModalProps) 
             );
           })}
         </div>
-        <button onClick={onClose}>Close</button>
+        <Button variant='contained' onClick={onClose}>Close</Button>
       </div>
     </div>
   );
