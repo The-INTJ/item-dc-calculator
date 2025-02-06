@@ -61,21 +61,25 @@ function App() {
   };
 
   return (
-    <div className="App-container">
+    <>
       <TitleBar 
         finalDC={finalDC} 
-        handleSave={handleSave} 
+        handleSave={handleSave}
         handleItemLoad={handleItemLoad}
-      />
-
-      {/* Effects Section */}
-      <EffectSection 
-        effects={effects} 
-        setEffects={setEffects} 
         itemName={itemName}
         setItemName={setItemName}
       />
+      <div className="App-container">
 
+        {/* Effects Section */}
+        <EffectSection 
+          effects={effects} 
+          setEffects={setEffects} 
+          itemName={itemName}
+          setItemName={setItemName}
+        />
+
+      </div>
       <div className="player-effects-container">
         {/* Shards Section */}
         <ShardSection
@@ -84,7 +88,7 @@ function App() {
           finalDC={finalDC}
         />
       </div>
-    </div>
+    </>
   );
 }
 

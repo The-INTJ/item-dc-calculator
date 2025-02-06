@@ -1,5 +1,8 @@
 .player-chance-container {
-  margin-bottom: 20px;
+  margin: 20px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
 }
 
 .player-chance-label {

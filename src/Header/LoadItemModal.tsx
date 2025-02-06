@@ -49,7 +49,7 @@ function LoadItemModal({ isOpen, onClose, handleItemLoad }: LoadItemModalProps) 
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <Typography component="h2" size="large">Load an Item</Typography>
+        <Typography component="h2">Load an Item</Typography>
         <div className='item-list-in-modal'>
           {items.map((item, index) => {
             const styleObject = getNearestShardColor(item.effectsArray);

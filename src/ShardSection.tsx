@@ -20,8 +20,6 @@ interface ShardSectionProps {
 function ShardSection({ shards, onShardChange, finalDC }: ShardSectionProps) {
   return (
     <div>
-      <h2>Shards</h2>
-
       <PlayerChance 
         shards={shards} 
         playerModifier={0}
@@ -29,12 +27,12 @@ function ShardSection({ shards, onShardChange, finalDC }: ShardSectionProps) {
       />
 
       <div className="shard-container">
+        <img className="img" src="/src/assets/Dresser.png" alt="Dresser" />
         {shards.map((shardData, shardIndex) => {
             return (
             <div
-              className="shard-item"
+              className={`shard-item shard-${shardIndex}`}
               key={shardData.shardColor}
-              style={{ backgroundColor: shardData.shardHexColor}}
             >
               <button
               className={`shard-btn add ${shardData.shardColor}`}

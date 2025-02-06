@@ -24,21 +24,75 @@
   margin-top: 0;
 }
 
+.player-effects-container {
+  background-color: $background-blue;
+}
+
 /* shard styling */
 .shard-container {
   display: flex;
   flex-wrap: wrap;
   gap: 15px;
   margin-top: 10px;
+  position: relative;
+
+  .img {
+    z-index: 0;
+  }
 }
 
 .shard-item {
-  position: relative;
+  position: absolute;
   display: flex;
+  background-color: transparent;
   flex-direction: column;
   align-items: center;
   border-radius: $border-radius-medium;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+
+  &.shard-0 {
+    top: 5%;
+    right: 65%;
+  }
+  &.shard-1 {
+    top: 5%;
+    right: 50%;
+  }
+  &.shard-2 {
+    top: 5%;
+    right: 35%;
+  }
+  &.shard-3 {
+    top: 5%;
+    right: 20%;
+  }
+  &.shard-4 {
+    top: 27%;
+    right: 56.5%;
+  }
+  &.shard-5 {
+    top: 27%;
+    right: 41.5%;
+  }
+  &.shard-6 {
+    top: 27%;
+    right: 26.5%;
+  }
+  &.shard-7 {
+  top: 48.5%;
+  right: 65%;
+  }
+  &.shard-8 {
+  top: 48.5%;
+  right: 50%;
+  }
+  &.shard-9 {
+  top: 48.5%;
+  right: 35%;
+  }
+  &.shard-10 {
+  top: 48.5%;
+  right: 20%;
+  }
 }
 
 .shard-num {

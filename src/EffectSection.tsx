@@ -4,6 +4,7 @@ import { useState } from 'react';
 import EffectItem from './EffectItem';
 import values, { defaultEffectState, Effect, EffectType } from './values';
 import { Button, TextField, Typography } from '@mui/material';
+import { calculateFinalDC } from './dcCalculations';
 
 /**
  * Container for an array of effects.
@@ -19,9 +20,8 @@ type EffectSectionProps = {
   setItemName: (name: string) => void;
 }
 
-function EffectSection({ effects, setEffects, itemName, setItemName }: EffectSectionProps) {
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-
+function EffectSection({ effects, setEffects }: EffectSectionProps) {
+  
   function handleEffectChange<T extends keyof Effect>(
     effectIndex: number,
     fieldName: T,
@@ -54,36 +54,12 @@ function EffectSection({ effects, setEffects, itemName, setItemName }: EffectSec
     setEffects(clonedEffects);
   }
 
-  function EditableTitle () {
-    return isEditingTitle ? (
-      <TextField
-        className="editable-title-input"
-        value={itemName}
-        onChange={(e) => setItemName(e.target.value)}
-        onBlur={() => setIsEditingTitle(false)}
-        autoFocus
-      />
-    ) : (
-      <Typography 
-        className="editable-title" 
-        onClick={() => setIsEditingTitle(true)}
-        component={'h2'}
-        fontSize={'2rem'}
-        sx={{ marginBottom: '0.5rem' }}
-      >
-        {itemName}
-      </Typography>
-    )
-  }
-
-
   function addNewEffect() {
     setEffects([...effects, defaultEffectState]);
   }
 
   return (
     <div className="whole-item">
-      <EditableTitle />
       <div className="effects-container">
         {effects.map((currentEffect, index) => (
           <EffectItem
@@ -97,6 +73,9 @@ function EffectSection({ effects, setEffects, itemName, setItemName }: EffectSec
           + Add Another Effect
         </Button>
       </div>
+      <Typography variant="h5" component="p">
+        Total DC: {calculateFinalDC(effects)}
+      </Typography>
     </div>
   );
 }

@@ -4,10 +4,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 1rem 0;
+  height: 100px;
+  z-index: 9999;
+
+  position: sticky;
+  top: 0;
+  background-color: $main-brown;
+  color: white;
 
   button {
-    color: black;
+    color: white;
+  }
+
+  .title-bar-title {
+    font-size: 4rem;
   }
 }
 

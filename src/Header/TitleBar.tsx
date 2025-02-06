@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import './header.scss';          
 import LoadItemModal from './LoadItemModal';
-import { Button } from '@mui/material';
+import { Button, Input, TextField, Typography } from '@mui/material';
 
 type TitleBarProps = {
   finalDC: number;
   handleSave: () => Promise<any>;
   handleItemLoad: (item: { name: string; effectsArray: any[] }) => void;
+  itemName: string;
+  setItemName: (name: string) => void;
 };
 
-function TitleBar({ finalDC, handleSave, handleItemLoad }: TitleBarProps) {
+function TitleBar({ handleSave, handleItemLoad, itemName, setItemName }: TitleBarProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saveClass, setSaveClass] = useState('');
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
 
   // Open/close the "Load Item" modal
   function handleOpenModal() {
@@ -38,18 +41,38 @@ function TitleBar({ finalDC, handleSave, handleItemLoad }: TitleBarProps) {
     }
   }
 
+  function EditableTitle () {
+    return isEditingTitle ? (
+      <Input
+        className="editable-title-input"
+        value={itemName}
+        onChange={(e) => setItemName(e.target.value)}
+        onBlur={() => setIsEditingTitle(false)}
+        autoFocus
+        sx={{ fontSize: '4rem', color: 'white', textAlign: 'center' }}
+      />
+    ) : (
+      <Typography 
+        className="editable-title" 
+        onClick={() => setIsEditingTitle(true)}
+        component={'h1'}
+        fontSize={'4rem'}
+      >
+        {itemName}
+      </Typography>
+    )
+  }
+
   return (
     <div className="title-bar">
       {/* Left: Load Button */}
       <div className="title-bar-left">
-        <Button onClick={handleOpenModal} variant='outlined'>Load</Button>
+        <Button onClick={handleOpenModal} variant='text'>Load</Button>
       </div>
 
-        <h1 className="dc-display">
-          Final DC: {finalDC.toFixed(2)}
-        </h1>
+        <EditableTitle />
 
-        <Button variant='outlined' className={'save-btn ' + saveClass} onClick={reactToSave}>Save</Button>
+        <Button variant='text' className={'save-btn ' + saveClass} onClick={reactToSave}>Save</Button>
 
         {/* LoadItemModal: Hidden unless isModalOpen = true */}
       <LoadItemModal
