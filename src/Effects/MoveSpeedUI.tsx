@@ -8,7 +8,7 @@ type MoveSpeedUIProps = {
 
 function MoveSpeedUI({ effect, onEffectFieldChange }: MoveSpeedUIProps) {
   return (
-    <div className="move-speed-ui">
+    <div className="move-speed-ui spacing">
       <ValueInput
         label="Move Speed (units)"
         value={effect.amountValue || 0}

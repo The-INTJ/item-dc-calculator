@@ -9,7 +9,7 @@ import { GeneralEffectUIProps } from './Common';
 function SpellSlotUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
   const isCantrip = effect.effectType === 'Cantrip';
   return (
-    <div className="spell-slot-ui">
+    <div className="spell-slot-ui spacing">
       {!isCantrip &&
       <PowerLevelPicker
         value={effect.powerLevel}

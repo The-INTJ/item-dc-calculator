@@ -8,7 +8,7 @@ type SaveBonusUIProps = {
 
 function SaveBonusUI({ effect, onEffectFieldChange }: SaveBonusUIProps) {
   return (
-    <div className="save-bonus-ui">
+    <div className="save-bonus-ui spacing">
       <DieValuePicker
         value={effect.dieValue}
         onChange={(val) => onEffectFieldChange('dieValue', val)}

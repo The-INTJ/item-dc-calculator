@@ -8,7 +8,7 @@ import {
 } from './Common';
 function UtilityUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
   return (
-    <div className="utility-ui">
+    <div className="utility-ui spacing">
       <DieValuePicker
         value={effect.dieValue}
         onChange={(val) => onEffectFieldChange('dieValue', val)}

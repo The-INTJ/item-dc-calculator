@@ -3,7 +3,7 @@ import { GeneralEffectUIProps } from './Common';
 
 function DiceDamageAttackUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
   return (
-    <div className="dice-damage-attack-ui">
+    <div className="dice-damage-attack-ui spacing">
       <DieValuePicker
         value={effect.dieValue}
         onChange={(val) => onEffectFieldChange('dieValue', val)}

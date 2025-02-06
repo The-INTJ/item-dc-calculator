@@ -6,7 +6,7 @@ import { GeneralEffectUIProps } from './Common';
 
 function ResistanceUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
   return (
-    <div className="resistance-ui">
+    <div className="resistance-ui spacing">
       <ResistancePicker
         value={effect.resistanceType}
         onChange={(val) => onEffectFieldChange('amountValue', val)}

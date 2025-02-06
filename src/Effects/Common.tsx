@@ -40,7 +40,7 @@ export function DieValuePicker({ value, onChange }: { value: number; onChange: (
 export function DieAmountPicker({ value, onChange }: { value: number; onChange: (value: number) => void }) {
   return (
     <div className="effect-field">
-      <label>Die Amount:</label>
+      <InputLabel>Die Amount:</InputLabel>
       <TextField
         type="number"
         value={value}
@@ -72,12 +72,12 @@ export function ValueInput({ label, value, onChange }: { label: string; value: n
   noZero(value, onChange);
   return (
     <div className="effect-field">
-      <label>{label}</label>
-      <input
+      <InputLabel>{label}</InputLabel>
+      <TextField
         type="number"
-        min="1"
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        variant="standard"
       />
     </div>
   );
@@ -87,14 +87,14 @@ export function ValueInput({ label, value, onChange }: { label: string; value: n
 export function PowerLevelPicker({ value, onChange }: { value: number; onChange: (value: number) => void }) {
   return (
     <div className="effect-field">
-      <label>Power Level:</label>
-      <select value={value} onChange={(e) => onChange(Number(e.target.value))}>
+      <InputLabel>Power Level:</InputLabel>
+      <Select value={String(value)} onChange={(e) => onChange(Number(e.target.value))} size='small'>
         {values.powerLevelModifiers.map((modifier, i) => (
-          <option key={i} value={i}>
+          <MenuItem key={i} value={i}>
             {`Index ${i} => x${modifier}`}
-          </option>
+          </MenuItem>
         ))}
-      </select>
+      </Select>
     </div>
   );
 }
@@ -103,14 +103,14 @@ export function PowerLevelPicker({ value, onChange }: { value: number; onChange:
 export function ComplexityPicker({ value, onChange }: { value: ComplexityType; onChange: (value: ComplexityType) => void }) {
   return (
     <div className="effect-field">
-      <label>Useable:</label>
-      <select value={value} onChange={(e) => onChange(e.target.value as ComplexityType)}>
+      <InputLabel>Useable:</InputLabel>
+      <Select value={value} onChange={(e) => onChange(e.target.value as ComplexityType)} size='small'>
         {Object.keys(values.complexityModifiers).map((compKey) => (
-          <option key={compKey} value={compKey}>
+          <MenuItem key={compKey} value={compKey}>
             {compKey}
-          </option>
+          </MenuItem>
         ))}
-      </select>
+      </Select>
     </div>
   );
 }
@@ -119,14 +119,14 @@ export function ComplexityPicker({ value, onChange }: { value: ComplexityType; o
 export function ResistancePicker({ value, onChange }: { value: ResistanceType; onChange: (value: ResistanceType) => void }) {
   return (
     <div className="effect-field">
-      <label>Type:</label>
-      <select value={value} onChange={(e) => onChange(e.target.value as ResistanceType)}>
+      <InputLabel>Type:</InputLabel>
+      <Select value={value} onChange={(e) => onChange(e.target.value as ResistanceType)} size='small'>
         {Object.keys(values.resistanceRarity).map((compKey) => (
-          <option key={compKey} value={compKey}>
+          <MenuItem key={compKey} value={compKey}>
             {compKey}
-          </option>
+          </MenuItem>
         ))}
-      </select>
+      </Select>
     </div>
   );
 }
@@ -135,14 +135,14 @@ export function ResistancePicker({ value, onChange }: { value: ResistanceType; o
 export function DurationPicker({ value, onChange }: { value: DurationType; onChange: (value: DurationType) => void }) {
   return (
     <div className="effect-field">
-      <label>Duration:</label>
-      <select value={value} onChange={(e) => onChange(e.target.value as DurationType)}>
+      <InputLabel>Duration:</InputLabel>
+      <Select value={value} onChange={(e) => onChange(e.target.value as DurationType)} size='small'>
         {Object.keys(values.durationValues).map((compKey) => (
-          <option key={compKey} value={compKey}>
+          <MenuItem key={compKey} value={compKey}>
             {compKey}
-          </option>
+          </MenuItem>
         ))}
-      </select>
+      </Select>
     </div>
   );
 }

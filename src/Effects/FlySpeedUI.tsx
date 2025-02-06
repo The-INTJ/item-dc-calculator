@@ -3,7 +3,7 @@ import { GeneralEffectUIProps } from './Common';
 
 function FlySpeedUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
   return (
-    <div className="fly-speed-ui">
+    <div className="fly-speed-ui spacing">
       <ValueInput
         label="Fly Speed (units)"
         value={effect.amountValue || 0}

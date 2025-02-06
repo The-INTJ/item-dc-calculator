@@ -3,7 +3,7 @@ import { GeneralEffectUIProps } from './Common';
 
 function ResistanceUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
   return (
-    <div className="resistance-ui">
+    <div className="resistance-ui spacing">
       <ValueInput
         label="Resistance Value"
         value={effect.amountValue || 0}
