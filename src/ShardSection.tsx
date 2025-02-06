@@ -27,7 +27,7 @@ function ShardSection({ shards, onShardChange, finalDC }: ShardSectionProps) {
       />
 
       <div className="shard-container">
-        <img className="img" src="/src/assets/Dresser.png" alt="Dresser" />
+        <img className="img" src="/Dresser.png" alt="Dresser" />
         {shards.map((shardData, shardIndex) => {
             return (
             <div
