@@ -51,48 +51,48 @@
   border-radius: $border-radius-medium;
 
   &.shard-0 {
-    top: 5%;
-    right: 65%;
+    top: 5.5%;
+    right: 69.5%;
   }
   &.shard-1 {
-    top: 5%;
-    right: 50%;
+    top: 5.5%;
+    right: 50.5%;
   }
   &.shard-2 {
-    top: 5%;
-    right: 35%;
+    top: 5.5%;
+    right: 30.5%;
   }
   &.shard-3 {
-    top: 5%;
-    right: 20%;
+    top: 5.5%;
+    right: 10.5%;
   }
   &.shard-4 {
     top: 27%;
-    right: 56.5%;
+    right: 58.5%;
   }
   &.shard-5 {
     top: 27%;
-    right: 41.5%;
+    right: 39%;
   }
   &.shard-6 {
     top: 27%;
-    right: 26.5%;
+    right: 19.5%;
   }
   &.shard-7 {
-  top: 48.5%;
-  right: 65%;
+  top: 47.5%;
+  right: 70%;
   }
   &.shard-8 {
-  top: 48.5%;
+  top: 47.5%;
   right: 50%;
   }
   &.shard-9 {
-  top: 48.5%;
-  right: 35%;
+  top: 47.5%;
+  right: 30%;
   }
   &.shard-10 {
-  top: 48.5%;
-  right: 20%;
+  top: 47.5%;
+  right: 11%;
   }
 }
 
@@ -148,7 +148,6 @@
 }
 
 .editable-title {
-  font-size: 2rem;
   margin-bottom: 1rem;
   cursor: pointer;
 }

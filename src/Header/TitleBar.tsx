@@ -49,14 +49,14 @@ function TitleBar({ handleSave, handleItemLoad, itemName, setItemName }: TitleBa
         onChange={(e) => setItemName(e.target.value)}
         onBlur={() => setIsEditingTitle(false)}
         autoFocus
-        sx={{ fontSize: '4rem', color: 'white', textAlign: 'center' }}
+        sx={{ fontSize: '2.5rem', color: 'white', textAlign: 'center' }}
       />
     ) : (
       <Typography 
         className="editable-title" 
         onClick={() => setIsEditingTitle(true)}
         component={'h1'}
-        fontSize={'4rem'}
+        fontSize={'2.5rem'}
       >
         {itemName}
       </Typography>
