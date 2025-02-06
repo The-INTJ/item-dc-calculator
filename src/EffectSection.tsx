@@ -69,11 +69,15 @@ function EffectSection({ effects, setEffects }: EffectSectionProps) {
             onEffectChange={handleEffectChange}
           />
         ))}
-        <Button className="add-effect-btn" onClick={addNewEffect}>
+        <Button 
+          className="add-effect-btn" 
+          onClick={addNewEffect}
+          sx={{ color: 'white'}}
+        >
           + Add Another Effect
         </Button>
       </div>
-      <Typography variant="h5" component="p">
+      <Typography variant="h5" component="p" sx={{ color: 'white' }}>
         Total DC: {calculateFinalDC(effects)}
       </Typography>
     </div>

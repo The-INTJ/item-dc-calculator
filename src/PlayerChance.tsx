@@ -24,10 +24,14 @@ function PlayerChance({ shards, finalDC }: PlayerChanceProps) {
   return (
     <div className="player-chance-container">
       <div className="player-chance-details">
-        <InputLabel className="player-chance-label">
+        <InputLabel 
+          className="player-chance-label"
+          sx={{ color: 'white' }}
+        >
           Player Modifier
         </InputLabel>
         <TextField
+          sx={{ 'input': { color: 'white' } } }
           type="number"
           value={playerModifier}
           onChange={(event) => setPlayerModifier(Number(event.target.value))}
@@ -36,8 +40,11 @@ function PlayerChance({ shards, finalDC }: PlayerChanceProps) {
       </div>
 
       {totalD20Rolls > 0 && (
-        <Typography>
-          <strong>{trivality} ({chanceValue})</strong>
+        <Typography 
+          className="player-chance-text"
+          fontSize={'1.3rem'}
+        >
+          <strong>{trivality} <br/>({chanceValue})</strong>
         </Typography>
       )}
     </div>

@@ -14,7 +14,7 @@ import { Checkbox } from './Effects/Common';
 import Description from './Effects/Description';
 import values, { Effect, EffectType } from './values';
 import { calculateEffectDC } from './dcCalculations';
-import { InputLabel, MenuItem, Select, Button } from '@mui/material';
+import { InputLabel, MenuItem, Select, Button, SelectChangeEvent } from '@mui/material';
 
 /**
  * Renders the correct UI for the chosen effectType.
@@ -34,7 +34,7 @@ function EffectItem({ effect, onEffectChange, index }: EffectItemProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   // When user changes effectType in the dropdown
-  function handleEffectTypeChange(e: React.ChangeEvent<HTMLSelectElement>) {
+  function handleEffectTypeChange(e: SelectChangeEvent<EffectType>) {
     onEffectChange(index, 'effectType', e.target.value as EffectType);
   }
 
