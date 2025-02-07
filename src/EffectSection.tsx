@@ -77,9 +77,6 @@ function EffectSection({ effects, setEffects }: EffectSectionProps) {
           + Add Another Effect
         </Button>
       </div>
-      <Typography variant="h5" component="p" sx={{ color: 'white' }}>
-        Total DC: {calculateFinalDC(effects)}
-      </Typography>
     </div>
   );
 }

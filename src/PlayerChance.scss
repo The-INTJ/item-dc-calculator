@@ -1,13 +1,24 @@
+.shard-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 .player-chance-container {
-  margin: 20px;
   display: flex;
   justify-content: center;
   flex-direction: column;
   position: relative;
+  width: fit-content;
 }
 
 .player-chance-details {
-  margin-bottom: 10px;
+  color: white;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-size: 1.5rem;
 }
 
 .player-chance-label {
@@ -15,8 +26,15 @@
   margin-right: 10px;
 }
 
-.player-chance-input {
-  padding: 2px 8px;
+.player-mod-input {
+  background-color: transparent;
+  color: white;
+  border: none;
+  border-radius: 100%;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-size: 2rem;
+  width: 40px;
+  height: 40px;
 }
 
 
@@ -25,8 +43,8 @@
   max-width: 290px;
   text-align: center;
   position: absolute;
-  top: 790%;
-  right: -2%;
+  top: 1100%;
+  right: -200%;
   z-index: 2;
   color: white;
 }

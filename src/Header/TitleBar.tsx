@@ -11,7 +11,7 @@ type TitleBarProps = {
   setItemName: (name: string) => void;
 };
 
-function TitleBar({ handleSave, handleItemLoad, itemName, setItemName }: TitleBarProps) {
+function TitleBar({ handleSave, handleItemLoad, itemName, setItemName, finalDC }: TitleBarProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saveClass, setSaveClass] = useState('');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -59,6 +59,8 @@ function TitleBar({ handleSave, handleItemLoad, itemName, setItemName }: TitleBa
         fontSize={'2.5rem'}
       >
         {itemName}
+        <br />
+        {finalDC}
       </Typography>
     )
   }
