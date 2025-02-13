@@ -77,6 +77,7 @@ function EffectItem({ effect, onEffectChange, index }: EffectItemProps) {
         );
       case 'Spell slot':
       case 'Cantrip':
+      case 'Learn spell':
         return (
           <SpellSlotUI
             effect={effect}
@@ -117,6 +118,14 @@ function EffectItem({ effect, onEffectChange, index }: EffectItemProps) {
     .replace(/\+/g, '')
     .toLowerCase()}${isOpen ? ' open' : ''}`;
 
+  // well I wrote it so here it stays
+  function outsideClassLabel(effectType: EffectType) {
+    switch (effectType) {
+      default:
+        return 'Non-class ability?';
+    }
+  }
+
   return (
     <div
       className={effectClassName}
@@ -146,7 +155,7 @@ function EffectItem({ effect, onEffectChange, index }: EffectItemProps) {
               onChange={(val: boolean) => handleFieldChange('isNew', val)}
             />
             <Checkbox
-              label="Non-class ability?"
+              label={outsideClassLabel(effect.effectType)}
               value={effect.outsideClass}
               onChange={(val: boolean) => handleFieldChange('outsideClass', val)}
             />

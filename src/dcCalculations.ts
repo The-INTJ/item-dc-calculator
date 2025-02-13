@@ -61,6 +61,7 @@ export function calculateEffectDC(effect: Effect): number {
       return calculateImmunityDC(effect);
     case 'Spell slot':
     case 'Cantrip':
+    case 'Learn spell':
       return calculateSpellSlotDC(effect);
     case 'Low utility':
     case 'Medium utility':
@@ -131,11 +132,13 @@ function calculateSpellSlotDC(effect: Effect): number {
     const alwaysChangeable = effect.frequency === 'Always' ? 50 : 0;
     partialDC = effect.baseValue + scalesWithLevel + alwaysChangeable;
     partialDC *= freqMod * compMod;
+  } else if (effect.effectType === 'Learn spell') {
+    partialDC = 20;
   } else {
     partialDC = effect.baseValue * pwrMod * freqMod * compMod;
   }
 
-  partialDC += effect.caster ? 0 : 20; // additional shard investment from non-caster
+  partialDC += effect.caster || effect.outsideClass ? 0 : 20; // additional shard investment from non-caster
 
   return partialDC;
 }

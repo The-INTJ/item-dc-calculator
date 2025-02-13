@@ -8,13 +8,14 @@ import { GeneralEffectUIProps } from './Common';
 
 function SpellSlotUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
   const isCantrip = effect.effectType === 'Cantrip';
+  if (effect.effectType === 'Learn spell') return null;
   return (
     <div className="spell-slot-ui spacing">
       {!isCantrip &&
-      <PowerLevelPicker
-        value={effect.powerLevel}
-        onChange={(val) => onEffectFieldChange('powerLevel', val)}
-      />
+        <PowerLevelPicker
+          value={effect.powerLevel}
+          onChange={(val) => onEffectFieldChange('powerLevel', val)}
+        />
       }
       <FrequencyPicker
         value={effect.frequency}
@@ -25,17 +26,12 @@ function SpellSlotUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
         value={effect.complexity}
         onChange={(val) => onEffectFieldChange('complexity', val)}
       />
-      {isCantrip && 
+      {isCantrip &&
       <Checkbox
         value={effect.scalesWithLevel}
         onChange={(val) => onEffectFieldChange('scalesWithLevel', val)}
         label="Scales with Level"
       />}
-      <Checkbox
-        value={effect.caster}
-        onChange={(val) => onEffectFieldChange('caster', val)}
-        label="Casting class?"
-      />
     </div>
   );
 }

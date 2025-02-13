@@ -50,6 +50,7 @@ const values = {
     'Immunity': 20,
     'Cantrip': 5,
     'Spell slot': 20,
+    'Learn spell': 10,
     'Slight utility': 5,
     'Low utility': 7,
     'Medium utility': 17,
