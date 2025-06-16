@@ -9,7 +9,7 @@ function ResistanceUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
     <div className="resistance-ui spacing">
       <ResistancePicker
         value={effect.resistanceType}
-        onChange={(val) => onEffectFieldChange('amountValue', val)}
+        onChange={(val) => onEffectFieldChange('resistanceType', val)}
       />
       <FrequencyPicker
         value={effect.frequency}
