@@ -4,6 +4,7 @@ import {
   FrequencyPicker,
   ComplexityPicker,
   PowerLevelPicker,
+  NumberInput,
   GeneralEffectUIProps
 } from './Common';
 function UtilityUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
@@ -29,6 +30,13 @@ function UtilityUI({ effect, onEffectFieldChange }: GeneralEffectUIProps) {
         value={effect.powerLevel}
         onChange={(val) => onEffectFieldChange('powerLevel', val)}
       />
+      {['Low utility', 'Medium utility', 'High utility'].includes(effect.effectType) && (
+        <NumberInput
+          label="Override"
+          value={effect.scoreOverride}
+          onChange={(val) => onEffectFieldChange('scoreOverride', val)}
+        />
+      )}
     </div>
   );
 }

@@ -152,7 +152,8 @@ function calculateUtilityDC(effect: Effect): number {
   const compMod = getComplexityMod(effect.complexity);
 
   const partialDC = (effect.baseValue * pwrMod * freqMod * compMod) + dice;
-  return partialDC;
+  // Allow manual adjustments via scoreOverride for utility effects
+  return partialDC + effect.scoreOverride;
 }
 
 function calculatePlusXItemDC(effect: Effect): number {

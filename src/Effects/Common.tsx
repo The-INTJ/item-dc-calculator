@@ -83,6 +83,22 @@ export function ValueInput({ label, value, onChange }: { label: string; value: n
   );
 }
 
+// Generic numeric input that allows any value (including negatives). Useful for
+// optional overrides or future numeric fields that shouldn't be clamped.
+export function NumberInput({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
+  return (
+    <div className="effect-field">
+      <InputLabel>{label}</InputLabel>
+      <TextField
+        type="number"
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        variant="standard"
+      />
+    </div>
+  );
+}
+
 // Power Level Picker
 export function PowerLevelPicker({ value, onChange }: { value: number; onChange: (value: number) => void }) {
   return (

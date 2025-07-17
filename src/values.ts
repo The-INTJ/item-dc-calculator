@@ -25,6 +25,12 @@ export interface Effect {
   unarmed: boolean;
   outsideClass: boolean;
   description: string;
+  /**
+   * Optional modifier applied after the normal DC calculation. Can be
+   * positive or negative and is primarily used by utility effects but
+   * kept generic so other effect types can leverage it in the future.
+   */
+  scoreOverride: number;
 }
 
 export interface ShardState {
@@ -130,6 +136,7 @@ export const defaultEffectState: Effect = {
   unarmed: false,
   outsideClass: false,
   description: 'Effect description here',
+  scoreOverride: 0,
 };
 
 export const initialShardState: ShardState[] = values.shardValues.map((shardObject) => ({
