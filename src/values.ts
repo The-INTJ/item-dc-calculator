@@ -166,6 +166,14 @@ export function getNearestShardColor(effectsArray: Effect[]): StyleProperties {
   if (dc >= 150) {
     styleObject.willShine = true;
   }
+  // Extremely high DC items were hard to read on mobile when the
+  // calculated color was very dark (usually "Black"). To improve
+  // visibility use a gradient that mixes the shard color with a
+  // lighter gray once the DC reaches 150 or more.
+  if (dc >= 150 && !styleObject.background.startsWith('linear-gradient')) {
+    const shardHex = values.shardValues.find(v => v.shardColor === styleObject.background)?.shardHexColor || styleObject.background;
+    styleObject.background = `linear-gradient(45deg, ${shardHex}, #888)`;
+  }
   if (effectsArray.some(effect => effect.cursed)) {
     console.log(styleObject.background);
     if (styleObject.background != 'Black') {
