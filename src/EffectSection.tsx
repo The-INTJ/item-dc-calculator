@@ -1,10 +1,10 @@
 // EffectSection.js
 
-import { useState } from 'react';
 import EffectItem from './EffectItem';
 import values, { defaultEffectState, Effect, EffectType } from './values';
-import { Button, TextField, Typography } from '@mui/material';
-import { calculateFinalDC } from './dcCalculations';
+import { Button } from '@mui/material';
+import EffectInfo from './Effects/EffectInfo';
+import { useEffectInfoContext } from './context/EffectInfoContext';
 
 /**
  * Container for an array of effects.
@@ -13,14 +13,17 @@ import { calculateFinalDC } from './dcCalculations';
  *   effects: Array of effect objects
  *   setEffects: function(newEffectsArray) => void
  */
+/* eslint-disable no-unused-vars */
 type EffectSectionProps = {
   effects: Effect[];
   setEffects: (effects: Effect[]) => void;
   itemName: string;
   setItemName: (name: string) => void;
 }
+/* eslint-enable no-unused-vars */
 
 function EffectSection({ effects, setEffects }: EffectSectionProps) {
+  const { activeEffect } = useEffectInfoContext();
   
   function handleEffectChange<T extends keyof Effect>(
     effectIndex: number,
@@ -60,6 +63,9 @@ function EffectSection({ effects, setEffects }: EffectSectionProps) {
 
   return (
     <div className="whole-item">
+      <div className="effect-info-button">
+        <EffectInfo effectType={activeEffect?.effectType ?? null} />
+      </div>
       <div className="effects-container">
         {effects.map((currentEffect, index) => (
           <EffectItem

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import './EffectItem.scss';
 import './Effects/Effects.scss';
@@ -15,6 +15,7 @@ import Description from './Effects/Description';
 import values, { Effect, EffectType } from './values';
 import { calculateEffectDC } from './dcCalculations';
 import { InputLabel, MenuItem, Select, Button, SelectChangeEvent } from '@mui/material';
+import { useEffectInfoContext } from './context/EffectInfoContext';
 
 /**
  * Renders the correct UI for the chosen effectType.
@@ -24,14 +25,42 @@ import { InputLabel, MenuItem, Select, Button, SelectChangeEvent } from '@mui/ma
  *   onEffectChange: function(index, fieldName, newValue)
  *   index: the index of this effect
  */
+/* eslint-disable no-unused-vars */
+type EffectChangeHandler = <K extends keyof Effect>(
+  index: number,
+  fieldName: K,
+  newValue: Effect[K]
+) => void;
+/* eslint-enable no-unused-vars */
+
 type EffectItemProps = {
   effect: Effect;
-  onEffectChange: (index: number, fieldName: keyof Effect, newValue: any) => void;
+  onEffectChange: EffectChangeHandler;
   index: number;
 };
 
 function EffectItem({ effect, onEffectChange, index }: EffectItemProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { activeEffect, setActiveEffect } = useEffectInfoContext();
+
+  useEffect(() => {
+    if (isOpen) {
+      if (
+        activeEffect?.index !== index ||
+        activeEffect.effectType !== effect.effectType
+      ) {
+        setActiveEffect({ index, effectType: effect.effectType });
+      }
+    } else if (activeEffect?.index === index) {
+      setActiveEffect(null);
+    }
+  }, [activeEffect, effect.effectType, index, isOpen, setActiveEffect]);
+
+  useEffect(() => () => {
+    setActiveEffect((current) =>
+      current?.index === index ? null : current
+    );
+  }, [index, setActiveEffect]);
 
   // When user changes effectType in the dropdown
   function handleEffectTypeChange(e: SelectChangeEvent<EffectType>) {
@@ -39,7 +68,7 @@ function EffectItem({ effect, onEffectChange, index }: EffectItemProps) {
   }
 
   // Helper to pass changes to the parent
-  function handleFieldChange(fieldName: keyof Effect, newValue: any) {
+  function handleFieldChange<K extends keyof Effect>(fieldName: K, newValue: Effect[K]) {
     onEffectChange(index, fieldName, newValue);
   }
 
@@ -127,9 +156,7 @@ function EffectItem({ effect, onEffectChange, index }: EffectItemProps) {
   }
 
   return (
-    <div
-      className={effectClassName}
-    >
+    <div className={effectClassName}>
       {isOpen ? (
         <>
           <div
@@ -137,7 +164,7 @@ function EffectItem({ effect, onEffectChange, index }: EffectItemProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <InputLabel>Effect Type:</InputLabel>
-            <Select value={effect.effectType} onChange={handleEffectTypeChange} size='small'>
+            <Select value={effect.effectType} onChange={handleEffectTypeChange} size="small">
               {Object.keys(values.effectBaseValues).map((effectKey) => (
                 <MenuItem key={effectKey} value={effectKey}>
                   {effectKey}
@@ -173,9 +200,10 @@ function EffectItem({ effect, onEffectChange, index }: EffectItemProps) {
           </div>
         </>
       ) : (
-        <Button 
-          onClick={() => setIsOpen((prev) => !prev)}>
-            <strong>{effect.effectType}: {calculateEffectDC(effect)}</strong>
+        <Button onClick={() => setIsOpen((prev) => !prev)}>
+          <strong>
+            {effect.effectType}: {calculateEffectDC(effect)}
+          </strong>
         </Button>
       )}
     </div>
