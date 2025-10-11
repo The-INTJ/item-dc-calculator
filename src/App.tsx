@@ -3,16 +3,15 @@
 import { useState } from 'react';
 import './App.scss';
 
-import { defaultEffectState, Effect, initialShardState } from './values';
+import { defaultEffectState, type Effect, initialShardState } from './values';
 
 // Our custom modules
-import { calculateFinalDC, calculateEffectDC, calculateEffectSum, calculateEffectCountDC } from './dcCalculations';
+import { calculateFinalDC } from './dcCalculations';
 import EffectSection from './EffectSection';
 import ShardSection from './ShardSection';
-import PlayerChance from './PlayerChance';
 import TitleBar from './Header/TitleBar';
 import { db } from './server';
-import { Typography } from '@mui/material';
+import { EffectInfoProvider } from './context/EffectInfoContext';
 
 /**
  * Main Application
@@ -25,7 +24,6 @@ function App() {
   ]);
   const [shards, setShards] = useState(initialShardState);
 
-  const baseDC = calculateEffectSum(effects);
   const finalDC = calculateFinalDC(effects);
 
   function handleShardCountChange(shardIndex: number, newCountString: number) {
@@ -42,13 +40,13 @@ function App() {
     try {
       const response = await db.saveItem(itemName, effects);
       return response;
-    } catch (error) {
+    } catch {
       return { status: 500 };
     }
   }
 
   // Load a specific item from localStorage
-  const handleItemLoad = async (item: { name: string; effectsArray: any[] }) => {
+  const handleItemLoad = async (item: { name: string; effectsArray: Effect[] }) => {
     try {
       const response = await db.loadItem(item.name);
       if (response.status !== 200) {
@@ -56,14 +54,15 @@ function App() {
       }
       setEffects(response.item.effectsArray);
       setItemName(response.item.name);
-    } catch (error) {
+    } catch {
+      // Failed loads leave the existing item untouched.
     }
   };
 
   return (
-    <>
-      <TitleBar 
-        finalDC={finalDC} 
+    <EffectInfoProvider>
+      <TitleBar
+        finalDC={finalDC}
         handleSave={handleSave}
         handleItemLoad={handleItemLoad}
         itemName={itemName}
@@ -88,7 +87,7 @@ function App() {
           finalDC={finalDC}
         />
       </div>
-    </>
+    </EffectInfoProvider>
   );
 }
 

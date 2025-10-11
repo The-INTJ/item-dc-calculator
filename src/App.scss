@@ -148,6 +148,11 @@
   flex-direction: column;
 }
 
+.effect-info-button {
+  align-self: flex-end;
+  margin-bottom: 1rem;
+}
+
 .editable-title {
   margin-bottom: 1rem;
   cursor: pointer;
