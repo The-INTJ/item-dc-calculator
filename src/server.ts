@@ -1,5 +1,6 @@
 class LocalStorageDB {
   private key: string;
+  private canUseStorage = () => typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
 
   constructor(key: string) {
     this.key = key;
@@ -7,17 +8,29 @@ class LocalStorageDB {
   }
 
   private init() {
-    if (!localStorage.getItem(this.key)) {
-      localStorage.setItem(this.key, JSON.stringify({ items: [] }));
+    if (!this.canUseStorage()) {
+      return;
+    }
+
+    if (!window.localStorage.getItem(this.key)) {
+      window.localStorage.setItem(this.key, JSON.stringify({ items: [] }));
     }
   }
 
   private read(): { items: any[] } {
-    return JSON.parse(localStorage.getItem(this.key) || '{"items": []}');
+    if (!this.canUseStorage()) {
+      return { items: [] };
+    }
+
+    return JSON.parse(window.localStorage.getItem(this.key) || '{"items": []}');
   }
 
   private write(data: { items: any[] }) {
-    localStorage.setItem(this.key, JSON.stringify(data));
+    if (!this.canUseStorage()) {
+      return;
+    }
+
+    window.localStorage.setItem(this.key, JSON.stringify(data));
   }
 
   async saveItem(name: string, effectsArray: any[]) {
