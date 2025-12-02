@@ -4,7 +4,8 @@
 We are introducing a contest-focused Mixology Rating App that will sit alongside the existing Shard DC calculator. The mixology experience is the primary entry point during events, while the legacy calculator remains available on a secondary route for returning users and archival workflows.
 
 ## Step Log
-- **Step 1 (Scaffolding and coexistence)**: Completed. Added dedicated mixology routing and navigation while preserving the legacy calculator on a separate path. Future steps (2–9) are planned but not implemented yet.
+- **Step 1 (Scaffolding and coexistence)**: Completed. Added dedicated mixology routing and navigation while preserving the legacy calculator on a separate path.
+- **Step 2 (Data model and backend foundation)**: In progress. Defined typed contest/drink/judge/score schemas with seeded data, plus a read-only API at `/api/mixology/contests` that exposes the current contest or a slug-specific view.
 
 ## Architectural Decisions
 - **Routing structure**: The mixology experience lives under `/mixology`, with the landing page at `/`. This ensures contest participants arrive at the mixology shell by default while keeping the new flow isolated from legacy code paths.
@@ -20,11 +21,10 @@ We are introducing a contest-focused Mixology Rating App that will sit alongside
 
 ## Upcoming Steps (planned)
 The following phases are planned for future iterations:
-1. Step 2: Data model and backend foundation.
-2. Step 3: Authentication, roles, and basic access control.
-3. Step 4: Contest and drink management (admin only).
-4. Step 5: Current drink flow and basic voting.
-5. Step 6: Live leaderboard and standings overview.
-6. Step 7: Bracket modeling and display.
-7. Step 8: Invite URL and cookie-based account creation flow.
-8. Step 9: Polishing, analytics, and documentation cleanup.
+1. Step 3: Authentication, roles, and basic access control.
+2. Step 4: Contest and drink management (admin only).
+3. Step 5: Current drink flow and basic voting.
+4. Step 6: Live leaderboard and standings overview.
+5. Step 7: Bracket modeling and display.
+6. Step 8: Invite URL and cookie-based account creation flow.
+7. Step 9: Polishing, analytics, and documentation cleanup.

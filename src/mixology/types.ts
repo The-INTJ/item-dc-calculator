@@ -1,0 +1,53 @@
+export type ContestPhase = 'setup' | 'active' | 'judging' | 'closed';
+export type JudgeRole = 'admin' | 'judge' | 'viewer';
+
+export interface Judge {
+  id: string;
+  displayName: string;
+  role: JudgeRole;
+  contact?: string;
+}
+
+export interface Drink {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  round: string;
+  submittedBy: string;
+}
+
+export interface ScoreBreakdown {
+  aroma: number;
+  balance: number;
+  presentation: number;
+  creativity: number;
+  overall: number;
+}
+
+export interface ScoreEntry {
+  id: string;
+  drinkId: string;
+  judgeId: string;
+  breakdown: ScoreBreakdown;
+  notes?: string;
+}
+
+export interface Contest {
+  id: string;
+  name: string;
+  slug: string;
+  phase: ContestPhase;
+  location?: string;
+  startTime?: string;
+  bracketRound?: string;
+  currentDrinkId?: string;
+  defaultContest?: boolean;
+  drinks: Drink[];
+  judges: Judge[];
+  scores: ScoreEntry[];
+}
+
+export interface MixologyData {
+  contests: Contest[];
+}
