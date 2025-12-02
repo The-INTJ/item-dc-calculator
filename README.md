@@ -8,6 +8,9 @@ A Next.js app router project that hosts the D&D item DC calculator UI. The calcu
 - Lint: `npm run lint`
 - Build for production: `npm run build` then `npm start`
 
+Tooling notes:
+- ESLint uses the flat config in `eslint.config.js`; the legacy `.eslintrc.json` file has been removed.
+
 ## Project layout
 - `app/` — Next.js entry points. `page.tsx` renders the calculator; `layout.tsx` loads global SCSS once for the whole app.
 - `src/` — Calculator components, styles, and utility logic preserved from the Vite project.
