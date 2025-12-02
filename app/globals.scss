@@ -5,3 +5,184 @@
 @import '../src/EffectItem.scss';
 @import '../src/PlayerChance.scss';
 @import '../src/Header/header.scss';
+
+.site-header {
+  align-items: center;
+  background: #0f172a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+}
+
+.site-header__brand {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.site-nav {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.site-nav__link {
+  border: 1px solid #22d3ee;
+  border-radius: 999px;
+  color: #e0f2fe;
+  font-weight: 600;
+  padding: 0.4rem 0.9rem;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.site-nav__link:hover {
+  background: #22d3ee;
+  color: #0b1120;
+}
+
+.site-nav__link--secondary {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #cbd5e1;
+}
+
+.site-nav__link--secondary:hover {
+  border-color: #94a3b8;
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.site-main {
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 2rem 1.5rem 3rem;
+  width: 100%;
+}
+
+.mixology-landing {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.mixology-hero {
+  background: linear-gradient(135deg, #0ea5e9, #7c3aed);
+  border-radius: 16px;
+  color: #f8fafc;
+  padding: 2rem;
+  box-shadow: 0 20px 60px rgba(79, 70, 229, 0.35);
+}
+
+.mixology-hero h1 {
+  font-size: clamp(2.1rem, 3vw, 2.8rem);
+  margin-bottom: 0.5rem;
+}
+
+.mixology-hero p {
+  line-height: 1.6;
+  margin: 0.25rem 0 0;
+}
+
+.mixology-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.button-primary,
+.button-secondary {
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.button-primary {
+  background: #0f172a;
+  box-shadow: 0 14px 35px rgba(15, 23, 42, 0.35);
+  color: #e2e8f0;
+}
+
+.button-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.4);
+}
+
+.button-secondary {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #e2e8f0;
+}
+
+.button-secondary:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.mixology-panels {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.mixology-card {
+  background: #0b1120;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  color: #e2e8f0;
+  padding: 1.25rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
+}
+
+.mixology-card h2 {
+  font-size: 1.2rem;
+  margin-bottom: 0.4rem;
+}
+
+.mixology-card p {
+  line-height: 1.5;
+  margin: 0.2rem 0;
+}
+
+.mixology-roadmap {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 1.25rem;
+}
+
+.mixology-roadmap h2 {
+  margin-bottom: 0.6rem;
+}
+
+.mixology-roadmap ol {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.mixology-roadmap li {
+  line-height: 1.5;
+  margin-bottom: 0.35rem;
+}
+
+.legacy-note {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.4rem;
+}
+
+.badge-muted {
+  background: #e2e8f0;
+  border-radius: 999px;
+  color: #0f172a;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.15rem 0.6rem;
+}
