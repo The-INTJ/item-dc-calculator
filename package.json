@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-alpha.6",
@@ -15,27 +15,21 @@
     "@emotion/styled": "^11.14.0",
     "@fontsource/roboto": "^5.1.1",
     "@mui/material": "^6.4.2",
-    "cors": "^2.8.5",
-    "express": "^4.21.2",
-    "fs": "^0.0.1-security",
+    "next": "^15.5.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@next/eslint-plugin-next": "^15.5.6",
     "@types/node": "^22.12.0",
-    "@types/react": "^18.3.18",
-    "@types/react-dom": "^18.3.5",
+    "@types/react": "^19.0.4",
+    "@types/react-dom": "^19.0.2",
     "@typescript-eslint/eslint-plugin": "^8.22.0",
     "@typescript-eslint/parser": "^8.22.0",
-    "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^9.17.0",
-    "eslint-plugin-react": "^7.37.2",
-    "eslint-plugin-react-hooks": "^5.0.0",
-    "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.14.0",
-    "sass-embedded": "^1.83.1",
-    "typescript": "^5.7.3",
-    "vite": "^6.0.5"
+    "sass": "^1.81.0",
+    "typescript": "^5.7.3"
   }
 }

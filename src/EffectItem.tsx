@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react';
 
-import './EffectItem.scss';
-import './Effects/Effects.scss';
-
 import DiceDamageAttackUI from './Effects/DiceDamageAttackUI';
 import MoveSpeedUI from './Effects/MoveSpeedUI';
 import FlySpeedUI from './Effects/FlySpeedUI';

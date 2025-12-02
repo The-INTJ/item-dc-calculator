@@ -1,4 +1,3 @@
-import './PlayerChance.scss';
 import {
   calculateD20Rolls,
   calculateDistinctShardColorsUsed,

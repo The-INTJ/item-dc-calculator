@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import './header.scss';          
 import LoadItemModal from './LoadItemModal';
-import { Button, Input, TextField, Typography } from '@mui/material';
+import { Button, Input, Typography } from '@mui/material';
 
 type TitleBarProps = {
   finalDC: number;

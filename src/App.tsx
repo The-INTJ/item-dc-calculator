@@ -1,7 +1,7 @@
 // App.js
+'use client';
 
 import { useState } from 'react';
-import './App.scss';
 
 import { defaultEffectState, type Effect, initialShardState } from './values';
 
