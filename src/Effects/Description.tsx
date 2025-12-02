@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import './Effects.scss';
 import { GeneralEffectUIProps } from './Common';
 import TextField from '@mui/material/TextField';
 import { Typography } from '@mui/material';
