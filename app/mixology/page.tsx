@@ -5,6 +5,7 @@ const plannedFeatures = [
   'Admin controls for contests, drinks, and bracket rounds',
   'Voting with 1–10 ratings and standings aggregation',
   'Invite-based onboarding tuned for event devices',
+  'Read-only API endpoints that surface contest state for clients and tools',
 ];
 
 export const metadata = {
@@ -49,6 +50,14 @@ export default function MixologyPage() {
           <p>
             Upcoming steps will introduce the models, roles, voting flows, standings, brackets, and invite
             handling described in the roadmap. This page will expand to surface those features as they arrive.
+          </p>
+        </div>
+        <div className="mixology-card">
+          <h2>Data model foundation</h2>
+          <p>
+            We seeded contest, drink, judge, and scoring structures to back the upcoming flows. The initial
+            read-only API at <code>/api/mixology/contests</code> provides the current contest state for client
+            prototypes and admin tooling.
           </p>
         </div>
       </section>

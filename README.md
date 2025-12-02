@@ -1,6 +1,8 @@
 # Item DC Calculator (Next.js)
 
-A Next.js app router project that hosts the D&D item DC calculator UI. The calculator is rendered as a client component and persists data in `localStorage`, mirroring the original SPA behavior.
+A Next.js app router project that now hosts two experiences:
+- The new Mixology Rating App (contest-first entry point)
+- The legacy D&D item DC calculator (available on a dedicated route)
 
 ## Getting started
 - Install dependencies: `npm install`
@@ -12,9 +14,17 @@ Tooling notes:
 - ESLint uses the flat config in `eslint.config.js`; the legacy `.eslintrc.json` file has been removed.
 
 ## Project layout
-- `app/` — Next.js entry points. `page.tsx` renders the calculator; `layout.tsx` loads global SCSS once for the whole app.
+- `app/` — Next.js entry points. The default landing highlights the mixology shell; `layout.tsx` loads global SCSS once for the whole app.
 - `src/` — Calculator components, styles, and utility logic preserved from the Vite project.
 - `public/` — Static assets served by Next.js.
+
+## Mixology Rating App (current focus)
+- Primary route: `/mixology` (also linked from the site header). The legacy calculator remains at `/legacy`.
+- Step 1 complete: routing and landing shell coexist with the calculator.
+- Step 2 started: typed contest/drink/judge/score model plus seeded, read-only API responses.
+  - `GET /api/mixology/contests` returns all seeded contests and the default/current contest snapshot.
+  - `GET /api/mixology/contests?slug={contestSlug}` returns a specific contest (404 if missing).
+- Progress log: see `Mixology Rating App Progress.md` for roadmap and decisions.
 
 ### Adding new pages
 Create a new route folder in `app/` (e.g., `app/my-idea/page.tsx`) and compose components from `src/` or new ones. Mark client components with `'use client'` when they need hooks or browser APIs.
