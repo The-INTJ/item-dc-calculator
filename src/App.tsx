@@ -54,11 +54,12 @@ function App() {
   const handleItemLoad = async (item: { name: string; effectsArray: Effect[] }) => {
     try {
       const response = await db.loadItem(item.name);
-      if (response.status !== 200) {
+      if (response.status !== 200 || !response.item) {
         throw new Error('Failed to load item');
       }
-      setEffects(response.item.effectsArray);
-      setItemName(response.item.name);
+      const loadedItem = response.item;
+      setEffects(loadedItem.effectsArray);
+      setItemName(loadedItem.name);
     } catch {
       // Failed loads leave the existing item untouched.
     }
