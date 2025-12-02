@@ -5,7 +5,7 @@ import {
   retrieveTriviality,
 } from './playerChanceCalculations';
 import { ShardState } from './values';
-import { Typography } from '@mui/material';
+import { TextField, Typography } from '@mui/material';
 import { useState, useEffect } from 'react';
 
 type PlayerChanceProps = {
@@ -47,10 +47,11 @@ function PlayerChance({ shards, finalDC }: PlayerChanceProps) {
     <div className="player-chance-container">
       <div className="player-chance-details">
         <strong>+</strong>
-        <input
-          className="player-mod-input"
+        <TextField
+          size="small"
           value={internalModifier}
           onChange={(event) => safeSetModifier(event.target.value)}
+          inputProps={{ 'aria-label': 'Player modifier' }}
         />
       </div>
 

@@ -13,14 +13,12 @@ import { useEffectInfoContext } from './context/EffectInfoContext';
  *   effects: Array of effect objects
  *   setEffects: function(newEffectsArray) => void
  */
-/* eslint-disable no-unused-vars */
 type EffectSectionProps = {
   effects: Effect[];
   setEffects: (effects: Effect[]) => void;
   itemName: string;
   setItemName: (name: string) => void;
 }
-/* eslint-enable no-unused-vars */
 
 function EffectSection({ effects, setEffects }: EffectSectionProps) {
   const { activeEffect } = useEffectInfoContext();
@@ -75,10 +73,11 @@ function EffectSection({ effects, setEffects }: EffectSectionProps) {
             onEffectChange={handleEffectChange}
           />
         ))}
-        <Button 
-          className="add-effect-btn" 
+        <Button
+          className="add-effect-btn"
           onClick={addNewEffect}
-          sx={{ color: 'white'}}
+          color="primary"
+          variant="contained"
         >
           + Add Another Effect
         </Button>
