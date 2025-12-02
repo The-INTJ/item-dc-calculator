@@ -3,7 +3,7 @@ import { Effect } from '../values';
 
 type SaveBonusUIProps = {
   effect: Effect;
-  onEffectFieldChange: (field: string, value: any) => void;
+  onEffectFieldChange: <K extends keyof Effect>(field: K, value: Effect[K]) => void;
 };
 
 function SaveBonusUI({ effect, onEffectFieldChange }: SaveBonusUIProps) {

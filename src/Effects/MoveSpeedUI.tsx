@@ -3,7 +3,7 @@ import { Effect } from '../values';
 
 type MoveSpeedUIProps = {
   effect: Effect;
-  onEffectFieldChange: (field: keyof Effect, value: any) => void;
+  onEffectFieldChange: <K extends keyof Effect>(field: K, value: Effect[K]) => void;
 };
 
 function MoveSpeedUI({ effect, onEffectFieldChange }: MoveSpeedUIProps) {

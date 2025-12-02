@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
 import LoadItemModal from './LoadItemModal';
-import { Button, Input, Typography } from '@mui/material';
+import { Button, Input, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { type ThemeName, themeLabels } from '../theme';
+import { Effect } from '../values';
 
 type TitleBarProps = {
   finalDC: number;
-  handleSave: () => Promise<any>;
-  handleItemLoad: (item: { name: string; effectsArray: any[] }) => void;
+  handleSave: () => Promise<{ status: number }>;
+  handleItemLoad: (item: { name: string; effectsArray: Effect[] }) => void;
   itemName: string;
   setItemName: (name: string) => void;
+  onThemeChange: (theme: ThemeName) => void;
+  themeName: ThemeName;
 };
 
-function TitleBar({ handleSave, handleItemLoad, itemName, setItemName, finalDC }: TitleBarProps) {
+function TitleBar({ handleSave, handleItemLoad, itemName, setItemName, finalDC, onThemeChange, themeName }: TitleBarProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saveClass, setSaveClass] = useState('');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -48,11 +52,10 @@ function TitleBar({ handleSave, handleItemLoad, itemName, setItemName, finalDC }
         onChange={(e) => setItemName(e.target.value)}
         onBlur={() => setIsEditingTitle(false)}
         autoFocus
-        sx={{ fontSize: '2.5rem', color: 'white', textAlign: 'center' }}
       />
     ) : (
-      <Typography 
-        className="editable-title" 
+      <Typography
+        className="editable-title"
         onClick={() => setIsEditingTitle(true)}
         component={'h1'}
         fontSize={'2.5rem'}
@@ -72,6 +75,21 @@ function TitleBar({ handleSave, handleItemLoad, itemName, setItemName, finalDC }
       </div>
 
         <EditableTitle />
+
+        <ToggleButtonGroup
+          color="secondary"
+          size="small"
+          exclusive
+          value={themeName}
+          onChange={(_, value: ThemeName | null) => value && onThemeChange(value)}
+          aria-label="Theme selection"
+        >
+          {Object.entries(themeLabels).map(([key, label]) => (
+            <ToggleButton key={key} value={key} aria-label={label}>
+              {label}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
 
         <Button variant='text' className={'save-btn ' + saveClass} onClick={reactToSave}>Save</Button>
 

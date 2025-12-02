@@ -12,7 +12,7 @@ import InputLabel from '@mui/material/InputLabel';
 
 export type GeneralEffectUIProps = {
   effect: Effect;
-  onEffectFieldChange: (field: keyof Effect, value: any) => void;
+  onEffectFieldChange: <K extends keyof Effect>(field: K, value: Effect[K]) => void;
 }
 
 // Die Value Picker

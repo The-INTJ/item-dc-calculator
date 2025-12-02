@@ -11,10 +11,10 @@
 .effect-item {
     display: flex;
     height: fit-content;
-    background-color: white;
+    background-color: $color-surface-alt;
     border-radius: 6px;
     gap: $margin-medium;
-    box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.405);
+    box-shadow: 0 0 4px 2px $color-shadow-strong;
     
     h3 {
         padding: $padding-medium;

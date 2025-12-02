@@ -13,7 +13,7 @@
 .breakdown-container {
   margin-top: 20px;
   border: none;
-  color: black;
+  color: $color-text-primary;
 }
 
 .add-effect-btn {
@@ -25,7 +25,7 @@
 }
 
 .player-effects-container {
-  background-color: $background-blue;
+  background-color: $color-background-blue;
 }
 
 /* shard styling */
@@ -97,7 +97,7 @@
 }
 
 .shard-num {
-  background-color: #f9f9f9;
+  background-color: $color-surface;
   border-radius: 50%;
   font-size: 1rem;
   width: 20px;
@@ -106,7 +106,7 @@
   text-align: center;
   line-height: 17px;
   font-weight: 600;
-  color: black;
+  color: $color-text-primary;
 }
 
 .shard-btn {
@@ -114,7 +114,7 @@
   height: 35px;
   width: 43px;
   padding: 5px 15px 5px;
-  color: white;
+  color: $color-text-inverse;
   border: none;
 
   &.White, &.Silver {
@@ -122,10 +122,10 @@
   }
   
   &:hover {
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: $color-shadow-subtle;
     transform: scale(1.2);
     border: 1px solid transparent;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 10px $color-shadow-subtle;
   }
 }
 
@@ -162,6 +162,6 @@
   font-size: 2rem;
   margin-bottom: 1rem;
   border: none;
-  border-bottom: 2px solid #ccc;
+  border-bottom: 2px solid $color-border-muted;
   outline: none;
 }

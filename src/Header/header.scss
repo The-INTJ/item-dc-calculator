@@ -9,13 +9,13 @@
 
   position: sticky;
   top: 0;
-  background-color: $main-brown;
-  color: white;
+  background-color: $color-main-brown;
+  color: $color-text-inverse;
 
   text-align: center;
 
   button {
-    color: white;
+    color: $color-text-inverse;
   }
 
   .title-bar-title {
@@ -34,12 +34,12 @@
 }
 
 .success {
-  background-color: green;
+  background-color: $color-success;
   transition: opacity 0.5s ease-in-out;
 }
 
 .fail {
-  background-color: red;
+  background-color: $color-error;
   transition: opacity 0.5s ease-in-out;
 }
 
@@ -92,7 +92,7 @@
     // misc
     border: none;
     cursor: pointer;
-    text-shadow: 1px 1px 1px #000000ac;
+    text-shadow: 1px 1px 1px $color-shadow-strong;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     
     &:hover {
@@ -105,25 +105,25 @@
 
     @keyframes shimmer {
       0% {
-        text-shadow: 0 0 1px #fff, 0 0 1px #f8f8f8, 0 0 1px #f0f0f0, 0 0 1px #f8f8f8, 0 0 1px #fff;
+        text-shadow: 0 0 1px $color-text-inverse, 0 0 1px $color-highlight, 0 0 1px $color-highlight, 0 0 1px $color-highlight, 0 0 1px $color-text-inverse;
       }
       16.67% {
-        text-shadow: 0 0 2px #fff, 0 0 2px #f8f8f8, 0 0 2px #f0f0f0, 0 0 2px #f8f8f8, 0 0 2px #fff;
+        text-shadow: 0 0 2px $color-text-inverse, 0 0 2px $color-highlight, 0 0 2px $color-highlight, 0 0 2px $color-highlight, 0 0 2px $color-text-inverse;
       }
       33.33% {
-        text-shadow: 0 0 3px #fff, 0 0 3px #f8f8f8, 0 0 3px #f0f0f0, 0 0 3px #f8f8f8, 0 0 3px #fff;
+        text-shadow: 0 0 3px $color-text-inverse, 0 0 3px $color-highlight, 0 0 3px $color-highlight, 0 0 3px $color-highlight, 0 0 3px $color-text-inverse;
       }
       50% {
-        text-shadow: 0 0 4px #fff, 0 0 4px #f8f8f8, 0 0 4px #f0f0f0, 0 0 4px #f8f8f8, 0 0 4px #fff;
+        text-shadow: 0 0 4px $color-text-inverse, 0 0 4px $color-highlight, 0 0 4px $color-highlight, 0 0 4px $color-highlight, 0 0 4px $color-text-inverse;
       }
       66.67% {
-        text-shadow: 0 0 3px #fff, 0 0 3px #f8f8f8, 0 0 3px #f0f0f0, 0 0 3px #f8f8f8, 0 0 3px #fff;
+        text-shadow: 0 0 3px $color-text-inverse, 0 0 3px $color-highlight, 0 0 3px $color-highlight, 0 0 3px $color-highlight, 0 0 3px $color-text-inverse;
       }
       83.33% {
-        text-shadow: 0 0 2px #fff, 0 0 2px #f8f8f8, 0 0 2px #f0f0f0, 0 0 2px #f8f8f8, 0 0 2px #fff;
+        text-shadow: 0 0 2px $color-text-inverse, 0 0 2px $color-highlight, 0 0 2px $color-highlight, 0 0 2px $color-highlight, 0 0 2px $color-text-inverse;
       }
       100% {
-        text-shadow: 0 0 1px #fff, 0 0 1px #f8f8f8, 0 0 1px #f0f0f0, 0 0 1px #f8f8f8, 0 0 1px #fff;
+        text-shadow: 0 0 1px $color-text-inverse, 0 0 1px $color-highlight, 0 0 1px $color-highlight, 0 0 1px $color-highlight, 0 0 1px $color-text-inverse;
       }
     }
 

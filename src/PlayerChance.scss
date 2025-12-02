@@ -1,3 +1,5 @@
+@import './variables.scss';
+
 .shard-section {
   display: flex;
   flex-direction: column;
@@ -17,7 +19,7 @@
 }
 
 .player-chance-details {
-  color: white;
+  color: $color-text-inverse;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -31,7 +33,7 @@
 
 .player-mod-input {
   background-color: transparent;
-  color: white;
+  color: $color-text-inverse;
   border: none;
   border-radius: 100%;
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
@@ -46,6 +48,6 @@
   max-width: 290px;
   text-align: center;
   z-index: 2;
-  color: white;
+  color: $color-text-inverse;
   margin-top: 430px!important;
 }
