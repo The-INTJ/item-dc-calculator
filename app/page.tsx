@@ -18,21 +18,14 @@ export default function HomePage() {
         <h1>Mixology Rating App</h1>
         <p>
           A contest-first experience for judging, scoring, and tracking craft cocktail matchups.
-          The legacy shard DC calculator is still available, but the mixology flow is now the
-          primary entry point for event usage.
+          The mixology flow is the primary entry point for event usage, tuned for judges and
+          admins.
         </p>
         <div className="mixology-actions">
           <Link href="/mixology" className="button-primary">
             Enter the Mixology experience
           </Link>
-          <Link href="/legacy" className="button-secondary">
-            Open the legacy item DC calculator
-          </Link>
         </div>
-        <p className="legacy-note">
-          <span className="badge-muted">New</span>
-          <span>We are rolling out the contest shell now; the calculator remains available via the secondary link.</span>
-        </p>
       </section>
 
       <section className="mixology-panels">
