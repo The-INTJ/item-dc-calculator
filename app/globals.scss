@@ -7,14 +7,15 @@
 @import '../src/Header/header.scss';
 
 .site-header {
-  align-items: center;
+  align-items: flex-start;
   background: #0f172a;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   color: #e2e8f0;
   display: flex;
-  gap: 1.5rem;
-  justify-content: space-between;
-  padding: 1rem 1.5rem;
+  flex-direction: column;
+  gap: 0.75rem;
+  justify-content: center;
+  padding: 1rem 1.25rem;
 }
 
 .site-header__brand {
@@ -26,7 +27,9 @@
 .site-nav {
   align-items: center;
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  justify-content: stretch;
+  width: 100%;
 }
 
 .site-nav__link {
@@ -34,9 +37,10 @@
   border-radius: 999px;
   color: #e0f2fe;
   font-weight: 600;
-  padding: 0.4rem 0.9rem;
+  padding: 0.55rem 0.9rem;
   text-decoration: none;
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  width: 100%;
 }
 
 .site-nav__link:hover {
@@ -58,21 +62,24 @@
 .site-main {
   margin: 0 auto;
   max-width: 1200px;
-  padding: 2rem 1.5rem 3rem;
+  padding: 1.5rem 1.25rem 2.5rem;
   width: 100%;
 }
 
 .mixology-landing {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
+  width: 100%;
 }
 
 .mixology-hero {
   background: linear-gradient(135deg, #0ea5e9, #7c3aed);
   border-radius: 16px;
   color: #f8fafc;
-  padding: 2rem;
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
   box-shadow: 0 20px 60px rgba(79, 70, 229, 0.35);
 }
 
@@ -83,14 +90,20 @@
 
 .mixology-hero p {
   line-height: 1.6;
-  margin: 0.25rem 0 0;
+  margin: 0;
+  max-width: 72ch;
+}
+
+.mixology-hero .mixology-actions {
+  align-items: center;
+  width: 100%;
 }
 
 .mixology-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin: 1.5rem 0 0.5rem;
+  margin: 0.5rem 0 0;
 }
 
 .button-primary,
@@ -127,16 +140,17 @@
 
 .mixology-panels {
   display: grid;
-  gap: 1.25rem;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
 .mixology-card {
-  background: #0b1120;
+  background: radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.08), transparent 35%),
+    #0b1120;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   color: #e2e8f0;
-  padding: 1.25rem;
+  padding: 1.15rem;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
 }
 
@@ -154,7 +168,7 @@
   background: #f8fafc;
   border: 1px solid #cbd5e1;
   border-radius: 14px;
-  padding: 1.25rem;
+  padding: 1.15rem;
 }
 
 .mixology-roadmap h2 {
@@ -171,18 +185,56 @@
   margin-bottom: 0.35rem;
 }
 
-.legacy-note {
-  align-items: center;
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 0.4rem;
+@media (min-width: 640px) {
+  .site-header {
+    align-items: center;
+    flex-direction: row;
+    gap: 1.25rem;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .site-nav {
+    gap: 0.75rem;
+    justify-content: flex-end;
+    width: auto;
+  }
+
+  .site-nav__link {
+    width: auto;
+  }
+
+  .site-main {
+    padding: 2rem 1.5rem 3rem;
+  }
+
+  .mixology-landing {
+    gap: 2rem;
+  }
+
+  .mixology-hero {
+    align-items: center;
+    padding: 2rem;
+  }
+
+  .mixology-hero .mixology-actions {
+    width: auto;
+  }
 }
 
-.badge-muted {
-  background: #e2e8f0;
-  border-radius: 999px;
-  color: #0f172a;
-  font-size: 0.8rem;
-  font-weight: 700;
-  padding: 0.15rem 0.6rem;
+@media (min-width: 900px) {
+  .mixology-actions {
+    margin-top: 0.75rem;
+  }
+
+  .mixology-panels {
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+
+  .mixology-card,
+  .mixology-roadmap {
+    padding: 1.35rem;
+  }
 }
+
