@@ -59,6 +59,11 @@
   color: #0f172a;
 }
 
+.site-nav__link--active {
+  background: rgba(34, 211, 238, 0.16);
+  box-shadow: inset 0 0 0 1px #22d3ee;
+}
+
 .site-main {
   margin: 0 auto;
   max-width: 1200px;
