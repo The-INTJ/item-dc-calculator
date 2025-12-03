@@ -8,6 +8,7 @@ We are introducing a contest-focused Mixology Rating App that will sit alongside
 - **Step 2 (Data model and backend foundation)**: Completed. Defined typed contest/drink/judge/score schemas with seeded data, plus read-only API at `/api/mixology/contests`.
 - **Step 2.5 (Backend abstraction layer)**: Completed. Created a provider-based abstraction layer enabling seamless switching between in-memory, Firebase, or other backends without modifying frontend code. Added full CRUD API endpoints and basic admin validation UI.
 - **Step 3 (Guest/user session management)**: Completed. Built localStorage-based session persistence, guest mode with optional account creation, and auth provider abstraction for future Firebase integration.
+- **Step 4 (Firebase integration)**: Completed. Integrated Firebase Auth for user authentication and prepared Firestore backend provider. Client-side auth fully operational; API routes continue using in-memory provider for now (server-side Firebase Admin SDK planned for future).
 
 ## Architectural Decisions
 - **Routing structure**: The mixology experience lives under `/mixology`, with the landing page at `/`. This ensures contest participants arrive at the mixology shell by default while keeping the new flow isolated from legacy code paths.
@@ -95,6 +96,63 @@ Located in `src/mixology/auth/provider.ts`:
 2. Update `src/mixology/auth/AuthContext.tsx` to use Firebase provider
 3. No changes needed to UI components or session logic
 
+## Firebase Integration
+
+### Overview
+Firebase is integrated for authentication (Firebase Auth) and prepared for data storage (Firestore). The configuration file is gitignored to protect credentials.
+
+### Files
+| File | Purpose |
+|------|---------|
+| `src/mixology/firebase/config.ts` | Firebase credentials (**GITIGNORED**) |
+| `src/mixology/firebase/firebaseAuthProvider.ts` | Auth provider using Firebase Auth + Firestore for profiles |
+| `src/mixology/firebase/firebaseBackendProvider.ts` | Firestore backend provider (ready for use) |
+| `src/mixology/firebase/index.ts` | Module exports |
+
+### Current Architecture
+- **Client-side auth**: Uses Firebase Auth directly via `AuthContext`
+- **API routes (server-side)**: Still use in-memory provider (Firebase client SDK doesn't work server-side)
+- **Future**: Add Firebase Admin SDK for server-side operations, or move all data ops to client-side
+
+### Environment Variables for Deployment (Vercel)
+When deploying, set these environment variables:
+```
+NEXT_PUBLIC_FIREBASE_API_KEY=<your-api-key>
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=<project>.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=<project>
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=<project>.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=<sender-id>
+NEXT_PUBLIC_FIREBASE_APP_ID=<app-id>
+```
+
+### Firestore Collections (planned)
+| Collection | Purpose |
+|------------|---------|
+| `users/{uid}` | User profiles (displayName, email, role, createdAt) |
+| `contests/{id}` | Contest documents |
+| `contests/{id}/drinks/{drinkId}` | Drinks as subcollection |
+| `contests/{id}/judges/{judgeId}` | Judges as subcollection |
+| `contests/{id}/scores/{scoreId}` | Score entries as subcollection |
+
+### Security Rules (to be configured in Firebase Console)
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can only read/write their own profile
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Contests are readable by authenticated users
+    match /contests/{contestId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+  }
+}
+```
+
 ## Admin Validation UI
 A basic admin dashboard at `/mixology/admin` provides:
 - Contest list with phase indicators and statistics
@@ -117,7 +175,7 @@ The account page at `/mixology/account` provides:
 ## Upcoming Steps (planned)
 The following phases are planned for future iterations:
 1. ~~Step 3: Authentication, roles, and basic access control.~~ ✓ Completed
-2. Step 4: Firebase integration (auth provider + data provider).
+2. ~~Step 4: Firebase integration (auth provider + data provider).~~ ✓ Completed
 3. Step 5: Contest and drink management (admin only).
 4. Step 6: Current drink flow and basic voting UI.
 5. Step 7: Live leaderboard and standings overview.

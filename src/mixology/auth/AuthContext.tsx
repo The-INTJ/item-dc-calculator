@@ -28,18 +28,18 @@ import {
   clearPendingSync,
   recordSyncFailure,
 } from './storage';
-import { createMockAuthProvider } from './mockAuthProvider';
+import { createFirebaseAuthProvider } from '../firebase/firebaseAuthProvider';
 
 // Create context with undefined default (must be used within provider)
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-// Singleton auth provider - swap this for Firebase when ready
+// Singleton auth provider - using Firebase
 let authProvider: AuthProvider | null = null;
 
 function getAuthProvider(): AuthProvider {
   if (!authProvider) {
-    // CONFIGURATION POINT: Change this to use Firebase provider
-    authProvider = createMockAuthProvider();
+    // Using Firebase auth provider
+    authProvider = createFirebaseAuthProvider();
   }
   return authProvider;
 }
