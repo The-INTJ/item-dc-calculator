@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import Link from 'next/link';
 import './globals.scss';
+import { NavBar } from './components/NavBar';
 
 export const metadata = {
   title: 'Mixology Rating App | Shard DC Calculator',
@@ -13,14 +13,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <header className="site-header">
           <div className="site-header__brand">Mixology Rating App</div>
-          <nav className="site-nav">
-            <Link href="/mixology" className="site-nav__link">
-              Mixology experience
-            </Link>
-            <Link href="/legacy" className="site-nav__link site-nav__link--secondary">
-              Legacy item DC calculator
-            </Link>
-          </nav>
+          <NavBar />
         </header>
         <main className="site-main">{children}</main>
       </body>
