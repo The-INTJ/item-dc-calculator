@@ -1,22 +1,43 @@
 import { NextResponse } from 'next/server';
-import { getContestBySlug, getDefaultContest, listContests } from '@/src/mixology/data/store';
+import { getBackendProvider } from '@/src/mixology/backend';
 
-export function GET(request: Request) {
+export async function GET(request: Request) {
+  const provider = await getBackendProvider();
   const url = new URL(request.url);
   const slug = url.searchParams.get('slug');
 
   if (slug) {
-    const contest = getContestBySlug(slug);
-    if (!contest) {
-      return NextResponse.json({ message: 'Contest not found' }, { status: 404 });
+    const result = await provider.contests.getBySlug(slug);
+    if (!result.success || !result.data) {
+      return NextResponse.json({ message: result.error ?? 'Contest not found' }, { status: 404 });
     }
-
-    return NextResponse.json(contest);
+    return NextResponse.json(result.data);
   }
 
-  const defaultContest = getDefaultContest();
+  const [contestsResult, defaultResult] = await Promise.all([
+    provider.contests.list(),
+    provider.contests.getDefault(),
+  ]);
+
   return NextResponse.json({
-    contests: listContests(),
-    currentContest: defaultContest ?? null,
+    contests: contestsResult.data ?? [],
+    currentContest: defaultResult.data ?? null,
   });
+}
+
+export async function POST(request: Request) {
+  const provider = await getBackendProvider();
+
+  try {
+    const body = await request.json();
+    const result = await provider.contests.create(body);
+
+    if (!result.success) {
+      return NextResponse.json({ message: result.error }, { status: 400 });
+    }
+
+    return NextResponse.json(result.data, { status: 201 });
+  } catch {
+    return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
+  }
 }

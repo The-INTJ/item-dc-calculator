@@ -24,6 +24,9 @@ export default function MixologyPage() {
           the legacy shard DC calculator.
         </p>
         <div className="mixology-actions">
+          <Link href="/mixology/admin" className="button-primary">
+            Admin Dashboard
+          </Link>
           <Link href="/legacy" className="button-secondary">
             Visit the legacy calculator
           </Link>
