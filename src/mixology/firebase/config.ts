@@ -19,6 +19,22 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
+const requiredFirebaseEnv = [
+  'NEXT_PUBLIC_FIREBASE_API_KEY',
+  'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
+  'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
+  'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
+  'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
+  'NEXT_PUBLIC_FIREBASE_APP_ID',
+] as const;
+
+function isFirebaseConfigured(): boolean {
+  return requiredFirebaseEnv.every((key) => {
+    const value = process.env[key];
+    return typeof value === 'string' && value.trim().length > 0;
+  });
+}
+
 // Singleton instances
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
@@ -36,9 +52,10 @@ function initializeFirebase(): { app: FirebaseApp | null; auth: Auth | null; db:
   }
 
   // Check for required config
-  if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-    console.error('[Firebase] Missing configuration. Check .env.local file.');
-    console.error('[Firebase] Required: NEXT_PUBLIC_FIREBASE_API_KEY, NEXT_PUBLIC_FIREBASE_PROJECT_ID');
+  if (!isFirebaseConfigured()) {
+    const missing = requiredFirebaseEnv.filter((key) => !process.env[key]);
+    console.warn('[Firebase] Missing configuration. Falling back to local-only mode.');
+    console.warn(`[Firebase] Missing env vars: ${missing.join(', ')}`);
     return { app: null, auth: null, db: null };
   }
 
@@ -56,5 +73,5 @@ function initializeFirebase(): { app: FirebaseApp | null; auth: Auth | null; db:
   return { app, auth, db };
 }
 
-export { initializeFirebase, firebaseConfig };
+export { initializeFirebase, firebaseConfig, isFirebaseConfigured };
 export type { FirebaseApp, Auth, Firestore };

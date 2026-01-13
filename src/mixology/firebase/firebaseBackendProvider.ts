@@ -31,7 +31,7 @@ import type {
   ScoreEntry,
   ScoreBreakdown,
 } from '../backend/types';
-import { initializeFirebase } from './config';
+import { initializeFirebase, isFirebaseConfigured } from './config';
 
 // Firestore collection names
 const CONTESTS_COLLECTION = 'mixology_contests';
@@ -445,8 +445,8 @@ export function createFirebaseBackendProvider(): MixologyBackendProvider {
       const firebase = initializeFirebase();
       db = firebase.db;
 
-      if (!db) {
-        console.warn('[FirebaseBackend] Running on server or Firebase not available');
+      if (!isFirebaseConfigured() || !db) {
+        console.warn('[FirebaseBackend] Firebase not configured or unavailable; using local-only mode.');
         // Return success anyway - API routes won't use this
         return success(undefined);
       }
