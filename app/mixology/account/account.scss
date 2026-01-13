@@ -2,11 +2,14 @@
  * Account page styles
  */
 
+@import '../../../src/variables.scss';
+
 .account-page {
   display: flex;
   flex-direction: column;
   gap: 2rem;
   margin: 0 auto;
+  max-width: 800px;
 }
 
 .account-page h1 {
@@ -14,13 +17,13 @@
 }
 
 .account-page > p {
-  color: var(--text-secondary, #64748b);
+  color: $mixology-text-secondary;
   margin: 0;
 }
 
 .account-section {
-  background: var(--surface, #ffffff);
-  border: 1px solid var(--border, #e2e8f0);
+  background: $mixology-surface-alt;
+  border: 1px solid $mixology-border;
   border-radius: 12px;
   padding: 1.5rem;
 }
@@ -31,8 +34,8 @@
 }
 
 .account-section--warning {
-  background: var(--warning-bg, #fffbeb);
-  border-color: var(--warning-border, #fcd34d);
+  background: #fffbeb;
+  border-color: #fcd34d;
 }
 
 .account-actions {
@@ -42,7 +45,7 @@
 }
 
 .account-debug {
-  background: var(--code-bg, #f1f5f9);
+  background: #f1f5f9;
   border-radius: 8px;
   font-family: monospace;
   font-size: 0.875rem;
@@ -61,7 +64,7 @@
 
 .account-votes li {
   align-items: center;
-  border-bottom: 1px solid var(--divider, #e2e8f0);
+  border-bottom: 1px solid $mixology-border;
   display: flex;
   gap: 0.5rem;
   justify-content: space-between;
@@ -73,7 +76,7 @@
 }
 
 .vote-time {
-  color: var(--text-muted, #94a3b8);
+  color: #94a3b8;
   font-size: 0.75rem;
 }
 
@@ -88,13 +91,13 @@
 }
 
 .account-hint {
-  color: var(--warning-text, #92400e);
+  color: #92400e;
   font-size: 0.875rem;
   margin: 0.5rem 0 0;
 }
 
 .account-loading {
-  color: var(--text-secondary, #64748b);
+  color: $mixology-text-secondary;
   padding: 2rem;
   text-align: center;
 }
