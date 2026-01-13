@@ -2,7 +2,7 @@
 
 /**
  * ContestCard - Displays a single contest in the admin overview
- * Conforms to dev standards: < 80 lines, uses theme variables.
+ * Conforms to dev standards: < 80 lines.
  */
 
 import type { Contest } from '@/src/mixology/backend';
@@ -13,16 +13,16 @@ interface ContestCardProps {
   isSelected: boolean;
 }
 
-function getPhaseColor(phase: Contest['phase']): string {
+function getPhaseClassName(phase: Contest['phase']): string {
   switch (phase) {
     case 'active':
-      return 'var(--phase-active, #22c55e)';
+      return 'admin-contest-card__phase--active';
     case 'judging':
-      return 'var(--phase-judging, #f59e0b)';
+      return 'admin-contest-card__phase--judging';
     case 'closed':
-      return 'var(--phase-closed, #94a3b8)';
+      return 'admin-contest-card__phase--closed';
     default:
-      return 'var(--phase-setup, #3b82f6)';
+      return 'admin-contest-card__phase--setup';
   }
 }
 
@@ -35,10 +35,7 @@ export function ContestCard({ contest, onSelect, isSelected }: ContestCardProps)
     >
       <div className="admin-contest-card__header">
         <h3 className="admin-contest-card__name">{contest.name}</h3>
-        <span
-          className="admin-contest-card__phase"
-          style={{ backgroundColor: getPhaseColor(contest.phase) }}
-        >
+        <span className={`admin-contest-card__phase ${getPhaseClassName(contest.phase)}`}>
           {contest.phase}
         </span>
       </div>
