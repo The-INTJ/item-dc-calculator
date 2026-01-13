@@ -31,9 +31,10 @@
   display: grid;
   gap: 1.5rem;
   grid-template-columns: 1fr;
+  container-type: inline-size;
 }
 
-@media (min-width: 768px) {
+@container (min-width: 768px) {
   .admin-dashboard__layout {
     grid-template-columns: 320px 1fr;
   }
@@ -68,7 +69,6 @@
   padding: 1rem;
   text-align: left;
   transition: border-color 0.2s, transform 0.15s;
-  width: 100%;
 }
 
 .admin-contest-card:hover {

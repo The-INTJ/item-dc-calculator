@@ -100,7 +100,7 @@
   background-color: $color-surface;
   border-radius: 50%;
   font-size: 1rem;
-  width: 20px;
+  aspect-ratio: 1;
   height: 20px;
   margin: 0;
   text-align: center;
@@ -112,7 +112,6 @@
 .shard-btn {
   background-color: transparent;
   height: 35px;
-  width: 43px;
   padding: 5px 15px 5px;
   color: $color-text-inverse;
   border: none;
