@@ -33,7 +33,7 @@ import type {
   UserVote,
   LocalSession,
 } from '../auth/types';
-import { initializeFirebase } from './config';
+import { initializeFirebase, isFirebaseConfigured } from './config';
 
 // Firestore collection names
 const USERS_COLLECTION = 'mixology_users';
@@ -54,8 +54,8 @@ export function createFirebaseAuthProvider(): AuthProvider {
       auth = firebase.auth;
       db = firebase.db;
 
-      if (!auth || !db) {
-        console.warn('[FirebaseAuth] Running on server or Firebase not available');
+      if (!isFirebaseConfigured() || !auth || !db) {
+        console.warn('[FirebaseAuth] Firebase not configured or unavailable; using local-only mode.');
         return;
       }
 
@@ -71,8 +71,8 @@ export function createFirebaseAuthProvider(): AuthProvider {
     },
 
     async register(data: RegistrationData): Promise<AuthResult> {
-      if (!auth || !db) {
-        return { success: false, error: 'Firebase not initialized' };
+      if (!isFirebaseConfigured() || !auth || !db) {
+        return { success: false, error: 'Firebase not configured' };
       }
 
       try {
@@ -104,8 +104,8 @@ export function createFirebaseAuthProvider(): AuthProvider {
     },
 
     async login(credentials: LoginCredentials): Promise<AuthResult> {
-      if (!auth) {
-        return { success: false, error: 'Firebase not initialized' };
+      if (!isFirebaseConfigured() || !auth) {
+        return { success: false, error: 'Firebase not configured' };
       }
 
       try {
@@ -128,8 +128,8 @@ export function createFirebaseAuthProvider(): AuthProvider {
     },
 
     async logout(): Promise<AuthResult> {
-      if (!auth) {
-        return { success: false, error: 'Firebase not initialized' };
+      if (!isFirebaseConfigured() || !auth) {
+        return { success: false, error: 'Firebase not configured' };
       }
 
       try {
@@ -153,8 +153,8 @@ export function createFirebaseAuthProvider(): AuthProvider {
     },
 
     async syncToBackend(session: LocalSession): Promise<AuthResult> {
-      if (!currentUser || !db) {
-        return { success: false, error: 'Not authenticated or Firebase not initialized' };
+      if (!isFirebaseConfigured() || !currentUser || !db) {
+        return { success: false, error: 'Not authenticated or Firebase not configured' };
       }
 
       try {
@@ -187,7 +187,7 @@ export function createFirebaseAuthProvider(): AuthProvider {
     async fetchUserData(
       uid: string
     ): Promise<{ profile?: UserProfile; votes?: UserVote[] } | null> {
-      if (!db) {
+      if (!isFirebaseConfigured() || !db) {
         return null;
       }
 
@@ -224,8 +224,8 @@ export function createFirebaseAuthProvider(): AuthProvider {
     },
 
     async saveVote(uid: string, vote: UserVote): Promise<AuthResult> {
-      if (!db) {
-        return { success: false, error: 'Firebase not initialized' };
+      if (!isFirebaseConfigured() || !db) {
+        return { success: false, error: 'Firebase not configured' };
       }
 
       try {
@@ -273,8 +273,8 @@ export function createFirebaseAuthProvider(): AuthProvider {
     },
 
     async updateProfile(uid: string, updates: Partial<UserProfile>): Promise<AuthResult> {
-      if (!db) {
-        return { success: false, error: 'Firebase not initialized' };
+      if (!isFirebaseConfigured() || !db) {
+        return { success: false, error: 'Firebase not configured' };
       }
 
       try {

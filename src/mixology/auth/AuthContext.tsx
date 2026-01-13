@@ -28,7 +28,9 @@ import {
   clearPendingSync,
   recordSyncFailure,
 } from './storage';
+import { createMockAuthProvider } from './mockAuthProvider';
 import { createFirebaseAuthProvider } from '../firebase/firebaseAuthProvider';
+import { isFirebaseConfigured } from '../firebase/config';
 
 // Create context with undefined default (must be used within provider)
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -38,8 +40,12 @@ let authProvider: AuthProvider | null = null;
 
 function getAuthProvider(): AuthProvider {
   if (!authProvider) {
-    // Using Firebase auth provider
-    authProvider = createFirebaseAuthProvider();
+    if (isFirebaseConfigured()) {
+      authProvider = createFirebaseAuthProvider();
+    } else {
+      console.warn('[Auth] Firebase not configured; using local-only auth provider.');
+      authProvider = createMockAuthProvider();
+    }
   }
   return authProvider;
 }
