@@ -54,14 +54,17 @@ export function createFirebaseAuthProvider(): AuthProvider {
       auth = firebase.auth;
       db = firebase.db;
 
-      if (!isFirebaseConfigured() || !auth || !db) {
+      const activeAuth = auth;
+      const activeDb = db;
+
+      if (!isFirebaseConfigured() || !activeAuth || !activeDb) {
         console.warn('[FirebaseAuth] Firebase not configured or unavailable; using local-only mode.');
         return;
       }
 
       // Listen for auth state changes
       return new Promise((resolve) => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
+        const unsubscribe = onAuthStateChanged(activeAuth, (user) => {
           currentUser = user;
           console.log('[FirebaseAuth] Auth state changed:', user?.uid ?? 'signed out');
           unsubscribe(); // Only need initial state
