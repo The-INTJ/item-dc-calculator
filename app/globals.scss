@@ -171,27 +171,6 @@
   margin: 0.2rem 0;
 }
 
-.mixology-roadmap {
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-radius: 14px;
-  padding: 1.15rem;
-}
-
-.mixology-roadmap h2 {
-  margin-bottom: 0.6rem;
-}
-
-.mixology-roadmap ol {
-  margin: 0;
-  padding-left: 1.25rem;
-}
-
-.mixology-roadmap li {
-  line-height: 1.5;
-  margin-bottom: 0.35rem;
-}
-
 @media (min-width: 640px) {
   .site-header {
     align-items: center;
@@ -239,9 +218,7 @@
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
 
-  .mixology-card,
-  .mixology-roadmap {
+  .mixology-card {
     padding: 1.35rem;
   }
 }
-

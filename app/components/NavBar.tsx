@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 type NavItem = {
-  key: 'mixology' | 'calculator';
+  key: 'mixology';
   label: string;
   href: string;
   variant?: 'secondary';
@@ -15,12 +15,6 @@ const navItems: NavItem[] = [
     key: 'mixology',
     label: 'Mixology experience',
     href: '/mixology',
-  },
-  {
-    key: 'calculator',
-    label: 'Legacy item DC calculator',
-    href: '/legacy',
-    variant: 'secondary',
   },
 ];
 
