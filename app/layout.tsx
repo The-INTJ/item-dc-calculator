@@ -4,7 +4,7 @@ import { NavBar } from './components/NavBar';
 
 export const metadata = {
   title: 'Mixology Rating App | Shard DC Calculator',
-  description: 'Mixology contest rating experience alongside the legacy Shard DC calculator.',
+  description: 'Mixology contest rating experience for judging and scoring cocktail matchups.',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
