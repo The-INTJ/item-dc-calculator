@@ -3,7 +3,7 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: $color-background-blue;
+  background-color: var(--page-bg, $color-background-blue);
 }
 :root {
   color-scheme: light;
