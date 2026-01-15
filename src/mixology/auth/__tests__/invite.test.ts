@@ -1,5 +1,3 @@
-/// <reference types="vitest" />
-
 import { describe, expect, it, vi } from 'vitest';
 import { parseInviteSearchParams } from '../invite';
 import { createGuestSession } from '../storage';
