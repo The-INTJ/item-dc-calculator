@@ -38,6 +38,11 @@ export interface AuthProvider {
   login(credentials: LoginCredentials): Promise<AuthResult>;
 
   /**
+   * Log in with Google OAuth
+   */
+  loginWithGoogle(): Promise<AuthResult>;
+
+  /**
    * Log out the current user
    */
   logout(): Promise<AuthResult>;

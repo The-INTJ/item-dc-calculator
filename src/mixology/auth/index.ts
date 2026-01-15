@@ -14,6 +14,7 @@ export type {
   AuthState,
   AuthActions,
   AuthContextValue,
+  GuestSessionResult,
 } from './types';
 
 // Context and hooks
@@ -25,7 +26,22 @@ export {
   writeSession,
   clearSession,
   createGuestSession,
+  setInviteContext,
 } from './storage';
+
+export {
+  getGuestId,
+  setGuestId,
+  getGuestIndex,
+  setGuestIndex,
+  addGuestToIndex,
+  ensureGuestIdentity,
+  clearGuestIdentity,
+  getInviteContextCookie,
+  setInviteContextCookie,
+} from './cookies';
+
+export { parseInviteSearchParams } from './invite';
 
 // Provider interface (for implementing custom backends)
 export type { AuthProvider, AuthResult } from './provider';

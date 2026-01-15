@@ -4,16 +4,18 @@
  * Reads from environment variables. Set these in:
  * - .env.local (local dev, gitignored by Next.js)
  * - Vercel environment variables (production)
+ *
+ * Note: Next.js inlines NEXT_PUBLIC_* variables at build time,
+ * so we access them directly rather than via dynamic lookup.
  */
 
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 
-const firebaseApiKey = process.env.FIREBASE_API_KEY ?? process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-
+// Access env vars directly so Next.js can inline them at build time
 const firebaseConfig = {
-  apiKey: firebaseApiKey,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
@@ -21,24 +23,18 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const requiredFirebaseEnv = [
-  'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-  'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-  'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
-  'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-  'NEXT_PUBLIC_FIREBASE_APP_ID',
-] as const;
-
-const apiKeyLabel = 'FIREBASE_API_KEY or NEXT_PUBLIC_FIREBASE_API_KEY';
-
+/**
+ * Check if Firebase is configured with required env vars.
+ * Uses the already-resolved config object (inlined at build time).
+ */
 function isFirebaseConfigured(): boolean {
-  const hasApiKey = typeof firebaseApiKey === 'string' && firebaseApiKey.trim().length > 0;
-  const hasRequiredVars = requiredFirebaseEnv.every((key) => {
-    const value = process.env[key];
-    return typeof value === 'string' && value.trim().length > 0;
-  });
-
-  return hasApiKey && hasRequiredVars;
+  const { apiKey, authDomain, projectId, appId } = firebaseConfig;
+  return Boolean(
+    apiKey?.trim() &&
+    authDomain?.trim() &&
+    projectId?.trim() &&
+    appId?.trim()
+  );
 }
 
 // Singleton instances
@@ -59,12 +55,8 @@ function initializeFirebase(): { app: FirebaseApp | null; auth: Auth | null; db:
 
   // Check for required config
   if (!isFirebaseConfigured()) {
-    const missing = [
-      ...(firebaseApiKey ? [] : [apiKeyLabel]),
-      ...requiredFirebaseEnv.filter((key) => !process.env[key]),
-    ];
     console.warn('[Firebase] Missing configuration. Falling back to local-only mode.');
-    console.warn(`[Firebase] Missing env vars: ${missing.join(', ')}`);
+    console.warn('[Firebase] Ensure NEXT_PUBLIC_FIREBASE_* env vars are set in .env.local');
     return { app: null, auth: null, db: null };
   }
 

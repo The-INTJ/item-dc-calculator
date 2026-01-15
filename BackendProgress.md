@@ -20,19 +20,19 @@ This document tracks backend implementation milestones for the Mixology Rating A
 ## Phase 1 — Auth + session refinements
 
 ### 1.1 Guest creation via URL
-- ⬜ Parse invite query params on `/mixology` and persist `inviteContext` in session.
-- ⬜ Auto-create guest session if unauthenticated and invite is present.
-- ⬜ Add tests for invite parsing and session creation.
+- ✅ Parse invite query params on `/mixology` and persist `inviteContext` in session.
+- ✅ Auto-create guest session if unauthenticated and invite is present.
+- ✅ Add tests for invite parsing and session creation.
 
 ### 1.2 Cookie-backed guest identity
-- ⬜ Add cookie helpers for `mixology_guest_id` and `mixology_guest_index`.
-- ⬜ Ensure multiple guest profiles can exist on one device.
-- ⬜ Add tests for cookie read/write and multi-guest selection.
+- ✅ Add cookie helpers for `mixology_guest_id` and `mixology_guest_index`.
+- ✅ Ensure multiple guest profiles can exist on one device.
+- ✅ Add tests for cookie read/write and multi-guest selection.
 
 ### 1.3 Google OAuth
-- ⬜ Add Google provider sign-in (Firebase Auth).
-- ⬜ Add UI entry for Google sign-in.
-- ⬜ Verify account creation populates Firestore profile.
+- ✅ Add Google provider sign-in (Firebase Auth).
+- ✅ Add UI entry for Google sign-in.
+- ✅ Verify account creation populates Firestore profile.
 
 ---
 

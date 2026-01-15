@@ -13,11 +13,12 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -31,6 +32,20 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       onSuccess?.();
     } else {
       setError(result.error ?? 'Login failed');
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError(null);
+    setGoogleLoading(true);
+
+    const result = await loginWithGoogle();
+
+    setGoogleLoading(false);
+    if (result.success) {
+      onSuccess?.();
+    } else {
+      setError(result.error ?? 'Google sign-in failed');
     }
   };
 
@@ -66,6 +81,15 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
 
       <button type="submit" className="button-primary" disabled={loading}>
         {loading ? 'Signing in...' : 'Sign In'}
+      </button>
+
+      <button
+        type="button"
+        className="button-secondary"
+        onClick={handleGoogleLogin}
+        disabled={googleLoading}
+      >
+        {googleLoading ? 'Connecting...' : 'Continue with Google'}
       </button>
 
       {onSwitchToRegister && (

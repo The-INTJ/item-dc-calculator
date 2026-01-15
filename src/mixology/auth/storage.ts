@@ -5,7 +5,7 @@
  * Provides a clean API for reading/writing session state.
  */
 
-import type { LocalSession, UserVote, UserProfile, PendingSync } from './types';
+import type { LocalSession, UserVote, UserProfile, PendingSync, InviteContext } from './types';
 
 const STORAGE_KEY = 'mixology_session';
 const SESSION_VERSION = 1;
@@ -20,15 +20,26 @@ function generateSessionId(): string {
 /**
  * Create a fresh guest session
  */
-export function createGuestSession(displayName?: string): LocalSession {
+interface CreateGuestSessionOptions {
+  displayName?: string;
+  guestId?: string;
+  guestIndex?: string[];
+  inviteContext?: InviteContext;
+}
+
+export function createGuestSession(options: CreateGuestSessionOptions = {}): LocalSession {
   const now = Date.now();
   return {
     sessionId: generateSessionId(),
     status: 'guest',
     profile: {
-      displayName: displayName ?? `Guest_${Math.random().toString(36).substring(2, 6)}`,
+      displayName: options.displayName ?? `Guest_${Math.random().toString(36).substring(2, 6)}`,
       role: 'viewer',
     },
+    inviteContext: options.inviteContext,
+    guestIdentity: options.guestId
+      ? { guestId: options.guestId, guestIndex: options.guestIndex }
+      : undefined,
     votes: [],
     createdAt: now,
     updatedAt: now,
@@ -98,6 +109,13 @@ export function updateSession(updates: Partial<LocalSession>): LocalSession | nu
   const updated = { ...current, ...updates, updatedAt: Date.now() };
   writeSession(updated);
   return updated;
+}
+
+/**
+ * Set invite context for the current session
+ */
+export function setInviteContext(inviteContext: InviteContext): LocalSession | null {
+  return updateSession({ inviteContext });
 }
 
 /**

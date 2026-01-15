@@ -4,23 +4,18 @@
  * Account page - manage user session and test auth flows
  */
 
-import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/src/mixology/auth';
-import { AuthModal, UserMenu } from '../components';
+import { UserMenu } from '../components';
 
 export default function AccountPage() {
   const { loading, session, isAuthenticated, isGuest, recordVote } = useAuth();
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authView, setAuthView] = useState<'guest' | 'login' | 'register'>('guest');
+  const router = useRouter();
 
   if (loading) {
     return <div className="account-loading">Loading session...</div>;
   }
-
-  const openAuth = (view: 'guest' | 'login' | 'register') => {
-    setAuthView(view);
-    setShowAuthModal(true);
-  };
 
   // Test adding a vote
   const handleTestVote = async () => {
@@ -46,8 +41,8 @@ export default function AccountPage() {
       <section className="account-section">
         <h2>Current Status</h2>
         <UserMenu
-          onLogin={() => openAuth('login')}
-          onRegister={() => openAuth('register')}
+          onLogin={() => router.push('/mixology/onboard')}
+          onRegister={() => router.push('/mixology/onboard')}
         />
       </section>
 
@@ -55,15 +50,9 @@ export default function AccountPage() {
         <section className="account-section">
           <h2>Get Started</h2>
           <div className="account-actions">
-            <button onClick={() => openAuth('guest')} className="button-primary">
-              Continue as Guest
-            </button>
-            <button onClick={() => openAuth('login')} className="button-secondary">
-              Sign In
-            </button>
-            <button onClick={() => openAuth('register')} className="button-secondary">
-              Create Account
-            </button>
+            <Link href="/mixology/onboard" className="button-primary">
+              Open onboarding flow
+            </Link>
           </div>
         </section>
       )}
@@ -143,12 +132,6 @@ export default function AccountPage() {
         </ul>
       </section>
 
-      {showAuthModal && (
-        <AuthModal
-          initialView={authView}
-          onClose={() => setShowAuthModal(false)}
-        />
-      )}
     </div>
   );
 }

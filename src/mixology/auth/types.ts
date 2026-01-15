@@ -52,6 +52,24 @@ export interface UserProfile {
 }
 
 /**
+ * Invite metadata captured from onboarding links
+ */
+export interface InviteContext {
+  inviteId: string;
+  contestSlug?: string;
+  source?: string;
+  receivedAt: number;
+}
+
+/**
+ * Guest identity metadata
+ */
+export interface GuestIdentity {
+  guestId: string;
+  guestIndex?: string[];
+}
+
+/**
  * Session state stored locally (localStorage)
  */
 export interface LocalSession {
@@ -72,6 +90,12 @@ export interface LocalSession {
 
   /** Last visited page path */
   lastPath?: string;
+
+  /** Invite context captured from URL */
+  inviteContext?: InviteContext;
+
+  /** Guest identity used for cookie continuity */
+  guestIdentity?: GuestIdentity;
 
   /** Votes submitted (synced or pending) */
   votes: UserVote[];
@@ -124,11 +148,24 @@ export interface AuthState {
 }
 
 /**
+ * Result of starting a guest session
+ */
+export interface GuestSessionResult {
+  success: boolean;
+  /** Whether guest identity was synced to Firestore (vs local-only) */
+  syncedToFirestore: boolean;
+  error?: string;
+}
+
+/**
  * Auth actions available to components
  */
 export interface AuthActions {
-  /** Start a guest session */
-  startGuestSession: (displayName?: string) => Promise<void>;
+  /** Start a guest session (attempts Firestore, falls back to local) */
+  startGuestSession: (options?: {
+    displayName?: string;
+    inviteContext?: InviteContext;
+  }) => Promise<GuestSessionResult>;
 
   /** Register a new account (migrates guest data) */
   register: (data: RegistrationData) => Promise<{ success: boolean; error?: string }>;
@@ -136,11 +173,17 @@ export interface AuthActions {
   /** Log in with existing account */
   login: (credentials: LoginCredentials) => Promise<{ success: boolean; error?: string }>;
 
+  /** Log in with Google OAuth */
+  loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+
   /** Log out (keeps guest data locally) */
   logout: () => Promise<void>;
 
   /** Update profile */
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
+
+  /** Apply invite context to existing session */
+  applyInviteContext: (inviteContext: InviteContext) => void;
 
   /** Record a vote */
   recordVote: (vote: Omit<UserVote, 'timestamp'>) => Promise<void>;
@@ -150,6 +193,9 @@ export interface AuthActions {
 
   /** Force sync pending data */
   syncPendingData: () => Promise<{ success: boolean; error?: string }>;
+  
+    /** Reset local session for a new account flow */
+    resetSessionForNewAccount: () => Promise<void>;
 }
 
 /**

@@ -75,6 +75,27 @@ export function createMockAuthProvider(): AuthProvider {
       return { success: false, error: 'User not found' };
     },
 
+    async loginWithGoogle(): Promise<AuthResult> {
+      const uid = generateMockUid();
+      const email = `google_${uid}@example.com`;
+      const newUser: MockUser = {
+        uid,
+        email,
+        password: 'oauth',
+        profile: {
+          displayName: 'Google User',
+          email,
+          role: 'viewer',
+        },
+        votes: [],
+      };
+
+      mockUsers.set(uid, newUser);
+      currentMockUid = uid;
+      console.log('[MockAuth] Logged in with Google:', uid);
+      return { success: true, uid };
+    },
+
     async logout(): Promise<AuthResult> {
       console.log('[MockAuth] Logged out user:', currentMockUid);
       currentMockUid = null;

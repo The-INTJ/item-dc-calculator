@@ -27,8 +27,8 @@ export default function MixologyPage() {
           <Link href="/mixology/admin" className="button-primary">
             Admin Dashboard
           </Link>
-          <Link href="/mixology/account" className="button-primary">
-            Account / Session
+          <Link href="/mixology/onboard" className="button-primary">
+            Get Started
           </Link>
           <Link href="/legacy" className="button-secondary">
             Visit the legacy calculator

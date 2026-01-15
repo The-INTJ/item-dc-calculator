@@ -55,6 +55,15 @@
   padding: 0.75rem 1rem;
 }
 
+.auth-warning {
+  background: var(--warning-bg, #fef3c7);
+  border: 1px solid var(--warning-border, #fde68a);
+  border-radius: 8px;
+  color: var(--warning-text, #92400e);
+  font-size: 0.875rem;
+  padding: 0.75rem 1rem;
+}
+
 .auth-switch {
   color: var(--text-secondary, #64748b);
   font-size: 0.875rem;

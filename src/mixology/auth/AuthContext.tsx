@@ -10,11 +10,13 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import type {
   AuthContextValue,
+  InviteContext,
   LocalSession,
   RegistrationData,
   LoginCredentials,
   UserProfile,
   UserVote,
+  GuestSessionResult,
 } from './types';
 import type { AuthProvider } from './provider';
 import {
@@ -27,7 +29,11 @@ import {
   markAsSynced,
   clearPendingSync,
   recordSyncFailure,
+  setInviteContext,
+  clearSession,
 } from './storage';
+import { clearGuestIdentity, ensureGuestIdentity, setInviteContextCookie } from './cookies';
+import { registerGuestIdentity } from '../firebase/guest';
 import { createMockAuthProvider } from './mockAuthProvider';
 import { createFirebaseAuthProvider } from '../firebase/firebaseAuthProvider';
 import { isFirebaseConfigured } from '../firebase/config';
@@ -92,11 +98,48 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
     init();
   }, []);
 
-  // Start guest session
-  const startGuestSession = useCallback(async (displayName?: string) => {
-    const newSession = createGuestSession(displayName);
-    setSession(newSession);
-    writeSession(newSession);
+  // Start guest session with Firestore fallback
+  const startGuestSession = useCallback(
+    async (options?: {
+      displayName?: string;
+      inviteContext?: InviteContext;
+    }): Promise<GuestSessionResult> => {
+      const identity = ensureGuestIdentity(true);
+      const newSession = createGuestSession({
+        displayName: options?.displayName,
+        guestId: identity.guestId,
+        guestIndex: identity.guestIndex,
+        inviteContext: options?.inviteContext,
+      });
+
+      if (options?.inviteContext) {
+        setInviteContextCookie(options.inviteContext);
+      }
+
+      // Attempt Firestore registration with graceful fallback
+      const result = await registerGuestIdentity(
+        identity.guestId,
+        options?.inviteContext,
+        options?.displayName
+      );
+
+      // Session is saved regardless of Firestore success
+      setSession(newSession);
+      writeSession(newSession);
+
+      return {
+        success: true,
+        syncedToFirestore: result.syncedToFirestore,
+        error: result.error,
+      };
+    },
+    []
+  );
+
+  const applyInviteContext = useCallback((inviteContext: InviteContext) => {
+    setInviteContextCookie(inviteContext);
+    const updated = setInviteContext(inviteContext);
+    if (updated) setSession(updated);
   }, []);
 
   // Register new account
@@ -160,9 +203,53 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
         votes: userData?.votes ?? [],
         createdAt: currentLocal?.createdAt ?? Date.now(),
         updatedAt: Date.now(),
+        inviteContext: currentLocal?.inviteContext,
+        guestIdentity: currentLocal?.guestIdentity,
       };
 
       // If there was local guest data, sync it to backend
+      if (currentLocal && currentLocal.status === 'guest' && currentLocal.votes.length > 0) {
+        for (const vote of currentLocal.votes) {
+          await provider.saveVote(result.uid, vote);
+        }
+        newSession.votes = mergeVotes(newSession.votes, currentLocal.votes);
+      }
+
+      setSession(newSession);
+      writeSession(newSession);
+
+      return { success: true };
+    },
+    []
+  );
+
+  const loginWithGoogle = useCallback(
+    async (): Promise<{ success: boolean; error?: string }> => {
+      const provider = getAuthProvider();
+      const result = await provider.loginWithGoogle();
+
+      if (!result.success || !result.uid) {
+        return { success: false, error: result.error };
+      }
+
+      const userData = await provider.fetchUserData(result.uid);
+      const currentLocal = readSession();
+
+      const newSession: LocalSession = {
+        sessionId: currentLocal?.sessionId ?? `sess_${Date.now()}`,
+        status: 'synced',
+        firebaseUid: result.uid,
+        profile: userData?.profile ?? {
+          displayName: 'Mixology User',
+          role: 'viewer',
+        },
+        votes: userData?.votes ?? [],
+        createdAt: currentLocal?.createdAt ?? Date.now(),
+        updatedAt: Date.now(),
+        inviteContext: currentLocal?.inviteContext,
+        guestIdentity: currentLocal?.guestIdentity,
+      };
+
       if (currentLocal && currentLocal.status === 'guest' && currentLocal.votes.length > 0) {
         for (const vote of currentLocal.votes) {
           await provider.saveVote(result.uid, vote);
@@ -195,6 +282,18 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
       writeSession(guestSession);
     }
   }, [session]);
+
+  const resetSessionForNewAccount = useCallback(async () => {
+    const provider = getAuthProvider();
+    if (provider.isAuthenticated()) {
+      await provider.logout();
+    }
+
+    clearSession();
+    clearGuestIdentity();
+    setInviteContextCookie(null);
+    setSession(null);
+  }, []);
 
   // Update profile
   const updateProfile = useCallback(
@@ -276,11 +375,14 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
     startGuestSession,
     register,
     login,
+    loginWithGoogle,
     logout,
     updateProfile,
     recordVote,
     updateLastPath,
     syncPendingData,
+    applyInviteContext,
+    resetSessionForNewAccount,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

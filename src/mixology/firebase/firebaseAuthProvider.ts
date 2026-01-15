@@ -8,8 +8,10 @@
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   onAuthStateChanged,
+  GoogleAuthProvider,
   type User,
 } from 'firebase/auth';
 import {
@@ -126,6 +128,38 @@ export function createFirebaseAuthProvider(): AuthProvider {
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Login failed';
         console.error('[FirebaseAuth] Login error:', message);
+        return { success: false, error: message };
+      }
+    },
+
+    async loginWithGoogle(): Promise<AuthResult> {
+      if (!isFirebaseConfigured() || !auth || !db) {
+        return { success: false, error: 'Firebase not configured' };
+      }
+
+      try {
+        const provider = new GoogleAuthProvider();
+        const userCredential = await signInWithPopup(auth, provider);
+        const user = userCredential.user;
+        currentUser = user;
+
+        const userRef = doc(db, USERS_COLLECTION, user.uid);
+        const existing = await getDoc(userRef);
+        if (!existing.exists()) {
+          await setDoc(userRef, {
+            displayName: user.displayName ?? user.email?.split('@')[0] ?? 'Mixology User',
+            email: user.email ?? undefined,
+            role: 'viewer',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          });
+        }
+
+        console.log('[FirebaseAuth] Logged in with Google:', user.uid);
+        return { success: true, uid: user.uid };
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Google sign-in failed';
+        console.error('[FirebaseAuth] Google login error:', message);
         return { success: false, error: message };
       }
     },
