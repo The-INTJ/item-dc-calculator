@@ -6,11 +6,9 @@
     align-items: center;
     margin: 0;
     grid-column-start: 1;
+    max-width: 400px;
     gap: 8px;
-}
-
-@container (min-width: 400px) {
-    .spans-grid {
+    @media screen and (min-width: 400px) {
         grid-column-end: none;
     }
 }

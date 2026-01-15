@@ -9,67 +9,11 @@
 @import './mixology/components/auth.scss';
 @import './mixology/account/account.scss';
 
-:root {
-  --mixology-surface: #f8fafc;
-  --mixology-surface-alt: #ffffff;
-  --mixology-text: #0f172a;
-  --mixology-text-muted: #64748b;
-  --mixology-border: #e2e8f0;
-  --mixology-primary: #22d3ee;
-  --mixology-primary-hover: #06b6d4;
-  --mixology-header-bg: #0f172a;
-  --mixology-header-text: #e2e8f0;
-  --mixology-page-bg: #f1f5f9;
-
-  --legacy-surface: #f9f9f9;
-  --legacy-surface-alt: #ffffff;
-  --legacy-text: #101010;
-  --legacy-text-muted: #5f6b7a;
-  --legacy-border: #cccccc;
-  --legacy-primary: #627890;
-  --legacy-primary-hover: #4e647b;
-  --legacy-header-bg: #401f0d;
-  --legacy-header-text: #ffffff;
-  --legacy-page-bg: #627890;
-}
-
-body.theme-mixology {
-  --surface: var(--mixology-surface);
-  --surface-alt: var(--mixology-surface-alt);
-  --text-primary: var(--mixology-text);
-  --text-secondary: var(--mixology-text-muted);
-  --border: var(--mixology-border);
-  --primary: var(--mixology-primary);
-  --primary-hover: var(--mixology-primary-hover);
-  --header-bg: var(--mixology-header-bg);
-  --header-text: var(--mixology-header-text);
-  --page-bg: var(--mixology-page-bg);
-}
-
-body.theme-legacy {
-  --surface: var(--legacy-surface);
-  --surface-alt: var(--legacy-surface-alt);
-  --text-primary: var(--legacy-text);
-  --text-secondary: var(--legacy-text-muted);
-  --border: var(--legacy-border);
-  --primary: var(--legacy-primary);
-  --primary-hover: var(--legacy-primary-hover);
-  --header-bg: var(--legacy-header-bg);
-  --header-text: var(--legacy-header-text);
-  --page-bg: var(--legacy-page-bg);
-}
-
-.site-shell {
-  background: var(--page-bg);
-  container-type: inline-size;
-  min-height: 100vh;
-}
-
 .site-header {
   align-items: flex-start;
-  background: var(--header-bg);
+  background: #0f172a;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--header-text);
+  color: #e2e8f0;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -88,6 +32,7 @@ body.theme-legacy {
   display: flex;
   gap: 0.5rem;
   justify-content: stretch;
+  width: 100%;
 }
 
 .site-nav__link {
@@ -98,6 +43,7 @@ body.theme-legacy {
   padding: 0.55rem 0.9rem;
   text-decoration: none;
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  width: 100%;
 }
 
 .site-nav__link:hover {
@@ -124,13 +70,16 @@ body.theme-legacy {
 
 .site-main {
   margin: 0 auto;
+  max-width: 1200px;
   padding: 1.5rem 1.25rem 2.5rem;
+  width: 100%;
 }
 
 .mixology-landing {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  width: 100%;
 }
 
 .mixology-hero {
@@ -151,10 +100,12 @@ body.theme-legacy {
 .mixology-hero p {
   line-height: 1.6;
   margin: 0;
+  max-width: 72ch;
 }
 
 .mixology-hero .mixology-actions {
   align-items: center;
+  width: 100%;
 }
 
 .mixology-actions {
@@ -243,7 +194,7 @@ body.theme-legacy {
   margin-bottom: 0.35rem;
 }
 
-@container (min-width: 640px) {
+@media (min-width: 640px) {
   .site-header {
     align-items: center;
     flex-direction: row;
@@ -255,9 +206,11 @@ body.theme-legacy {
   .site-nav {
     gap: 0.75rem;
     justify-content: flex-end;
+    width: auto;
   }
 
   .site-nav__link {
+    width: auto;
   }
 
   .site-main {
@@ -274,10 +227,11 @@ body.theme-legacy {
   }
 
   .mixology-hero .mixology-actions {
+    width: auto;
   }
 }
 
-@container (min-width: 900px) {
+@media (min-width: 900px) {
   .mixology-actions {
     margin-top: 0.75rem;
   }
@@ -292,3 +246,4 @@ body.theme-legacy {
     padding: 1.35rem;
   }
 }
+
