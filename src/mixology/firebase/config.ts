@@ -10,8 +10,10 @@ import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 
+const firebaseApiKey = process.env.FIREBASE_API_KEY ?? process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  apiKey: firebaseApiKey,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
@@ -20,7 +22,6 @@ const firebaseConfig = {
 };
 
 const requiredFirebaseEnv = [
-  'NEXT_PUBLIC_FIREBASE_API_KEY',
   'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
   'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
   'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
@@ -28,11 +29,16 @@ const requiredFirebaseEnv = [
   'NEXT_PUBLIC_FIREBASE_APP_ID',
 ] as const;
 
+const apiKeyLabel = 'FIREBASE_API_KEY or NEXT_PUBLIC_FIREBASE_API_KEY';
+
 function isFirebaseConfigured(): boolean {
-  return requiredFirebaseEnv.every((key) => {
+  const hasApiKey = typeof firebaseApiKey === 'string' && firebaseApiKey.trim().length > 0;
+  const hasRequiredVars = requiredFirebaseEnv.every((key) => {
     const value = process.env[key];
     return typeof value === 'string' && value.trim().length > 0;
   });
+
+  return hasApiKey && hasRequiredVars;
 }
 
 // Singleton instances
@@ -53,7 +59,10 @@ function initializeFirebase(): { app: FirebaseApp | null; auth: Auth | null; db:
 
   // Check for required config
   if (!isFirebaseConfigured()) {
-    const missing = requiredFirebaseEnv.filter((key) => !process.env[key]);
+    const missing = [
+      ...(firebaseApiKey ? [] : [apiKeyLabel]),
+      ...requiredFirebaseEnv.filter((key) => !process.env[key]),
+    ];
     console.warn('[Firebase] Missing configuration. Falling back to local-only mode.');
     console.warn(`[Firebase] Missing env vars: ${missing.join(', ')}`);
     return { app: null, auth: null, db: null };
