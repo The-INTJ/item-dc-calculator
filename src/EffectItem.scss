@@ -15,7 +15,6 @@
     border-radius: 6px;
     gap: $margin-medium;
     box-shadow: 0 0 4px 2px $color-shadow-strong;
-    container-type: inline-size;
     
     h3 {
         padding: $padding-medium;
@@ -25,13 +24,10 @@
         grid-template-rows: auto auto auto;
         grid-template-columns: 1fr;
         padding: $padding-medium;
-    }
-}
-
-@container (min-width: 400px) {
-    .effect-item.open {
-        grid-template-rows: auto auto;
-        grid-template-columns: auto auto;
+        @media screen and (min-width: 400px) {
+            grid-template-rows: auto auto;
+            grid-template-columns: auto auto;
+        }
     }
 }
 
