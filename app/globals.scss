@@ -9,22 +9,67 @@
 @import './mixology/components/auth.scss';
 @import './mixology/account/account.scss';
 
+:root {
+  --mixology-surface: #f8fafc;
+  --mixology-surface-alt: #ffffff;
+  --mixology-text: #0f172a;
+  --mixology-text-muted: #64748b;
+  --mixology-border: #e2e8f0;
+  --mixology-primary: #22d3ee;
+  --mixology-primary-hover: #06b6d4;
+  --mixology-header-bg: #0f172a;
+  --mixology-header-text: #e2e8f0;
+  --mixology-page-bg: #f1f5f9;
+
+  --legacy-surface: #f9f9f9;
+  --legacy-surface-alt: #ffffff;
+  --legacy-text: #101010;
+  --legacy-text-muted: #5f6b7a;
+  --legacy-border: #cccccc;
+  --legacy-primary: #627890;
+  --legacy-primary-hover: #4e647b;
+  --legacy-header-bg: #401f0d;
+  --legacy-header-text: #ffffff;
+  --legacy-page-bg: #627890;
+}
+
+body.theme-mixology {
+  --surface: var(--mixology-surface);
+  --surface-alt: var(--mixology-surface-alt);
+  --text-primary: var(--mixology-text);
+  --text-secondary: var(--mixology-text-muted);
+  --border: var(--mixology-border);
+  --primary: var(--mixology-primary);
+  --primary-hover: var(--mixology-primary-hover);
+  --header-bg: var(--mixology-header-bg);
+  --header-text: var(--mixology-header-text);
+  --page-bg: var(--mixology-page-bg);
+}
+
+body.theme-legacy {
+  --surface: var(--legacy-surface);
+  --surface-alt: var(--legacy-surface-alt);
+  --text-primary: var(--legacy-text);
+  --text-secondary: var(--legacy-text-muted);
+  --border: var(--legacy-border);
+  --primary: var(--legacy-primary);
+  --primary-hover: var(--legacy-primary-hover);
+  --header-bg: var(--legacy-header-bg);
+  --header-text: var(--legacy-header-text);
+  --page-bg: var(--legacy-page-bg);
+}
+
 .site-shell {
+  background: var(--page-bg);
   container-type: inline-size;
   min-height: 100vh;
 }
 
-.theme-mixology .site-shell {
-  background: $mixology-page-bg;
-}
-
-.theme-legacy .site-shell {
-  background: $color-background-blue;
-}
-
 .site-header {
   align-items: flex-start;
+  background: var(--header-bg);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--header-text);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -38,37 +83,25 @@
   letter-spacing: 0.02em;
 }
 
-.theme-mixology .site-header {
-  background: $mixology-header-bg;
-  color: $mixology-header-text;
-}
-
-.theme-legacy .site-header {
-  background: $color-main-brown;
-  color: $color-text-inverse;
-}
-
 .site-nav {
   align-items: center;
   display: flex;
   gap: 0.5rem;
   justify-content: stretch;
-  width: 100%;
 }
 
 .site-nav__link {
-  border: 1px solid $mixology-primary;
+  border: 1px solid #22d3ee;
   border-radius: 999px;
   color: #e0f2fe;
   font-weight: 600;
   padding: 0.55rem 0.9rem;
   text-decoration: none;
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-  width: 100%;
 }
 
 .site-nav__link:hover {
-  background: $mixology-primary;
+  background: #22d3ee;
   color: #0b1120;
 }
 
@@ -89,44 +122,15 @@
   color: #0f172a;
 }
 
-.theme-legacy .site-nav__link {
-  border-color: $color-highlight;
-  color: $color-text-inverse;
-}
-
-.theme-legacy .site-nav__link:hover {
-  background: $color-highlight;
-  color: $color-main-brown;
-}
-
-.theme-legacy .site-nav__link--active {
-  background: rgba(249, 249, 249, 0.2);
-  border-color: rgba(249, 249, 249, 0.6);
-  color: $color-text-inverse;
-}
-
-.theme-legacy .site-nav__link--secondary {
-  border-color: rgba(255, 255, 255, 0.35);
-  color: $color-text-inverse;
-}
-
-.theme-legacy .site-nav__link--secondary:hover {
-  background: $color-highlight;
-  color: $color-main-brown;
-}
-
 .site-main {
   margin: 0 auto;
-  max-width: 1200px;
   padding: 1.5rem 1.25rem 2.5rem;
-  width: 100%;
 }
 
 .mixology-landing {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  width: 100%;
 }
 
 .mixology-hero {
@@ -147,12 +151,10 @@
 .mixology-hero p {
   line-height: 1.6;
   margin: 0;
-  max-width: 72ch;
 }
 
 .mixology-hero .mixology-actions {
   align-items: center;
-  width: 100%;
 }
 
 .mixology-actions {
@@ -253,11 +255,9 @@
   .site-nav {
     gap: 0.75rem;
     justify-content: flex-end;
-    width: auto;
   }
 
   .site-nav__link {
-    width: auto;
   }
 
   .site-main {
@@ -274,7 +274,6 @@
   }
 
   .mixology-hero .mixology-actions {
-    width: auto;
   }
 }
 

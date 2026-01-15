@@ -1,5 +1,6 @@
 /**
  * Admin dashboard styles
+ * Uses CSS custom properties for theme compatibility
  */
 
 /* Dashboard Layout */
@@ -68,7 +69,6 @@
   padding: 1rem;
   text-align: left;
   transition: border-color 0.2s, transform 0.15s;
-  width: 100%;
 }
 
 .admin-contest-card:hover {
@@ -102,22 +102,6 @@
   font-weight: 700;
   padding: 0.2rem 0.5rem;
   text-transform: uppercase;
-}
-
-.admin-contest-card__phase--active {
-  background: #22c55e;
-}
-
-.admin-contest-card__phase--judging {
-  background: #f59e0b;
-}
-
-.admin-contest-card__phase--closed {
-  background: #94a3b8;
-}
-
-.admin-contest-card__phase--setup {
-  background: #3b82f6;
 }
 
 .admin-contest-card__location {
