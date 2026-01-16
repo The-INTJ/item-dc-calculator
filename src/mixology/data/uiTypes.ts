@@ -1,5 +1,7 @@
 import type { Contest, Drink, ScoreEntry, ScoreBreakdown, VoteCategory } from '../types';
 
+export type { VoteCategory } from '../types';
+
 export type RoundStatus = 'upcoming' | 'active' | 'closed';
 
 export interface RoundSummary {
