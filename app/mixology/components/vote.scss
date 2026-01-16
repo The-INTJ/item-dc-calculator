@@ -36,18 +36,35 @@
   gap: 0.35rem;
 }
 
-.mixology-vote-input__label {
+.mixology-vote-inputs {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.mixology-vote-slider {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.mixology-vote-slider__label-row {
+  align-items: baseline;
+  display: flex;
+  justify-content: space-between;
+}
+
+.mixology-vote-slider__label {
   font-size: 0.8rem;
   font-weight: 600;
   opacity: 0.75;
 }
 
-.mixology-vote-input__field {
-  background: transparent;
-  border: 1px solid currentColor;
-  border-radius: 10px;
+.mixology-vote-slider__value {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.mixology-vote-slider__field {
   color: inherit;
-  padding: 0.4rem 0.6rem;
 }
 
 .mixology-vote-actions {
