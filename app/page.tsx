@@ -1,6 +1,13 @@
+'use client';
+
 import Link from 'next/link';
+import { useAuth } from '@/src/mixology/auth';
 
 export default function HomePage() {
+  const { isAuthenticated } = useAuth();
+  const primaryHref = isAuthenticated ? '/mixology/bracket' : '/mixology/onboard';
+  const primaryLabel = isAuthenticated ? 'Go to Bracket' : 'Sign in or create an account';
+
   return (
     <div className="mixology-landing">
       <section className="mixology-hero">
@@ -10,8 +17,8 @@ export default function HomePage() {
           Sign in or create your judge profile to start rating drinks right away.
         </p>
         <div className="mixology-actions">
-          <Link href="/mixology/onboard" className="button-primary">
-            Sign in or create an account
+          <Link href={primaryHref} className="button-primary">
+            {primaryLabel}
           </Link>
           <Link href="/mixology/admin" className="button-secondary">
             Admin dashboard
