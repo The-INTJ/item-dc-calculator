@@ -65,7 +65,7 @@ function buildScoresFromVotes(votes: UserVote[], categoryIds: string[]) {
     categoryIds.forEach((categoryId) => {
       if (!isBreakdownKey(categoryId)) return;
       const value = vote.breakdown?.[categoryId];
-      if (!Number.isFinite(value)) return;
+      if (typeof value !== 'number' || !Number.isFinite(value)) return;
       acc[vote.drinkId] = acc[vote.drinkId] ?? {};
       acc[vote.drinkId][categoryId] = value;
     });
