@@ -1,10 +1,10 @@
-@import '../src/variables.scss';
-@import '../src/index.scss';
-@import '../src/App.scss';
-@import '../src/Effects/Effects.scss';
-@import '../src/EffectItem.scss';
-@import '../src/PlayerChance.scss';
-@import '../src/Header/header.scss';
+@import '../src/legacy/variables.scss';
+@import '../src/legacy/index.scss';
+@import '../src/legacy/App.scss';
+@import '../src/legacy/Effects/Effects.scss';
+@import '../src/legacy/EffectItem.scss';
+@import '../src/legacy/PlayerChance.scss';
+@import '../src/legacy/Header/header.scss';
 @import './mixology/admin/admin.scss';
 @import './mixology/components/auth.scss';
 @import './mixology/components/rounds.scss';

@@ -72,7 +72,6 @@ This is the app we are actively building: judges rate drinks during contests, wi
 
 **Progress & roadmap**
 - See `Mixology Rating App Progress.md` for the current plan and decisions.
-- See `Plans/Quick-Wins.md` for small, mixology-focused tasks that are safe to tackle.
 - See `MIXOLOGY_QUICKSTART.md` for detailed Firebase setup/testing notes and file map.
 
 ### Adding new pages

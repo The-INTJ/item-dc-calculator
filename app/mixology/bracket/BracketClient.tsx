@@ -49,6 +49,7 @@ export function BracketClient() {
     () => drinks.map((drink) => <DrinkCard key={drink.id} drink={drink} variant="compact" />),
     [drinks]
   );
+  const showEmptyState = !loading && !error && !roundSummary && drinks.length === 0;
 
   return (
     <div className="mixology-landing">
@@ -60,6 +61,11 @@ export function BracketClient() {
 
       {loading && !roundSummary && <div className="mixology-card">Loading bracket data...</div>}
       {error && <div className="mixology-card">Error loading bracket data: {error}</div>}
+      {showEmptyState && (
+        <div className="mixology-card">
+          We&apos;re setting up the bracket. Check back soon for the first round.
+        </div>
+      )}
 
       <section className="mixology-panels">
         {roundSummary ? (
