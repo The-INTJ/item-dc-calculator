@@ -12,6 +12,7 @@ interface AuthPrimaryActionProps {
   className?: string;
   confirmTitle?: string;
   confirmMessage?: string;
+  dataTestId?: string;
 }
 
 export function AuthPrimaryAction({
@@ -21,13 +22,14 @@ export function AuthPrimaryAction({
   className,
   confirmTitle = 'Sign out',
   confirmMessage = 'Are you sure you want to sign out?',
+  dataTestId,
 }: AuthPrimaryActionProps) {
   const { isAuthenticated, loading, logout } = useAuth();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   if (loading) {
     return (
-      <button type="button" className={className} disabled>
+      <button type="button" className={className} disabled data-testid={dataTestId}>
         Loading...
       </button>
     );
@@ -35,7 +37,7 @@ export function AuthPrimaryAction({
 
   if (!isAuthenticated) {
     return (
-      <Link href={signedOutHref} className={className}>
+      <Link href={signedOutHref} className={className} data-testid={dataTestId}>
         {signedOutLabel}
       </Link>
     );
@@ -48,7 +50,12 @@ export function AuthPrimaryAction({
 
   return (
     <>
-      <button type="button" className={className} onClick={() => setConfirmOpen(true)}>
+      <button
+        type="button"
+        className={className}
+        onClick={() => setConfirmOpen(true)}
+        data-testid={dataTestId}
+      >
         {signedInLabel}
       </button>
       <ConfirmDialog
