@@ -146,7 +146,7 @@ export function VoteClient() {
     <div className="mixology-landing">
       <VoteHeader onRefresh={() => void refreshAll()} />
 
-      {loading && !roundSummary && <div className="mixology-card">Loading round details...</div>}
+      {loading && !roundSummary && <div className="mixology-card">Loading current round...</div>}
       {error && <div className="mixology-card">Error loading round data: {error}</div>}
 
       <section className="mixology-panels">

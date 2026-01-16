@@ -1,4 +1,4 @@
-import App from '@/src/App';
+import App from '@/src/legacy/App';
 
 export const metadata = {
   title: 'Legacy Item DC Calculator',
