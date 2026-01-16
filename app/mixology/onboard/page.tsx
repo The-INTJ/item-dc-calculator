@@ -28,10 +28,17 @@ export default function MixologyOnboardPage() {
     e.preventDefault();
     setError(null);
     setSyncWarning(null);
+    const trimmedName = guestName.trim();
+
+    if (!trimmedName) {
+      setError('Display name is required to continue as guest.');
+      return;
+    }
+
     setBusyAction('anonymous');
 
     const result = await loginAnonymously({
-      displayName: guestName.trim() || undefined,
+      displayName: trimmedName,
     });
 
     setBusyAction(null);
@@ -76,14 +83,16 @@ export default function MixologyOnboardPage() {
 
         <form onSubmit={handleGuestContinue} className="guest-form">
           <div className="auth-field">
-            <label htmlFor="guest-name">Your Name (optional)</label>
+            <label htmlFor="guest-name">Your Name (required)</label>
             <input
               id="guest-name"
               type="text"
               value={guestName}
               onChange={(e) => setGuestName(e.target.value)}
-              placeholder="Enter a display name"
+              placeholder="Enter your display name"
               disabled={busyAction !== null}
+              required
+              aria-required="true"
             />
           </div>
 

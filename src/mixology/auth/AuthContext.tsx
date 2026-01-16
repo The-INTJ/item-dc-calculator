@@ -311,6 +311,11 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
       displayName?: string;
       inviteContext?: InviteContext;
     }): Promise<{ success: boolean; error?: string }> => {
+      const trimmedName = options?.displayName?.trim();
+      if (!trimmedName) {
+        return { success: false, error: 'Display name is required to continue as guest.' };
+      }
+
       const provider = getAuthProvider();
       const result = await provider.loginAnonymously();
 
@@ -326,7 +331,7 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
       const currentLocal = readSession();
       const resolvedInvite = options?.inviteContext ?? currentLocal?.inviteContext;
 
-      const fallbackDisplayName = options?.displayName?.trim() || 'Anonymous';
+      const fallbackDisplayName = trimmedName;
 
       const newSession: LocalSession = {
         sessionId: currentLocal?.sessionId ?? `sess_${Date.now()}`,
@@ -353,10 +358,9 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
       setSession(newSession);
       writeSession(newSession);
 
-      if (options?.displayName?.trim()) {
-        const displayName = options.displayName.trim();
-        await provider.updateProfile(result.uid, { displayName });
-        const updated = updateProfileInSession({ displayName });
+      if (trimmedName) {
+        await provider.updateProfile(result.uid, { displayName: trimmedName });
+        const updated = updateProfileInSession({ displayName: trimmedName });
         if (updated) setSession(updated);
       }
 

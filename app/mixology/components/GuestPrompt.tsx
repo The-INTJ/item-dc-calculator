@@ -24,10 +24,17 @@ export function GuestPrompt({ onContinue, onSwitchToLogin, onSwitchToRegister }:
   const handleGuestContinue = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
+    const trimmedName = displayName.trim();
+
+    if (!trimmedName) {
+      setError('Display name is required to continue as guest.');
+      return;
+    }
+
     setBusy(true);
 
     const result = await loginAnonymously({
-      displayName: displayName.trim() || undefined,
+      displayName: trimmedName,
     });
 
     setBusy(false);
@@ -49,14 +56,16 @@ export function GuestPrompt({ onContinue, onSwitchToLogin, onSwitchToRegister }:
 
       <form onSubmit={handleGuestContinue} className="guest-form">
         <div className="auth-field">
-          <label htmlFor="guest-name">Your Name (optional)</label>
+          <label htmlFor="guest-name">Your Name (required)</label>
           <input
             id="guest-name"
             type="text"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="Enter a display name"
+            placeholder="Enter your display name"
             disabled={busy}
+            required
+            aria-required="true"
           />
         </div>
 
