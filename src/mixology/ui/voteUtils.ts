@@ -9,6 +9,12 @@ const breakdownOrder: Array<keyof ScoreBreakdown> = [
   'overall',
 ];
 
+const breakdownKeySet = new Set<string>(breakdownOrder);
+
+function isBreakdownKey(value: string): value is keyof ScoreBreakdown {
+  return breakdownKeySet.has(value);
+}
+
 function formatLabel(value: string): string {
   if (!value) return '';
   return value.charAt(0).toUpperCase() + value.slice(1);
@@ -27,7 +33,8 @@ export function buildTotalsFromScores(scores: ScoreEntry[], categories: VoteCate
 
   scores.forEach((score) => {
     categories.forEach((category) => {
-      const value = (score.breakdown as Record<string, number>)[category.id];
+      if (!isBreakdownKey(category.id)) return;
+      const value = score.breakdown[category.id];
       if (typeof value !== 'number') return;
       const key = `${score.drinkId}:${category.id}`;
       totalsMap.set(key, (totalsMap.get(key) ?? 0) + value);
