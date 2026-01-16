@@ -193,6 +193,33 @@
   padding: 0.75rem 1rem;
 }
 
+.admin-category-form {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.admin-category-form__select {
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  color: inherit;
+  padding: 0.4rem 0.6rem;
+}
+
+.admin-category-form__message {
+  font-size: 0.85rem;
+  margin: 0 0 0.5rem;
+  opacity: 0.75;
+}
+
+.admin-category-form__message--error {
+  font-weight: 600;
+  opacity: 0.95;
+}
+
 .admin-role-badge {
   border-radius: 4px;
   font-size: 0.7rem;

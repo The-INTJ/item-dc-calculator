@@ -9,7 +9,7 @@ This document outlines the backend architecture plan for the Mixology Rating App
 - Enable Google authentication alongside email/password.
 - Enable anonymous Firebase authentication for guest flows.
 - Provide admin authentication and role-based access for contest/drink management.
-- Allow admins to vote like anyone else (all users are judges).
+- Allow any user (guest or registered) to vote; admins can vote like anyone else.
 - Allow a judge to mark themselves as the mixer of a drink (no voting allowed; auto‑assign full score).
 - Allow any scoring section to be marked as “N/A” so non‑drinkers can still score presentation and we can normalize aggregates.
 - Preserve the provider abstraction so UI code does not care about backend implementation.
@@ -28,6 +28,7 @@ This document outlines the backend architecture plan for the Mixology Rating App
 3. Session identity must be stable across browser refresh and short-term device reuse.
 4. Firestore rules should enforce least-privilege access.
 5. All server-side privileged operations should use Admin SDK.
+6. Voting is open to any user; the only restriction is mixer auto-scoring on rounds where they are the mixer.
 
 ---
 
@@ -127,7 +128,7 @@ This document outlines the backend architecture plan for the Mixology Rating App
 - `mixology_guests/{guestId}`
   - `inviteId`, `contestId`, `createdAt`, `lastSeenAt`, `deviceFingerprint`
 - `mixology_contests/{contestId}`
-  - `name`, `slug`, `phase`, `createdAt`
+  - `name`, `slug`, `phase`, `createdAt`, `categories[]`
 - `mixology_contests/{contestId}/drinks/{drinkId}`
   - `name`, `mixerUserId`, `mixerGuestId`
 - `mixology_contests/{contestId}/scores/{scoreId}`
@@ -169,6 +170,7 @@ This document outlines the backend architecture plan for the Mixology Rating App
 - `/api/mixology/guests` (create guest)
 - `/api/mixology/contests` (admin-only write)
 - `/api/mixology/contests/[id]/drinks` (admin-only write)
+- `/api/mixology/contests/[id]/categories` (admin-only write)
 - `/api/mixology/contests/[id]/scores` (user write)
 
 ---

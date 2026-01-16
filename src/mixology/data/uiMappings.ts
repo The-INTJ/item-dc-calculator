@@ -33,8 +33,8 @@ export function buildMatchupsFromDrinks(drinks: Drink[]): MatchupSummary[] {
   return matchups;
 }
 
-export function buildVoteTotals(scores: Contest['scores']): VoteTotals[] {
-  return buildVoteTotalsFromScores(scores);
+export function buildVoteTotals(contest: Contest): VoteTotals[] {
+  return buildVoteTotalsFromScores(contest.scores, contest.categories ?? []);
 }
 
 export function buildRoundDetail(contest: Contest): RoundDetail {
@@ -47,6 +47,6 @@ export function buildRoundDetail(contest: Contest): RoundDetail {
     contestId: contest.id,
     matchups: buildMatchupsFromDrinks(contest.drinks),
     drinks: buildDrinkSummaries(contest.drinks),
-    voteSummary: buildVoteTotalsFromScores(contest.scores),
+    voteSummary: buildVoteTotalsFromScores(contest.scores, contest.categories ?? []),
   };
 }

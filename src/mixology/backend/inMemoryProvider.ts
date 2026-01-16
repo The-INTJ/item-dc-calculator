@@ -21,6 +21,18 @@ import type {
   ScoreBreakdown,
 } from './types';
 
+const defaultVoteCategories = [
+  { id: 'aroma', label: 'Aroma', sortOrder: 0 },
+  { id: 'balance', label: 'Balance', sortOrder: 1 },
+  { id: 'presentation', label: 'Presentation', sortOrder: 2 },
+  { id: 'creativity', label: 'Creativity', sortOrder: 3 },
+  { id: 'overall', label: 'Overall', sortOrder: 4 },
+];
+
+function cloneVoteCategories() {
+  return defaultVoteCategories.map((category) => ({ ...category }));
+}
+
 // Seed data - same as the existing store.ts
 function createSeedData(): Contest[] {
   return [
@@ -34,6 +46,7 @@ function createSeedData(): Contest[] {
       bracketRound: 'Round of 8',
       currentDrinkId: 'drink-sea-fog',
       defaultContest: true,
+      categories: cloneVoteCategories(),
       drinks: [
         {
           id: 'drink-sea-fog',
@@ -82,6 +95,7 @@ function createSeedData(): Contest[] {
       location: 'Seattle Warehouse',
       startTime: '2024-07-12T18:00:00Z',
       bracketRound: 'Qualifiers',
+      categories: cloneVoteCategories(),
       drinks: [],
       judges: [],
       scores: [],
@@ -128,6 +142,7 @@ function createContestsProvider(getData: () => Contest[]): ContestsProvider {
       const newContest: Contest = {
         ...input,
         id: generateId('contest'),
+        categories: cloneVoteCategories(),
         drinks: [],
         judges: [],
         scores: [],
@@ -231,7 +246,7 @@ function createJudgesProvider(getData: () => Contest[]): JudgesProvider {
     async create(contestId, input): Promise<ProviderResult<Judge>> {
       const contest = findContest(contestId);
       if (!contest) return error('Contest not found');
-      const newJudge: Judge = { ...input, id: generateId('judge') };
+      const newJudge: Judge = { ...input, id: input.id ?? generateId('judge') };
       contest.judges.push(newJudge);
       return success(newJudge);
     },

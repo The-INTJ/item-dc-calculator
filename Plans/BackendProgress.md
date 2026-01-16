@@ -54,6 +54,14 @@ This document tracks backend implementation milestones for the Mixology Rating A
 
 ---
 
+## Phase 2.5 — Vote categories + score submission (in-memory)
+- ✅ Add contest-level vote categories to the data model.
+- ✅ Implement category list endpoints for admin add/remove.
+- ✅ Implement score submission endpoint with per-category updates.
+- ✅ Ensure new judges are created on score submission when missing.
+
+---
+
 ## Phase 3 — Scores + N/A support
 
 ### 3.1 N/A score model

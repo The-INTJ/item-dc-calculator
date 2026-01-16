@@ -8,6 +8,7 @@ import type { Contest, Drink, Judge, ScoreEntry } from '@/src/mixology/backend';
 import { buildDrinkSummary } from '@/src/mixology/data/uiTypes';
 import { DrinkCard } from '@/src/mixology/ui';
 import { AdminRoundOverview } from './AdminRoundOverview';
+import { ContestCategories } from './ContestCategories';
 
 interface ContestDetailsProps {
   contest: Contest;
@@ -75,6 +76,7 @@ export function ContestDetails({ contest }: ContestDetailsProps) {
       </header>
 
       <AdminRoundOverview contest={contest} />
+      <ContestCategories contestId={contest.id} initialCategories={contest.categories ?? []} />
 
       <section className="admin-details-section">
         <h3>Drinks ({contest.drinks.length})</h3>

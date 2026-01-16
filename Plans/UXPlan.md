@@ -36,10 +36,10 @@ This document outlines the component architecture and user experience plan for t
 | `/mixology` | Mixology landing (alias) | Public |
 | `/mixology/account` | Account management (login/register/logout) | Public |
 | `/mixology/onboard` | Guest onboarding flow | Public |
-| `/mixology/vote` | Voting interface for current round | Authenticated |
-| `/mixology/vote/[drinkId]` | Individual drink scoring | Authenticated |
+| `/mixology/vote` | Voting interface for current round | Public (guest + authenticated) |
+| `/mixology/vote/[drinkId]` | Individual drink scoring | Public (guest + authenticated) |
 | `/mixology/create` | Mixologist drink submission | Authenticated (mixologist) |
-| `/mixology/bracket` | View tournament bracket | Authenticated |
+| `/mixology/bracket` | View tournament bracket | Public (guest + authenticated) |
 | `/mixology/admin` | Admin dashboard | Admin only |
 | `/mixology/admin/rounds` | Round/bracket management | Admin only |
 | `/mixology/admin/drinks` | Drink management | Admin only |
@@ -193,6 +193,7 @@ Once authenticated, the landing page shows role-based widgets:
 3. Navigate to `/mixology/create`.
 4. Submit drink entry.
 5. Drink marked with mixer (auto-scored).
+6. If voting in a round where they are the mixer, their score auto-counts as full; otherwise they vote normally.
 
 ### Admin flow
 1. Authenticate (must have admin role).

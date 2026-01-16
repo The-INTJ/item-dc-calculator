@@ -13,7 +13,7 @@ This document tracks UX and component implementation milestones for the Mixology
 - ✅ Mixology routes exist under `/mixology`.
 - ✅ Legacy routes exist under `/legacy`.
 - ✅ Auth context and session management exist.
-- ⬜ Legacy is still accessible via navbar links.
+- ✅ Legacy is not linked from mixology navigation.
 - ⬜ Mixology navbar is generic (not minimal).
 - ⬜ Landing page does not show role-based widgets.
 
@@ -22,14 +22,14 @@ This document tracks UX and component implementation milestones for the Mixology
 ## Phase 1 — Legacy isolation
 
 ### 1.1 Remove legacy links from mixology
-- ⬜ Remove any navbar links pointing to `/legacy` from mixology layout.
-- ⬜ Ensure mixology layout does not import legacy navbar.
-- ⬜ Verify `/legacy` is only accessible via direct URL.
+- ✅ Remove any navbar links pointing to `/legacy` from mixology layout.
+- ✅ Ensure mixology layout does not import legacy navbar.
+- ✅ Verify `/legacy` is only accessible via direct URL.
 
 ### 1.2 Legacy navbar containment
-- ⬜ Confirm legacy navbar is scoped to legacy layout only.
-- ⬜ Remove legacy navbar from any shared components.
-- ⬜ Test that navigating to `/legacy` shows legacy navbar, not mixology navbar.
+- ✅ Confirm legacy navbar is scoped to legacy layout only.
+- ✅ Remove legacy navbar from any shared components.
+- ✅ Test that navigating to `/legacy` shows legacy navbar, not mixology navbar.
 
 ---
 
@@ -123,21 +123,21 @@ This document tracks UX and component implementation milestones for the Mixology
 ## Phase 6 — Voting flow
 
 ### 6.1 Vote page structure
-- ⬜ Create `/mixology/vote` page.
-- ⬜ Fetch current round drinks.
-- ⬜ Display list of `DrinkCard` components.
+- ✅ Create `/mixology/vote` page.
+- ✅ Fetch current round drinks.
+- ✅ Display list of `DrinkCard` components.
 - ⬜ Link each card to `/mixology/vote/[drinkId]`.
 
 ### 6.2 DrinkCard component
-- ⬜ Create `DrinkCard` component.
-- ⬜ Display drink name, image, mixer.
+- ✅ Create `DrinkCard` component.
+- 🟡 Display drink name, image, mixer.
 - ⬜ Show voting status (voted/not voted).
 - ⬜ Style using semantic tokens.
 
 ### 6.3 Score input page
 - ⬜ Create `/mixology/vote/[drinkId]` page.
 - ⬜ Create `ScoreInput` component with N/A support.
-- ⬜ Submit scores to backend.
+- ✅ Submit scores to backend.
 - ⬜ Navigate back to vote list on submit.
 
 ### 6.4 RoundIndicator component

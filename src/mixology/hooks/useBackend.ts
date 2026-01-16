@@ -118,8 +118,7 @@ export function useContest(slug: string | null) {
  * Hook for fetching the default/current contest
  */
 export function useCurrentContest() {
-  const { role, loading: authLoading } = useAuth();
-  const isAdmin = role === 'admin';
+  const { loading: authLoading } = useAuth();
   const [state, setState] = useState<AsyncState<Contest>>({
     data: null,
     loading: true,
@@ -130,16 +129,9 @@ export function useCurrentContest() {
     if (authLoading) {
       return;
     }
-
-    if (!isAdmin) {
-      setState({ data: null, loading: false, error: 'Admin access required' });
-      return;
-    }
     setState((s) => ({ ...s, loading: true, error: null }));
     try {
-      const res = await fetch('/api/mixology/contests', {
-        headers: { 'x-mixology-role': role ?? 'viewer' },
-      });
+      const res = await fetch('/api/mixology/current');
       const json = await res.json();
       if (!res.ok) {
         setState({ data: null, loading: false, error: json.message ?? 'Failed to load contests' });
@@ -149,7 +141,7 @@ export function useCurrentContest() {
     } catch (err) {
       setState({ data: null, loading: false, error: String(err) });
     }
-  }, [authLoading, isAdmin, role]);
+  }, [authLoading]);
 
   useEffect(() => {
     refresh();

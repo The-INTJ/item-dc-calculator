@@ -12,6 +12,11 @@ const baseContest: Contest = {
   name: 'Cascadia Classic',
   slug: 'cascadia-classic',
   phase: 'active',
+  categories: [
+    { id: 'aroma', label: 'Aroma', sortOrder: 0 },
+    { id: 'balance', label: 'Balance', sortOrder: 1 },
+    { id: 'overall', label: 'Overall', sortOrder: 2 },
+  ],
   drinks: [],
   judges: [],
   scores: [],
@@ -55,24 +60,39 @@ describe('uiMappings', () => {
     ]);
   });
 
-  // Assumption: vote totals use overall scores until categories are introduced.
-  it('maps scores to overall vote totals', () => {
-    const voteTotals = buildVoteTotals([
-      {
-        id: 'score-1',
-        drinkId: 'drink-1',
-        judgeId: 'judge-1',
-        breakdown: {
-          aroma: 7,
-          balance: 8,
-          presentation: 9,
-          creativity: 6,
-          overall: 8,
+  // Assumption: vote totals aggregate scores by configured categories.
+  it('maps scores into category totals', () => {
+    const voteTotals = buildVoteTotals({
+      ...baseContest,
+      scores: [
+        {
+          id: 'score-1',
+          drinkId: 'drink-1',
+          judgeId: 'judge-1',
+          breakdown: {
+            aroma: 7,
+            balance: 8,
+            presentation: 9,
+            creativity: 6,
+            overall: 8,
+          },
         },
-      },
-    ]);
+      ],
+    });
 
     expect(voteTotals).toEqual([
+      {
+        drinkId: 'drink-1',
+        categoryId: 'aroma',
+        total: 7,
+        userHasVoted: true,
+      },
+      {
+        drinkId: 'drink-1',
+        categoryId: 'balance',
+        total: 8,
+        userHasVoted: true,
+      },
       {
         drinkId: 'drink-1',
         categoryId: 'overall',

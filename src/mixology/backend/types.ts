@@ -53,7 +53,7 @@ export interface DrinksProvider {
 export interface JudgesProvider {
   listByContest(contestId: string): Promise<ProviderResult<Judge[]>>;
   getById(contestId: string, judgeId: string): Promise<ProviderResult<Judge | null>>;
-  create(contestId: string, judge: Omit<Judge, 'id'>): Promise<ProviderResult<Judge>>;
+  create(contestId: string, judge: Omit<Judge, 'id'> & { id?: string }): Promise<ProviderResult<Judge>>;
   update(contestId: string, judgeId: string, updates: Partial<Judge>): Promise<ProviderResult<Judge>>;
   delete(contestId: string, judgeId: string): Promise<ProviderResult<void>>;
 }

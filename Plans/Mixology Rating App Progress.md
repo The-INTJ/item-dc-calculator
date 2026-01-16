@@ -9,11 +9,12 @@ We are introducing a contest-focused Mixology Rating App that will sit alongside
 - **Step 2.5 (Backend abstraction layer)**: Completed. Created a provider-based abstraction layer enabling seamless switching between in-memory, Firebase, or other backends without modifying frontend code. Added full CRUD API endpoints and basic admin validation UI.
 - **Step 3 (Guest/user session management)**: Completed. Built localStorage-based session persistence, guest mode with optional account creation, and auth provider abstraction for future Firebase integration.
 - **Step 4 (Firebase integration)**: Completed. Integrated Firebase Auth (Google + anonymous) and prepared Firestore backend provider. Client-side auth fully operational; API routes continue using in-memory provider for now (server-side Firebase Admin SDK planned for future).
+- **Step 5 (Rounds + drinks UI and category voting flow)**: Completed. Added round/drink UI components, vote categories with backend submission, and admin category management.
 
 ## Architectural Decisions
 - **Routing structure**: The mixology experience lives under `/mixology`, with the landing page at `/`. This ensures contest participants arrive at the mixology shell by default while keeping the new flow isolated from legacy code paths.
-- **Legacy exposure**: The original Shard DC calculator now resides at `/legacy`. It is linked from the global header as a secondary action so it remains discoverable without overshadowing the contest experience.
-- **Navigation and layouts**: A shared header in `app/layout.tsx` highlights the mixology app as primary and provides a secondary link to the legacy calculator. The main content area uses a neutral container that supports both the new shell and legacy UI without altering existing calculator components.
+- **Legacy exposure**: The original Shard DC calculator resides at `/legacy`. It is no longer linked from the mixology header and is only accessible via direct URL.
+- **Navigation and layouts**: The shared header renders only on `/` and `/mixology` routes and does not surface legacy navigation. The main content area remains neutral to support both the new shell and legacy UI without altering existing calculator components.
 - **Feature placement**: Future mixology features (admin tools, voting, standings, brackets, invites) should be added within the `/mixology` route and associated subdirectories. Any new API routes or server actions should be namespaced for mixology to avoid collisions with calculator logic.
 - **Constraints/assumptions**: Legacy calculator behavior and styling should remain untouched aside from the navigation wrapper. Mixology additions should avoid modifying shared legacy styles; instead, prefer scoped styles or new modules under the mixology tree.
 - **Backend provider pattern**: All data access goes through `MixologyBackendProvider` interface (`src/mixology/backend/types.ts`). To switch backends (e.g., from in-memory to Firebase), implement the provider interface and swap the factory call in `src/mixology/backend/index.ts`. Frontend hooks and API routes remain unchanged.
@@ -176,7 +177,7 @@ The following phases are planned for future iterations:
 1. ~~Step 3: Authentication, roles, and basic access control.~~ ✓ Completed
 2. ~~Step 4: Firebase integration (auth provider + data provider).~~ ✓ Completed
 3. Step 5: Contest and drink management (admin only).
-4. Step 6: Current drink flow and basic voting UI.
+4. ~~Step 6: Current drink flow and basic voting UI.~~ ✓ Completed (category voting + submission)
 5. Step 7: Live leaderboard and standings overview.
 6. Step 8: Bracket modeling and display.
 7. Step 9: Invite URL and cookie-based account creation flow.

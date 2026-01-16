@@ -25,6 +25,13 @@ export interface ScoreBreakdown {
   overall: number;
 }
 
+export interface VoteCategory {
+  id: string;
+  label: string;
+  description?: string;
+  sortOrder: number;
+}
+
 export interface ScoreEntry {
   id: string;
   drinkId: string;
@@ -43,6 +50,7 @@ export interface Contest {
   bracketRound?: string;
   currentDrinkId?: string;
   defaultContest?: boolean;
+  categories?: VoteCategory[];
   drinks: Drink[];
   judges: Judge[];
   scores: ScoreEntry[];

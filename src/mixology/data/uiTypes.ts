@@ -1,4 +1,4 @@
-import type { Contest, Drink, ScoreEntry } from '../types';
+import type { Contest, Drink, ScoreEntry, ScoreBreakdown, VoteCategory } from '../types';
 
 export type RoundStatus = 'upcoming' | 'active' | 'closed';
 
@@ -34,13 +34,6 @@ export interface DrinkSummary {
   imageUrl?: string;
 }
 
-export interface VoteCategory {
-  id: string;
-  label: string;
-  description?: string;
-  sortOrder: number;
-}
-
 export interface VoteTotals {
   drinkId: string;
   categoryId: string;
@@ -54,6 +47,20 @@ const roundPhaseMap: Record<Contest['phase'], RoundStatus> = {
   judging: 'active',
   closed: 'closed',
 };
+
+const breakdownKeys: Array<keyof ScoreBreakdown> = [
+  'aroma',
+  'balance',
+  'presentation',
+  'creativity',
+  'overall',
+];
+
+const breakdownKeySet = new Set<string>(breakdownKeys);
+
+function isBreakdownKey(value: string): value is keyof ScoreBreakdown {
+  return breakdownKeySet.has(value);
+}
 
 function uniqueNames(values: Array<string | undefined | null>): string[] {
   return Array.from(new Set(values.filter((value): value is string => Boolean(value))));
@@ -80,11 +87,26 @@ export function buildDrinkSummary(drink: Drink): DrinkSummary {
   };
 }
 
-export function buildVoteTotalsFromScores(scores: ScoreEntry[]): VoteTotals[] {
-  return scores.map((score) => ({
-    drinkId: score.drinkId,
-    categoryId: 'overall',
-    total: score.breakdown.overall,
-    userHasVoted: true,
-  }));
+export function buildVoteTotalsFromScores(scores: ScoreEntry[], categories: VoteCategory[]): VoteTotals[] {
+  const totalsMap = new Map<string, number>();
+
+  scores.forEach((score) => {
+    categories.forEach((category) => {
+      if (!isBreakdownKey(category.id)) return;
+      const value = score.breakdown[category.id];
+      if (typeof value !== 'number') return;
+      const key = `${score.drinkId}:${category.id}`;
+      totalsMap.set(key, (totalsMap.get(key) ?? 0) + value);
+    });
+  });
+
+  return Array.from(totalsMap.entries()).map(([key, total]) => {
+    const [drinkId, categoryId] = key.split(':');
+    return {
+      drinkId,
+      categoryId,
+      total,
+      userHasVoted: true,
+    };
+  });
 }
