@@ -43,6 +43,11 @@ export interface AuthProvider {
   loginWithGoogle(): Promise<AuthResult>;
 
   /**
+   * Log in anonymously with Firebase Auth
+   */
+  loginAnonymously(): Promise<AuthResult>;
+
+  /**
    * Log out the current user
    */
   logout(): Promise<AuthResult>;

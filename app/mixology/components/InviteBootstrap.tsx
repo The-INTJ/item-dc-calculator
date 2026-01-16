@@ -11,7 +11,7 @@ import { useAuth } from '@/src/mixology/auth';
 import { parseInviteSearchParams } from '@/src/mixology/auth/invite';
 
 export function InviteBootstrap() {
-  const { session, isAuthenticated, startGuestSession, applyInviteContext } = useAuth();
+  const { session, isAuthenticated, loginAnonymously, applyInviteContext } = useAuth();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const lastHandledRef = useRef<string | null>(null);
@@ -32,9 +32,9 @@ export function InviteBootstrap() {
     }
 
     if (!isAuthenticated) {
-      void startGuestSession({ inviteContext });
+      void loginAnonymously({ inviteContext });
     }
-  }, [applyInviteContext, isAuthenticated, pathname, searchParams, session, startGuestSession]);
+  }, [applyInviteContext, isAuthenticated, loginAnonymously, pathname, searchParams, session]);
 
   return null;
 }

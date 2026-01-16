@@ -13,12 +13,13 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
-  const { login, loginWithGoogle } = useAuth();
+  const { login, loginAnonymously, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [anonymousLoading, setAnonymousLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -46,6 +47,20 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       onSuccess?.();
     } else {
       setError(result.error ?? 'Google sign-in failed');
+    }
+  };
+
+  const handleAnonymousLogin = async () => {
+    setError(null);
+    setAnonymousLoading(true);
+
+    const result = await loginAnonymously();
+
+    setAnonymousLoading(false);
+    if (result.success) {
+      onSuccess?.();
+    } else {
+      setError(result.error ?? 'Anonymous sign-in failed');
     }
   };
 
@@ -90,6 +105,15 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
         disabled={googleLoading}
       >
         {googleLoading ? 'Connecting...' : 'Continue with Google'}
+      </button>
+
+      <button
+        type="button"
+        className="button-secondary"
+        onClick={handleAnonymousLogin}
+        disabled={anonymousLoading}
+      >
+        {anonymousLoading ? 'Connecting...' : 'Continue anonymously'}
       </button>
 
       {onSwitchToRegister && (

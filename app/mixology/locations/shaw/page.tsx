@@ -8,7 +8,7 @@ export default function ShawPage() {
     <div className="mixology-landing">
       <section className="mixology-hero">
         <h1>Shaw</h1>
-        <p>Shaw tasting details will be shared with judges ahead of the event.</p>
+        <p>Shaw tasting details will be shared with voters ahead of the event.</p>
       </section>
       <section className="mixology-panels">
         <div className="mixology-card">

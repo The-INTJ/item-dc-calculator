@@ -96,6 +96,27 @@ export function createMockAuthProvider(): AuthProvider {
       return { success: true, uid };
     },
 
+    async loginAnonymously(): Promise<AuthResult> {
+      const uid = generateMockUid();
+      const email = `anonymous_${uid}@example.com`;
+      const newUser: MockUser = {
+        uid,
+        email,
+        password: 'anonymous',
+        profile: {
+          displayName: 'Anonymous',
+          email,
+          role: 'viewer',
+        },
+        votes: [],
+      };
+
+      mockUsers.set(uid, newUser);
+      currentMockUid = uid;
+      console.log('[MockAuth] Logged in anonymously:', uid);
+      return { success: true, uid };
+    },
+
     async logout(): Promise<AuthResult> {
       console.log('[MockAuth] Logged out user:', currentMockUid);
       currentMockUid = null;

@@ -20,11 +20,14 @@ export function SiteHeader() {
   const pathname = usePathname();
   const { isAuthenticated, loading } = useAuth();
 
-  if (!pathname.startsWith('/mixology')) {
+  const showHeader = pathname === '/' || pathname.startsWith('/mixology');
+
+  if (!showHeader) {
     return null;
   }
 
-  const showAuthBanner = !loading && !isAuthenticated && needsAuthBanner(pathname);
+  const showAuthBanner =
+    pathname.startsWith('/mixology') && !loading && !isAuthenticated && needsAuthBanner(pathname);
 
   return (
     <header className="site-header">

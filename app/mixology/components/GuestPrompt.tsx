@@ -16,7 +16,7 @@ interface GuestPromptProps {
 }
 
 export function GuestPrompt({ onContinue, onSwitchToLogin, onSwitchToRegister }: GuestPromptProps) {
-  const { startGuestSession } = useAuth();
+  const { loginAnonymously } = useAuth();
   const [displayName, setDisplayName] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,20 +26,15 @@ export function GuestPrompt({ onContinue, onSwitchToLogin, onSwitchToRegister }:
     setError(null);
     setBusy(true);
 
-    const result = await startGuestSession({
+    const result = await loginAnonymously({
       displayName: displayName.trim() || undefined,
     });
 
     setBusy(false);
 
     if (!result.success) {
-      setError(result.error ?? 'Failed to start session');
+      setError(result.error ?? 'Anonymous sign-in failed');
       return;
-    }
-
-    // Log if we fell back to local-only (not blocking)
-    if (!result.syncedToFirestore) {
-      console.info('[GuestPrompt] Started in local-only mode');
     }
 
     onContinue?.();
@@ -66,7 +61,7 @@ export function GuestPrompt({ onContinue, onSwitchToLogin, onSwitchToRegister }:
         </div>
 
         <button type="submit" className="button-primary" disabled={busy} aria-busy={busy}>
-          {busy ? 'Starting...' : 'Continue as Guest'}
+          {busy ? 'Connecting...' : 'Continue anonymously'}
         </button>
       </form>
 
@@ -97,9 +92,7 @@ export function GuestPrompt({ onContinue, onSwitchToLogin, onSwitchToRegister }:
         )}
       </div>
 
-      <p className="guest-note">
-        Guest data is saved locally. Create an account to sync across devices.
-      </p>
+      <p className="guest-note">Anonymous sign-in still syncs your data across devices.</p>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Voting | Mixology Rating App',
-  description: 'Voting flow for Mixology judges.',
+  description: 'Voting flow for Mixology voters.',
 };
 
 export default function MixologyVotePage() {
@@ -11,6 +11,9 @@ export default function MixologyVotePage() {
         <p>
           This placeholder is where the live contest voting flow will live. Use the onboarding page to
           confirm session state and auth flows.
+        </p>
+        <p>
+          Everyone can vote unless they are registered as the mixologist for a drink in the current round.
         </p>
       </section>
     </div>

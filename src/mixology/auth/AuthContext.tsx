@@ -32,7 +32,12 @@ import {
   setInviteContext,
   clearSession,
 } from './storage';
-import { clearGuestIdentity, ensureGuestIdentity, setInviteContextCookie } from './cookies';
+import {
+  clearGuestIdentity,
+  ensureGuestIdentity,
+  getInviteContextCookie,
+  setInviteContextCookie,
+} from './cookies';
 import { registerGuestIdentity } from '../firebase/guest';
 import { createMockAuthProvider } from './mockAuthProvider';
 import { createFirebaseAuthProvider } from '../firebase/firebaseAuthProvider';
@@ -70,26 +75,62 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
       const provider = getAuthProvider();
       await provider.initialize();
 
-      // Load existing session from localStorage
       const existingSession = readSession();
+      const currentUid = provider.getCurrentUid();
+
+      const hydrateSessionFromBackend = async (
+        uid: string,
+        baseSession?: LocalSession | null
+      ): Promise<LocalSession> => {
+        const userData = await provider.fetchUserData(uid);
+        const now = Date.now();
+        const shouldMergeLocal = !baseSession?.firebaseUid || baseSession.firebaseUid === uid;
+        const localVotes = shouldMergeLocal ? baseSession?.votes ?? [] : [];
+        const localProfile = shouldMergeLocal ? baseSession?.profile : undefined;
+        const localInvite = shouldMergeLocal ? baseSession?.inviteContext : undefined;
+        const localGuestIdentity = shouldMergeLocal ? baseSession?.guestIdentity : undefined;
+
+        const merged: LocalSession = {
+          sessionId: baseSession?.sessionId ?? `sess_${now}`,
+          status: 'synced',
+          firebaseUid: uid,
+          profile: {
+            displayName:
+              localProfile?.displayName ??
+              userData?.profile?.displayName ??
+              userData?.profile?.email?.split('@')[0] ??
+              'Mixology User',
+            email: localProfile?.email ?? userData?.profile?.email,
+            role: userData?.profile?.role ?? localProfile?.role ?? 'viewer',
+          },
+          votes: mergeVotes(localVotes, userData?.votes ?? []),
+          createdAt: baseSession?.createdAt ?? now,
+          updatedAt: now,
+          inviteContext: localInvite ?? getInviteContextCookie() ?? undefined,
+          guestIdentity: localGuestIdentity,
+        };
+
+        writeSession(merged);
+        return merged;
+      };
+
       if (existingSession) {
         setSession(existingSession);
 
-        // If user was registered, try to restore auth state
-        if (existingSession.firebaseUid && provider.isAuthenticated()) {
-          // Fetch latest data from backend
-          const userData = await provider.fetchUserData(existingSession.firebaseUid);
-          if (userData) {
-            // Merge backend data with local
-            const merged: LocalSession = {
-              ...existingSession,
-              profile: { ...existingSession.profile, ...userData.profile },
-              votes: mergeVotes(existingSession.votes, userData.votes ?? []),
-            };
-            setSession(merged);
-            writeSession(merged);
-          }
+        if (currentUid) {
+          const needsRefresh = existingSession.firebaseUid !== currentUid;
+          const refreshed = await hydrateSessionFromBackend(
+            currentUid,
+            needsRefresh ? null : existingSession
+          );
+          setSession(refreshed);
+        } else if (existingSession.firebaseUid && provider.isAuthenticated()) {
+          const refreshed = await hydrateSessionFromBackend(existingSession.firebaseUid, existingSession);
+          setSession(refreshed);
         }
+      } else if (currentUid) {
+        const refreshed = await hydrateSessionFromBackend(currentUid, null);
+        setSession(refreshed);
       }
 
       setLoading(false);
@@ -265,6 +306,65 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
     []
   );
 
+  const loginAnonymously = useCallback(
+    async (options?: {
+      displayName?: string;
+      inviteContext?: InviteContext;
+    }): Promise<{ success: boolean; error?: string }> => {
+      const provider = getAuthProvider();
+      const result = await provider.loginAnonymously();
+
+      if (!result.success || !result.uid) {
+        return { success: false, error: result.error };
+      }
+
+      if (options?.inviteContext) {
+        setInviteContextCookie(options.inviteContext);
+      }
+
+      const userData = await provider.fetchUserData(result.uid);
+      const currentLocal = readSession();
+      const resolvedInvite = options?.inviteContext ?? currentLocal?.inviteContext;
+
+      const fallbackDisplayName = options?.displayName?.trim() || 'Anonymous';
+
+      const newSession: LocalSession = {
+        sessionId: currentLocal?.sessionId ?? `sess_${Date.now()}`,
+        status: 'synced',
+        firebaseUid: result.uid,
+        profile: userData?.profile ?? {
+          displayName: fallbackDisplayName,
+          role: 'viewer',
+        },
+        votes: userData?.votes ?? [],
+        createdAt: currentLocal?.createdAt ?? Date.now(),
+        updatedAt: Date.now(),
+        inviteContext: resolvedInvite,
+        guestIdentity: currentLocal?.guestIdentity,
+      };
+
+      if (currentLocal && currentLocal.status === 'guest' && currentLocal.votes.length > 0) {
+        for (const vote of currentLocal.votes) {
+          await provider.saveVote(result.uid, vote);
+        }
+        newSession.votes = mergeVotes(newSession.votes, currentLocal.votes);
+      }
+
+      setSession(newSession);
+      writeSession(newSession);
+
+      if (options?.displayName?.trim()) {
+        const displayName = options.displayName.trim();
+        await provider.updateProfile(result.uid, { displayName });
+        const updated = updateProfileInSession({ displayName });
+        if (updated) setSession(updated);
+      }
+
+      return { success: true };
+    },
+    []
+  );
+
   // Logout
   const logout = useCallback(async () => {
     const provider = getAuthProvider();
@@ -376,6 +476,7 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
     register,
     login,
     loginWithGoogle,
+    loginAnonymously,
     logout,
     updateProfile,
     recordVote,

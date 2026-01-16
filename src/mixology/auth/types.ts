@@ -176,6 +176,12 @@ export interface AuthActions {
   /** Log in with Google OAuth */
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
 
+  /** Log in anonymously with Firebase Auth */
+  loginAnonymously: (options?: {
+    displayName?: string;
+    inviteContext?: InviteContext;
+  }) => Promise<{ success: boolean; error?: string }>;
+
   /** Log out (keeps guest data locally) */
   logout: () => Promise<void>;
 

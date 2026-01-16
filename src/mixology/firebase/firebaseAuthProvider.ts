@@ -8,6 +8,7 @@
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInAnonymously,
   signInWithPopup,
   signOut,
   onAuthStateChanged,
@@ -160,6 +161,36 @@ export function createFirebaseAuthProvider(): AuthProvider {
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Google sign-in failed';
         console.error('[FirebaseAuth] Google login error:', message);
+        return { success: false, error: message };
+      }
+    },
+
+    async loginAnonymously(): Promise<AuthResult> {
+      if (!isFirebaseConfigured() || !auth || !db) {
+        return { success: false, error: 'Firebase not configured' };
+      }
+
+      try {
+        const userCredential = await signInAnonymously(auth);
+        const user = userCredential.user;
+        currentUser = user;
+
+        const userRef = doc(db, USERS_COLLECTION, user.uid);
+        const existing = await getDoc(userRef);
+        if (!existing.exists()) {
+          await setDoc(userRef, {
+            displayName: 'Anonymous',
+            role: 'viewer',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          });
+        }
+
+        console.log('[FirebaseAuth] Logged in anonymously:', user.uid);
+        return { success: true, uid: user.uid };
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Anonymous sign-in failed';
+        console.error('[FirebaseAuth] Anonymous login error:', message);
         return { success: false, error: message };
       }
     },

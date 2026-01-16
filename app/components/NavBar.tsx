@@ -17,32 +17,14 @@ const navItems: NavItem[] = [
     href: '/mixology',
   },
   {
-    key: 'mixology-vote',
-    label: 'Vote',
+    key: 'mixology-current-round',
+    label: 'Current Round',
     href: '/mixology/vote',
   },
   {
     key: 'mixology-bracket',
     label: 'Bracket',
     href: '/mixology/bracket',
-  },
-  {
-    key: 'mixology-location-union-market',
-    label: 'Union Market',
-    href: '/mixology/locations/union-market',
-    variant: 'secondary',
-  },
-  {
-    key: 'mixology-location-shaw',
-    label: 'Shaw',
-    href: '/mixology/locations/shaw',
-    variant: 'secondary',
-  },
-  {
-    key: 'mixology-location-navy-yard',
-    label: 'Navy Yard',
-    href: '/mixology/locations/navy-yard',
-    variant: 'secondary',
   },
   {
     key: 'mixology-account',

@@ -17,7 +17,7 @@ export default function UnionMarketPage() {
         </div>
         <div className="mixology-card">
           <h2>Venue notes</h2>
-          <p>Judging logistics and floor map information are coming soon.</p>
+          <p>Voting logistics and floor map information are coming soon.</p>
         </div>
       </section>
     </div>

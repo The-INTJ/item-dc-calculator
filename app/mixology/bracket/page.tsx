@@ -9,7 +9,7 @@ export default function MixologyBracketPage() {
       <section className="mixology-hero">
         <h1>Mixology Bracket</h1>
         <p>
-          This bracket view is coming soon. Judges will follow the live progression here once the
+          This bracket view is coming soon. Voters will follow the live progression here once the
           experience is ready.
         </p>
       </section>

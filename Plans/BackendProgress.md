@@ -34,6 +34,10 @@ This document tracks backend implementation milestones for the Mixology Rating A
 - ✅ Add UI entry for Google sign-in.
 - ✅ Verify account creation populates Firestore profile.
 
+### 1.4 Anonymous auth
+- ✅ Add Firebase anonymous sign-in.
+- ✅ Use anonymous sign-in for “Continue as Guest” and invite bootstrap.
+
 ---
 
 ## Phase 2 — Firestore data provider

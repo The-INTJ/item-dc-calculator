@@ -13,11 +13,11 @@ import { useAuth } from '@/src/mixology/auth';
 
 export default function MixologyOnboardPage() {
   const router = useRouter();
-  const { loading, isGuest, loginWithGoogle, resetSessionForNewAccount, startGuestSession } =
+  const { loading, isGuest, loginAnonymously, loginWithGoogle, resetSessionForNewAccount } =
     useAuth();
   const [error, setError] = useState<string | null>(null);
   const [syncWarning, setSyncWarning] = useState<string | null>(null);
-  const [busyAction, setBusyAction] = useState<'guest' | 'google' | 'reset' | null>(null);
+  const [busyAction, setBusyAction] = useState<'anonymous' | 'google' | 'reset' | null>(null);
   const [guestName, setGuestName] = useState('');
 
   if (loading) {
@@ -28,22 +28,17 @@ export default function MixologyOnboardPage() {
     e.preventDefault();
     setError(null);
     setSyncWarning(null);
-    setBusyAction('guest');
+    setBusyAction('anonymous');
 
-    const result = await startGuestSession({
+    const result = await loginAnonymously({
       displayName: guestName.trim() || undefined,
     });
 
     setBusyAction(null);
 
     if (!result.success) {
-      setError(result.error ?? 'Failed to start session');
+      setError(result.error ?? 'Anonymous sign-in failed');
       return;
-    }
-
-    // Show warning if we fell back to local-only
-    if (!result.syncedToFirestore && result.error) {
-      setSyncWarning('Offline mode: your data is saved locally.');
     }
 
     router.push('/mixology/vote');
@@ -96,9 +91,9 @@ export default function MixologyOnboardPage() {
             type="submit"
             className="button-primary"
             disabled={busyAction !== null}
-            aria-busy={busyAction === 'guest'}
+            aria-busy={busyAction === 'anonymous'}
           >
-            {busyAction === 'guest' ? 'Starting...' : 'Continue as Guest'}
+            {busyAction === 'anonymous' ? 'Connecting...' : 'Continue anonymously'}
           </button>
         </form>
 
@@ -118,9 +113,7 @@ export default function MixologyOnboardPage() {
           </button>
         </div>
 
-        <p className="guest-note">
-          Guest data is saved locally. Sign in to sync across devices.
-        </p>
+        <p className="guest-note">Anonymous sign-in still syncs your data across devices.</p>
       </div>
 
       {isGuest && (

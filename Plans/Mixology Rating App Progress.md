@@ -8,7 +8,7 @@ We are introducing a contest-focused Mixology Rating App that will sit alongside
 - **Step 2 (Data model and backend foundation)**: Completed. Defined typed contest/drink/judge/score schemas with seeded data, plus read-only API at `/api/mixology/contests`.
 - **Step 2.5 (Backend abstraction layer)**: Completed. Created a provider-based abstraction layer enabling seamless switching between in-memory, Firebase, or other backends without modifying frontend code. Added full CRUD API endpoints and basic admin validation UI.
 - **Step 3 (Guest/user session management)**: Completed. Built localStorage-based session persistence, guest mode with optional account creation, and auth provider abstraction for future Firebase integration.
-- **Step 4 (Firebase integration)**: Completed. Integrated Firebase Auth for user authentication and prepared Firestore backend provider. Client-side auth fully operational; API routes continue using in-memory provider for now (server-side Firebase Admin SDK planned for future).
+- **Step 4 (Firebase integration)**: Completed. Integrated Firebase Auth (Google + anonymous) and prepared Firestore backend provider. Client-side auth fully operational; API routes continue using in-memory provider for now (server-side Firebase Admin SDK planned for future).
 
 ## Architectural Decisions
 - **Routing structure**: The mixology experience lives under `/mixology`, with the landing page at `/`. This ensures contest participants arrive at the mixology shell by default while keeping the new flow isolated from legacy code paths.
@@ -64,7 +64,7 @@ Located in `src/mixology/auth/storage.ts`:
 Located in `src/mixology/auth/provider.ts`:
 - `AuthProvider`: Interface for auth backends (register, login, logout, sync)
 - `mockAuthProvider.ts`: In-memory mock for development
-- Ready for `firebaseAuthProvider.ts` implementation
+- `firebaseAuthProvider.ts`: Firebase Auth + Firestore profiles (Google + anonymous)
 
 ### Session Types (`src/mixology/auth/types.ts`)
 - `LocalSession`: Full session state (votes, profile, sync status)
@@ -79,7 +79,7 @@ Located in `src/mixology/auth/provider.ts`:
 - Merges local and remote data on login
 
 ### Guest → User Flow
-1. User arrives, optionally enters display name, continues as guest
+1. User arrives, optionally enters display name, continues anonymously (Firebase Auth)
 2. Votes and actions stored locally in `LocalSession`
 3. User creates account → local data synced to backend
 4. Or user logs in → local guest data merged with existing account
@@ -92,14 +92,12 @@ Located in `src/mixology/auth/provider.ts`:
 - `AuthModal`: Modal wrapper for auth flows
 
 ### How to Switch to Firebase
-1. Create `src/mixology/auth/firebaseAuthProvider.ts` implementing `AuthProvider`
-2. Update `src/mixology/auth/AuthContext.tsx` to use Firebase provider
-3. No changes needed to UI components or session logic
+Firebase auth provider is active in `AuthContext` and can fall back to the mock provider when Firebase is not configured.
 
 ## Firebase Integration
 
 ### Overview
-Firebase is integrated for authentication (Firebase Auth) and prepared for data storage (Firestore). The configuration file is gitignored to protect credentials.
+Firebase is integrated for authentication (Google + anonymous) and prepared for data storage (Firestore). The configuration file is gitignored to protect credentials.
 
 ### Files
 | File | Purpose |
@@ -128,11 +126,12 @@ NEXT_PUBLIC_FIREBASE_APP_ID=<app-id>
 ### Firestore Collections (planned)
 | Collection | Purpose |
 |------------|---------|
-| `users/{uid}` | User profiles (displayName, email, role, createdAt) |
-| `contests/{id}` | Contest documents |
-| `contests/{id}/drinks/{drinkId}` | Drinks as subcollection |
-| `contests/{id}/judges/{judgeId}` | Judges as subcollection |
-| `contests/{id}/scores/{scoreId}` | Score entries as subcollection |
+| `mixology_users/{uid}` | User profiles (displayName, email, role, createdAt) |
+| `mixology_votes/{id}` | Vote entries (userId, contestId, drinkId, score, timestamp) |
+| `mixology_contests/{id}` | Contest documents (planned) |
+| `mixology_contests/{id}/drinks/{drinkId}` | Drinks as subcollection (planned) |
+| `mixology_contests/{id}/judges/{judgeId}` | Judges as subcollection (planned) |
+| `mixology_contests/{id}/scores/{scoreId}` | Score entries as subcollection (planned) |
 
 ### Security Rules (to be configured in Firebase Console)
 ```javascript

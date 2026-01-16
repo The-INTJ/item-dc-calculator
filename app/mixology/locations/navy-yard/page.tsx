@@ -13,10 +13,10 @@ export default function NavyYardPage() {
       <section className="mixology-panels">
         <div className="mixology-card">
           <h2>Round schedule</h2>
-          <p>Judging rounds and timing will be posted here once confirmed.</p>
+          <p>Voting rounds and timing will be posted here once confirmed.</p>
         </div>
         <div className="mixology-card">
-          <h2>Judge resources</h2>
+          <h2>Voter resources</h2>
           <p>Venue-specific scoring guidance and resources will be listed here.</p>
         </div>
       </section>

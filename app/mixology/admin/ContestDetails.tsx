@@ -19,11 +19,18 @@ function DrinkItem({ drink }: { drink: Drink }) {
   );
 }
 
-function JudgeItem({ judge }: { judge: Judge }) {
+function getRoleLabel(role: Judge['role']) {
+  if (role === 'judge') return 'voter';
+  return role;
+}
+
+function VoterItem({ judge }: { judge: Judge }) {
   return (
     <li className="admin-detail-item">
       <strong>{judge.displayName}</strong>
-      <span className={`admin-role-badge admin-role-badge--${judge.role}`}>{judge.role}</span>
+      <span className={`admin-role-badge admin-role-badge--${judge.role}`}>
+        {getRoleLabel(judge.role)}
+      </span>
     </li>
   );
 }
@@ -76,13 +83,13 @@ export function ContestDetails({ contest }: ContestDetailsProps) {
       </section>
 
       <section className="admin-details-section">
-        <h3>Judges ({contest.judges.length})</h3>
+        <h3>Voters ({contest.judges.length})</h3>
         {contest.judges.length === 0 ? (
-          <p className="admin-empty">No judges assigned yet.</p>
+          <p className="admin-empty">No voters assigned yet.</p>
         ) : (
           <ul className="admin-detail-list">
             {contest.judges.map((judge) => (
-              <JudgeItem key={judge.id} judge={judge} />
+              <VoterItem key={judge.id} judge={judge} />
             ))}
           </ul>
         )}

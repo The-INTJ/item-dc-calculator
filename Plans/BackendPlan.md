@@ -7,6 +7,7 @@ This document outlines the backend architecture plan for the Mixology Rating App
 - Support QR/URL invite flows that auto-create a guest session.
 - Provide guest account creation with cookie + local session persistence and collision‑safe identifiers.
 - Enable Google authentication alongside email/password.
+- Enable anonymous Firebase authentication for guest flows.
 - Provide admin authentication and role-based access for contest/drink management.
 - Allow admins to vote like anyone else (all users are judges).
 - Allow a judge to mark themselves as the mixer of a drink (no voting allowed; auto‑assign full score).
@@ -34,11 +35,11 @@ This document outlines the backend architecture plan for the Mixology Rating App
 
 ### 1) Auth & session strategy
 **Client auth:**
-- Firebase Auth for email/password and Google OAuth.
+- Firebase Auth for email/password, Google OAuth, and anonymous sign-in.
 - Auth state stored in local session and synchronized when connected.
 
 **Guest session:**
-- Create a guest session when a URL includes the onboarding query or when the user chooses “Continue as Guest.”
+- Use anonymous Firebase sign-in when a URL includes the onboarding query or when the user chooses “Continue as Guest.”
 - Store guest identity in cookies for routing continuity and in localStorage for session state.
 - Guests can rate but are treated as “temporary users” in Firestore.
 
