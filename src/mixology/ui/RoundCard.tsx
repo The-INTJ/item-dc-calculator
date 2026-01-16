@@ -1,3 +1,4 @@
+import React from 'react';
 import type { RoundSummary } from '../data/uiTypes';
 
 type RoundCardVariant = 'compact' | 'detailed';

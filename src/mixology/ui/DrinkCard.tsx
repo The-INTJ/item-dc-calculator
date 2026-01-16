@@ -1,3 +1,4 @@
+import React from 'react';
 import type { DrinkSummary } from '../data/uiTypes';
 import type { ReactNode } from 'react';
 

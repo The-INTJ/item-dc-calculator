@@ -2,12 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/src/mixology/auth';
 
 type NavItem = {
   key: string;
   label: string;
   href: string;
   variant?: 'secondary';
+  requiresAdmin?: boolean;
 };
 
 const navItems: NavItem[] = [
@@ -37,6 +39,7 @@ const navItems: NavItem[] = [
     label: 'Admin',
     href: '/mixology/admin',
     variant: 'secondary',
+    requiresAdmin: true,
   },
 ];
 
@@ -50,10 +53,15 @@ function isActiveLink(pathname: string, href: string) {
 
 export function NavBar() {
   const pathname = usePathname();
+  const { role, loading } = useAuth();
+  const isAdmin = role === 'admin';
 
   return (
     <nav className="site-nav">
       {navItems.map((item) => {
+        if (item.requiresAdmin && (loading || !isAdmin)) {
+          return null;
+        }
         const isActive = isActiveLink(pathname, item.href);
         const className = [
           'site-nav__link',

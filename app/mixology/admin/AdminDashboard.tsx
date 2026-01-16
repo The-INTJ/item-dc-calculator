@@ -6,14 +6,43 @@
  */
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { useAuth } from '@/src/mixology/auth';
 import { useContests } from '@/src/mixology/hooks';
 import type { Contest } from '@/src/mixology/backend';
 import { ContestCard } from './ContestCard';
 import { ContestDetails } from './ContestDetails';
 
 export function AdminDashboard() {
+  const { role, loading: authLoading, isAuthenticated } = useAuth();
   const { data: contests, loading, error, refresh } = useContests();
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
+
+  if (authLoading) {
+    return <div className="admin-loading">Checking admin access...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="admin-error">
+        <p>Sign in to access the admin dashboard.</p>
+        <Link href="/mixology/onboard" className="button-secondary">
+          Log in
+        </Link>
+      </div>
+    );
+  }
+
+  if (role !== 'admin') {
+    return (
+      <div className="admin-error">
+        <p>Admin access required.</p>
+        <Link href="/mixology" className="button-secondary">
+          Return to Mixology
+        </Link>
+      </div>
+    );
+  }
 
   if (loading) {
     return <div className="admin-loading">Loading contests...</div>;

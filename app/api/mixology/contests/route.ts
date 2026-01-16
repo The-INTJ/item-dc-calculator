@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getBackendProvider } from '@/src/mixology/backend';
+import { requireAdmin } from '../_lib/requireAdmin';
 
 export async function GET(request: Request) {
+  const adminError = requireAdmin(request);
+  if (adminError) {
+    return adminError;
+  }
   const provider = await getBackendProvider();
   const url = new URL(request.url);
   const slug = url.searchParams.get('slug');
@@ -26,6 +31,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const adminError = requireAdmin(request);
+  if (adminError) {
+    return adminError;
+  }
   const provider = await getBackendProvider();
 
   try {

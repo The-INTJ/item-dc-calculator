@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getBackendProvider } from '@/src/mixology/backend';
+import { requireAdmin } from '../../_lib/requireAdmin';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-export async function GET(_request: Request, { params }: RouteParams) {
+export async function GET(request: Request, { params }: RouteParams) {
+  const adminError = requireAdmin(request);
+  if (adminError) {
+    return adminError;
+  }
   const { id } = await params;
   const provider = await getBackendProvider();
 
@@ -24,6 +29,10 @@ export async function GET(_request: Request, { params }: RouteParams) {
 }
 
 export async function PATCH(request: Request, { params }: RouteParams) {
+  const adminError = requireAdmin(request);
+  if (adminError) {
+    return adminError;
+  }
   const { id } = await params;
   const provider = await getBackendProvider();
 
@@ -41,7 +50,11 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   }
 }
 
-export async function DELETE(_request: Request, { params }: RouteParams) {
+export async function DELETE(request: Request, { params }: RouteParams) {
+  const adminError = requireAdmin(request);
+  if (adminError) {
+    return adminError;
+  }
   const { id } = await params;
   const provider = await getBackendProvider();
 

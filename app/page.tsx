@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { AuthPrimaryAction } from './components/AuthPrimaryAction';
+import { AdminOnlyLink } from './components/AdminOnlyLink';
 
 export default function HomePage() {
   return (
@@ -18,9 +18,9 @@ export default function HomePage() {
             signedOutHref="/mixology/onboard"
             className="button-primary"
           />
-          <Link href="/mixology/admin" className="button-secondary">
+          <AdminOnlyLink href="/mixology/admin" className="button-secondary">
             Admin dashboard
-          </Link>
+          </AdminOnlyLink>
         </div>
       </section>
 

@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getBackendProvider } from '@/src/mixology/backend';
+import { requireAdmin } from '../../../_lib/requireAdmin';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-export async function GET(_request: Request, { params }: RouteParams) {
+export async function GET(request: Request, { params }: RouteParams) {
+  const adminError = requireAdmin(request);
+  if (adminError) {
+    return adminError;
+  }
   const { id: contestId } = await params;
   const provider = await getBackendProvider();
 
@@ -18,6 +23,10 @@ export async function GET(_request: Request, { params }: RouteParams) {
 }
 
 export async function POST(request: Request, { params }: RouteParams) {
+  const adminError = requireAdmin(request);
+  if (adminError) {
+    return adminError;
+  }
   const { id: contestId } = await params;
   const provider = await getBackendProvider();
 

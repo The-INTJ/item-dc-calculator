@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { AuthPrimaryAction } from '../components/AuthPrimaryAction';
+import { AdminOnlyLink } from '../components/AdminOnlyLink';
 
 export const metadata = {
   title: 'Mixology Rating App',
@@ -21,9 +21,9 @@ export default function MixologyPage() {
             signedOutHref="/mixology/onboard"
             className="button-primary"
           />
-          <Link href="/mixology/admin" className="button-secondary">
+          <AdminOnlyLink href="/mixology/admin" className="button-secondary">
             Admin dashboard
-          </Link>
+          </AdminOnlyLink>
         </div>
       </section>
 
