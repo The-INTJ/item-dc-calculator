@@ -3,6 +3,9 @@
 ## Scope and intent
 This document outlines the Sass architecture plan and migration roadmap. It focuses on tokens, mixins, module styling conventions, and a theme boundary between legacy calculator and mixology. No code changes are proposed here.
 
+## Progress tracker
+See [Style Progress](StyleProgress.md) for current styling task status and decisions.
+
 ## Goals
 - Establish a robust, modern Sass token system (colors, spacing, typography, radii, shadows, motion, z-index, etc.).
 - Keep module class names clear and human‑readable without BEM conventions.

@@ -3,6 +3,9 @@
 ## Overview
 This master plan sequences the existing plans into a cohesive delivery path while highlighting areas that require further research. It prioritizes core user access, basic data flow, and navigation before deeper styling, admin tooling, and bracket mechanics. The goal is to unlock parallel work once foundational flows (auth, guest sessions, routing) are stable.
 
+## Progress tracker
+See [Mixology Rating App Progress](Mixology%20Rating%20App%20Progress.md) for the master progress checklist and current decisions.
+
 ## Needs exploration (research spikes)
 - **Bracket experience & data model**: Evaluate bracket libraries, how they map to our planned `Round`/`Matchup` model, and whether the admin workflow needs bespoke UI components or can lean on an existing library. (See UX Plan.)
 - **Guest identity persistence & privacy**: Confirm cookie retention, device fingerprinting strategy, and any compliance constraints before we store guest IDs and invite context at scale. (See Backend Plan.)

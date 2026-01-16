@@ -10,6 +10,9 @@ This document outlines the component architecture and user experience plan for t
 - The legacy app should be hidden from casual discovery; only direct URL access (`/legacy`) should reach it.
 - Mixology is the primary, default experience.
 
+## Progress tracker
+See [UX Progress](UXProgress.md) for the current status of UX-related tasks and decisions.
+
 ## Goals
 - Establish clear entry points and navigation for mixology users.
 - Hide the legacy D&D app from the default experience.
@@ -75,6 +78,9 @@ Once authenticated, the landing page shows role-based widgets:
 
 ## Navbar design
 
+### Status note
+The current NavBar is still generic and needs to be minimized per this plan; track the work in [UX Progress](UXProgress.md).
+
 ### Mixology navbar
 - **Left**: Empty or minimal branding.
 - **Center**: Contest/app title.
@@ -96,6 +102,13 @@ Once authenticated, the landing page shows role-based widgets:
 - Support multiple rounds (e.g., Round 1, Semifinals, Finals).
 - Show matchups and winners.
 - Admin can advance drinks between rounds.
+
+### Bracket library decision (TBD)
+Evaluation criteria:
+- Rendering quality and layout flexibility
+- Customization/theming affordances
+- Accessibility support
+- SSR compatibility with Next.js
 
 ### Library options (to evaluate)
 - `react-brackets` — simple bracket rendering.

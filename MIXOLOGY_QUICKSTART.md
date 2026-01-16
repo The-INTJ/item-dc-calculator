@@ -81,6 +81,18 @@ src/mixology/
 
 ---
 
+## Guest session cookies
+
+Guest onboarding uses a few cookies to keep continuity between visits:
+
+| Cookie | Purpose |
+|--------|---------|
+| `mixology_guest_id` | Stores the active guest identifier for the current session. |
+| `mixology_guest_index` | Tracks multiple guest IDs on the same device for quick switching. |
+| `mixology_invite_context` | Persists invite metadata (contest slug, invite id, source). |
+
+---
+
 ## Key Types
 
 ### LocalSession (what's in localStorage)

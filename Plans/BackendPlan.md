@@ -3,6 +3,9 @@
 ## Scope and intent
 This document outlines the backend architecture plan for the Mixology Rating App. It focuses on auth, user/session flows, data modeling, Firestore structure, and how we will evolve the current provider abstraction to support production workflows. No code changes are proposed here.
 
+## Progress tracker
+See [Backend Progress](BackendProgress.md) for the current backend task status.
+
 ## Goals
 - Support QR/URL invite flows that auto-create a guest session.
 - Provide guest account creation with cookie + local session persistence and collision‑safe identifiers.

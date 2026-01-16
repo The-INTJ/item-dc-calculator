@@ -44,6 +44,7 @@ The legacy calculator lives inside the Next.js app to keep it accessible while t
 **Behavioral notes**
 - The calculator runs fully on the client to keep `localStorage` access straightforward.
 - Global SCSS is still imported via `app/globals.scss` rather than CSS Modules, so styles apply app-wide.
+- The legacy calculator is intentionally hidden from the default experience and is reachable only via direct URL access at `/legacy`.
 
 **Why this matters**
 - This codebase is stable and not the active focus, but it still ships. Any shared layout or global style changes can affect it.
@@ -71,6 +72,7 @@ This is the app we are actively building: judges rate drinks during contests, wi
 
 **Progress & roadmap**
 - See `Mixology Rating App Progress.md` for the current plan and decisions.
+- See `Plans/Quick-Wins.md` for small, mixology-focused tasks that are safe to tackle.
 - See `MIXOLOGY_QUICKSTART.md` for detailed Firebase setup/testing notes and file map.
 
 ### Adding new pages
