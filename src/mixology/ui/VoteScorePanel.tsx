@@ -1,13 +1,13 @@
-import type { DrinkSummary, VoteTotals } from '../data/uiTypes';
+import { Slider } from '@mui/material';
+import type { DrinkSummary, VoteCategory, VoteTotals } from '../data/uiTypes';
 import { DrinkCard } from './DrinkCard';
 
 interface VoteScorePanelProps {
   drinks: DrinkSummary[];
+  categories: VoteCategory[];
   totals: VoteTotals[];
-  activeCategoryId: string | null;
-  activeCategoryLabel?: string;
-  scoreByDrinkId?: Record<string, number>;
-  onScoreChange?: (drinkId: string, value: number) => void;
+  scoreByDrinkId?: Record<string, Record<string, number>>;
+  onScoreChange?: (drinkId: string, categoryId: string, value: number) => void;
   showCreator?: boolean;
   className?: string;
   emptyLabel?: string;
@@ -15,16 +15,15 @@ interface VoteScorePanelProps {
 
 export function VoteScorePanel({
   drinks,
+  categories,
   totals,
-  activeCategoryId,
-  activeCategoryLabel,
   scoreByDrinkId,
   onScoreChange,
   showCreator = true,
   className,
   emptyLabel = 'No drinks submitted yet.',
 }: VoteScorePanelProps) {
-  if (!activeCategoryId) {
+  if (categories.length === 0) {
     return <div className="mixology-empty">No categories yet.</div>;
   }
 
@@ -32,43 +31,59 @@ export function VoteScorePanel({
     return <div className="mixology-empty">{emptyLabel}</div>;
   }
 
-  const totalMap = new Map(
-    totals
-      .filter((total) => total.categoryId === activeCategoryId)
-      .map((total) => [total.drinkId, total.total])
-  );
-
-  const label = activeCategoryLabel ?? 'Total';
-
   return (
     <div className={`mixology-vote-scores ${className ?? ''}`.trim()}>
-      {drinks.map((drink) => (
-        <DrinkCard
-          key={drink.id}
-          drink={drink}
-          variant="vote"
-          showCreator={showCreator}
-          totals={[{ label, value: totalMap.get(drink.id) ?? 0 }]}
-        >
-          {onScoreChange && (
-            <div className="mixology-vote-input">
-              <label className="mixology-vote-input__label" htmlFor={`score-${drink.id}`}>
-                {activeCategoryLabel ?? 'Score'}
-              </label>
-              <input
-                id={`score-${drink.id}`}
-                className="mixology-vote-input__field"
-                type="number"
-                min={0}
-                max={10}
-                step={1}
-                value={scoreByDrinkId?.[drink.id] ?? ''}
-                onChange={(event) => onScoreChange(drink.id, Number(event.target.value))}
-              />
-            </div>
-          )}
-        </DrinkCard>
-      ))}
+      {drinks.map((drink) => {
+        const drinkTotals = categories.map((category) => {
+          const total = totals.find(
+            (entry) => entry.drinkId === drink.id && entry.categoryId === category.id
+          )?.total;
+          return {
+            label: category.label,
+            value: total ?? 0,
+          };
+        });
+        return (
+          <DrinkCard
+            key={drink.id}
+            drink={drink}
+            variant="vote"
+            showCreator={showCreator}
+            totals={drinkTotals}
+          >
+            {onScoreChange && (
+              <div className="mixology-vote-inputs">
+                {categories.map((category) => {
+                  const value = scoreByDrinkId?.[drink.id]?.[category.id] ?? 5;
+                  return (
+                    <div key={category.id} className="mixology-vote-slider">
+                      <div className="mixology-vote-slider__label-row">
+                        <label className="mixology-vote-slider__label" htmlFor={`score-${drink.id}-${category.id}`}>
+                          {category.label}
+                        </label>
+                        <span className="mixology-vote-slider__value">{value}</span>
+                      </div>
+                      <Slider
+                        id={`score-${drink.id}-${category.id}`}
+                        className="mixology-vote-slider__field"
+                        min={1}
+                        max={10}
+                        step={1}
+                        value={value}
+                        valueLabelDisplay="auto"
+                        onChange={(_, nextValue) => {
+                          const normalized = Array.isArray(nextValue) ? nextValue[0] : nextValue;
+                          onScoreChange(drink.id, category.id, normalized);
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </DrinkCard>
+        );
+      })}
     </div>
   );
 }
