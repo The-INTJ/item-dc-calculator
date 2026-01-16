@@ -25,21 +25,21 @@ This document lists small, low-risk tasks that an AI agent can implement with a 
 ## Ready-to-run quick wins
 
 ### Docs + plan hygiene
-- [ ] Add cross-links between plan and progress docs so each plan references its progress tracker.
+- [x] Add cross-links between plan and progress docs so each plan references its progress tracker.
   - Files: Plans/MasterPlan.md, Plans/UXPlan.md, Plans/BackendPlan.md, Plans/StylePlan.md
   - Acceptance: Each plan has a short “Progress tracker” section linking to the matching progress file.
-- [ ] Add Quick-Wins.md link to README “Progress & roadmap” section.
+- [x] Add Quick-Wins.md link to README “Progress & roadmap” section.
   - Files: README.md
   - Acceptance: README includes a link to this doc near other roadmap links.
-- [ ] Clarify legacy isolation in README (explicitly state legacy is direct URL only).
+- [x] Clarify legacy isolation in README (explicitly state legacy is direct URL only).
   - Files: README.md
   - Acceptance: README describes `/legacy` as direct URL access only.
 
 ### UX plan follow-through (docs-only)
-- [ ] Add a short “navbar status” note to UXPlan.md so it’s clear that the current navbar is generic and still needs to be minimized.
+- [x] Add a short “navbar status” note to UXPlan.md so it’s clear that the current navbar is generic and still needs to be minimized.
   - Files: Plans/UXPlan.md
   - Acceptance: UXPlan mentions current NavBar is not yet minimal and links to UXProgress.
-- [ ] Document the bracket library decision as “TBD” with evaluation criteria.
+- [x] Document the bracket library decision as “TBD” with evaluation criteria.
   - Files: Plans/UXPlan.md
   - Acceptance: A short criteria list (rendering, customization, accessibility, SSR) is added.
 
@@ -60,7 +60,7 @@ This document lists small, low-risk tasks that an AI agent can implement with a 
   - Acceptance: Page shows “Loading current round…” while data is pending.
 
 ### Auth + session docs
-- [ ] Add a “Guest session cookies” section to MIXOLOGY_QUICKSTART.md (describe cookie names and purpose).
+- [x] Add a “Guest session cookies” section to MIXOLOGY_QUICKSTART.md (describe cookie names and purpose).
   - Files: MIXOLOGY_QUICKSTART.md
   - Acceptance: Section lists `mixology_guest_id`, `mixology_guest_index`, and `mixology_invite_context`.
 
