@@ -17,8 +17,13 @@ export default function HomePage() {
             signedOutLabel="Sign in or create an account"
             signedOutHref="/mixology/onboard"
             className="button-primary"
+            dataTestId="mixology-auth-primary-action"
           />
-          <AdminOnlyLink href="/mixology/admin" className="button-secondary">
+          <AdminOnlyLink
+            href="/mixology/admin"
+            className="button-secondary"
+            dataTestId="mixology-admin-link"
+          >
             Admin dashboard
           </AdminOnlyLink>
         </div>

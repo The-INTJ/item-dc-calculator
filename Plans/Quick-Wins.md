@@ -44,10 +44,10 @@ This document lists small, low-risk tasks that an AI agent can implement with a 
   - Acceptance: A short criteria list (rendering, customization, accessibility, SSR) is added.
 
 ### Mixology-only UI refactors (safe, no behavior change)
-- [ ] Extract `navItems` definition from the NavBar file into a small data module to keep the component under 80 LOC.
+- [x] Extract `navItems` definition from the NavBar file into a small data module to keep the component under 80 LOC.
   - Files: app/components/NavBar.tsx, app/components/navItems.ts
   - Acceptance: No visual changes; `NavBar` remains functionally identical.
-- [ ] Add lightweight `data-testid` attributes to Mixology landing CTAs for testing stability.
+- [x] Add lightweight `data-testid` attributes to Mixology landing CTAs for testing stability.
   - Files: app/page.tsx
   - Acceptance: No visual changes; elements include `data-testid` for `AuthPrimaryAction` and admin link.
 
