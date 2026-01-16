@@ -1,0 +1,55 @@
+.mixology-vote-layout {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.mixology-vote-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.mixology-vote-tabs__button {
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.4rem 0.95rem;
+  transition: transform 0.15s ease, opacity 0.2s ease;
+}
+
+.mixology-vote-tabs__button--active {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.mixology-vote-scores {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.mixology-vote-input {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.mixology-vote-input__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.mixology-vote-input__field {
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 10px;
+  color: inherit;
+  padding: 0.4rem 0.6rem;
+}
+
+.mixology-empty {
+  opacity: 0.7;
+}

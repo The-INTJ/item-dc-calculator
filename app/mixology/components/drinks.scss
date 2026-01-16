@@ -34,3 +34,9 @@
   justify-content: space-between;
   font-size: 0.85rem;
 }
+
+.mixology-drink-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}

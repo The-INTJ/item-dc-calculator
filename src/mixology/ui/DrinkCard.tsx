@@ -1,4 +1,5 @@
 import type { DrinkSummary } from '../data/uiTypes';
+import type { ReactNode } from 'react';
 
 type DrinkCardVariant = 'compact' | 'vote';
 
@@ -13,6 +14,7 @@ interface DrinkCardProps {
   showCreator?: boolean;
   totals?: DrinkTotal[];
   className?: string;
+  children?: ReactNode;
 }
 
 export function DrinkCard({
@@ -21,6 +23,7 @@ export function DrinkCard({
   showCreator = true,
   totals = [],
   className,
+  children,
 }: DrinkCardProps) {
   const name = drink.name ?? 'Unnamed Drink';
 
@@ -41,6 +44,8 @@ export function DrinkCard({
           ))}
         </ul>
       )}
+
+      {children}
     </div>
   );
 }

@@ -1,0 +1,46 @@
+import type { ScoreEntry, ScoreBreakdown } from '../types';
+import type { VoteCategory, VoteTotals } from '../data/uiTypes';
+
+const breakdownOrder: Array<keyof ScoreBreakdown> = [
+  'aroma',
+  'balance',
+  'presentation',
+  'creativity',
+  'overall',
+];
+
+function formatLabel(value: string): string {
+  if (!value) return '';
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+export function buildDefaultVoteCategories(): VoteCategory[] {
+  return breakdownOrder.map((key, index) => ({
+    id: key,
+    label: formatLabel(key),
+    sortOrder: index,
+  }));
+}
+
+export function buildTotalsFromScores(scores: ScoreEntry[], categories: VoteCategory[]): VoteTotals[] {
+  const totalsMap = new Map<string, number>();
+
+  scores.forEach((score) => {
+    categories.forEach((category) => {
+      const value = (score.breakdown as Record<string, number>)[category.id];
+      if (typeof value !== 'number') return;
+      const key = `${score.drinkId}:${category.id}`;
+      totalsMap.set(key, (totalsMap.get(key) ?? 0) + value);
+    });
+  });
+
+  return Array.from(totalsMap.entries()).map(([key, total]) => {
+    const [drinkId, categoryId] = key.split(':');
+    return {
+      drinkId,
+      categoryId,
+      total,
+      userHasVoted: false,
+    };
+  });
+}

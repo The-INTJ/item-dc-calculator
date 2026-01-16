@@ -137,9 +137,9 @@ These functions should map to Firebase/Firestore or server routes behind a provi
 1. ✅ Define UI types and data mapping layer in a mixology data module.
 2. 🟡 Create `MixologyDataProvider` with cached fetch + refresh APIs (focus + interval refresh + stale-while-revalidate cache in place).
 3. 🟡 Build `RoundCard` + `DrinkCard` presentational components (implemented + assumption tests).
-4. Build vote UI (category tabs + score panel) with mock data.
-5. Wire pages to context data (bracket, vote, admin).
-6. Integrate real backend functions behind provider interface.
+4. ✅ Build vote UI (category tabs + score panel) with mock data.
+5. ✅ Wire pages to context data (bracket, vote, admin).
+6. 🟡 Integrate real backend functions behind provider interface.
 
 ### Current status notes
 - UI-facing types and mapping helpers are implemented.
@@ -147,9 +147,18 @@ These functions should map to Firebase/Firestore or server routes behind a provi
 - Refresh strategy includes focus + interval revalidation and `refreshRound()` (currently delegates to full refresh).
 - Stale-while-revalidate cache is implemented for current contest snapshot (tests added).
 - Mixology layout is now wrapped in `MixologyDataProvider`.
-- Next: add round-specific refresh/cache if needed and start building `RoundCard`/`DrinkCard` components.
 - `RoundCard` and `DrinkCard` are implemented with assumption tests.
-- Next: start wiring components into bracket/vote/admin pages and add vote UI pieces.
+- Vote UI components (`VoteCategoryTabs`, `VoteScorePanel`) are implemented with mock categories/totals.
+- Bracket and vote pages now render live data via `useMixologyData()`.
+- Admin contest details now include a round snapshot (`RoundCard`) and drink list uses `DrinkCard`.
+- New vote styles are added and imported globally.
+
+### Remaining work / next steps
+- Decide whether round-specific cache/refresh is needed beyond contest snapshot.
+- Replace mock vote categories/totals with real category + totals endpoints when available.
+- Add vote input controls + submission flow for category scores.
+- Add admin category management (add/remove categories) and hook into backend provider.
+- Add/extend server↔UI tests for vote/category endpoints once implemented.
 
 ## 11. Notes / alignment
 - This aligns with the UX Plan’s provider architecture and component inventory.

@@ -5,16 +5,21 @@
  */
 
 import type { Contest, Drink, Judge, ScoreEntry } from '@/src/mixology/backend';
+import { buildDrinkSummary } from '@/src/mixology/data/uiTypes';
+import { DrinkCard } from '@/src/mixology/ui';
+import { AdminRoundOverview } from './AdminRoundOverview';
 
 interface ContestDetailsProps {
   contest: Contest;
 }
 
 function DrinkItem({ drink }: { drink: Drink }) {
+  const summary = buildDrinkSummary(drink);
+
   return (
     <li className="admin-detail-item">
-      <strong>{drink.name}</strong>
-      <span className="admin-detail-meta">by {drink.submittedBy} • {drink.round}</span>
+      <DrinkCard drink={summary} variant="compact" showCreator />
+      <span className="admin-detail-meta">Round: {drink.round}</span>
     </li>
   );
 }
@@ -68,6 +73,8 @@ export function ContestDetails({ contest }: ContestDetailsProps) {
           {contest.location ?? 'No location'} • {contest.bracketRound ?? 'No round'}
         </p>
       </header>
+
+      <AdminRoundOverview contest={contest} />
 
       <section className="admin-details-section">
         <h3>Drinks ({contest.drinks.length})</h3>
