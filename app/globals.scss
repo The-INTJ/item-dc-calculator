@@ -7,6 +7,8 @@
 @import '../src/Header/header.scss';
 @import './mixology/admin/admin.scss';
 @import './mixology/components/auth.scss';
+@import './mixology/components/rounds.scss';
+@import './mixology/components/drinks.scss';
 @import './mixology/account/account.scss';
 
 .site-header {
@@ -74,7 +76,6 @@
   border: 1px solid rgba(148, 163, 184, 0.35);
   border-radius: 12px;
   padding: 0.5rem 0.75rem;
-  width: 100%;
 }
 
 .auth-banner__content {

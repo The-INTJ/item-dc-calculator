@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { Contest, Drink, Judge, ScoreEntry, ProviderResult } from '../backend';
+import { extractCurrentContest } from '../data/api';
 
 /**
  * Generic async state shape
@@ -99,7 +100,7 @@ export function useCurrentContest() {
     try {
       const res = await fetch('/api/mixology/contests');
       const json = await res.json();
-      setState({ data: json.currentContest ?? null, loading: false, error: null });
+      setState({ data: extractCurrentContest(json), loading: false, error: null });
     } catch (err) {
       setState({ data: null, loading: false, error: String(err) });
     }

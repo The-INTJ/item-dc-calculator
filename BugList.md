@@ -1,0 +1,2 @@
+ - Account page has a logout button, but all account details remain on the page after it is pressed.
+ - 

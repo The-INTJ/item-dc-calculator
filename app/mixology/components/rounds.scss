@@ -1,0 +1,56 @@
+.mixology-round-card {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  text-align: left;
+  width: 100%;
+}
+
+.mixology-round-card__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0.75rem;
+}
+
+.mixology-round-card__eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.mixology-round-card__title {
+  font-size: 1.1rem;
+  margin: 0.15rem 0 0;
+}
+
+.mixology-round-card__status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.mixology-round-card__meta {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.mixology-round-card__contestants {
+  display: grid;
+  gap: 0.3rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mixology-round-card__empty {
+  opacity: 0.7;
+}
+
+.mixology-round-card--compact .mixology-round-card__meta {
+  display: none;
+}
