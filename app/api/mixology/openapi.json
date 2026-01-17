@@ -1,0 +1,1091 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Mixology API",
+    "version": "1.0.0",
+    "description": "API for managing mixology contests, drinks, judges, and scoring"
+  },
+  "servers": [
+    {
+      "url": "/api/mixology",
+      "description": "Mixology API"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "AdminRole": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-mixology-role",
+        "description": "Set to 'admin' for admin-only endpoints"
+      }
+    },
+    "schemas": {
+      "ContestPhase": {
+        "type": "string",
+        "enum": ["setup", "active", "judging", "closed"],
+        "example": "active"
+      },
+      "JudgeRole": {
+        "type": "string",
+        "enum": ["admin", "judge", "viewer"],
+        "example": "judge"
+      },
+      "ScoreBreakdown": {
+        "type": "object",
+        "properties": {
+          "aroma": { "type": "number", "example": 8 },
+          "balance": { "type": "number", "example": 7 },
+          "presentation": { "type": "number", "example": 9 },
+          "creativity": { "type": "number", "example": 8 },
+          "overall": { "type": "number", "example": 8 }
+        },
+        "required": ["aroma", "balance", "presentation", "creativity", "overall"]
+      },
+      "ScoreLock": {
+        "type": "object",
+        "properties": {
+          "locked": { "type": "boolean", "example": false },
+          "expiresAt": { "type": "number", "example": 1704067200000 },
+          "token": { "type": "string", "example": "abc123" },
+          "updatedAt": { "type": "number", "example": 1704063600000 }
+        }
+      },
+      "VoteCategory": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "aroma" },
+          "label": { "type": "string", "example": "Aroma" },
+          "description": { "type": "string", "example": "How appealing is the scent?" },
+          "sortOrder": { "type": "number", "example": 0 }
+        },
+        "required": ["id", "label", "sortOrder"]
+      },
+      "Judge": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "judge-1" },
+          "displayName": { "type": "string", "example": "Jane Smith" },
+          "role": { "$ref": "#/components/schemas/JudgeRole" },
+          "contact": { "type": "string", "example": "jane@example.com" }
+        },
+        "required": ["id", "displayName", "role"]
+      },
+      "Drink": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "drink-1" },
+          "name": { "type": "string", "example": "Summer Sunset" },
+          "slug": { "type": "string", "example": "summer-sunset" },
+          "description": { "type": "string", "example": "A refreshing citrus cocktail with a hint of lavender" },
+          "round": { "type": "string", "example": "finals" },
+          "submittedBy": { "type": "string", "example": "John Doe" },
+          "scoreByUser": {
+            "type": "object",
+            "additionalProperties": { "$ref": "#/components/schemas/ScoreBreakdown" }
+          },
+          "scoreTotals": { "$ref": "#/components/schemas/ScoreBreakdown" },
+          "scoreLock": { "$ref": "#/components/schemas/ScoreLock" }
+        },
+        "required": ["id", "name", "slug", "description", "round", "submittedBy"]
+      },
+      "ScoreEntry": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "score-1" },
+          "drinkId": { "type": "string", "example": "drink-1" },
+          "judgeId": { "type": "string", "example": "judge-1" },
+          "breakdown": { "$ref": "#/components/schemas/ScoreBreakdown" },
+          "notes": { "type": "string", "example": "Excellent balance of flavors" }
+        },
+        "required": ["id", "drinkId", "judgeId", "breakdown"]
+      },
+      "Contest": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "contest-1" },
+          "name": { "type": "string", "example": "Summer Mixoff 2024" },
+          "slug": { "type": "string", "example": "summer-mixoff-2024" },
+          "phase": { "$ref": "#/components/schemas/ContestPhase" },
+          "location": { "type": "string", "example": "Downtown Bar" },
+          "startTime": { "type": "string", "example": "2024-07-15T18:00:00Z" },
+          "bracketRound": { "type": "string", "example": "finals" },
+          "currentDrinkId": { "type": "string", "example": "drink-1" },
+          "defaultContest": { "type": "boolean", "example": true },
+          "categories": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/VoteCategory" }
+          },
+          "drinks": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Drink" }
+          },
+          "judges": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Judge" }
+          },
+          "scores": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ScoreEntry" }
+          }
+        },
+        "required": ["id", "name", "slug", "phase", "drinks", "judges", "scores"]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "Contest not found" }
+        },
+        "required": ["message"]
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/current": {
+      "get": {
+        "summary": "Get default contest",
+        "description": "Returns the current/default contest for public display",
+        "tags": ["Contests"],
+        "responses": {
+          "200": {
+            "description": "Current contest or null",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "currentContest": {
+                      "oneOf": [
+                        { "$ref": "#/components/schemas/Contest" },
+                        { "type": "null" }
+                      ]
+                    }
+                  }
+                },
+                "example": {
+                  "currentContest": {
+                    "id": "contest-1",
+                    "name": "Summer Mixoff 2024",
+                    "slug": "summer-mixoff-2024",
+                    "phase": "active",
+                    "drinks": [],
+                    "judges": [],
+                    "scores": []
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contests": {
+      "get": {
+        "summary": "List all contests",
+        "description": "Returns all contests and the current default contest. Optionally filter by slug.",
+        "tags": ["Contests"],
+        "security": [{ "AdminRole": [] }],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "query",
+            "description": "Filter by contest slug",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of contests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "contests": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Contest" }
+                    },
+                    "currentContest": {
+                      "oneOf": [
+                        { "$ref": "#/components/schemas/Contest" },
+                        { "type": "null" }
+                      ]
+                    }
+                  }
+                },
+                "example": {
+                  "contests": [
+                    {
+                      "id": "contest-1",
+                      "name": "Summer Mixoff 2024",
+                      "slug": "summer-mixoff-2024",
+                      "phase": "active",
+                      "drinks": [],
+                      "judges": [],
+                      "scores": []
+                    }
+                  ],
+                  "currentContest": null
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "message": "Admin access required" }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest not found (when filtering by slug)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a contest",
+        "description": "Creates a new contest",
+        "tags": ["Contests"],
+        "security": [{ "AdminRole": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "slug": { "type": "string" },
+                  "phase": { "$ref": "#/components/schemas/ContestPhase" },
+                  "location": { "type": "string" },
+                  "startTime": { "type": "string" },
+                  "defaultContest": { "type": "boolean" }
+                },
+                "required": ["name", "slug"]
+              },
+              "example": {
+                "name": "Winter Warmers 2024",
+                "slug": "winter-warmers-2024",
+                "phase": "setup",
+                "location": "Cozy Lounge"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Contest created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Contest" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contests/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Contest ID or slug",
+          "schema": { "type": "string" }
+        }
+      ],
+      "get": {
+        "summary": "Get a contest",
+        "description": "Returns a single contest by ID or slug",
+        "tags": ["Contests"],
+        "security": [{ "AdminRole": [] }],
+        "responses": {
+          "200": {
+            "description": "Contest details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Contest" }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update a contest",
+        "description": "Updates an existing contest",
+        "tags": ["Contests"],
+        "security": [{ "AdminRole": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "slug": { "type": "string" },
+                  "phase": { "$ref": "#/components/schemas/ContestPhase" },
+                  "location": { "type": "string" },
+                  "startTime": { "type": "string" },
+                  "currentDrinkId": { "type": "string" },
+                  "defaultContest": { "type": "boolean" }
+                }
+              },
+              "example": {
+                "phase": "judging",
+                "currentDrinkId": "drink-2"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contest updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Contest" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a contest",
+        "description": "Deletes a contest by ID",
+        "tags": ["Contests"],
+        "security": [{ "AdminRole": [] }],
+        "responses": {
+          "200": {
+            "description": "Contest deleted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contests/{id}/drinks": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Contest ID",
+          "schema": { "type": "string" }
+        }
+      ],
+      "get": {
+        "summary": "List drinks in a contest",
+        "description": "Returns all drinks for a contest",
+        "tags": ["Drinks"],
+        "security": [{ "AdminRole": [] }],
+        "responses": {
+          "200": {
+            "description": "List of drinks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Drink" }
+                },
+                "example": [
+                  {
+                    "id": "drink-1",
+                    "name": "Summer Sunset",
+                    "slug": "summer-sunset",
+                    "description": "A refreshing citrus cocktail",
+                    "round": "finals",
+                    "submittedBy": "John Doe"
+                  }
+                ]
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Add a drink to a contest",
+        "description": "Creates a new drink in the contest",
+        "tags": ["Drinks"],
+        "security": [{ "AdminRole": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "slug": { "type": "string" },
+                  "description": { "type": "string" },
+                  "round": { "type": "string" },
+                  "submittedBy": { "type": "string" }
+                },
+                "required": ["name", "slug", "description", "round", "submittedBy"]
+              },
+              "example": {
+                "name": "Midnight Mojito",
+                "slug": "midnight-mojito",
+                "description": "A dark twist on the classic mojito",
+                "round": "semifinals",
+                "submittedBy": "Jane Smith"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Drink created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Drink" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contests/{id}/drinks/{drinkId}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Contest ID",
+          "schema": { "type": "string" }
+        },
+        {
+          "name": "drinkId",
+          "in": "path",
+          "required": true,
+          "description": "Drink ID",
+          "schema": { "type": "string" }
+        }
+      ],
+      "get": {
+        "summary": "Get a drink",
+        "description": "Returns a single drink by ID",
+        "tags": ["Drinks"],
+        "security": [{ "AdminRole": [] }],
+        "responses": {
+          "200": {
+            "description": "Drink details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Drink" }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Drink not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update a drink",
+        "description": "Updates an existing drink",
+        "tags": ["Drinks"],
+        "security": [{ "AdminRole": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "slug": { "type": "string" },
+                  "description": { "type": "string" },
+                  "round": { "type": "string" },
+                  "submittedBy": { "type": "string" }
+                }
+              },
+              "example": {
+                "round": "finals"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Drink updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Drink" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Drink not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a drink",
+        "description": "Removes a drink from the contest",
+        "tags": ["Drinks"],
+        "security": [{ "AdminRole": [] }],
+        "responses": {
+          "200": {
+            "description": "Drink deleted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Drink not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contests/{id}/categories": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Contest ID or slug",
+          "schema": { "type": "string" }
+        }
+      ],
+      "get": {
+        "summary": "List vote categories",
+        "description": "Returns all vote categories for a contest",
+        "tags": ["Categories"],
+        "responses": {
+          "200": {
+            "description": "List of categories",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "categories": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/VoteCategory" }
+                    }
+                  }
+                },
+                "example": {
+                  "categories": [
+                    { "id": "aroma", "label": "Aroma", "sortOrder": 0 },
+                    { "id": "balance", "label": "Balance", "sortOrder": 1 }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Add a vote category",
+        "description": "Creates a new vote category for the contest",
+        "tags": ["Categories"],
+        "security": [{ "AdminRole": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "string" },
+                  "label": { "type": "string" },
+                  "description": { "type": "string" },
+                  "sortOrder": { "type": "number" }
+                },
+                "required": ["id", "label"]
+              },
+              "example": {
+                "id": "creativity",
+                "label": "Creativity",
+                "description": "How innovative is the drink?",
+                "sortOrder": 3
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Category created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "categories": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/VoteCategory" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "409": {
+            "description": "Category already exists",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "message": "Category already exists." }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contests/{id}/categories/{categoryId}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Contest ID or slug",
+          "schema": { "type": "string" }
+        },
+        {
+          "name": "categoryId",
+          "in": "path",
+          "required": true,
+          "description": "Category ID",
+          "schema": { "type": "string" }
+        }
+      ],
+      "delete": {
+        "summary": "Delete a vote category",
+        "description": "Removes a vote category from the contest",
+        "tags": ["Categories"],
+        "security": [{ "AdminRole": [] }],
+        "responses": {
+          "200": {
+            "description": "Category deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "categories": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/VoteCategory" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest or category not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contests/{id}/scores": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Contest ID or slug",
+          "schema": { "type": "string" }
+        }
+      ],
+      "get": {
+        "summary": "Get scores",
+        "description": "Returns scores for a contest. Optionally filter by drinkId and/or judgeId.",
+        "tags": ["Scores"],
+        "parameters": [
+          {
+            "name": "drinkId",
+            "in": "query",
+            "description": "Filter by drink ID",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "judgeId",
+            "in": "query",
+            "description": "Filter by judge ID",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of scores",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "scores": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/ScoreEntry" }
+                    }
+                  }
+                },
+                "example": {
+                  "scores": [
+                    {
+                      "id": "score-1",
+                      "drinkId": "drink-1",
+                      "judgeId": "judge-1",
+                      "breakdown": {
+                        "aroma": 8,
+                        "balance": 7,
+                        "presentation": 9,
+                        "creativity": 8,
+                        "overall": 8
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Submit or update a score",
+        "description": "Submits a new score or updates an existing one. Can submit full breakdown or a single category score.",
+        "tags": ["Scores"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "drinkId": { "type": "string" },
+                  "judgeId": { "type": "string" },
+                  "judgeName": { "type": "string", "description": "Name for auto-created judge" },
+                  "judgeRole": { "$ref": "#/components/schemas/JudgeRole" },
+                  "categoryId": { "type": "string", "description": "Single category to update (aroma, balance, presentation, creativity, overall)" },
+                  "value": { "type": "number", "description": "Score value for single category" },
+                  "breakdown": { "$ref": "#/components/schemas/ScoreBreakdown" },
+                  "notes": { "type": "string" }
+                },
+                "required": ["drinkId", "judgeId"]
+              },
+              "examples": {
+                "fullBreakdown": {
+                  "summary": "Submit full score breakdown",
+                  "value": {
+                    "drinkId": "drink-1",
+                    "judgeId": "judge-1",
+                    "breakdown": {
+                      "aroma": 8,
+                      "balance": 7,
+                      "presentation": 9,
+                      "creativity": 8,
+                      "overall": 8
+                    },
+                    "notes": "Excellent presentation"
+                  }
+                },
+                "singleCategory": {
+                  "summary": "Submit single category score",
+                  "value": {
+                    "drinkId": "drink-1",
+                    "judgeId": "guest-123",
+                    "judgeName": "Guest Voter",
+                    "categoryId": "overall",
+                    "value": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Score updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ScoreEntry" }
+              }
+            }
+          },
+          "201": {
+            "description": "Score created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ScoreEntry" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "examples": {
+                  "missingFields": {
+                    "value": { "message": "drinkId and judgeId are required." }
+                  },
+                  "invalidCategory": {
+                    "value": { "message": "Invalid categoryId for scoring." }
+                  },
+                  "missingScore": {
+                    "value": { "message": "Score breakdown or categoryId + value is required." }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest or drink not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    { "name": "Contests", "description": "Manage mixology contests" },
+    { "name": "Drinks", "description": "Manage drinks within contests" },
+    { "name": "Categories", "description": "Manage vote categories" },
+    { "name": "Scores", "description": "Submit and retrieve scores" }
+  ]
+}
