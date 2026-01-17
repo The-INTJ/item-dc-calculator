@@ -374,18 +374,10 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
     const provider = getAuthProvider();
     await provider.logout();
 
-    // Keep local session but mark as guest
-    if (session) {
-      const guestSession: LocalSession = {
-        ...session,
-        status: 'guest',
-        firebaseUid: undefined,
-        updatedAt: Date.now(),
-      };
-      setSession(guestSession);
-      writeSession(guestSession);
-    }
-  }, [session]);
+    clearSession();
+    clearGuestIdentity();
+    setSession(null);
+  }, []);
 
   const resetSessionForNewAccount = useCallback(async () => {
     const provider = getAuthProvider();
