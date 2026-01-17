@@ -15,6 +15,14 @@ export interface Drink {
   description: string;
   round: string;
   submittedBy: string;
+  scoreByUser?: Record<string, ScoreBreakdown>;
+  scoreTotals?: ScoreBreakdown;
+  scoreLock?: {
+    locked: boolean;
+    expiresAt?: number;
+    token?: string;
+    updatedAt?: number;
+  };
 }
 
 export interface ScoreBreakdown {
