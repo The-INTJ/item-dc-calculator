@@ -1,9 +1,88 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useMixologyData } from '@/src/mixology/data/MixologyDataContext';
-import { DrinkCard, RoundCard } from '@/src/mixology/ui';
+import { BracketView } from '@/src/mixology/ui';
+import type { BracketRound } from '@/src/mixology/ui/BracketView';
+
+const dummyRounds: BracketRound[] = [
+  {
+    id: 'round-16',
+    name: 'Round of 16',
+    status: 'closed',
+    matchups: [
+      {
+        id: 'm1',
+        contestantA: { id: 'd1', name: 'Velvet Rye', score: 82 },
+        contestantB: { id: 'd2', name: 'Midnight Citrus', score: 76 },
+        winnerId: 'd1',
+      },
+      {
+        id: 'm2',
+        contestantA: { id: 'd3', name: 'Golden Bloom', score: 88 },
+        contestantB: { id: 'd4', name: 'Cask Ember', score: 71 },
+        winnerId: 'd3',
+      },
+      {
+        id: 'm3',
+        contestantA: { id: 'd5', name: 'Opal Spritz', score: 79 },
+        contestantB: { id: 'd6', name: 'Nightshade Fizz', score: 81 },
+        winnerId: 'd6',
+      },
+      {
+        id: 'm4',
+        contestantA: { id: 'd7', name: 'Copper Coast', score: 85 },
+        contestantB: { id: 'd8', name: 'Juniper Dusk', score: 77 },
+        winnerId: 'd7',
+      },
+    ],
+  },
+  {
+    id: 'round-8',
+    name: 'Quarterfinals',
+    status: 'closed',
+    matchups: [
+      {
+        id: 'm5',
+        contestantA: { id: 'd1', name: 'Velvet Rye', score: 84 },
+        contestantB: { id: 'd3', name: 'Golden Bloom', score: 89 },
+        winnerId: 'd3',
+      },
+      {
+        id: 'm6',
+        contestantA: { id: 'd6', name: 'Nightshade Fizz', score: 83 },
+        contestantB: { id: 'd7', name: 'Copper Coast', score: 80 },
+        winnerId: 'd6',
+      },
+    ],
+  },
+  {
+    id: 'round-4',
+    name: 'Semifinals',
+    status: 'active',
+    matchups: [
+      {
+        id: 'm7',
+        contestantA: { id: 'd3', name: 'Golden Bloom', score: 90 },
+        contestantB: { id: 'd6', name: 'Nightshade Fizz', score: 88 },
+        winnerId: null,
+      },
+    ],
+  },
+  {
+    id: 'round-2',
+    name: 'Finals',
+    status: 'upcoming',
+    matchups: [
+      {
+        id: 'm8',
+        contestantA: { id: 'tbd-a', name: 'TBD', score: null },
+        contestantB: { id: 'tbd-b', name: 'TBD', score: null },
+        winnerId: null,
+      },
+    ],
+  },
+];
 
 function formatUpdatedAt(timestamp: number | null) {
   if (!timestamp) return 'Not refreshed yet.';
@@ -43,49 +122,18 @@ function BracketOverview({ hasRound }: { hasRound: boolean }) {
 
 export function BracketClient() {
   const router = useRouter();
-  const { roundSummary, drinks, loading, error, refreshAll, lastUpdatedAt } = useMixologyData();
-
-  const drinkCards = useMemo(
-    () => drinks.map((drink) => <DrinkCard key={drink.id} drink={drink} variant="compact" />),
-    [drinks]
-  );
-  const showEmptyState = !loading && !error && !roundSummary && drinks.length === 0;
+  const [updatedAt, setUpdatedAt] = useState<number | null>(null);
 
   return (
     <div className="mixology-landing">
       <BracketHeader
-        onRefresh={() => void refreshAll()}
+        onRefresh={() => setUpdatedAt(Date.now())}
         onVote={() => router.push('/mixology/vote')}
-        updatedAt={lastUpdatedAt}
+        updatedAt={updatedAt}
       />
 
-      {loading && !roundSummary && <div className="mixology-card">Loading bracket data...</div>}
-      {error && <div className="mixology-card">Error loading bracket data: {error}</div>}
-      {showEmptyState && (
-        <div className="mixology-card">
-          We&apos;re setting up the bracket. Check back soon for the first round.
-        </div>
-      )}
-
-      <section className="mixology-panels">
-        {roundSummary ? (
-          <RoundCard round={roundSummary} variant="compact" onClick={() => router.push('/mixology/vote')} />
-        ) : (
-          <div className="mixology-card">
-            <h2>Current round</h2>
-            <p>No round details are available yet.</p>
-          </div>
-        )}
-        <BracketOverview hasRound={Boolean(roundSummary)} />
-      </section>
-
-      <section className="mixology-drink-grid">
-        {drinkCards.length === 0 ? (
-          <div className="mixology-card">No drinks submitted yet.</div>
-        ) : (
-          drinkCards
-        )}
-      </section>
+      <BracketOverview hasRound />
+      <BracketView rounds={dummyRounds} />
     </div>
   );
 }
