@@ -1,4 +1,4 @@
-import { VoteClient } from './VoteClient';
+import { VotePage } from './VotePage';
 
 export const metadata = {
   title: 'Voting | Mixology Rating App',
@@ -6,5 +6,5 @@ export const metadata = {
 };
 
 export default function MixologyVotePage() {
-  return <VoteClient />;
+  return <VotePage />;
 }

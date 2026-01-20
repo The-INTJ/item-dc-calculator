@@ -42,7 +42,6 @@ export function NavBar() {
         );
       })}
       <div className="site-nav__status" aria-live="polite">
-        <span className="site-nav__status-label">State</span>
         <span className={`site-nav__phase site-nav__phase--${state}`}>{label}</span>
       </div>
     </nav>
