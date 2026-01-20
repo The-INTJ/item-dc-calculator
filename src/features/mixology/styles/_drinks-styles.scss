@@ -1,0 +1,44 @@
+@use './index' as *;
+
+.mixology-drink-card {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+  text-align: left;
+}
+
+.mixology-drink-card__header {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.mixology-drink-card__title {
+  @include type-2xl;
+  margin: 0;
+}
+
+.mixology-drink-card__creator {
+  @include type-base;
+  margin: 0;
+  opacity: 0.8;
+}
+
+.mixology-drink-card__totals {
+  display: grid;
+  gap: $space-md;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mixology-drink-card__totals li {
+  display: flex;
+  justify-content: space-between;
+  @include type-base;
+}
+
+.mixology-drink-grid {
+  display: grid;
+  gap: $space-gap-normal;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}

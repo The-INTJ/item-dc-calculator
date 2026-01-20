@@ -1,7 +1,6 @@
 'use client';
 
-import { AuthPrimaryAction } from './components/AuthPrimaryAction';
-import { AdminOnlyLink } from './components/AdminOnlyLink';
+import { AuthPrimaryAction, AdminOnlyLink } from '@/components/ui';
 
 export default function HomePage() {
   return (

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getBackendProvider } from '@/src/mixology/backend';
+import { getBackendProvider } from '@/mixology/server/backend';
 import { requireAdmin } from '../../../../_lib/requireAdmin';
+import type { VoteCategory } from '@/mixology/types';
 
 interface RouteParams {
   params: Promise<{ id: string; categoryId: string }>;
@@ -29,7 +30,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     return NextResponse.json({ message: error }, { status: 404 });
   }
 
-  const categories = contest.categories ?? [];
+  const categories: VoteCategory[] = contest.categories ?? [];
   if (!categories.some((category) => category.id === categoryId)) {
     return NextResponse.json({ message: 'Category not found' }, { status: 404 });
   }

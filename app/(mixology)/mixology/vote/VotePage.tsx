@@ -1,0 +1,77 @@
+'use client';
+
+import { useMixologyData } from '@/mixology/contexts/MixologyDataContext';
+import { VoteScorePanel } from '@/mixology/components/ui';
+import { buildTotalsFromScores } from '@/mixology/components/ui/voteUtils';
+import { useVoteScores, useSubmitVotes } from '@/mixology/hooks';
+import { VotePageHeader, VoteActions } from '@/mixology/components/votePage';
+
+export function VotePage() {
+  const { contest, drinks, loading, error } = useMixologyData();
+
+  const categories = (contest?.categories ?? [])
+    .slice()
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+
+  const totals = buildTotalsFromScores(contest?.scores ?? [], categories);
+
+  const { scores, updateScore } = useVoteScores();
+  const { status, message, submitScores, isSubmitting } = useSubmitVotes();
+
+  const canSubmit = drinks.length > 0 && categories.length > 0;
+
+  const handleSubmit = () => {
+    void submitScores(scores);
+  };
+
+  if (loading) {
+    return (
+      <div className="mixology-vote-page">
+        <VotePageHeader />
+        <div className="mixology-card">Loading drinks...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mixology-vote-page">
+        <VotePageHeader />
+        <div className="mixology-card">Error: {error}</div>
+      </div>
+    );
+  }
+
+  if (drinks.length === 0) {
+    return (
+      <div className="mixology-vote-page">
+        <VotePageHeader />
+        <div className="mixology-card">
+          <p>No drinks available for voting yet. Please check back soon.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mixology-vote-page">
+      <VotePageHeader />
+
+      <VoteScorePanel
+        drinks={drinks}
+        categories={categories}
+        totals={totals}
+        scoreByDrinkId={scores}
+        onScoreChange={updateScore}
+      />
+
+      <VoteActions
+        canSubmit={canSubmit}
+        isSubmitting={isSubmitting}
+        status={status}
+        message={message}
+        onSubmit={handleSubmit}
+      />
+    </div>
+  );
+}

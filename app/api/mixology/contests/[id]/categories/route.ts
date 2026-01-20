@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getBackendProvider } from '@/src/mixology/backend';
+import { getBackendProvider } from '@/mixology/server/backend';
 import { requireAdmin } from '../../../_lib/requireAdmin';
-import type { VoteCategory } from '@/src/mixology/types';
+import type { VoteCategory } from '@/mixology/types';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -50,7 +50,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       return NextResponse.json({ message: 'Category id and label are required.' }, { status: 400 });
     }
 
-    const categories = contest.categories ?? [];
+    const categories: VoteCategory[] = contest.categories ?? [];
     if (categories.some((category) => category.id === categoryId)) {
       return NextResponse.json({ message: 'Category already exists.' }, { status: 409 });
     }

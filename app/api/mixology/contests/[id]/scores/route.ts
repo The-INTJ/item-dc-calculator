@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getBackendProvider } from '@/src/mixology/backend';
-import type { JudgeRole, ScoreBreakdown } from '@/src/mixology/types';
+import { getBackendProvider } from '@/mixology/server/backend';
+import type { Drink, Judge, JudgeRole, ScoreBreakdown } from '@/mixology/types';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -101,12 +101,14 @@ export async function POST(request: Request, { params }: RouteParams) {
       return NextResponse.json({ message: 'drinkId and judgeId are required.' }, { status: 400 });
     }
 
-    const drinkExists = contest.drinks.some((drink) => drink.id === drinkId);
+    const drinks: Drink[] = contest.drinks ?? [];
+    const drinkExists = drinks.some((drink) => drink.id === drinkId);
     if (!drinkExists) {
       return NextResponse.json({ message: 'Drink not found.' }, { status: 404 });
     }
 
-    if (!contest.judges.some((judge) => judge.id === judgeId)) {
+    const judges: Judge[] = contest.judges ?? [];
+    if (!judges.some((judge) => judge.id === judgeId)) {
       await provider.judges.create(contest.id, {
         id: judgeId,
         displayName: body.judgeName ?? 'Guest Judge',

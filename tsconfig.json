@@ -20,9 +20,20 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"],
+      "@/components/*": ["./src/components/*"],
+      "@/features/*": ["./src/features/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/mixology": ["./src/features/mixology"],
+      "@/mixology/*": ["./src/features/mixology/*"],
+      "@/mixology/components/*": ["./src/features/mixology/components/*"],
+      "@/mixology/contexts/*": ["./src/features/mixology/contexts/*"],
+      "@/mixology/hooks/*": ["./src/features/mixology/hooks/*"],
+      "@/mixology/lib/*": ["./src/features/mixology/lib/*"],
+      "@/mixology/services/*": ["./src/features/mixology/services/*"],
+      "@/mixology/server/*": ["./src/features/mixology/server/*"],
+      "@/mixology/types/*": ["./src/features/mixology/types/*"],
+      "@/mixology/styles/*": ["./src/features/mixology/styles/*"]
     },
     "plugins": [
       {

@@ -1,0 +1,20 @@
+/**
+ * Mixology App Styles Entry Point
+ * 
+ * This file loads all mixology styles using modern @use syntax.
+ * This is imported by mixology/layout.tsx separately from globals.scss
+ * to avoid SASS variable conflicts between legacy and mixology variable definitions.
+ * 
+ * Each partial uses @use to load the assets it needs.
+ */
+
+// Feature styles (from src/features/mixology/styles/)
+@use '../../../src/features/mixology/styles/admin-styles';
+@use '../../../src/features/mixology/styles/auth-styles';
+@use '../../../src/features/mixology/styles/rounds-styles';
+@use '../../../src/features/mixology/styles/drinks-styles';
+@use '../../../src/features/mixology/styles/bracket-styles';
+@use '../../../src/features/mixology/styles/vote-styles';
+
+// Page-specific styles (still in app folder)
+@use './account/account-styles';

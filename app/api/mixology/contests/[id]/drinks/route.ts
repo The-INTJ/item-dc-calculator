@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getBackendProvider } from '@/src/mixology/backend';
+import { getBackendProvider } from '@/mixology/server/backend';
 import { requireAdmin } from '../../../_lib/requireAdmin';
 
 interface RouteParams {

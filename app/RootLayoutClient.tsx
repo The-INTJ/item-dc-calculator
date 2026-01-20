@@ -1,9 +1,9 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { MixologyAuthProvider } from '@/src/mixology/auth';
-import { ContestStateProvider } from '@/src/mixology/state';
-import { SiteHeader } from './components/SiteHeader';
+import { MixologyAuthProvider } from '@/mixology/contexts/AuthContext';
+import { ContestStateProvider } from '@/mixology/contexts/ContestStateContext';
+import { SiteHeader } from '@/components/layout/SiteHeader';
 
 interface RootLayoutClientProps {
   children: ReactNode;
