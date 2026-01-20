@@ -1,9 +1,10 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import type { Contest, ContestRound, Drink } from '../types';
+import type { Contest, ContestPhase, ContestRound, Drink } from '../types';
 import { buildDefaultVoteCategories } from '../components/ui/voteUtils';
-import { getActiveRoundId, getFutureRoundId, getRoundLabel } from '../lib/contestHelpers';
+import { getActiveRoundId, getRoundById, getRoundLabel } from '../lib/contestHelpers';
+import { useContestState } from './ContestStateContext';
 
 interface AdminContestState {
   contests: Contest[];
@@ -14,11 +15,12 @@ interface AdminContestState {
 interface AdminContestContextValue extends AdminContestState {
   setActiveContest: (contestId: string) => void;
   updateContest: (contestId: string, updates: Partial<Contest>) => void;
-  addRound: (contestId: string, round: Omit<ContestRound, 'id'>) => void;
+  addContest: (name: string) => void;
+  addRound: (contestId: string, round: Omit<ContestRound, 'id' | 'state'>) => void;
   updateRound: (contestId: string, roundId: string, updates: Partial<ContestRound>) => void;
   removeRound: (contestId: string, roundId: string) => void;
-  setFutureRound: (contestId: string, roundId: string) => void;
-  shakeRound: (contestId: string) => void;
+  setActiveRound: (contestId: string, roundId: string) => void;
+  setRoundState: (contestId: string, roundId: string, state: ContestPhase) => void;
   addMixologist: (contestId: string, mixologist: { name: string; drinkName: string; roundId: string }) => void;
   updateMixologist: (contestId: string, drinkId: string, updates: Partial<Drink>) => void;
   removeMixologist: (contestId: string, drinkId: string) => void;
@@ -28,9 +30,9 @@ interface AdminContestContextValue extends AdminContestState {
 const STORAGE_KEY = 'mixology-admin-contests-v1';
 
 const defaultRounds: ContestRound[] = [
-  { id: 'round-1', name: 'Round 1', number: 1 },
-  { id: 'round-2', name: 'Round 2', number: 2 },
-  { id: 'round-3', name: 'Finals', number: 3 },
+  { id: 'round-1', name: 'Round 1', number: 1, state: 'set' },
+  { id: 'round-2', name: 'Round 2', number: 2, state: 'set' },
+  { id: 'round-3', name: 'Finals', number: 3, state: 'set' },
 ];
 
 function generateId(prefix: string): string {
@@ -42,14 +44,14 @@ function buildDefaultContest(): Contest {
     id: 'contest-local-1',
     name: 'Local Test Contest',
     slug: 'local-test-contest',
-    phase: 'setup',
+    phase: 'debug',
     location: 'Local Only',
     startTime: new Date().toISOString(),
     bracketRound: 'Round 1',
     defaultContest: true,
     rounds: defaultRounds,
     activeRoundId: 'round-1',
-    futureRoundId: 'round-2',
+    futureRoundId: null,
     categories: buildDefaultVoteCategories(),
     drinks: [],
     judges: [],
@@ -58,17 +60,22 @@ function buildDefaultContest(): Contest {
 }
 
 function normalizeContest(contest: Contest): Contest {
-  const rounds = contest.rounds ?? [];
+  const rounds = (contest.rounds ?? []).map((round) => ({
+    ...round,
+    state: round.state ?? 'set',
+  })) as ContestRound[];
   const activeRoundId = getActiveRoundId({ ...contest, rounds });
-  const futureRoundId = getFutureRoundId({ ...contest, rounds, activeRoundId });
+  const activeRound = getRoundById({ ...contest, rounds }, activeRoundId);
   const bracketRound = getRoundLabel({ ...contest, rounds }, activeRoundId);
+  // Sync contest phase to the active round's state
+  const phase = activeRound?.state ?? contest.phase ?? 'debug';
 
   return {
     ...contest,
     rounds,
     activeRoundId,
-    futureRoundId,
     bracketRound,
+    phase,
   };
 }
 
@@ -107,10 +114,21 @@ const AdminContestContext = createContext<AdminContestContextValue | undefined>(
 
 export function AdminContestProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AdminContestState>(() => loadState());
+  const { setState: setGlobalState } = useContestState();
 
   useEffect(() => {
     persistState(state);
   }, [state]);
+
+  // Sync active contest's phase to global ContestState whenever it changes
+  useEffect(() => {
+    const activeContest =
+      state.contests.find((c) => c.id === state.activeContestId) ??
+      state.contests.find((c) => c.defaultContest);
+    if (activeContest) {
+      setGlobalState(activeContest.phase);
+    }
+  }, [state, setGlobalState]);
 
   const updateState = useCallback((updater: (prev: AdminContestState) => AdminContestState) => {
     setState((prev) => {
@@ -142,11 +160,11 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
     });
   }, [updateState]);
 
-  const addRound = useCallback((contestId: string, round: Omit<ContestRound, 'id'>) => {
+  const addRound = useCallback((contestId: string, round: Omit<ContestRound, 'id' | 'state'>) => {
     updateState((prev) => {
       const contests = prev.contests.map((contest) => {
         if (contest.id !== contestId) return contest;
-        const nextRound: ContestRound = { ...round, id: generateId('round') };
+        const nextRound: ContestRound = { ...round, id: generateId('round'), state: 'set' };
         return normalizeContest({
           ...contest,
           rounds: [...(contest.rounds ?? []), nextRound],
@@ -183,29 +201,39 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
     });
   }, [updateState]);
 
-  const setFutureRound = useCallback((contestId: string, roundId: string) => {
+  const setActiveRound = useCallback((contestId: string, roundId: string) => {
     updateState((prev) => {
-      const futureRoundId = roundId || null;
-      const contests = prev.contests.map((contest) =>
-        contest.id === contestId ? normalizeContest({ ...contest, futureRoundId }) : contest
-      );
+      const contests = prev.contests.map((contest) => {
+        if (contest.id !== contestId) return contest;
+        return normalizeContest({ ...contest, activeRoundId: roundId });
+      });
       return { ...prev, contests };
     });
   }, [updateState]);
 
-  const shakeRound = useCallback((contestId: string) => {
+  const setRoundState = useCallback((contestId: string, roundId: string, newState: ContestPhase) => {
     updateState((prev) => {
       const contests = prev.contests.map((contest) => {
         if (contest.id !== contestId) return contest;
-        const nextActive = contest.futureRoundId ?? getFutureRoundId(contest);
-        if (!nextActive) return contest;
-        return normalizeContest({
-          ...contest,
-          activeRoundId: nextActive,
-          futureRoundId: null,
-        });
+        const rounds = (contest.rounds ?? []).map((round) =>
+          round.id === roundId ? { ...round, state: newState } : round
+        );
+        return normalizeContest({ ...contest, rounds });
       });
       return { ...prev, contests };
+    });
+  }, [updateState]);
+
+  const addContest = useCallback((name: string) => {
+    updateState((prev) => {
+      const newContest = normalizeContest({
+        ...buildDefaultContest(),
+        id: generateId('contest'),
+        name,
+        slug: name.toLowerCase().replace(/\s+/g, '-'),
+        defaultContest: false,
+      });
+      return { ...prev, contests: [...prev.contests, newContest] };
     });
   }, [updateState]);
 
@@ -268,17 +296,18 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
       lastUpdatedAt: state.lastUpdatedAt,
       setActiveContest,
       updateContest,
+      addContest,
       addRound,
       updateRound,
       removeRound,
-      setFutureRound,
-      shakeRound,
+      setActiveRound,
+      setRoundState,
       addMixologist,
       updateMixologist,
       removeMixologist,
       refresh,
     };
-  }, [state, setActiveContest, updateContest, addRound, updateRound, removeRound, setFutureRound, shakeRound, addMixologist, updateMixologist, removeMixologist, refresh]);
+  }, [state, setActiveContest, updateContest, addContest, addRound, updateRound, removeRound, setActiveRound, setRoundState, addMixologist, updateMixologist, removeMixologist, refresh]);
 
   return <AdminContestContext.Provider value={value}>{children}</AdminContestContext.Provider>;
 }

@@ -15,14 +15,15 @@ interface ContestCardProps {
 
 function getPhaseColor(phase: Contest['phase']): string {
   switch (phase) {
-    case 'active':
-      return 'var(--phase-active, #22c55e)';
-    case 'judging':
-      return 'var(--phase-judging, #f59e0b)';
-    case 'closed':
-      return 'var(--phase-closed, #94a3b8)';
+    case 'shake':
+      return 'var(--phase-shake, #22c55e)';
+    case 'scored':
+      return 'var(--phase-scored, #f59e0b)';
+    case 'set':
+      return 'var(--phase-set, #3b82f6)';
+    case 'debug':
     default:
-      return 'var(--phase-setup, #3b82f6)';
+      return 'var(--phase-debug, #94a3b8)';
   }
 }
 

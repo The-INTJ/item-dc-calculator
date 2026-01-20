@@ -6,7 +6,7 @@ const contest: Contest = {
   id: 'contest-1',
   name: 'Cache Test',
   slug: 'cache-test',
-  phase: 'active',
+  phase: 'shake',
   drinks: [],
   judges: [],
   scores: [],

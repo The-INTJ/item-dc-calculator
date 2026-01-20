@@ -12,12 +12,12 @@ import { useAdminContestData } from '../../contexts/AdminContestContext';
 import type { Contest } from '../../types';
 import { ContestCard } from './ContestCard';
 import { ContestDetails } from './ContestDetails';
-import { AdminStateControls } from './AdminStateControls';
 
 export function AdminDashboard() {
   const { role, loading: authLoading, isAuthenticated } = useAuth();
-  const { contests, activeContestId, refresh, setActiveContest, updateContest } = useAdminContestData();
+  const { contests, activeContestId, refresh, setActiveContest, updateContest, addContest } = useAdminContestData();
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
+  const [newContestName, setNewContestName] = useState('');
   const loading = false;
   const error = null;
 
@@ -87,6 +87,12 @@ export function AdminDashboard() {
     refresh();
   };
 
+  const handleAddContest = () => {
+    if (!newContestName.trim()) return;
+    addContest(newContestName.trim());
+    setNewContestName('');
+  };
+
   return (
     <div className="admin-dashboard">
       <header className="admin-dashboard__header">
@@ -99,8 +105,6 @@ export function AdminDashboard() {
           Refresh Data
         </button>
       </header>
-
-      <AdminStateControls />
 
       <div className="admin-dashboard__layout">
         <aside className="admin-sidebar">
@@ -119,6 +123,18 @@ export function AdminDashboard() {
               ))}
             </div>
           )}
+          <div className="admin-add-contest">
+            <input
+              className="admin-add-contest__input"
+              placeholder="New contest name"
+              value={newContestName}
+              onChange={(e) => setNewContestName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddContest()}
+            />
+            <button type="button" className="button-secondary" onClick={handleAddContest}>
+              Add Contest
+            </button>
+          </div>
         </aside>
 
         <main className="admin-main">

@@ -11,9 +11,9 @@ The contest progresses through these states (controlled by admin):
 | **Debug** | Admin-only testing mode. Not used during live events. | Disabled | Extra logs enabled; debug UI visible only to admins. Entirely different data state for testing. |
 | **Set** | Guests arriving and choosing roles. Happens once at competition start. | Disabled | Role selection open. Admin can return here if more guests need to join. |
 | **Shake** | Drinks are being made, timer is running. | **OPEN** | Timer countdown visible. Voting interface active. Live score updates. |
-| **Score** | Voting closed, tallying scores. | **CLOSED** | Scores locked and displayed. Admin prepares next round. Triggers next Shake when ready. |
+| **Scored** | Voting closed, tallying scores. | **CLOSED** | Scores locked and displayed. Admin prepares next round. Triggers next Shake when ready. |
 
-**Typical flow**: Set → Shake → Score → Shake → Score → ... (repeating Shake/Score for each round)
+**Typical flow**: Set → Shake → Scored → Shake → Scored → ... (repeating Shake/Score for each round)
 ## Overview
 This master plan sequences the existing plans into a cohesive delivery path while reflecting the current mixology foundations already in place (routing, onboarding, voting, bracket prototype, admin dashboard shell). It prioritizes role selection, contest state orchestration, and admin controls before deeper styling and bracket mechanics, so the contest can run end-to-end in a live event. The goal is to unlock parallel work once foundational flows (auth, guest sessions, routing, and lifecycle states) are stable.
 

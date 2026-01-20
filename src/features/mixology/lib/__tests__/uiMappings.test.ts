@@ -11,7 +11,9 @@ const baseContest: Contest = {
   id: 'contest-1',
   name: 'Cascadia Classic',
   slug: 'cascadia-classic',
-  phase: 'active',
+  phase: 'shake',
+  rounds: [{ id: 'round-1', name: 'Round 1', number: 1, state: 'shake' }],
+  activeRoundId: 'round-1',
   categories: [
     { id: 'aroma', label: 'Aroma', sortOrder: 0 },
     { id: 'balance', label: 'Balance', sortOrder: 1 },
@@ -28,16 +30,16 @@ function drink(id: string, submittedBy = 'Team A'): Drink {
     name: `Drink ${id}`,
     slug: id,
     description: 'Test drink',
-    round: 'Round 1',
+    round: 'round-1',
     submittedBy,
   };
 }
 
 describe('uiMappings', () => {
-  // Assumption: if no bracket label is provided, UI should default to "Current Round".
-  it('uses Current Round when bracketRound is missing', () => {
+  // When there's an active round, use the round's name
+  it('uses active round name when available', () => {
     const summary = buildRoundSummary({ ...baseContest, bracketRound: undefined });
-    expect(summary.name).toBe('Current Round');
+    expect(summary.name).toBe('Round 1');
   });
 
   // Assumption: contestant names derive from drink submitters and are unique.
@@ -102,11 +104,12 @@ describe('uiMappings', () => {
     ]);
   });
 
-  // Assumption: round detail should reuse the summary label and include drinks + matchups.
+  // Assumption: round detail should use the active round's name and include drinks + matchups.
   it('builds a round detail snapshot from contest data', () => {
     const contest = {
       ...baseContest,
-      bracketRound: 'Semifinals',
+      rounds: [{ id: 'round-1', name: 'Semifinals', number: 1, state: 'shake' as const }],
+      activeRoundId: 'round-1',
       drinks: [drink('a'), drink('b')],
     };
 

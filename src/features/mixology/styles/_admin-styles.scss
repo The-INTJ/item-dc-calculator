@@ -315,11 +315,125 @@
 }
 
 .admin-round-item {
+  background: rgba($color-light-100, 0.5);
+  border: 1px solid $color-border;
+  border-radius: $radius-button;
+  display: flex;
+  flex-direction: column;
+  gap: $space-base;
+  padding: $space-base;
+  position: relative;
+
+  &--active {
+    background: rgba($color-success-500, 0.08);
+    border-color: $color-success-500;
+  }
+}
+
+.admin-round-item__header {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: $space-base;
   justify-content: space-between;
+  padding: $space-base;
+  text-align: left;
+  width: 100%;
+
+  &:hover {
+    background: rgba($color-dark-950, 0.04);
+  }
+}
+
+.admin-round-item__info {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.admin-round-item__remove {
+  align-self: flex-end;
+}
+
+.admin-round-state-controls {
+  border-top: 1px solid $color-border;
+  margin-top: $space-base;
+  padding-top: $space-base;
+}
+
+.admin-rounds-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-base;
+}
+
+.admin-phase-controls__grid--compact {
+  gap: $space-md;
+}
+
+.admin-phase-button--compact {
+  padding: $space-base $space-md;
+
+  .admin-phase-button__label {
+    @include type-base;
+  }
+
+  .admin-phase-button__desc {
+    @include type-sm;
+  }
+}
+
+.admin-add-contest {
+  border-top: 1px solid $color-border;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-base;
+  margin-top: $space-lg;
+  padding-top: $space-lg;
+}
+
+.admin-add-contest__input {
+  background: transparent;
+  border: 1px solid $color-border;
+  border-radius: $radius-button;
+  color: inherit;
+  flex: 1;
+  min-width: 150px;
+  padding: $space-md;
+}
+
+.admin-phase-controls__info {
+  @include type-sm;
+  color: $color-gray-500;
+  margin: 0;
 }
 
 .admin-round-badge {
   @include status-badge;
+}
+
+.admin-round-badge--debug {
+  background: $color-gray-400;
+  color: $color-dark-950;
+}
+
+.admin-round-badge--set {
+  background: $color-info-600;
+  color: #fff;
+}
+
+.admin-round-badge--shake {
+  background: $color-success-500;
+  color: #fff;
+}
+
+.admin-round-badge--scored {
+  background: $color-warning-700;
+  color: #fff;
 }
 
 .admin-round-badge--active {

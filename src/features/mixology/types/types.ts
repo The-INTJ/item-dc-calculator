@@ -1,4 +1,11 @@
-export type ContestPhase = 'setup' | 'active' | 'judging' | 'closed';
+/**
+ * Contest lifecycle states as defined in the Master Plan:
+ * - debug: Admin-only testing mode (not used during live events)
+ * - set: Guests arriving and choosing roles
+ * - shake: Drinks being made, timer running, voting OPEN
+ * - scored: Voting CLOSED, tallying scores
+ */
+export type ContestPhase = 'debug' | 'set' | 'shake' | 'scored';
 export type JudgeRole = 'admin' | 'judge' | 'viewer';
 
 export interface Judge {
@@ -52,6 +59,8 @@ export interface ContestRound {
   id: string;
   name: string;
   number?: number | null;
+  /** Each round has its own state; the active round's state is the global state */
+  state: ContestPhase;
 }
 
 export interface Contest {
