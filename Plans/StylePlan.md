@@ -9,7 +9,7 @@ See [Style Progress](StyleProgress.md) for current styling task status and decis
 ## Goals
 - Establish a robust, modern Sass token system (colors, spacing, typography, radii, shadows, motion, z-index, etc.).
 - Keep module class names clear and human‑readable without BEM conventions.
-- Create a strong theming architecture that keeps legacy calculator and mixology mostly siloed while sharing tokens.
+- Create a strong theming architecture that keeps legacy calculator and mixology mostly siloed while sharing tokens where possible.
 - Commit to a container query first approach immediately.
 - Leverage MUI Base for accessibility and behavior without fighting styling.
 
@@ -21,40 +21,20 @@ See [Style Progress](StyleProgress.md) for current styling task status and decis
 5. Container queries are preferred over viewport queries for layout decisions.
 6. MUI Base components get minimal overrides and align with shared tokens.
 
-## Proposed folder hierarchy (rooted in src/assets)
-- [src/assets/](src/assets/)
-  - [src/assets/tokens/](src/assets/tokens/)
-    - [src/assets/tokens/_colors.scss](src/assets/tokens/_colors.scss)
-    - [src/assets/tokens/_spacing.scss](src/assets/tokens/_spacing.scss)
-    - [src/assets/tokens/_typography.scss](src/assets/tokens/_typography.scss)
-    - [src/assets/tokens/_radii.scss](src/assets/tokens/_radii.scss)
-    - [src/assets/tokens/_shadows.scss](src/assets/tokens/_shadows.scss)
-    - [src/assets/tokens/_motion.scss](src/assets/tokens/_motion.scss)
-    - [src/assets/tokens/_zindex.scss](src/assets/tokens/_zindex.scss)
-    - [src/assets/tokens/_breakpoints.scss](src/assets/tokens/_breakpoints.scss)
-    - [src/assets/tokens/_layout.scss](src/assets/tokens/_layout.scss)
-  - [src/assets/semantic/](src/assets/semantic/)
-    - [src/assets/semantic/_core.scss](src/assets/semantic/_core.scss)
-    - [src/assets/semantic/_legacy.scss](src/assets/semantic/_legacy.scss)
-    - [src/assets/semantic/_mixology.scss](src/assets/semantic/_mixology.scss)
-  - [src/assets/mixins/](src/assets/mixins/)
-    - [src/assets/mixins/_typography.scss](src/assets/mixins/_typography.scss)
-    - [src/assets/mixins/_layout.scss](src/assets/mixins/_layout.scss)
-    - [src/assets/mixins/_surface.scss](src/assets/mixins/_surface.scss)
-    - [src/assets/mixins/_interactive.scss](src/assets/mixins/_interactive.scss)
-    - [src/assets/mixins/_container.scss](src/assets/mixins/_container.scss)
-  - [src/assets/functions/](src/assets/functions/)
-    - [src/assets/functions/_color.scss](src/assets/functions/_color.scss)
-    - [src/assets/functions/_math.scss](src/assets/functions/_math.scss)
-  - [src/assets/config/](src/assets/config/)
-    - [src/assets/config/_index.scss](src/assets/config/_index.scss)
-  - [src/assets/index.scss](src/assets/index.scss)
+## Current folder hierarchy
+The token/mixin stack is implemented per feature domain:
 
-Notes:
-- The tokens folder is the primitive system.
-- The semantic folder maps primitives to purpose and per‑theme intent.
-- Mixins and functions stay global and reusable.
-- [src/assets/index.scss](src/assets/index.scss) is the single entry for shared Sass.
+- **Mixology styles**: [src/features/mixology/styles](src/features/mixology/styles)
+  - `tokens/` (colors, spacing, typography, radii, shadows, motion, z-index, breakpoints, layout)
+  - `semantic/` (core, legacy, mixology semantic layers)
+  - `mixins/` (typography, layout, surface, interactive, container)
+  - `functions/` (color, math)
+  - `config/`
+  - `index.scss` (single entry for mixology tokens)
+- **Legacy styles**: [src/features/legacy/assets](src/features/legacy/assets)
+  - Mirrors token/mixin stack for the legacy calculator
+
+Mixology feature styles are loaded via [app/(mixology)/mixology/mixology.scss](app/(mixology)/mixology/mixology.scss), while global resets live in [app/globals.scss](app/globals.scss).
 
 ## Naming conventions for module classes
 - Use simple descriptive names without BEM and without scoping prefixes.
@@ -64,22 +44,22 @@ Notes:
 
 ## Theming architecture
 ### Shared layer
-- Shared tokens and mixins live under [src/assets/](src/assets/).
-- Semantic tokens are split into shared core and per‑theme overrides.
+- Shared tokens are currently duplicated between mixology and legacy stacks.
+- Future work should consider extracting a true shared base to reduce duplication.
 
 ### Theme layers
-- Legacy calculator theme: use semantic tokens in [src/assets/semantic/_legacy.scss](src/assets/semantic/_legacy.scss) and map to MUI theme in [src/theme/legacyTheme.ts](src/theme/legacyTheme.ts).
-- Mixology theme: use semantic tokens in [src/assets/semantic/_mixology.scss](src/assets/semantic/_mixology.scss) and map to MUI theme in [src/theme/mixologyTheme.ts](src/theme/mixologyTheme.ts).
+- Legacy calculator theme: use semantic tokens under `src/features/legacy/assets/semantic`.
+- Mixology theme: use semantic tokens under `src/features/mixology/styles/semantic`.
 
 ### Isolation rules
 - Mixology and legacy styles do not import each other’s semantic tokens.
-- Both import shared tokens via [src/assets/index.scss](src/assets/index.scss).
-- Global styles stay minimal; only reset and shared helpers live in [app/globals.scss](app/globals.scss).
+- Each feature loads its own token index (`styles/index.scss` or `assets/index.scss`).
+- Global styles stay minimal; only reset and shared helpers live in `app/globals.scss`.
 
 ## Container query first approach
-- Default to container queries for layout decisions and responsive structure.
+- Default to container queries for layout decisions.
 - Use viewport media queries only for global layout shifts.
-- Provide a mixin in [src/assets/mixins/_container.scss](src/assets/mixins/_container.scss) to normalize container usage.
+- Provide a mixin in `mixins/_container.scss` to normalize container usage.
 
 ## MUI Base strategy
 - Use MUI Base components for behavior and accessibility.
@@ -88,15 +68,15 @@ Notes:
 - Confirm WCAG‑driven states (focus, hover, disabled, error) map to tokens.
 
 ## Migration plan (incremental)
-1. Create token and mixin folders under [src/assets/](src/assets/).
-2. Define shared primitives and semantic tokens for mixology and legacy.
-3. Connect semantic tokens to MUI themes in [src/theme/](src/theme/).
-4. Reduce global styles in [app/globals.scss](app/globals.scss) to essentials.
+1. ✅ Token/mixin stacks exist for mixology and legacy under their feature directories.
+2. Define shared primitives and semantic tokens that can be reused across both stacks.
+3. Consolidate duplicated tokens into a shared base if/when needed.
+4. Reduce global styles in `app/globals.scss` to essentials.
 5. Convert legacy calculator Sass to modules with clear class naming.
 6. Convert mixology styles to module equivalents using shared tokens.
 7. Audit for container query usage and replace viewport media queries.
 
 ## Open decisions (resolved)
-- Assets root: [src/assets/](src/assets/)
-- Theme strategy: shared tokens, per‑theme semantic layers
-- Container queries: immediate rollout
+- Tokens live under feature-level style folders rather than a global `src/assets`.
+- Theme strategy: shared primitives where possible, per‑theme semantic layers.
+- Container queries: immediate rollout.

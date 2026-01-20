@@ -19,11 +19,14 @@ See [Backend Progress](BackendProgress.md) for the current backend task status.
 - Keep the legacy calculator isolated.
 
 ## Current foundation (already implemented)
-- Provider abstraction in [src/mixology/backend/types.ts](src/mixology/backend/types.ts).
-- In-memory backend in [src/mixology/backend/inMemoryProvider.ts](src/mixology/backend/inMemoryProvider.ts).
-- Firebase client integration in [src/mixology/firebase](src/mixology/firebase).
-- Auth context and session storage in [src/mixology/auth](src/mixology/auth).
-- Mixology routing in [app/mixology](app/mixology).
+- Provider abstraction in [src/features/mixology/server/backend/types.ts](src/features/mixology/server/backend/types.ts).
+- In-memory backend in [src/features/mixology/server/backend/inMemoryProvider.ts](src/features/mixology/server/backend/inMemoryProvider.ts).
+- Firebase client integration in [src/features/mixology/server/firebase](src/features/mixology/server/firebase).
+- Auth context and session storage in [src/features/mixology/contexts](src/features/mixology/contexts) and [src/features/mixology/lib/auth](src/features/mixology/lib/auth).
+- Contest lifecycle context in [src/features/mixology/contexts/ContestStateContext.tsx](src/features/mixology/contexts/ContestStateContext.tsx).
+- Local admin contest storage in [src/features/mixology/contexts/AdminContestContext.tsx](src/features/mixology/contexts/AdminContestContext.tsx).
+- Mixology routing in [app/(mixology)/mixology](app/(mixology)/mixology).
+- Mixology API routes under [app/api/mixology](app/api/mixology).
 
 ## Guiding principles
 1. Backend providers must implement the same interface so the UI remains stable.
@@ -49,14 +52,14 @@ See [Backend Progress](BackendProgress.md) for the current backend task status.
 
 **Session data sources:**
 - Cookies: short session continuity + referral metadata.
-- localStorage: rich session state (votes, profile, pending sync) as defined in [src/mixology/auth/types.ts](src/mixology/auth/types.ts).
+- localStorage: rich session state (votes, profile, pending sync) as defined in [src/features/mixology/lib/auth/types.ts](src/features/mixology/lib/auth/types.ts).
 
 ### 2) Invite URL & QR flow
 **URL shape (proposal):**
 - `/mixology?invite=abc123&contest=summer-2026`
 
 **Expected behavior:**
-- Auto-create guest session if not authenticated.
+- Auto-create guest session if not authenticated (via `InviteBootstrap`).
 - Persist invite metadata (contest slug, invite id, source).
 - Route to the contest view or onboarding flow.
 
@@ -70,7 +73,7 @@ See [Backend Progress](BackendProgress.md) for the current backend task status.
 - Must allow multiple guests on the same device without overwriting.
 
 **Plan:**
-- Use cryptographically strong random ID (e.g., $128$ bits) and prefix with `guest_`.
+- Use cryptographically strong random ID (e.g., 128 bits) and prefix with `guest_`.
 - Store a per-device “guest index” in cookies to allow multiple guests.
 - Use hashed or opaque identifiers in Firestore; do not use invite code as primary ID.
 
@@ -128,9 +131,14 @@ See [Backend Progress](BackendProgress.md) for the current backend task status.
 
 ---
 
-## Data model (proposed)
+## Data model (current + proposed)
 
-### Firestore collections
+### Contest model (current)
+Defined in [src/features/mixology/types/types.ts](src/features/mixology/types/types.ts):
+- `Contest` with rounds, categories, drinks, scores, judges.
+- `ContestRound` for round state and numbering.
+
+### Firestore collections (planned)
 - `mixology_users/{uid}`
   - `displayName`, `email`, `role`, `createdAt`
 - `mixology_guests/{guestId}`
@@ -151,12 +159,12 @@ See [Backend Progress](BackendProgress.md) for the current backend task status.
 ## Backend provider roadmap
 
 ### Phase 1: Client-side Firebase (current)
-- Continue using Firebase Auth client SDK in [src/mixology/firebase/firebaseAuthProvider.ts](src/mixology/firebase/firebaseAuthProvider.ts).
+- Continue using Firebase Auth client SDK in [src/features/mixology/server/firebase/firebaseAuthProvider.ts](src/features/mixology/server/firebase/firebaseAuthProvider.ts).
 - Keep in-memory backend for contest data for now.
 
 ### Phase 2: Firestore data provider (client or server)
-- Implement `MixologyBackendProvider` with Firestore reads/writes.
-- Keep provider interface stable so hooks remain unchanged.
+- `firebaseBackendProvider.ts` implements the provider but is not wired to API routes.
+- Add feature flag or config to swap provider in [src/features/mixology/server/backend/index.ts](src/features/mixology/server/backend/index.ts).
 
 ### Phase 3: Admin SDK server routes
 - Add server actions or API routes for admin-only operations.
@@ -173,13 +181,15 @@ See [Backend Progress](BackendProgress.md) for the current backend task status.
 
 ---
 
-## API surface (planned)
-- `/api/mixology/invite` (validate invite, return contest)
-- `/api/mixology/guests` (create guest)
-- `/api/mixology/contests` (admin-only write)
-- `/api/mixology/contests/[id]/drinks` (admin-only write)
-- `/api/mixology/contests/[id]/categories` (admin-only write)
-- `/api/mixology/contests/[id]/scores` (user write)
+## API surface (current + planned)
+- `/api/mixology/current` (fetch default contest)
+- `/api/mixology/contests` (list/create contests)
+- `/api/mixology/contests/[id]` (single contest CRUD)
+- `/api/mixology/contests/[id]/drinks` (drinks CRUD)
+- `/api/mixology/contests/[id]/categories` (vote category CRUD)
+- `/api/mixology/contests/[id]/scores` (score read/write)
+- `/api/mixology/invite` (planned: validate invite, return contest)
+- `/api/mixology/guests` (planned: create guest)
 
 ---
 
@@ -191,8 +201,8 @@ See [Backend Progress](BackendProgress.md) for the current backend task status.
 ---
 
 ## Next steps
-1. Confirm invite URL/query format.
-2. Decide cookie retention window for guest sessions.
-3. Define Admin SDK entry points and access strategy.
-4. Implement Firestore backend provider.
-5. Implement mixer scoring logic and UI enforcement.
+1. Wire Firestore backend provider behind a feature flag.
+2. Add Admin SDK integration for server-side contest updates.
+3. Implement invite validation and guest creation APIs.
+4. Implement mixer scoring logic and UI enforcement.
+5. Add N/A scoring and aggregation rules.

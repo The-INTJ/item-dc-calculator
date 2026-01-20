@@ -11,9 +11,11 @@ This document tracks backend implementation milestones for the Mixology Rating A
 
 ## Phase 0 — Foundations (current state)
 - ✅ Provider abstraction exists (`MixologyBackendProvider`).
-- ✅ In-memory backend provider works.
+- ✅ In-memory backend provider works and backs API routes.
 - ✅ Firebase client auth works.
 - ✅ Session storage is in localStorage.
+- ✅ Contest lifecycle state exists in `ContestStateContext`.
+- ✅ Local admin contest storage exists in `AdminContestContext`.
 
 ---
 
@@ -43,13 +45,13 @@ This document tracks backend implementation milestones for the Mixology Rating A
 ## Phase 2 — Firestore data provider
 
 ### 2.1 Firestore read-only provider
-- ⬜ Implement `MixologyBackendProvider` Firestore reads for contests/drinks.
+- ✅ Implement `MixologyBackendProvider` Firestore reads for contests/drinks.
 - ⬜ Feature-flag provider swap behind env or config.
 - ⬜ Add tests for fetch/deserialize mapping.
 
 ### 2.2 Firestore write primitives
-- ⬜ Write helpers for contests and drinks (admin only).
-- ⬜ Add validation for required fields.
+- ✅ Write helpers for contests and drinks (admin only).
+- ✅ Add validation for required fields.
 - ⬜ Add tests for write success/failure paths.
 
 ---

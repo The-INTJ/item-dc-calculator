@@ -10,6 +10,8 @@ We are introducing a contest-focused Mixology Rating App that will sit alongside
 - **Step 3 (Guest/user session management)**: Completed. Built localStorage-based session persistence, guest mode with optional account creation, and auth provider abstraction for future Firebase integration.
 - **Step 4 (Firebase integration)**: Completed. Integrated Firebase Auth (Google + anonymous) and prepared Firestore backend provider. Client-side auth fully operational; API routes continue using in-memory provider for now (server-side Firebase Admin SDK planned for future).
 - **Step 5 (Rounds + drinks UI and category voting flow)**: Completed. Added round/drink UI components, vote categories with backend submission, and admin category management.
+- **Step 6 (Contest lifecycle + admin tooling)**: Completed. Added contest lifecycle state management (Debug/Set/Shake/Scored), local admin contest storage, round state controls, mixologist management, and contest detail editing in `/mixology/admin`.
+- **Step 7 (Bracket + score panel)**: Completed. Added bracket view backed by contest rounds and vote score panels with contest-state gating and totals.
 
 ## Architectural Decisions
 - **Routing structure**: The mixology experience lives under `/mixology`, with the landing page at `/`. This ensures contest participants arrive at the mixology shell by default while keeping the new flow isolated from legacy code paths.
@@ -17,13 +19,13 @@ We are introducing a contest-focused Mixology Rating App that will sit alongside
 - **Navigation and layouts**: The shared header renders only on `/` and `/mixology` routes and does not surface legacy navigation. The main content area remains neutral to support both the new shell and legacy UI without altering existing calculator components.
 - **Feature placement**: Future mixology features (admin tools, voting, standings, brackets, invites) should be added within the `/mixology` route and associated subdirectories. Any new API routes or server actions should be namespaced for mixology to avoid collisions with calculator logic.
 - **Constraints/assumptions**: Legacy calculator behavior and styling should remain untouched aside from the navigation wrapper. Mixology additions should avoid modifying shared legacy styles; instead, prefer scoped styles or new modules under the mixology tree.
-- **Backend provider pattern**: All data access goes through `MixologyBackendProvider` interface (`src/mixology/backend/types.ts`). To switch backends (e.g., from in-memory to Firebase), implement the provider interface and swap the factory call in `src/mixology/backend/index.ts`. Frontend hooks and API routes remain unchanged.
+- **Backend provider pattern**: All data access goes through `MixologyBackendProvider` interface (`src/features/mixology/server/backend/types.ts`). To switch backends (e.g., from in-memory to Firebase), implement the provider interface and swap the factory call in `src/features/mixology/server/backend/index.ts`. Frontend hooks and API routes remain unchanged.
 - **Session/auth pattern**: User sessions are stored in localStorage with a provider abstraction for authentication. Guest users can vote and their data persists locally. When they create an account, local data is migrated to the backend. The auth provider can be swapped from mock to Firebase without changing any UI code.
 
 ## Backend Abstraction Layer
 
 ### Provider Interface
-Located in `src/mixology/backend/types.ts`, the abstraction defines:
+Located in `src/features/mixology/server/backend/types.ts`, the abstraction defines:
 - `ContestsProvider`: CRUD operations for contests
 - `DrinksProvider`: Manage drinks within contests
 - `JudgesProvider`: Manage judges within contests
@@ -31,11 +33,12 @@ Located in `src/mixology/backend/types.ts`, the abstraction defines:
 - `MixologyBackendProvider`: Aggregates all sub-providers with init/dispose lifecycle
 
 ### Current Implementation
-- **In-Memory Provider** (`src/mixology/backend/inMemoryProvider.ts`): Stores data in memory using seed data. Perfect for local development and testing.
+- **In-Memory Provider** (`src/features/mixology/server/backend/inMemoryProvider.ts`): Stores data in memory using seed data. Perfect for local development and testing.
+- **Firestore Provider (prepared)** (`src/features/mixology/server/firebase/firebaseBackendProvider.ts`): Implemented but not wired into API routes yet.
 
 ### How to Switch Backends
-1. Create a new file implementing `MixologyBackendProvider` (e.g., `firebaseProvider.ts`)
-2. Update `src/mixology/backend/index.ts` to import and use the new provider factory
+1. Create a new file implementing `MixologyBackendProvider` (e.g., `firebaseBackendProvider.ts`)
+2. Update `src/features/mixology/server/backend/index.ts` to import and use the new provider factory
 3. No changes needed to API routes, hooks, or UI components
 
 ### API Endpoints
@@ -45,9 +48,12 @@ Located in `src/mixology/backend/types.ts`, the abstraction defines:
 | `/api/mixology/contests/[id]` | GET, PATCH, DELETE | Single contest operations |
 | `/api/mixology/contests/[id]/drinks` | GET, POST | List/create drinks for a contest |
 | `/api/mixology/contests/[id]/drinks/[drinkId]` | GET, PATCH, DELETE | Single drink operations |
+| `/api/mixology/contests/[id]/categories` | GET, POST, PATCH | Vote category management |
+| `/api/mixology/contests/[id]/scores` | GET, POST | Submit and read score entries |
+| `/api/mixology/current` | GET | Fetch default contest |
 
 ### Frontend Hooks
-Located in `src/mixology/hooks/useBackend.ts`:
+Located in `src/features/mixology/hooks/useBackend.ts`:
 - `useContests()`: Fetch all contests
 - `useContest(slug)`: Fetch single contest by slug
 - `useCurrentContest()`: Fetch the default contest
@@ -56,18 +62,18 @@ Located in `src/mixology/hooks/useBackend.ts`:
 ## Auth & Session Layer
 
 ### Session Storage
-Located in `src/mixology/auth/storage.ts`:
+Located in `src/features/mixology/lib/auth/storage.ts`:
 - Uses localStorage for persistence (works offline, no cookie consent needed)
 - Versioned storage format for future migrations
 - Tracks votes, profile, sync status, and pending changes
 
 ### Auth Provider Interface
-Located in `src/mixology/auth/provider.ts`:
+Located in `src/features/mixology/lib/auth/provider.ts`:
 - `AuthProvider`: Interface for auth backends (register, login, logout, sync)
 - `mockAuthProvider.ts`: In-memory mock for development
 - `firebaseAuthProvider.ts`: Firebase Auth + Firestore profiles (Google + anonymous)
 
-### Session Types (`src/mixology/auth/types.ts`)
+### Session Types (`src/features/mixology/lib/auth/types.ts`)
 - `LocalSession`: Full session state (votes, profile, sync status)
 - `UserVote`: Individual vote with timestamp and breakdown
 - `PendingSync`: Queue of changes awaiting backend sync
@@ -85,7 +91,7 @@ Located in `src/mixology/auth/provider.ts`:
 3. User creates account → local data synced to backend
 4. Or user logs in → local guest data merged with existing account
 
-### UI Components (`app/mixology/components/`)
+### UI Components (`src/features/mixology/components/`)
 - `GuestPrompt`: Welcome screen with guest/login/register options
 - `LoginForm`: Email/password login
 - `RegisterForm`: Account creation with validation
@@ -103,10 +109,10 @@ Firebase is integrated for authentication (Google + anonymous) and prepared for 
 ### Files
 | File | Purpose |
 |------|---------|
-| `src/mixology/firebase/config.ts` | Firebase credentials (**GITIGNORED**) |
-| `src/mixology/firebase/firebaseAuthProvider.ts` | Auth provider using Firebase Auth + Firestore for profiles |
-| `src/mixology/firebase/firebaseBackendProvider.ts` | Firestore backend provider (ready for use) |
-| `src/mixology/firebase/index.ts` | Module exports |
+| `src/features/mixology/server/firebase/config.ts` | Firebase credentials (**GITIGNORED**) |
+| `src/features/mixology/server/firebase/firebaseAuthProvider.ts` | Auth provider using Firebase Auth + Firestore for profiles |
+| `src/features/mixology/server/firebase/firebaseBackendProvider.ts` | Firestore backend provider (ready for use) |
+| `src/features/mixology/server/firebase/index.ts` | Module exports |
 
 ### Current Architecture
 - **Client-side auth**: Uses Firebase Auth directly via `AuthContext`
@@ -154,10 +160,10 @@ service cloud.firestore {
 ```
 
 ## Admin Validation UI
-A basic admin dashboard at `/mixology/admin` provides:
+A local admin dashboard at `/mixology/admin` provides:
 - Contest list with phase indicators and statistics
-- Detailed view of drinks, judges, and scores for selected contests
-- Refresh functionality to verify backend integration
+- Detailed view of rounds, mixologists, categories, and scores for selected contests
+- Local storage persistence for contest editing
 - Foundation for future admin features
 
 ## Account Testing UI
@@ -174,11 +180,10 @@ The account page at `/mixology/account` provides:
 
 ## Upcoming Steps (planned)
 The following phases are planned for future iterations:
-1. ~~Step 3: Authentication, roles, and basic access control.~~ ✓ Completed
-2. ~~Step 4: Firebase integration (auth provider + data provider).~~ ✓ Completed
-3. Step 5: Contest and drink management (admin only).
-4. ~~Step 6: Current drink flow and basic voting UI.~~ ✓ Completed (category voting + submission)
-5. Step 7: Live leaderboard and standings overview.
-6. Step 8: Bracket modeling and display.
-7. Step 9: Invite URL and cookie-based account creation flow.
-8. Step 10: Polishing, analytics, and documentation cleanup.
+1. Step 8: Persist contest/round data in Firestore (wire backend provider + Admin SDK).
+2. Step 9: Participant decision + role switching (default-to-voter policy).
+3. Step 10: Live leaderboard, standings, and matchup winner propagation.
+4. Step 11: Mixologist drink submission flow + mixer scoring rules.
+5. Step 12: Invite validation API + cookie-based account creation.
+6. Step 13: N/A scoring and normalization.
+7. Step 14: Polishing, analytics, and documentation cleanup.

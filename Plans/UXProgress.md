@@ -14,7 +14,7 @@ This document tracks UX and component implementation milestones for the Mixology
 - ✅ Legacy routes exist under `/legacy`.
 - ✅ Auth context and session management exist.
 - ✅ Legacy is not linked from mixology navigation.
-- ⬜ Mixology navbar is generic (not minimal).
+- ✅ `SiteHeader` + `NavBar` render for mixology routes with contest state badge.
 - ⬜ Landing page does not show role-based widgets.
 
 ---
@@ -35,27 +35,27 @@ This document tracks UX and component implementation milestones for the Mixology
 
 ## Phase 2 — Mixology navbar
 
-### 2.1 Create minimal MixologyNavbar
-- ⬜ Create `MixologyNavbar` component.
+### 2.1 Current navigation
+- ✅ `SiteHeader` renders branding and contest-state badge.
+- ✅ `NavBar` links to mixology home, vote, bracket, account, and admin (admin-only).
+- ✅ Auth banner appears on gated routes for signed-out users.
+
+### 2.2 Minimal MixologyNavbar (original concept)
+- ⬜ Create minimal `MixologyNavbar` component.
 - ⬜ Add centered title/branding.
 - ⬜ Add user display name on right.
 - ⬜ Add logout button on right.
 - ⬜ Remove all other navigation links.
-
-### 2.2 Integrate MixologyNavbar
-- ⬜ Replace existing navbar in mixology layout with `MixologyNavbar`.
-- ⬜ Ensure navbar height is compact (48–56px).
-- ⬜ Style using semantic tokens from theme.
 
 ---
 
 ## Phase 3 — Landing page widgets
 
 ### 3.1 Unauthenticated landing
+- 🟡 Landing hero and primary CTA implemented.
 - ⬜ Create `WidgetCard` component for CTAs.
 - ⬜ Show "Create Account" / "Login" widgets.
 - ⬜ Show "Continue as Guest" widget.
-- ⬜ Center layout with branding.
 
 ### 3.2 Authenticated landing
 - ⬜ Show "Vote on Drinks" widget (all users).
@@ -74,49 +74,38 @@ This document tracks UX and component implementation milestones for the Mixology
 ## Phase 4 — Context providers
 
 ### 4.1 ContestContext
-- ⬜ Create `ContestContext` provider.
-- ⬜ Fetch current contest data.
-- ⬜ Expose contest, drinks, and loading state.
-- ⬜ Add hook `useContest` for consuming context.
+- ✅ `MixologyDataContext` provides contest, rounds, and drink summaries.
+- ✅ `ContestStateContext` provides lifecycle state (Debug/Set/Shake/Scored).
 
 ### 4.2 RoundContext
-- ⬜ Create `RoundContext` provider.
+- ⬜ Create `RoundContext` provider (if needed for server-backed rounds).
 - ⬜ Fetch active round and matchups.
 - ⬜ Expose round, matchups, and voting status.
-- ⬜ Add hook `useRound` for consuming context.
 
 ### 4.3 AdminContext
-- ⬜ Create `AdminContext` provider (admin pages only).
-- ⬜ Expose admin actions (advance round, update matchup).
-- ⬜ Guard against non-admin access.
+- ✅ `AdminContestContext` provides local contest CRUD and round controls.
+- ⬜ Add server-backed admin actions once Admin SDK is ready.
 
 ---
 
 ## Phase 5 — Bracket system
 
 ### 5.1 Library selection
-- ⬜ Evaluate `react-brackets` for suitability.
-- ⬜ Evaluate `react-tournament-bracket` for suitability.
-- ⬜ Decide on library or custom implementation.
-- ⬜ Document decision in UXPlan.md.
+- ✅ Chose custom bracket rendering (`BracketView`).
+- ✅ Documented mapping helper (`buildBracketRoundsFromContest`).
 
 ### 5.2 Bracket data model
-- ⬜ Define `Round` type with round number, status, matchups.
-- ⬜ Define `Matchup` type with drink pairs and winner.
-- ⬜ Add rounds array to contest model.
-- ⬜ Update backend types.
+- ✅ Contest rounds model exists (`ContestRound` in mixology types).
+- ✅ Contest includes rounds array and active round.
 
 ### 5.3 BracketView component
-- ⬜ Create `BracketView` component.
-- ⬜ Render rounds and matchups.
-- ⬜ Highlight current/active round.
-- ⬜ Show winners for completed matchups.
+- ✅ `BracketView` component renders rounds + matchups.
+- ✅ Highlights current/active round.
+- ⬜ Show winners for completed matchups (requires data).
 
 ### 5.4 MatchupCard component
-- ⬜ Create `MatchupCard` component.
-- ⬜ Display two drinks in matchup.
-- ⬜ Show scores or "pending" state.
-- ⬜ Highlight winner.
+- ✅ Matchup cards render matchup entries within `BracketView`.
+- ⬜ Display scores or "pending" state (once scoring data wired).
 
 ---
 
@@ -124,21 +113,19 @@ This document tracks UX and component implementation milestones for the Mixology
 
 ### 6.1 Vote page structure
 - ✅ Create `/mixology/vote` page.
-- ✅ Fetch current round drinks.
+- ✅ Fetch current round drinks and categories.
 - ✅ Display list of `DrinkCard` components.
-- ⬜ Link each card to `/mixology/vote/[drinkId]`.
+- ⬜ Link each card to `/mixology/vote/[drinkId]` (planned).
 
 ### 6.2 DrinkCard component
-- ✅ Create `DrinkCard` component.
-- 🟡 Display drink name, image, mixer.
-- ⬜ Show voting status (voted/not voted).
-- ⬜ Style using semantic tokens.
+- ✅ Display drink name, creator, totals.
+- ✅ Supports vote and compact variants.
+- ⬜ Add voted/not voted status badge.
 
 ### 6.3 Score input page
-- ⬜ Create `/mixology/vote/[drinkId]` page.
-- ⬜ Create `ScoreInput` component with N/A support.
-- ✅ Submit scores to backend.
-- ⬜ Navigate back to vote list on submit.
+- ✅ Inline `VoteScorePanel` supports per-category sliders and submission.
+- ⬜ Create `/mixology/vote/[drinkId]` page (if we switch to per-drink flow).
+- ⬜ Add N/A support.
 
 ### 6.4 RoundIndicator component
 - ⬜ Create `RoundIndicator` component.
@@ -150,16 +137,13 @@ This document tracks UX and component implementation milestones for the Mixology
 ## Phase 7 — Admin pages
 
 ### 7.1 Admin dashboard
-- ⬜ Create `/mixology/admin` page.
-- ⬜ Create `AdminSidebar` component.
-- ⬜ Show stats overview (users, votes, drinks).
-- ⬜ Link to admin sub-pages.
+- ✅ `/mixology/admin` page exists.
+- ✅ Contest list, contest details, categories, mixologists, rounds.
+- ✅ Contest state controls in admin UI.
 
 ### 7.2 Round management
-- ⬜ Create `/mixology/admin/rounds` page.
-- ⬜ List all rounds with status.
-- ⬜ Allow setting active round.
-- ⬜ Allow advancing to next round.
+- ✅ Add/update/remove rounds in admin dashboard.
+- ✅ Set active round and round state in admin dashboard.
 
 ### 7.3 Matchup management
 - ⬜ Display matchups for selected round.
@@ -167,10 +151,8 @@ This document tracks UX and component implementation milestones for the Mixology
 - ⬜ Auto-advance winner to next round.
 
 ### 7.4 Drink management
-- ⬜ Create `/mixology/admin/drinks` page.
-- ⬜ List all drinks with mixer info.
-- ⬜ Allow creating/editing drinks.
-- ⬜ Allow assigning drinks to rounds.
+- ✅ Mixologist + drink management in admin dashboard.
+- ⬜ Create `/mixology/admin/drinks` standalone page (optional).
 
 ### 7.5 User management
 - ⬜ Create `/mixology/admin/users` page.
@@ -198,24 +180,10 @@ This document tracks UX and component implementation milestones for the Mixology
 ## Phase 9 — Polish and accessibility
 
 ### 9.1 Keyboard navigation
-- ⬜ Ensure all interactive elements are keyboard accessible.
-- ⬜ Add focus states from theme tokens.
-- ⬜ Test tab order on all pages.
+- ⬜ Audit focus states and keyboard controls.
+- ⬜ Add focus-visible styles for key widgets.
 
-### 9.2 Loading states
-- ⬜ Add loading skeletons for widgets.
-- ⬜ Add loading states for bracket/vote pages.
-- ⬜ Ensure no layout shift on load.
-
-### 9.3 Error states
-- ⬜ Add error boundaries for page crashes.
-- ⬜ Show user-friendly error messages.
-- ⬜ Allow retry on failed data fetches.
-
----
-
-## Notes
-- UXPlan.md is the source of truth for architecture decisions.
-- Components should be theme-aware per DEV_STANDARDS.md.
-- Bracket library decision blocks Phase 5.3+.
-- Admin pages require admin role enforcement.
+### 9.2 Accessibility review
+- ⬜ Screen reader labels for key actions.
+- ⬜ Color contrast audit.
+- ⬜ Reduced motion checks.
