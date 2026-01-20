@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/src/mixology/auth';
 import { useMixologyData } from '@/src/mixology/data/MixologyDataContext';
 import {
@@ -43,16 +43,12 @@ export function useVoteScores(): UseVoteScoresResult {
   const judgeId = session?.firebaseUid ?? session?.sessionId;
   const contestId = contest?.id;
 
-  const categoryIds = useMemo(
-    () =>
-      (contest?.categories ?? [])
-        .slice()
-        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-        .map((cat) => cat.id),
-    [contest?.categories]
-  );
+  const categoryIds = (contest?.categories ?? [])
+    .slice()
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    .map((cat) => cat.id);
 
-  const drinkIds = useMemo(() => drinks.map((d) => d.id), [drinks]);
+  const drinkIds = drinks.map((d) => d.id);
 
   // Reset remote load flag when contest or judge changes
   useEffect(() => {
@@ -120,7 +116,7 @@ export function useVoteScores(): UseVoteScoresResult {
     };
   }, [categoryIds, contestId, judgeId]);
 
-  const updateScore = useCallback((drinkId: string, categoryId: string, value: number) => {
+  const updateScore = (drinkId: string, categoryId: string, value: number) => {
     setDraftScores((prev) => ({
       ...prev,
       [drinkId]: {
@@ -128,7 +124,7 @@ export function useVoteScores(): UseVoteScoresResult {
         [categoryId]: value,
       },
     }));
-  }, []);
+  };
 
   return {
     scores: draftScores,

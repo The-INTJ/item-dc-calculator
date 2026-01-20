@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/src/mixology/auth';
 import { useMixologyData } from '@/src/mixology/data/MixologyDataContext';
 import {
@@ -43,81 +43,78 @@ export function useSubmitVotes(): UseSubmitVotesResult {
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
     .map((cat) => cat.id);
 
-  const submitScores = useCallback(
-    async (scores: ScoreByDrinkId) => {
-      if (!contest?.id || !judgeId) {
-        setStatus('error');
-        setMessage('No active contest or session.');
-        return;
+  const submitScores = async (scores: ScoreByDrinkId) => {
+    if (!contest?.id || !judgeId) {
+      setStatus('error');
+      setMessage('No active contest or session.');
+      return;
+    }
+
+    // Build entries from the score map
+    const entries = Object.entries(scores)
+      .map(([drinkId, drinkScores]) => {
+        const breakdown = categoryIds.reduce<Partial<ScoreBreakdown>>((acc, categoryId) => {
+          if (!isBreakdownKey(categoryId)) return acc;
+          const value = drinkScores?.[categoryId];
+          if (!Number.isFinite(value)) return acc;
+          acc[categoryId] = value;
+          return acc;
+        }, {});
+        return { drinkId, breakdown };
+      })
+      .filter((entry) => Object.keys(entry.breakdown).length > 0);
+
+    if (entries.length === 0) {
+      setStatus('error');
+      setMessage('Enter at least one score before submitting.');
+      return;
+    }
+
+    setStatus('submitting');
+    setMessage(null);
+
+    try {
+      const responses = await Promise.all(
+        entries.map(({ drinkId, breakdown }) =>
+          fetch(`/api/mixology/contests/${contest.id}/scores`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              drinkId,
+              judgeId,
+              judgeName: session?.profile.displayName ?? 'Guest',
+              judgeRole: role ?? 'judge',
+              breakdown,
+            }),
+          })
+        )
+      );
+
+      const failed = responses.find((res) => !res.ok);
+      if (failed) {
+        const payload = await failed.json().catch(() => ({}));
+        throw new Error(payload.message ?? 'Failed to submit scores.');
       }
 
-      // Build entries from the score map
-      const entries = Object.entries(scores)
-        .map(([drinkId, drinkScores]) => {
-          const breakdown = categoryIds.reduce<Partial<ScoreBreakdown>>((acc, categoryId) => {
-            if (!isBreakdownKey(categoryId)) return acc;
-            const value = drinkScores?.[categoryId];
-            if (!Number.isFinite(value)) return acc;
-            acc[categoryId] = value;
-            return acc;
-          }, {});
-          return { drinkId, breakdown };
-        })
-        .filter((entry) => Object.keys(entry.breakdown).length > 0);
-
-      if (entries.length === 0) {
-        setStatus('error');
-        setMessage('Enter at least one score before submitting.');
-        return;
+      // Sync to local session
+      for (const entry of entries) {
+        const fullBreakdown = buildFullBreakdown(entry.breakdown);
+        await recordVote({
+          contestId: contest.id,
+          drinkId: entry.drinkId,
+          breakdown: fullBreakdown,
+          score: calculateScore(fullBreakdown),
+        });
       }
 
-      setStatus('submitting');
-      setMessage(null);
-
-      try {
-        const responses = await Promise.all(
-          entries.map(({ drinkId, breakdown }) =>
-            fetch(`/api/mixology/contests/${contest.id}/scores`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                drinkId,
-                judgeId,
-                judgeName: session?.profile.displayName ?? 'Guest',
-                judgeRole: role ?? 'judge',
-                breakdown,
-              }),
-            })
-          )
-        );
-
-        const failed = responses.find((res) => !res.ok);
-        if (failed) {
-          const payload = await failed.json().catch(() => ({}));
-          throw new Error(payload.message ?? 'Failed to submit scores.');
-        }
-
-        // Sync to local session
-        for (const entry of entries) {
-          const fullBreakdown = buildFullBreakdown(entry.breakdown);
-          await recordVote({
-            contestId: contest.id,
-            drinkId: entry.drinkId,
-            breakdown: fullBreakdown,
-            score: calculateScore(fullBreakdown),
-          });
-        }
-
-        setStatus('success');
-        setMessage('Scores submitted successfully.');
-        await refreshAll();
-      } catch (submitError) {
-        setStatus('error');
-        setMessage(String(submitError));
-      }
-    },
-    [categoryIds, contest?.id, judgeId, recordVote, refreshAll, role, session?.profile.displayName]
-  );
+      setStatus('success');
+      setMessage('Scores submitted successfully.');
+      await refreshAll();
+    } catch (submitError) {
+      setStatus('error');
+      setMessage(String(submitError));
+    }
+  };
 
   return {
     status,

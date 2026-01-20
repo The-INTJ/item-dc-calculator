@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import { useMixologyData } from '@/src/mixology/data/MixologyDataContext';
 import { VoteScorePanel } from '@/src/mixology/ui';
 import { buildTotalsFromScores } from '@/src/mixology/ui/voteUtils';
@@ -10,18 +9,11 @@ import { VotePageHeader, VoteActions } from './components';
 export function VotePage() {
   const { contest, drinks, loading, error } = useMixologyData();
 
-  const categories = useMemo(
-    () =>
-      (contest?.categories ?? [])
-        .slice()
-        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
-    [contest?.categories]
-  );
+  const categories = (contest?.categories ?? [])
+    .slice()
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
-  const totals = useMemo(
-    () => buildTotalsFromScores(contest?.scores ?? [], categories),
-    [contest?.scores, categories]
-  );
+  const totals = buildTotalsFromScores(contest?.scores ?? [], categories);
 
   const { scores, updateScore } = useVoteScores();
   const { status, message, submitScores, isSubmitting } = useSubmitVotes();
