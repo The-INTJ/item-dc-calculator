@@ -29,6 +29,27 @@
   margin-bottom: $space-gap-normal;
 }
 
+.admin-debug-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  margin: $space-base 0 $space-gap-normal;
+  max-width: 520px;
+}
+
+.admin-debug-toggle__label {
+  align-items: center;
+  display: flex;
+  gap: $space-sm;
+  font-weight: $font-weight-semibold;
+}
+
+.admin-debug-toggle__label input {
+  accent-color: $color-info-600;
+  height: 18px;
+  width: 18px;
+}
+
 .admin-dashboard__layout {
   display: grid;
   gap: $space-gap-loose;

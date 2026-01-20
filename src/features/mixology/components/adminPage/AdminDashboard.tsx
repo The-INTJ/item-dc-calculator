@@ -15,7 +15,16 @@ import { ContestDetails } from './ContestDetails';
 
 export function AdminDashboard() {
   const { role, loading: authLoading, isAuthenticated } = useAuth();
-  const { contests, activeContestId, refresh, setActiveContest, updateContest, addContest } = useAdminContestData();
+  const {
+    contests,
+    activeContestId,
+    refresh,
+    setActiveContest,
+    updateContest,
+    addContest,
+    useLocalDebugData,
+    setUseLocalDebugData,
+  } = useAdminContestData();
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
   const [newContestName, setNewContestName] = useState('');
   const loading = false;
@@ -101,6 +110,20 @@ export function AdminDashboard() {
           This is a validation UI to test the backend abstraction layer.
           Select a contest to view its details.
         </p>
+        <div className="admin-debug-toggle">
+          <label className="admin-debug-toggle__label">
+            <input
+              type="checkbox"
+              checked={useLocalDebugData}
+              onChange={(event) => setUseLocalDebugData(event.target.checked)}
+            />
+            <span>Use local debug dataset</span>
+          </label>
+          <p className="admin-detail-meta">
+            This toggle swaps the admin view to pre-populated local data for stress testing. It is
+            separate from the live contest debug state.
+          </p>
+        </div>
         <button onClick={refresh} className="button-secondary">
           Refresh Data
         </button>
