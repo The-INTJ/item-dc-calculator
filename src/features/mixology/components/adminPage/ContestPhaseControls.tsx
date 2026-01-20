@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { Contest } from '../../types';
-import { useContestMutations } from '../../hooks';
+import { useAdminContestData } from '../../contexts/AdminContestContext';
 
 const contestUpdatedEvent = 'mixology:contest-updated';
 
@@ -28,7 +28,7 @@ const phaseDescriptions: Record<Contest['phase'], string> = {
 };
 
 export function ContestPhaseControls({ contest, onContestUpdated }: ContestPhaseControlsProps) {
-  const { updateContest, loading } = useContestMutations();
+  const { updateContest } = useAdminContestData();
   const [status, setStatus] = useState<Status>('idle');
   const [message, setMessage] = useState<string | null>(null);
 
@@ -48,22 +48,15 @@ export function ContestPhaseControls({ contest, onContestUpdated }: ContestPhase
   }, [contest.id]);
 
   const handlePhaseChange = async (phase: Contest['phase']) => {
-    if (phase === contest.phase || loading) {
+    if (phase === contest.phase) {
       return;
     }
 
     setStatus('saving');
     setMessage(null);
 
-    const result = await updateContest(contest.id, { phase });
-
-    if (!result.success || !result.data) {
-      setStatus('error');
-      setMessage(result.error ?? 'Failed to update contest state.');
-      return;
-    }
-
-    onContestUpdated(result.data);
+    updateContest(contest.id, { phase });
+    onContestUpdated({ ...contest, phase });
     setStatus('success');
     setMessage(`State updated to ${phaseLabels[phase]}.`);
     window.dispatchEvent(new Event(contestUpdatedEvent));
@@ -94,7 +87,7 @@ export function ContestPhaseControls({ contest, onContestUpdated }: ContestPhase
               className={`admin-phase-button ${isActive ? 'admin-phase-button--active' : ''}`}
               onClick={() => handlePhaseChange(option.value)}
               aria-pressed={isActive}
-              disabled={loading}
+              disabled={status === 'saving'}
             >
               <span className="admin-phase-button__label">{option.label}</span>
               <span className="admin-phase-button__desc">{option.description}</span>

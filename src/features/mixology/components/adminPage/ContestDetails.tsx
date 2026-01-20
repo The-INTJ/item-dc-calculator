@@ -6,23 +6,27 @@
 
 import type { Contest, Drink, Judge, ScoreEntry } from '../../types';
 import { buildDrinkSummary } from '../../types/uiTypes';
+import { getRoundLabel } from '../../lib/contestHelpers';
 import { DrinkCard } from '../ui';
+import { AdminContestActivation } from './AdminContestActivation';
+import { AdminContestRounds } from './AdminContestRounds';
+import { AdminMixologists } from './AdminMixologists';
 import { AdminRoundOverview } from './AdminRoundOverview';
 import { ContestPhaseControls } from './ContestPhaseControls';
-import { ContestCategories } from './ContestCategories';
 
 interface ContestDetailsProps {
   contest: Contest;
   onContestUpdated: (contest: Contest) => void;
+  onSetActiveContest: (contestId: string) => void;
 }
 
-function DrinkItem({ drink }: { drink: Drink }) {
+function DrinkItem({ drink, roundLabel }: { drink: Drink; roundLabel: string }) {
   const summary = buildDrinkSummary(drink);
 
   return (
     <li className="admin-detail-item">
       <DrinkCard drink={summary} variant="compact" showCreator />
-      <span className="admin-detail-meta">Round: {drink.round}</span>
+      <span className="admin-detail-meta">Round: {roundLabel}</span>
     </li>
   );
 }
@@ -67,19 +71,33 @@ function ScoreItem({ score, drinks, judges }: { score: ScoreEntry; drinks: Drink
   );
 }
 
-export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProps) {
+export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }: ContestDetailsProps) {
+  const activeRoundLabel = getRoundLabel(contest, contest.activeRoundId);
+
   return (
     <div className="admin-contest-details">
       <header className="admin-contest-details__header">
         <h2>{contest.name}</h2>
         <p className="admin-detail-meta">
-          {contest.location ?? 'No location'} • {contest.bracketRound ?? 'No round'}
+          {contest.location ?? 'No location'} • {activeRoundLabel}
         </p>
       </header>
 
+      <AdminContestActivation
+        contest={contest}
+        isActive={Boolean(contest.defaultContest)}
+        onSetActive={() => onSetActiveContest(contest.id)}
+      />
       <ContestPhaseControls contest={contest} onContestUpdated={onContestUpdated} />
+      <AdminContestRounds contest={contest} />
+      <AdminMixologists contest={contest} />
       <AdminRoundOverview contest={contest} />
-      <ContestCategories contestId={contest.id} initialCategories={contest.categories ?? []} />
+      <section className="admin-details-section">
+        <h3>Vote categories</h3>
+        <p className="admin-detail-meta">
+          Server-managed categories are disabled for local testing.
+        </p>
+      </section>
 
       <section className="admin-details-section">
         <h3>Drinks ({contest.drinks.length})</h3>
@@ -88,7 +106,11 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
         ) : (
           <ul className="admin-detail-list">
             {contest.drinks.map((drink) => (
-              <DrinkItem key={drink.id} drink={drink} />
+              <DrinkItem
+                key={drink.id}
+                drink={drink}
+                roundLabel={getRoundLabel(contest, drink.round)}
+              />
             ))}
           </ul>
         )}

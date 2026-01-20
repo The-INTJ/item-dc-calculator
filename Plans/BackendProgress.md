@@ -80,13 +80,16 @@ This document tracks backend implementation milestones for the Mixology Rating A
 
 ### 4.1 Mixer assignment
 - ⬜ Add `mixerUserId`/`mixerGuestId` to drink model.
-- ⬜ Add write path for marking mixer.
+- ⬜ Add write path for users to register as mixologists and submit drinks.
 - ⬜ Add tests for mixer assignment.
 
 ### 4.2 Mixer scoring rules
-- ⬜ Block mixer from submitting manual score.
-- ⬜ Auto-generate max score when mixer set.
+- ⬜ Check if voter is mixologist on current round (not just single drink).
+- ⬜ Block mixologist from manually voting on rounds where they compete.
+- ⬜ Auto-generate max score for mixologist's own round.
+- ⬜ Allow mixologists to vote normally on rounds where they don't compete.
 - ⬜ Add tests for enforcement + auto-score.
+- ⬜ Admin bypass (admins can vote/edit on their own rounds, but defaults apply).
 
 ---
 

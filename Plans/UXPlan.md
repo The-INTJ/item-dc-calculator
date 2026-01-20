@@ -202,10 +202,12 @@ Evaluation criteria:
 
 ### Mixologist flow
 1. Authenticate.
-2. Click "Enter as Mixologist".
+2. Click "Enter as Mixologist" or register as mixologist.
 3. Navigate to `/mixology/create`.
-4. Submit drink entry.
-5. Drink marked with mixer (auto-scored).
+4. Submit drink entry to active contest.
+5. Drink marked with mixer (user ID stored on drink).
+6. On rounds where user is the mixologist, they cannot manually vote (auto-scored full marks).
+7. On rounds where user is NOT the mixologist, they vote normally.
 6. If voting in a round where they are the mixer, their score auto-counts as full; otherwise they vote normally.
 
 ### Admin flow

@@ -48,6 +48,12 @@ export interface ScoreEntry {
   notes?: string;
 }
 
+export interface ContestRound {
+  id: string;
+  name: string;
+  number?: number | null;
+}
+
 export interface Contest {
   id: string;
   name: string;
@@ -58,6 +64,9 @@ export interface Contest {
   bracketRound?: string;
   currentDrinkId?: string;
   defaultContest?: boolean;
+  rounds?: ContestRound[];
+  activeRoundId?: string | null;
+  futureRoundId?: string | null;
   categories?: VoteCategory[];
   drinks: Drink[];
   judges: Judge[];

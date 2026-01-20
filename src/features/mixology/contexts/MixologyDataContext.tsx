@@ -1,11 +1,11 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useMemo, useRef } from 'react';
-import { useCurrentContest } from '../hooks/useBackend';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 import { buildRoundDetail, buildRoundSummary, buildDrinkSummaries } from '../lib/uiMappings';
 import type { RoundDetail, RoundSummary, DrinkSummary } from '../types/uiTypes';
 import type { Contest } from '../types';
 import { getCachedContestSnapshot, setCachedContest } from '../services/cache';
+import { useAdminContestData } from './AdminContestContext';
 
 interface MixologyDataState {
   contest: Contest | null;
@@ -26,7 +26,21 @@ interface MixologyDataProviderProps {
 }
 
 export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
-  const { data: contest, loading, error, refresh } = useCurrentContest();
+  const { contests, activeContestId, lastUpdatedAt, refresh: refreshLocal } = useAdminContestData();
+  // TODO: Server integration placeholder (disabled for local admin testing).
+  // const { data: serverContest, loading: serverLoading, error: serverError, refresh } = useCurrentContest();
+  const serverContest: Contest | null = null;
+  const serverLoading = false;
+  const serverError: string | null = null;
+  const refresh = async () => {
+    // Intentionally no-op until server endpoints are ready.
+  };
+  const refreshAllLocal = useCallback(async () => {
+    refreshLocal();
+  }, [refreshLocal]);
+  const contest = serverContest ?? contests.find((item) => item.id === activeContestId) ?? null;
+  const loading = serverLoading;
+  const error = serverError;
   const lastUpdatedAtRef = useRef<number | null>(null);
   const cachedSnapshot = getCachedContestSnapshot();
   const contestUpdatedEvent = 'mixology:contest-updated';
@@ -46,7 +60,7 @@ export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        void refresh();
+        void refreshAllLocal();
       }
     };
 
@@ -55,19 +69,19 @@ export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [refresh]);
+  }, [refreshAllLocal]);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
-      void refresh();
+      void refreshAllLocal();
     }, 2 * 60 * 1000);
 
     return () => window.clearInterval(interval);
-  }, [refresh]);
+  }, [refreshAllLocal]);
 
   useEffect(() => {
     const handleContestUpdated = () => {
-      void refresh();
+      void refreshAllLocal();
     };
 
     window.addEventListener(contestUpdatedEvent, handleContestUpdated);
@@ -75,12 +89,12 @@ export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
     return () => {
       window.removeEventListener(contestUpdatedEvent, handleContestUpdated);
     };
-  }, [refresh]);
+  }, [refreshAllLocal]);
 
   const value = useMemo<MixologyDataState>(() => {
     const activeContest = contest ?? cachedSnapshot.contest;
     const effectiveLoading = loading && !activeContest;
-    const effectiveUpdatedAt = contest ? lastUpdatedAtRef.current : cachedSnapshot.updatedAt;
+    const effectiveUpdatedAt = contest ? lastUpdatedAtRef.current ?? lastUpdatedAt : cachedSnapshot.updatedAt;
 
     if (!activeContest) {
       return {
@@ -90,8 +104,8 @@ export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
         drinks: [],
         loading: effectiveLoading,
         error,
-        refreshAll: refresh,
-        refreshRound: async () => refresh(),
+        refreshAll: refreshAllLocal,
+        refreshRound: async () => refreshAllLocal(),
         lastUpdatedAt: effectiveUpdatedAt,
       };
     }
@@ -103,11 +117,11 @@ export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
       drinks: buildDrinkSummaries(activeContest.drinks),
       loading: effectiveLoading,
       error,
-      refreshAll: refresh,
-      refreshRound: async () => refresh(),
+      refreshAll: refreshAllLocal,
+      refreshRound: async () => refreshAllLocal(),
       lastUpdatedAt: effectiveUpdatedAt,
     };
-  }, [contest, loading, error, refresh, cachedSnapshot.contest, cachedSnapshot.updatedAt]);
+  }, [contest, loading, error, refreshAllLocal, cachedSnapshot.contest, cachedSnapshot.updatedAt, lastUpdatedAt]);
 
   return <MixologyDataContext.Provider value={value}>{children}</MixologyDataContext.Provider>;
 }

@@ -1,88 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BracketView } from '@/mixology/components/ui';
 import type { BracketRound } from '@/mixology/components/ui/BracketView';
-
-const dummyRounds: BracketRound[] = [
-  {
-    id: 'round-16',
-    name: 'Round of 16',
-    status: 'closed',
-    matchups: [
-      {
-        id: 'm1',
-        contestantA: { id: 'd1', name: 'Velvet Rye', score: 82 },
-        contestantB: { id: 'd2', name: 'Midnight Citrus', score: 76 },
-        winnerId: 'd1',
-      },
-      {
-        id: 'm2',
-        contestantA: { id: 'd3', name: 'Golden Bloom', score: 88 },
-        contestantB: { id: 'd4', name: 'Cask Ember', score: 71 },
-        winnerId: 'd3',
-      },
-      {
-        id: 'm3',
-        contestantA: { id: 'd5', name: 'Opal Spritz', score: 79 },
-        contestantB: { id: 'd6', name: 'Nightshade Fizz', score: 81 },
-        winnerId: 'd6',
-      },
-      {
-        id: 'm4',
-        contestantA: { id: 'd7', name: 'Copper Coast', score: 85 },
-        contestantB: { id: 'd8', name: 'Juniper Dusk', score: 77 },
-        winnerId: 'd7',
-      },
-    ],
-  },
-  {
-    id: 'round-8',
-    name: 'Quarterfinals',
-    status: 'closed',
-    matchups: [
-      {
-        id: 'm5',
-        contestantA: { id: 'd1', name: 'Velvet Rye', score: 84 },
-        contestantB: { id: 'd3', name: 'Golden Bloom', score: 89 },
-        winnerId: 'd3',
-      },
-      {
-        id: 'm6',
-        contestantA: { id: 'd6', name: 'Nightshade Fizz', score: 83 },
-        contestantB: { id: 'd7', name: 'Copper Coast', score: 80 },
-        winnerId: 'd6',
-      },
-    ],
-  },
-  {
-    id: 'round-4',
-    name: 'Semifinals',
-    status: 'active',
-    matchups: [
-      {
-        id: 'm7',
-        contestantA: { id: 'd3', name: 'Golden Bloom', score: 90 },
-        contestantB: { id: 'd6', name: 'Nightshade Fizz', score: 88 },
-        winnerId: null,
-      },
-    ],
-  },
-  {
-    id: 'round-2',
-    name: 'Finals',
-    status: 'upcoming',
-    matchups: [
-      {
-        id: 'm8',
-        contestantA: { id: 'tbd-a', name: 'TBD', score: null },
-        contestantB: { id: 'tbd-b', name: 'TBD', score: null },
-        winnerId: null,
-      },
-    ],
-  },
-];
+import { useMixologyData } from '@/mixology/contexts/MixologyDataContext';
+import { buildBracketRoundsFromContest } from '@/mixology/lib/bracketMappings';
 
 function formatUpdatedAt(timestamp: number | null) {
   if (!timestamp) return 'Not refreshed yet.';
@@ -123,6 +46,12 @@ function BracketOverview({ hasRound }: { hasRound: boolean }) {
 export function BracketClient() {
   const router = useRouter();
   const [updatedAt, setUpdatedAt] = useState<number | null>(null);
+  const { contest, loading, error } = useMixologyData();
+
+  const rounds: BracketRound[] = useMemo(() => {
+    if (!contest) return [];
+    return buildBracketRoundsFromContest(contest);
+  }, [contest]);
 
   return (
     <div className="mixology-landing">
@@ -132,8 +61,10 @@ export function BracketClient() {
         updatedAt={updatedAt}
       />
 
-      <BracketOverview hasRound />
-      <BracketView rounds={dummyRounds} />
+      <BracketOverview hasRound={rounds.length > 0} />
+      {loading && <div className="mixology-card">Loading bracket...</div>}
+      {error && <div className="mixology-card">Error: {error}</div>}
+      {!loading && !error && <BracketView rounds={rounds} />}
     </div>
   );
 }

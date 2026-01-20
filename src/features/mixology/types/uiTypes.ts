@@ -1,4 +1,5 @@
 import type { Contest, Drink, ScoreEntry, ScoreBreakdown, VoteCategory } from './types';
+import { getActiveRoundId, getDrinksForRound, getRoundLabel, getRoundStatus } from '../lib/contestHelpers';
 
 export type { VoteCategory } from './types';
 
@@ -43,13 +44,6 @@ export interface VoteTotals {
   userHasVoted: boolean;
 }
 
-const roundPhaseMap: Record<Contest['phase'], RoundStatus> = {
-  setup: 'upcoming',
-  active: 'active',
-  judging: 'active',
-  closed: 'closed',
-};
-
 const breakdownKeys: Array<keyof ScoreBreakdown> = [
   'aroma',
   'balance',
@@ -69,15 +63,20 @@ function uniqueNames(values: Array<string | undefined | null>): string[] {
 }
 
 export function buildRoundSummaryFromContest(contest: Contest): RoundSummary {
-  const matchupCount = Math.floor(contest.drinks.length / 2);
+  const activeRoundId = getActiveRoundId(contest);
+  const activeDrinks = activeRoundId ? getDrinksForRound(contest, activeRoundId) : [];
+  const matchupCount = Math.floor(activeDrinks.length / 2);
+  const roundName = activeRoundId
+    ? getRoundLabel(contest, activeRoundId)
+    : contest.bracketRound ?? 'Current Round';
 
   return {
     id: contest.id,
-    name: contest.bracketRound ?? 'Current Round',
+    name: roundName,
     number: null,
-    status: roundPhaseMap[contest.phase],
+    status: activeRoundId ? getRoundStatus(contest, activeRoundId) : 'upcoming',
     matchupCount,
-    contestantNames: uniqueNames(contest.drinks.map((drink) => drink.submittedBy)),
+    contestantNames: uniqueNames(activeDrinks.map((drink) => drink.submittedBy)),
   };
 }
 

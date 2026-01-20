@@ -7,6 +7,7 @@ export type {
   ScoreBreakdown,
   VoteCategory,
   ScoreEntry,
+  ContestRound,
   Contest,
   MixologyData,
 } from './types';

@@ -79,34 +79,39 @@ See [Backend Progress](BackendProgress.md) for the current backend task status.
 - `mixology_guest_index` (array of guest ids for quick selection)
 - `mixology_invite_context` (contest slug, invite id, source)
 
-### 4) Admin roles and privileges
+### 4) User roles and voting permissions
 **Roles:**
-- `user` (default)
-- `admin`
+- `user` (default) - can vote and view brackets
+- `mixologist` - can register drinks and compete
+- `admin` - full edit permissions
 
-**Admin capabilities:**
-- Create/edit contests and drinks.
-- Manage contest lifecycle.
-- Vote like any other user (admins are not excluded from scoring).
+**Voting permissions:**
+- All authenticated users can vote on active rounds (no admin gate).
+- Guests can vote (anonymous Firebase auth).
+- **Mixologist restriction**: If a user is the mixologist on a drink in the current round, they cannot manually vote on that round. Their score auto-counts as full marks.
+- **Admins**: Can vote and edit everything, including on rounds where they are the mixologist (but defaults apply).
 
 **Role storage:**
 - Store roles on user profile documents.
+- Track mixologist→drink associations via `drink.mixerUserId` or contest roster.
 - Restrict admin-only operations via Firestore rules and server routes.
 
 ### 5) Mixer-of-drink behavior
 **Requirement:**
-- Any user can mark themselves as the mixer for a drink.
-- Once marked, they cannot vote on that drink.
-- The mixer’s score should be full/full across all values automatically.
+- Users can register as mixologists and submit drinks to contests.
+- If a user is the mixologist for a drink in the active round, they cannot manually vote on that round.
+- The mixologist's score should be full/full across all values automatically.
+- On rounds where they are NOT the mixologist, they vote normally.
 
 **Data model additions:**
 - `drink.mixerUserId` (or `mixerGuestId` for guests).
-- `score.isMixerScore` boolean.
+- `score.isMixerScore` boolean (true for auto-generated scores).
 - `score.value` auto-populated with max values when mixer is set.
 
 **Validation rules:**
-- If `mixerUserId` matches current user, block vote submissions.
-- If mixer is set, allow only auto-generated score records.
+- Check if `judgeId` matches any `drink.mixerUserId` in the current round.
+- If match found, block manual vote submission OR auto-generate full scores.
+- Admins bypass this check but defaults still apply.
 
 ### 6) N/A scoring behavior
 **Requirement:**

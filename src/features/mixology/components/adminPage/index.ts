@@ -1,4 +1,7 @@
 export { AdminDashboard } from './AdminDashboard';
+export { AdminContestActivation } from './AdminContestActivation';
+export { AdminContestRounds } from './AdminContestRounds';
+export { AdminMixologists } from './AdminMixologists';
 export { AdminRoundOverview } from './AdminRoundOverview';
 export { AdminStateControls } from './AdminStateControls';
 export { ContestCard } from './ContestCard';

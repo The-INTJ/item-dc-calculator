@@ -5,10 +5,10 @@
  * Allows viewing contests, their details, and testing CRUD operations.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
-import { useContests } from '../../hooks';
+import { useAdminContestData } from '../../contexts/AdminContestContext';
 import type { Contest } from '../../types';
 import { ContestCard } from './ContestCard';
 import { ContestDetails } from './ContestDetails';
@@ -16,8 +16,25 @@ import { AdminStateControls } from './AdminStateControls';
 
 export function AdminDashboard() {
   const { role, loading: authLoading, isAuthenticated } = useAuth();
-  const { data: contests, loading, error, refresh } = useContests();
+  const { contests, activeContestId, refresh, setActiveContest, updateContest } = useAdminContestData();
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
+  const loading = false;
+  const error = null;
+
+  useEffect(() => {
+    if (!selectedContest && contests.length > 0) {
+      const fallback = contests.find((contest) => contest.id === activeContestId) ?? contests[0];
+      setSelectedContest(fallback);
+    }
+  }, [contests, activeContestId, selectedContest]);
+
+  useEffect(() => {
+    if (!selectedContest) return;
+    const latest = contests.find((contest) => contest.id === selectedContest.id);
+    if (latest && latest !== selectedContest) {
+      setSelectedContest(latest);
+    }
+  }, [contests, selectedContest]);
 
   if (authLoading) {
     return <div className="admin-loading">Checking admin access...</div>;
@@ -65,6 +82,7 @@ export function AdminDashboard() {
   };
 
   const handleContestUpdated = (contest: Contest) => {
+    updateContest(contest.id, contest);
     setSelectedContest(contest);
     refresh();
   };
@@ -105,7 +123,11 @@ export function AdminDashboard() {
 
         <main className="admin-main">
           {selectedContest ? (
-            <ContestDetails contest={selectedContest} onContestUpdated={handleContestUpdated} />
+            <ContestDetails
+              contest={selectedContest}
+              onContestUpdated={handleContestUpdated}
+              onSetActiveContest={setActiveContest}
+            />
           ) : (
             <div className="admin-placeholder">
               <p>Select a contest from the sidebar to view details.</p>

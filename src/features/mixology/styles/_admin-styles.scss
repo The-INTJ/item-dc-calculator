@@ -263,6 +263,84 @@
   padding: $space-padding-sm $space-padding-md;
 }
 
+.admin-contest-activation {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-gap-normal;
+  justify-content: space-between;
+}
+
+.admin-rounds-header {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-gap-normal;
+  justify-content: space-between;
+  margin-bottom: $space-lg;
+}
+
+.admin-rounds-controls {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-gap-normal;
+  margin-bottom: $space-lg;
+}
+
+.admin-rounds-field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.admin-rounds-select,
+.admin-rounds-input,
+.admin-mixologist-input,
+.admin-mixologist-select {
+  background: #fff;
+  border: 1px solid $color-border;
+  border-radius: $radius-button;
+  color: inherit;
+  padding: $space-md 0.6rem;
+}
+
+.admin-rounds-add,
+.admin-mixologist-add {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-base;
+  margin-top: $space-lg;
+}
+
+.admin-round-item {
+  justify-content: space-between;
+}
+
+.admin-round-badge {
+  @include status-badge;
+}
+
+.admin-round-badge--active {
+  background: $color-success-500;
+  color: #fff;
+}
+
+.admin-round-badge--closed {
+  background: $color-gray-400;
+  color: $color-dark-950;
+}
+
+.admin-round-badge--upcoming {
+  background: $color-info-600;
+  color: #fff;
+}
+
+.admin-mixologist-item {
+  justify-content: space-between;
+}
+
 .admin-category-form {
   align-items: center;
   display: flex;

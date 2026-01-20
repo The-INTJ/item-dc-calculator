@@ -9,6 +9,7 @@ import {
   type DrinkSummary,
   type VoteTotals,
 } from '../types/uiTypes';
+import { getActiveRoundId, getDrinksForRound } from './contestHelpers';
 
 export function buildRoundSummary(contest: Contest): RoundSummary {
   return buildRoundSummaryFromContest(contest);
@@ -39,14 +40,16 @@ export function buildVoteTotals(contest: Contest): VoteTotals[] {
 
 export function buildRoundDetail(contest: Contest): RoundDetail {
   const roundSummary = buildRoundSummaryFromContest(contest);
+  const activeRoundId = getActiveRoundId(contest);
+  const activeDrinks = activeRoundId ? getDrinksForRound(contest, activeRoundId) : [];
 
   return {
     id: contest.id,
     name: roundSummary.name,
     status: roundSummary.status,
     contestId: contest.id,
-    matchups: buildMatchupsFromDrinks(contest.drinks),
-    drinks: buildDrinkSummaries(contest.drinks),
+    matchups: buildMatchupsFromDrinks(activeDrinks),
+    drinks: buildDrinkSummaries(activeDrinks),
     voteSummary: buildVoteTotalsFromScores(contest.scores, contest.categories ?? []),
   };
 }
