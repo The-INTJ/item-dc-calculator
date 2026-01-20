@@ -16,17 +16,17 @@ See [UX Progress](UXProgress.md) for the current status of UX-related tasks and 
 ## Goals
 - Establish clear entry points and navigation for mixology users.
 - Hide the legacy D&D app from the default experience.
-- Create a minimal, focused navbar for mixology.
+- Provide a focused navbar that highlights contest state and key routes.
 - Build a bracket/tournament system for drink competitions.
 - Support distinct user flows for guests, authenticated users, mixologists, and admins.
 - Provide admin tooling for round/bracket management.
 
 ## Guiding principles
 1. Default experience is mixology; legacy is hidden.
-2. Navbar should be minimal—logout, user name, centered title.
-3. User roles drive widget visibility (guest, user, judge, mixologist, admin).
+2. Navbar should stay focused and communicate contest state.
+3. User roles drive widget visibility (guest, user, mixologist, admin).
 4. Component composition over monolithic pages.
-5. Context providers manage global state (auth, contest, round).
+5. Context providers manage global state (auth, contest, admin).
 
 ---
 
@@ -40,91 +40,57 @@ See [UX Progress](UXProgress.md) for the current status of UX-related tasks and 
 | `/mixology/account` | Account management (login/register/logout) | Public |
 | `/mixology/onboard` | Guest onboarding flow | Public |
 | `/mixology/vote` | Voting interface for current round | Public (guest + authenticated) |
-| `/mixology/vote/[drinkId]` | Individual drink scoring | Public (guest + authenticated) |
-| `/mixology/create` | Mixologist drink submission | Authenticated (mixologist) |
+| `/mixology/vote/[drinkId]` | Individual drink scoring | Planned |
+| `/mixology/create` | Mixologist drink submission | Planned |
 | `/mixology/bracket` | View tournament bracket | Public (guest + authenticated) |
 | `/mixology/admin` | Admin dashboard | Admin only |
-| `/mixology/admin/rounds` | Round/bracket management | Admin only |
-| `/mixology/admin/drinks` | Drink management | Admin only |
-| `/mixology/admin/users` | User management | Admin only |
+| `/mixology/admin/rounds` | Round/bracket management | Planned (currently in admin dashboard) |
+| `/mixology/admin/drinks` | Drink management | Planned (currently in admin dashboard) |
+| `/mixology/admin/users` | User management | Planned |
 | `/legacy` | D&D calculator (hidden) | Direct URL only |
 
 ### Navigation visibility
 - **Legacy app**: No external links. Only accessible via `/legacy`. The legacy navbar remains internal to the legacy layout.
-- **Mixology app**: Minimal navbar with logout, user display name, and centered title.
+- **Mixology app**: `SiteHeader` renders for `/` and `/mixology/*` routes, with `NavBar` links, contest state badge, and an auth banner for protected pages.
 
 ---
 
-## Landing page UX (unauthenticated)
+## Landing page UX (current)
 
 ### Layout
-- Centered branding/title.
-- Two primary CTAs:
-  - **"Create Account"** or **"Login"** (if not authenticated).
-  - **"Continue as Guest"** (creates guest session).
+- Centered branding/title with hero copy.
+- Primary CTA routes to onboarding (AuthPrimaryAction).
+- Admin CTA shown only to admins.
 
-### Post-auth landing (authenticated)
-
-Once authenticated, the landing page shows role-based widgets:
-
-| Widget | Visible to | Action |
-|--------|------------|--------|
-| "Vote on Drinks" | All authenticated users | Navigate to `/mixology/vote` |
-| "Enter as Mixologist" | All authenticated users | Navigate to `/mixology/create` |
-| "View Bracket" | All authenticated users | Navigate to `/mixology/bracket` |
-| "Admin Dashboard" | Admins only | Navigate to `/mixology/admin` |
+### Planned enhancements
+- Role-based widgets for authenticated users (vote, mixologist, bracket, admin).
+- A "Continue as Guest" widget on the landing page (currently hosted on `/mixology/onboard`).
 
 ---
 
 ## Navbar design
 
 ### Status note
-The current NavBar is still generic and needs to be minimized per this plan; track the work in [UX Progress](UXProgress.md).
+The current navbar (`SiteHeader` + `NavBar`) includes route links and contest state. The original plan for a minimal title/username/logout-only navbar is not implemented yet.
 
-### Mixology navbar
-- **Left**: Empty or minimal branding.
-- **Center**: Contest/app title.
-- **Right**: User display name + logout button.
-- Height: Compact (approx 48–56px).
-- No links to legacy.
-
-### Legacy navbar
-- Stays as-is within the legacy layout.
-- Not visible anywhere in the mixology experience.
-- Legacy layout wraps legacy routes only.
+### Current navbar
+- **Branding**: "Mixology Rating App" label.
+- **Links**: Mixology home, vote, bracket, account, admin (admin-only).
+- **Status**: Contest phase badge showing Debug/Set/Shake/Scored.
+- **Auth banner**: Appears on gated routes for signed-out users.
 
 ---
 
 ## Bracket system
 
-### Requirements
-- Display tournament bracket for a contest.
-- Support multiple rounds (e.g., Round 1, Semifinals, Finals).
-- Show matchups and winners.
-- Admin can advance drinks between rounds.
+### Current implementation
+- `BracketView` renders rounds derived from contest data.
+- `BracketClient` fetches contest via `MixologyDataContext` and maps rounds to bracket rows.
+- No winner propagation or matchup management yet.
 
-### Bracket library decision (TBD)
-Evaluation criteria:
-- Rendering quality and layout flexibility
-- Customization/theming affordances
-- Accessibility support
-- SSR compatibility with Next.js
-
-### Library options (to evaluate)
-- `react-brackets` — simple bracket rendering.
-- `react-tournament-bracket` — SVG-based bracket.
-- Custom implementation using MUI Grid/Flexbox.
-
-### Data model needs
-- `Round` entity with round number, status, matchups.
-- `Matchup` entity with drink pairs and winner.
-- Contest has ordered list of rounds.
-
-### Admin controls
-- Create/edit rounds.
-- Set current active round.
-- Mark matchup winners.
-- Advance to next round.
+### Planned enhancements
+- Add matchup winners and advancement logic.
+- Add admin controls for matchup outcomes.
 
 ---
 
@@ -132,119 +98,77 @@ Evaluation criteria:
 
 ### Existing
 - `AuthContext` — user session, auth state.
+- `ContestStateContext` — contest lifecycle state (Debug/Set/Shake/Scored).
+- `AdminContestContext` — local admin contest editing + round state.
+- `MixologyDataContext` — contest data, round summaries, drink summaries.
 
 ### Planned
-| Context | Purpose |
-|---------|---------|
-| `ContestContext` | Current contest data, drinks, rounds. |
-| `RoundContext` | Active round, matchups, voting status. |
-| `AdminContext` | Admin-specific state and actions. |
+- `RoundContext` for per-round data (if needed when server backing is ready).
+- `AdminContext` with server-backed admin actions.
 
-### Provider hierarchy
+### Provider hierarchy (current)
 ```
-<AuthProvider>
-  <ContestProvider>
-    <RoundProvider>
-      <MixologyLayout>
+<MixologyAuthProvider>
+  <ContestStateProvider>
+    <SiteHeader />
+    <AdminContestProvider>
+      <MixologyDataProvider>
         {children}
-      </MixologyLayout>
-    </RoundProvider>
-  </ContestProvider>
-</AuthProvider>
+      </MixologyDataProvider>
+    </AdminContestProvider>
+  </ContestStateProvider>
+</MixologyAuthProvider>
 ```
 
 ---
 
 ## Component inventory
 
-### Shared/lib components (to build)
+### Shared/lib components (current)
 | Component | Purpose |
 |-----------|---------|
-| `MixologyNavbar` | Minimal navbar for mixology |
-| `UserBadge` | Display name + avatar |
-| `LogoutButton` | Styled logout action |
+| `SiteHeader` | Branding, nav links, auth banner, contest state badge |
+| `NavBar` | Mixology links + contest phase status |
+| `DrinkCard` | Drink display for voting/viewing |
+| `RoundCard` | Round summary display |
+| `BracketView` | Tournament bracket visualization |
+| `VoteScorePanel` | Inline score inputs + totals |
+| `VoteCategoryTabs` | Category filters (admin) |
+| `AdminDashboard` + subcomponents | Contest, round, mixologist, category management |
+
+### Planned components
+| Component | Purpose |
+|-----------|---------|
+| `MixologyNavbar` | Minimal navbar for mixology (if we pivot back to original concept) |
 | `RoleGate` | Conditionally render children based on role |
 | `WidgetCard` | Landing page action widget |
-| `BracketView` | Tournament bracket visualization |
-| `MatchupCard` | Single matchup in bracket |
 | `RoundIndicator` | Show current round status |
-| `DrinkCard` | Drink display for voting/viewing |
 | `ScoreInput` | Score entry UI with N/A support |
 | `AdminSidebar` | Admin navigation sidebar |
-
-### Page components
-| Page | Components used |
-|------|-----------------|
-| Landing (unauth) | `WidgetCard` (login/register/guest) |
-| Landing (auth) | `WidgetCard` (vote/create/bracket/admin) |
-| Vote | `DrinkCard`, `ScoreInput`, `RoundIndicator` |
-| Bracket | `BracketView`, `MatchupCard`, `RoundIndicator` |
-| Admin Dashboard | `AdminSidebar`, `RoundIndicator`, stats |
-| Admin Rounds | `MatchupCard`, round controls |
 
 ---
 
 ## User flows
 
-### Guest flow
+### Guest flow (current)
 1. Land on `/` or `/mixology`.
-2. Click "Continue as Guest".
-3. Guest session created, redirected to `/mixology/vote` or landing with widgets.
-4. Can vote on drinks.
-5. Prompted to register to save votes permanently.
+2. Click CTA to open `/mixology/onboard`.
+3. Enter display name and continue anonymously (Firebase Auth).
+4. Redirected to `/mixology/vote`.
+5. Votes stored locally and submitted to API.
 
-### Registered user flow
+### Registered user flow (current)
 1. Land on `/` or `/mixology`.
-2. Click "Login" or "Create Account".
-3. Authenticate via Firebase (email/password or Google).
-4. Redirected to landing with role-based widgets.
-5. Full access to voting, bracket, and drink creation.
+2. Click CTA to open `/mixology/onboard`.
+3. Authenticate via Firebase (Google).
+4. Redirected to `/mixology/vote`.
 
-### Mixologist flow
-1. Authenticate.
-2. Click "Enter as Mixologist" or register as mixologist.
-3. Navigate to `/mixology/create`.
-4. Submit drink entry to active contest.
-5. Drink marked with mixer (user ID stored on drink).
-6. On rounds where user is the mixologist, they cannot manually vote (auto-scored full marks).
-7. On rounds where user is NOT the mixologist, they vote normally.
-6. If voting in a round where they are the mixer, their score auto-counts as full; otherwise they vote normally.
+### Admin flow (current)
+1. Authenticate via Firebase and receive admin role.
+2. Open `/mixology/admin` to manage contests, rounds, categories, and mixologists.
+3. Use contest state controls (Debug/Set/Shake/Scored) to gate voting.
 
-### Admin flow
-1. Authenticate (must have admin role).
-2. See "Admin Dashboard" widget on landing.
-3. Navigate to `/mixology/admin`.
-4. Manage rounds, drinks, users.
-5. Advance bracket, set active round.
-
----
-
-## Legacy app isolation
-
-### Current state
-- Legacy routes exist under `/legacy` but may be linked from main navbar.
-
-### Target state
-- No links to legacy from mixology.
-- Legacy navbar is internal to legacy layout only.
-- Accessing legacy is via direct URL knowledge only.
-- Consider removing legacy from sitemap/robots if public.
-
----
-
-## Open questions
-- Which bracket library to use (or custom)?
-- Should admins be able to create multiple concurrent contests?
-- Do we need real-time bracket updates (WebSocket/Firestore listeners)?
-- Should the bracket be public or auth-only?
-
----
-
-## Next steps
-1. Remove navbar links to legacy from mixology.
-2. Implement minimal `MixologyNavbar`.
-3. Build role-based widget cards for landing.
-4. Create `ContestContext` and `RoundContext`.
-5. Evaluate and select bracket library.
-6. Scaffold admin pages.
-7. Build voting flow pages.
+### Planned flows
+- Participant Decision step after onboarding to select voter vs mixologist.
+- Mixologist drink creation flow.
+- Bracket winner propagation and display screen timing.
