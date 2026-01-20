@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { MixologyAuthProvider } from '@/src/mixology/auth';
+import { ContestStateProvider } from '@/src/mixology/state';
 import { SiteHeader } from './components/SiteHeader';
 
 interface RootLayoutClientProps {
@@ -11,8 +12,10 @@ interface RootLayoutClientProps {
 export function RootLayoutClient({ children }: RootLayoutClientProps) {
   return (
     <MixologyAuthProvider>
-      <SiteHeader />
-      <main className="site-main">{children}</main>
+      <ContestStateProvider>
+        <SiteHeader />
+        <main className="site-main">{children}</main>
+      </ContestStateProvider>
     </MixologyAuthProvider>
   );
 }

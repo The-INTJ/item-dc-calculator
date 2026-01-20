@@ -12,6 +12,7 @@ import { useContests } from '@/src/mixology/hooks';
 import type { Contest } from '@/src/mixology/backend';
 import { ContestCard } from './ContestCard';
 import { ContestDetails } from './ContestDetails';
+import { AdminStateControls } from './AdminStateControls';
 
 export function AdminDashboard() {
   const { role, loading: authLoading, isAuthenticated } = useAuth();
@@ -63,6 +64,11 @@ export function AdminDashboard() {
     setSelectedContest(contest);
   };
 
+  const handleContestUpdated = (contest: Contest) => {
+    setSelectedContest(contest);
+    refresh();
+  };
+
   return (
     <div className="admin-dashboard">
       <header className="admin-dashboard__header">
@@ -75,6 +81,8 @@ export function AdminDashboard() {
           Refresh Data
         </button>
       </header>
+
+      <AdminStateControls />
 
       <div className="admin-dashboard__layout">
         <aside className="admin-sidebar">
@@ -97,7 +105,7 @@ export function AdminDashboard() {
 
         <main className="admin-main">
           {selectedContest ? (
-            <ContestDetails contest={selectedContest} />
+            <ContestDetails contest={selectedContest} onContestUpdated={handleContestUpdated} />
           ) : (
             <div className="admin-placeholder">
               <p>Select a contest from the sidebar to view details.</p>

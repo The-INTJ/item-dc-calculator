@@ -29,6 +29,7 @@ export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
   const { data: contest, loading, error, refresh } = useCurrentContest();
   const lastUpdatedAtRef = useRef<number | null>(null);
   const cachedSnapshot = getCachedContestSnapshot();
+  const contestUpdatedEvent = 'mixology:contest-updated';
 
   useEffect(() => {
     if (!loading) {
@@ -62,6 +63,18 @@ export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
     }, 2 * 60 * 1000);
 
     return () => window.clearInterval(interval);
+  }, [refresh]);
+
+  useEffect(() => {
+    const handleContestUpdated = () => {
+      void refresh();
+    };
+
+    window.addEventListener(contestUpdatedEvent, handleContestUpdated);
+
+    return () => {
+      window.removeEventListener(contestUpdatedEvent, handleContestUpdated);
+    };
   }, [refresh]);
 
   const value = useMemo<MixologyDataState>(() => {

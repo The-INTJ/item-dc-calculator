@@ -2,7 +2,18 @@
 
 ## Goal
 Deliver a singleton Mixology Contest experience where guests join via QR, sign in as a guest or with Google, and land on a Participant Decision page to choose “vote” or “mixologist.” If they skip the choice, the app defaults them to voter; they can update their role on the account page until the contest begins. Admins control the contest lifecycle with Debug/Set/Shake/Score states, assign mixologists and matchups, and run a display screen that starts a timer during Shake, allows live scoring, then freezes and recomputes totals during Score before advancing.
+## Contest Lifecycle States
 
+The contest progresses through these states (controlled by admin):
+
+| State | Purpose | Voting | UI Behavior |
+|-------|---------|--------|-------------|
+| **Debug** | Admin-only testing mode. Not used during live events. | Disabled | Extra logs enabled; debug UI visible only to admins. Entirely different data state for testing. |
+| **Set** | Guests arriving and choosing roles. Happens once at competition start. | Disabled | Role selection open. Admin can return here if more guests need to join. |
+| **Shake** | Drinks are being made, timer is running. | **OPEN** | Timer countdown visible. Voting interface active. Live score updates. |
+| **Score** | Voting closed, tallying scores. | **CLOSED** | Scores locked and displayed. Admin prepares next round. Triggers next Shake when ready. |
+
+**Typical flow**: Set → Shake → Score → Shake → Score → ... (repeating Shake/Score for each round)
 ## Overview
 This master plan sequences the existing plans into a cohesive delivery path while reflecting the current mixology foundations already in place (routing, onboarding, voting, bracket prototype, admin dashboard shell). It prioritizes role selection, contest state orchestration, and admin controls before deeper styling and bracket mechanics, so the contest can run end-to-end in a live event. The goal is to unlock parallel work once foundational flows (auth, guest sessions, routing, and lifecycle states) are stable.
 
@@ -10,7 +21,7 @@ This master plan sequences the existing plans into a cohesive delivery path whil
 See [Mixology Rating App Progress](Mixology%20Rating%20App%20Progress.md) for the master progress checklist and current decisions.
 
 ## Needs exploration (research spikes)
-- **Contest lifecycle model**: Map Debug/Set/Shake/Score to the current `ContestPhase` (`setup`, `active`, `judging`, `closed`) and round status mapping so UI gates and admin controls stay consistent. (See Backend Plan + UX Plan.)
+- **Contest lifecycle model**: The four states (Debug/Set/Shake/Score) are now defined. Debug is for admin testing only; Set is guest arrival; Shake is active mixing with voting OPEN; Score is voting CLOSED with tally. Map these to any existing `ContestPhase` types and round status so UI gates and admin controls stay consistent. (See Backend Plan + UX Plan.)
 - **Participant decision + role policy**: Define role storage, default-to-voter behavior, and the “role can change until contest starts” rule, plus how it surfaces on the account page. (See UX Plan + Backend Plan.)
 - **Display screen + timer behavior**: Confirm timer source, live score updates, and Score-phase recalculation rules to avoid double-counting and race conditions. (See UX Plan + Backend Plan.)
 - **Bracket experience & data model**: Evaluate bracket libraries, how they map to our planned `Round`/`Matchup` model, and whether the admin workflow needs bespoke UI components or can lean on an existing library. (See UX Plan.)

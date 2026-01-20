@@ -8,10 +8,12 @@ import type { Contest, Drink, Judge, ScoreEntry } from '@/src/mixology/backend';
 import { buildDrinkSummary } from '@/src/mixology/data/uiTypes';
 import { DrinkCard } from '@/src/mixology/ui';
 import { AdminRoundOverview } from './AdminRoundOverview';
+import { ContestPhaseControls } from './ContestPhaseControls';
 import { ContestCategories } from './ContestCategories';
 
 interface ContestDetailsProps {
   contest: Contest;
+  onContestUpdated: (contest: Contest) => void;
 }
 
 function DrinkItem({ drink }: { drink: Drink }) {
@@ -65,7 +67,7 @@ function ScoreItem({ score, drinks, judges }: { score: ScoreEntry; drinks: Drink
   );
 }
 
-export function ContestDetails({ contest }: ContestDetailsProps) {
+export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProps) {
   return (
     <div className="admin-contest-details">
       <header className="admin-contest-details__header">
@@ -75,6 +77,7 @@ export function ContestDetails({ contest }: ContestDetailsProps) {
         </p>
       </header>
 
+      <ContestPhaseControls contest={contest} onContestUpdated={onContestUpdated} />
       <AdminRoundOverview contest={contest} />
       <ContestCategories contestId={contest.id} initialCategories={contest.categories ?? []} />
 

@@ -73,6 +73,46 @@
   color: #0f172a;
 }
 
+.site-nav__status {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.site-nav__status-label {
+  color: #cbd5e1;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.site-nav__phase {
+  border-radius: 999px;
+  color: #0b1120;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.3rem 0.65rem;
+  text-transform: uppercase;
+}
+
+.site-nav__phase--debug {
+  background: var(--phase-debug, #3b82f6);
+}
+
+.site-nav__phase--set {
+  background: var(--phase-set, #8b5cf6);
+}
+
+.site-nav__phase--shake {
+  background: var(--phase-shake, #22c55e);
+}
+
+.site-nav__phase--score {
+  background: var(--phase-score, #f59e0b);
+}
+
 .auth-banner {
   background: rgba(15, 23, 42, 0.75);
   border: 1px solid rgba(148, 163, 184, 0.35);
