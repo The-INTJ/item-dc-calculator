@@ -1,8 +1,10 @@
+@use '@/src/mixology/assets' as *;
+
 .mixology-round-card {
   align-items: flex-start;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: $space-lg;
   text-align: left;
   width: 100%;
 }
@@ -12,36 +14,31 @@
   display: flex;
   justify-content: space-between;
   width: 100%;
-  gap: 0.75rem;
+  gap: $space-lg;
 }
 
 .mixology-round-card__eyebrow {
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
+  @include type-label;
   margin: 0;
-  text-transform: uppercase;
 }
 
 .mixology-round-card__title {
-  font-size: 1.1rem;
+  @include type-2xl;
   margin: 0.15rem 0 0;
 }
 
 .mixology-round-card__status {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  @include type-label;
 }
 
 .mixology-round-card__meta {
-  font-size: 0.9rem;
+  @include type-lg;
   margin: 0;
 }
 
 .mixology-round-card__contestants {
   display: grid;
-  gap: 0.3rem;
+  gap: $space-2xs;
   list-style: none;
   margin: 0;
   padding: 0;

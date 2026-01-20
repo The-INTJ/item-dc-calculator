@@ -1,4 +1,4 @@
-@import './variables.scss';
+@use './variables' as *;
 
 .App-container {
   padding: 30px;
@@ -13,7 +13,7 @@
 .breakdown-container {
   margin-top: 20px;
   border: none;
-  color: $color-text-primary;
+  color: $legacy-color-text-primary;
 }
 
 .add-effect-btn {
@@ -25,7 +25,7 @@
 }
 
 .player-effects-container {
-  background-color: $color-background-blue;
+  background-color: $legacy-color-background-blue;
 }
 
 /* shard styling */
@@ -48,7 +48,7 @@
   background-color: transparent;
   flex-direction: column;
   align-items: center;
-  border-radius: $border-radius-medium;
+  border-radius: $legacy-border-radius-medium;
 
   &.shard-0 {
     top: 5.5%;
@@ -97,7 +97,7 @@
 }
 
 .shard-num {
-  background-color: $color-surface;
+  background-color: $legacy-color-surface;
   border-radius: 50%;
   font-size: 1rem;
   width: 20px;
@@ -106,7 +106,7 @@
   text-align: center;
   line-height: 17px;
   font-weight: 600;
-  color: $color-text-primary;
+  color: $legacy-color-text-primary;
 }
 
 .shard-btn {
@@ -114,7 +114,7 @@
   height: 35px;
   width: 43px;
   padding: 5px 15px 5px;
-  color: $color-text-inverse;
+  color: $legacy-color-text-inverse;
   border: none;
 
   &.White, &.Silver {
@@ -122,18 +122,18 @@
   }
   
   &:hover {
-    background-color: $color-shadow-subtle;
+    background-color: $legacy-color-shadow-subtle;
     transform: scale(1.2);
     border: 1px solid transparent;
-    box-shadow: 0 0 10px $color-shadow-subtle;
+    box-shadow: 0 0 10px $legacy-color-shadow-subtle;
   }
 }
 
 .shard-btn.add {
-  border-radius: $border-radius-medium $border-radius-medium 0 0;
+  border-radius: $legacy-border-radius-medium $legacy-border-radius-medium 0 0;
 }
 .shard-btn.sub {
-  border-radius: 0 0 $border-radius-medium $border-radius-medium;
+  border-radius: 0 0 $legacy-border-radius-medium $legacy-border-radius-medium;
 }
 
 /* Player chance */
@@ -162,6 +162,6 @@
   font-size: 2rem;
   margin-bottom: 1rem;
   border: none;
-  border-bottom: 2px solid $color-border-muted;
+  border-bottom: 2px solid $legacy-color-border-muted;
   outline: none;
 }

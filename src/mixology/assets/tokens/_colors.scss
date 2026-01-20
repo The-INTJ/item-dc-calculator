@@ -1,3 +1,71 @@
 // Primitive color tokens.
-// TODO: define base palette values.
-$color-palette: () !default;
+// Extracted from mixology component styles.
+
+// Primary colors
+$color-primary: #22d3ee;
+$color-primary-hover: #06b6d4;
+
+// Dark colors
+$color-dark-950: #0f172a;
+$color-dark-900: #1e293b;
+$color-dark-800: #334155;
+
+// Light colors
+$color-light-50: #f8fafc;
+$color-light-100: #f1f5f9;
+
+// Gray scale
+$color-gray-600: #475569;
+$color-gray-500: #64748b;
+$color-gray-400: #94a3b8;
+$color-gray-300: #cbd5e1;
+$color-gray-200: #e2e8f0;
+
+// Semantic colors - error
+$color-error-900: #7f1d1d;
+$color-error-700: #b91c1c;
+$color-error-600: #dc2626;
+$color-error-200: #fecaca;
+$color-error-50: #fef2f2;
+
+// Semantic colors - warning
+$color-warning-900: #92400e;
+$color-warning-700: #d97706;
+$color-warning-200: #fde68a;
+$color-warning-100: #fef3c7;
+$color-warning-50: #fffbeb;
+
+// Semantic colors - success
+$color-success-700: #059669;
+$color-success-50: #ecfdf5;
+
+// Semantic colors - info
+$color-info-600: #2563eb;
+
+// Guest colors
+$color-guest-700: #d97706;
+$color-guest-100: #fef3c7;
+
+// Phase colors
+$color-phase-setup: #3b82f6;
+$color-phase-active: #22c55e;
+$color-phase-judging: #f59e0b;
+$color-phase-closed: #94a3b8;
+
+// Semantic mappings for component usage
+$color-text-primary: $color-dark-950;
+$color-text-secondary: $color-gray-500;
+$color-text-muted: $color-gray-400;
+$color-text-tertiary: $color-dark-950;
+
+$color-surface: #ffffff;
+$color-surface-hover: $color-light-100;
+
+$color-border: $color-gray-200;
+$color-border-hover: $color-gray-300;
+
+$color-input-bg: $color-light-50;
+$color-input-border: $color-gray-300;
+
+$color-code-bg: $color-light-100;
+$color-divider: $color-gray-200;

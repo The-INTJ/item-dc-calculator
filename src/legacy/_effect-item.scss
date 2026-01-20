@@ -1,4 +1,4 @@
-@import "./variables.scss";
+@use './variables' as *;
 
 .effects-container {
     display: flex;
@@ -11,19 +11,19 @@
 .effect-item {
     display: flex;
     height: fit-content;
-    background-color: $color-surface-alt;
+    background-color: $legacy-color-surface-alt;
     border-radius: 6px;
-    gap: $margin-medium;
-    box-shadow: 0 0 4px 2px $color-shadow-strong;
+    gap: $legacy-margin-medium;
+    box-shadow: 0 0 4px 2px $legacy-color-shadow-strong;
     
     h3 {
-        padding: $padding-medium;
+        padding: $legacy-padding-medium;
     }
     &.open {
         display: grid;
         grid-template-rows: auto auto auto;
         grid-template-columns: 1fr;
-        padding: $padding-medium;
+        padding: $legacy-padding-medium;
         @media screen and (min-width: 400px) {
             grid-template-rows: auto auto;
             grid-template-columns: auto auto;

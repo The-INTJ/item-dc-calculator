@@ -1,0 +1,280 @@
+@use '@/src/mixology/assets' as *;
+
+/**
+ * Auth component styles
+ * Uses SASS variables for consistent theming
+ */
+
+/* Auth Form Base */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-gap-normal;
+  max-width: 400px;
+  width: 100%;
+}
+
+.auth-form h2 {
+  @include type-4xl;
+  margin: 0 0 $space-sm;
+  text-align: center;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.auth-field label {
+  @include type-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+}
+
+.auth-field input {
+  @include input-base;
+  transition: border-color $transition-base, box-shadow $transition-base;
+
+  &:focus {
+    @include focus-ring;
+  }
+}
+
+.auth-error {
+  @include error-surface;
+  @include type-md;
+}
+
+.auth-warning {
+  @include warning-surface;
+  @include type-md;
+}
+
+.auth-switch {
+  color: $color-text-secondary;
+  @include type-md;
+  margin: 0;
+  text-align: center;
+}
+
+.auth-link {
+  @include link-interactive;
+  color: $color-primary;
+  font-size: inherit;
+  padding: 0;
+
+  &:hover {
+    color: $color-primary-hover;
+  }
+}
+
+/* Guest Prompt */
+.guest-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: $space-gap-normal;
+  max-width: 400px;
+  text-align: center;
+  width: 100%;
+}
+
+.guest-prompt h2 {
+  @include type-4xl;
+  margin: 0;
+}
+
+.guest-prompt > p {
+  color: $color-text-secondary;
+  margin: 0;
+}
+
+.guest-form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-gap-normal;
+}
+
+.guest-form .auth-field {
+  text-align: left;
+}
+
+.guest-divider {
+  align-items: center;
+  color: $color-text-muted;
+  display: flex;
+  @include type-md;
+  gap: $space-gap-normal;
+
+  &::before,
+  &::after {
+    @include divider;
+  }
+}
+
+.guest-actions {
+  display: flex;
+  gap: $space-lg;
+  justify-content: center;
+}
+
+.guest-actions .button-secondary {
+  flex: 1;
+}
+
+.guest-note {
+  color: $color-text-muted;
+  @include type-xs;
+  margin: $space-sm 0 0;
+}
+
+/* User Menu */
+.user-menu {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+  padding: $space-padding-md;
+
+  &--guest {
+    flex-direction: row;
+    gap: $space-base;
+    padding: $space-base;
+  }
+}
+
+.user-menu__action {
+  @include button-interactive;
+  background: none;
+  border: 1px solid $color-border;
+  border-radius: $radius-button;
+  color: $color-text-primary;
+  cursor: pointer;
+  @include type-md;
+  padding: $space-base $space-padding-md;
+}
+
+.user-menu__info {
+  display: flex;
+  align-items: center;
+  gap: $space-base;
+  justify-content: space-between;
+}
+
+.user-menu__name {
+  font-weight: $font-weight-semibold;
+}
+
+.user-menu__status {
+  background: $color-success-50;
+  border-radius: $radius-pill;
+  color: $color-success-700;
+  @include type-2xs;
+  padding: 0.25rem $space-base;
+}
+
+.user-menu--guest .user-menu__status {
+  background: $color-guest-100;
+  color: $color-guest-700;
+}
+
+.user-menu__upgrade {
+  display: flex;
+  gap: $space-base;
+}
+
+.user-menu__upgrade .button-secondary {
+  flex: 1;
+}
+
+.user-menu__sync {
+  background: $color-warning-100;
+  border: none;
+  border-radius: $radius-button;
+  color: $color-warning-900;
+  cursor: pointer;
+  @include type-md;
+  padding: $space-base;
+
+  &:hover {
+    background: $color-warning-200;
+  }
+}
+
+.user-menu__logout {
+  background: none;
+  border: none;
+  color: $color-text-muted;
+  cursor: pointer;
+  @include type-md;
+  padding: 0.25rem;
+  text-align: left;
+
+  &:hover {
+    color: $color-text-secondary;
+  }
+}
+
+.user-menu__stats {
+  border-top: 1px solid $color-divider;
+  color: $color-text-muted;
+  display: flex;
+  @include type-xs;
+  gap: $space-base;
+  padding-top: $space-lg;
+}
+
+.user-menu__pending {
+  color: $color-warning-700;
+}
+
+/* Auth Modal */
+.auth-modal-backdrop {
+  @include modal-backdrop;
+}
+
+.auth-modal {
+  @include modal-surface;
+}
+
+.auth-modal__close {
+  background: none;
+  border: none;
+  color: $color-text-muted;
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: $space-base;
+  position: absolute;
+  right: $space-base;
+  top: $space-base;
+
+  &:hover {
+    color: $color-text-secondary;
+  }
+}
+
+/* Confirm Modal */
+.confirm-modal {
+  display: flex;
+  flex-direction: column;
+  gap: $space-gap-normal;
+}
+
+.confirm-modal h2 {
+  @include type-4xl;
+  margin: 0;
+}
+
+.confirm-modal p {
+  color: $color-text-secondary;
+  margin: 0;
+}
+
+.confirm-modal__actions {
+  display: flex;
+  gap: $space-lg;
+  justify-content: flex-end;
+}

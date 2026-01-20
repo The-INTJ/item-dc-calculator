@@ -1,0 +1,100 @@
+@use '@/src/mixology/assets' as *;
+
+/**
+ * Account page styles
+ */
+
+.account-page {
+  display: flex;
+  flex-direction: column;
+  gap: $space-gap-xl;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.account-page h1 {
+  margin: 0 0 $space-sm;
+}
+
+.account-page > p {
+  color: $color-text-secondary;
+  margin: 0;
+}
+
+.account-section {
+  @include card-surface;
+}
+
+.account-section h2 {
+  @include type-3xl;
+  margin: 0 0 $space-gap-normal;
+}
+
+.account-section--warning {
+  background: $color-warning-50;
+  border-color: $color-warning-200;
+}
+
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-lg;
+}
+
+.account-debug {
+  background: $color-code-bg;
+  border-radius: $radius-button;
+  font-family: $font-family-mono;
+  @include type-md;
+  padding: $space-padding-md;
+}
+
+.account-debug > div {
+  padding: 0.25rem 0;
+}
+
+.account-votes {
+  list-style: none;
+  margin: 0 0 $space-gap-normal;
+  padding: 0;
+}
+
+.account-votes li {
+  align-items: center;
+  border-bottom: 1px solid $color-divider;
+  display: flex;
+  gap: $space-base;
+  justify-content: space-between;
+  padding: $space-base 0;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.vote-time {
+  color: $color-text-muted;
+  @include type-xs;
+}
+
+.account-notes {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.account-notes li {
+  line-height: $line-height-relaxed;
+  margin-bottom: $space-base;
+}
+
+.account-hint {
+  color: $color-warning-900;
+  @include type-md;
+  margin: $space-base 0 0;
+}
+
+.account-loading {
+  color: $color-text-secondary;
+  padding: $space-gap-xl;
+  text-align: center;
+}

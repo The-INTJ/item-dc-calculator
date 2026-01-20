@@ -1,4 +1,5 @@
-@import '../variables.scss';
+@use '../variables' as *;
+
 /* header.scss */
 .title-bar {
   display: flex;
@@ -9,13 +10,13 @@
 
   position: sticky;
   top: 0;
-  background-color: $color-main-brown;
-  color: $color-text-inverse;
+  background-color: $legacy-color-main-brown;
+  color: $legacy-color-text-inverse;
 
   text-align: center;
 
   button {
-    color: $color-text-inverse;
+    color: $legacy-color-text-inverse;
   }
 
   .title-bar-title {
@@ -34,12 +35,12 @@
 }
 
 .success {
-  background-color: $color-success;
+  background-color: $legacy-color-success;
   transition: opacity 0.5s ease-in-out;
 }
 
 .fail {
-  background-color: $color-error;
+  background-color: $legacy-color-error;
   transition: opacity 0.5s ease-in-out;
 }
 
@@ -74,8 +75,8 @@
   }
   .item {
     // spacing
-    margin: $margin-small;
-    padding: $padding-small;
+    margin: $legacy-margin-small;
+    padding: $legacy-padding-small;
     border-radius: 8px;
 
     // text size
@@ -92,7 +93,7 @@
     // misc
     border: none;
     cursor: pointer;
-    text-shadow: 1px 1px 1px $color-shadow-strong;
+    text-shadow: 1px 1px 1px $legacy-color-shadow-strong;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     
     &:hover {
@@ -105,25 +106,25 @@
 
     @keyframes shimmer {
       0% {
-        text-shadow: 0 0 1px $color-text-inverse, 0 0 1px $color-highlight, 0 0 1px $color-highlight, 0 0 1px $color-highlight, 0 0 1px $color-text-inverse;
+        text-shadow: 0 0 1px $legacy-color-text-inverse, 0 0 1px $legacy-color-highlight, 0 0 1px $legacy-color-highlight, 0 0 1px $legacy-color-highlight, 0 0 1px $legacy-color-text-inverse;
       }
       16.67% {
-        text-shadow: 0 0 2px $color-text-inverse, 0 0 2px $color-highlight, 0 0 2px $color-highlight, 0 0 2px $color-highlight, 0 0 2px $color-text-inverse;
+        text-shadow: 0 0 2px $legacy-color-text-inverse, 0 0 2px $legacy-color-highlight, 0 0 2px $legacy-color-highlight, 0 0 2px $legacy-color-highlight, 0 0 2px $legacy-color-text-inverse;
       }
       33.33% {
-        text-shadow: 0 0 3px $color-text-inverse, 0 0 3px $color-highlight, 0 0 3px $color-highlight, 0 0 3px $color-highlight, 0 0 3px $color-text-inverse;
+        text-shadow: 0 0 3px $legacy-color-text-inverse, 0 0 3px $legacy-color-highlight, 0 0 3px $legacy-color-highlight, 0 0 3px $legacy-color-highlight, 0 0 3px $legacy-color-text-inverse;
       }
       50% {
-        text-shadow: 0 0 4px $color-text-inverse, 0 0 4px $color-highlight, 0 0 4px $color-highlight, 0 0 4px $color-highlight, 0 0 4px $color-text-inverse;
+        text-shadow: 0 0 4px $legacy-color-text-inverse, 0 0 4px $legacy-color-highlight, 0 0 4px $legacy-color-highlight, 0 0 4px $legacy-color-highlight, 0 0 4px $legacy-color-text-inverse;
       }
       66.67% {
-        text-shadow: 0 0 3px $color-text-inverse, 0 0 3px $color-highlight, 0 0 3px $color-highlight, 0 0 3px $color-highlight, 0 0 3px $color-text-inverse;
+        text-shadow: 0 0 3px $legacy-color-text-inverse, 0 0 3px $legacy-color-highlight, 0 0 3px $legacy-color-highlight, 0 0 3px $legacy-color-highlight, 0 0 3px $legacy-color-text-inverse;
       }
       83.33% {
-        text-shadow: 0 0 2px $color-text-inverse, 0 0 2px $color-highlight, 0 0 2px $color-highlight, 0 0 2px $color-highlight, 0 0 2px $color-text-inverse;
+        text-shadow: 0 0 2px $legacy-color-text-inverse, 0 0 2px $legacy-color-highlight, 0 0 2px $legacy-color-highlight, 0 0 2px $legacy-color-highlight, 0 0 2px $legacy-color-text-inverse;
       }
       100% {
-        text-shadow: 0 0 1px $color-text-inverse, 0 0 1px $color-highlight, 0 0 1px $color-highlight, 0 0 1px $color-highlight, 0 0 1px $color-text-inverse;
+        text-shadow: 0 0 1px $legacy-color-text-inverse, 0 0 1px $legacy-color-highlight, 0 0 1px $legacy-color-highlight, 0 0 1px $legacy-color-highlight, 0 0 1px $legacy-color-text-inverse;
       }
     }
 

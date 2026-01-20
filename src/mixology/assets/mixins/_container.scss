@@ -1,2 +1,12 @@
 // Container query helpers.
-// TODO: add container query mixins.
+// Additional container query utilities and presets.
+
+/// Container type setup (required on parent container)
+@mixin container-parent {
+  container-type: inline-size;
+}
+
+/// Named container with type
+@mixin named-container($name) {
+  container: $name / inline-size;
+}

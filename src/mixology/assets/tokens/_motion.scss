@@ -1,4 +1,19 @@
 // Motion tokens.
-// TODO: define durations and easing curves.
-$motion-durations: () !default;
-$motion-easings: () !default;
+// Durations and easing curves for animations and transitions.
+
+// Durations
+$motion-duration-fast: 0.15s;
+$motion-duration-base: 0.2s;
+$motion-duration-slow: 0.3s;
+
+// Easing curves
+$motion-easing-ease: ease;
+$motion-easing-ease-in: ease-in;
+$motion-easing-ease-out: ease-out;
+$motion-easing-ease-in-out: ease-in-out;
+$motion-easing-linear: linear;
+
+// Common transition presets
+$transition-fast: $motion-duration-fast $motion-easing-ease;
+$transition-base: $motion-duration-base $motion-easing-ease;
+$transition-slow: $motion-duration-slow $motion-easing-ease;

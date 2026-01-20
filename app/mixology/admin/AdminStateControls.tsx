@@ -5,6 +5,7 @@ import {
   CONTEST_STATES,
   contestStateLabels,
   contestStateDescriptions,
+  type ContestState,
 } from '@/src/mixology/state';
 
 export function AdminStateControls() {

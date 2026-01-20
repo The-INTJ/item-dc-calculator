@@ -1,0 +1,25 @@
+/**
+ * Legacy App Styles Entry Point
+ * 
+ * This file loads all legacy styles using modern @use syntax.
+ * Import this single file to get all legacy styles.
+ */
+@use './variables' as *;
+
+// Base styles (resets, body)
+@use './base';
+
+// App layout and shard styling
+@use './app';
+
+// Effects grid
+@use './Effects/effects';
+
+// Effect item cards
+@use './effect-item';
+
+// Player chance display
+@use './player-chance';
+
+// Header and modals
+@use './Header/header';

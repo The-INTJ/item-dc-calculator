@@ -1,17 +1,18 @@
-@import '../src/legacy/variables.scss';
-@import '../src/legacy/index.scss';
-@import '../src/legacy/App.scss';
-@import '../src/legacy/Effects/Effects.scss';
-@import '../src/legacy/EffectItem.scss';
-@import '../src/legacy/PlayerChance.scss';
-@import '../src/legacy/Header/header.scss';
-@import './mixology/admin/admin.scss';
-@import './mixology/components/auth.scss';
-@import './mixology/components/rounds.scss';
-@import './mixology/components/drinks.scss';
-@import './mixology/components/bracket.scss';
-@import './mixology/components/vote.scss';
-@import './mixology/account/account.scss';
+/**
+ * Global Styles Entry Point
+ * 
+ * Uses modern @use syntax for both legacy and mixology apps.
+ * Each app has its own namespaced variables to avoid conflicts.
+ */
+
+// Legacy app styles (DC Calculator)
+@use '../src/legacy/legacy';
+
+// Mixology app styles are loaded separately via app/mixology/layout.tsx
+// to keep the two apps' styles properly isolated
+
+// Shared site-wide styles (header, nav, landing page)
+// These should eventually be migrated to use design tokens too
 
 .site-header {
   align-items: flex-start;

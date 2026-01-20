@@ -1,2 +1,113 @@
+@use 'tokens' as *;
+
 // Surface mixins.
-// TODO: add elevation and surface helpers.
+// Elevation, card, and surface helper mixins.
+
+/// Basic card surface styling
+@mixin card-surface {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-card;
+  padding: $space-padding-md;
+}
+
+/// Card with elevation shadow
+@mixin card-elevated {
+  @include card-surface;
+  box-shadow: $shadow-lg;
+}
+
+/// Surface with secondary background
+@mixin surface-secondary {
+  background: $color-light-100;
+  border-radius: $radius-md;
+}
+
+/// Elevation shadow level 1 (small)
+@mixin elevation-1 {
+  box-shadow: $shadow-sm;
+}
+
+/// Elevation shadow level 2 (medium)
+@mixin elevation-2 {
+  box-shadow: $shadow-md;
+}
+
+/// Elevation shadow level 3 (large)
+@mixin elevation-3 {
+  box-shadow: $shadow-lg;
+}
+
+/// Elevation shadow level 4 (extra large)
+@mixin elevation-4 {
+  box-shadow: $shadow-xl;
+}
+
+/// Modal backdrop with overlay
+@mixin modal-backdrop {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: $space-padding-md;
+  position: fixed;
+  z-index: 1000;
+}
+
+/// Modal window styling
+@mixin modal-surface {
+  background: $color-surface;
+  border-radius: $radius-modal;
+  box-shadow: $shadow-2xl;
+  max-width: 450px;
+  padding: $space-padding-xl;
+  position: relative;
+  width: 100%;
+}
+
+/// Divider line
+@mixin divider {
+  background: $color-divider;
+  content: '';
+  flex: 1;
+  height: 1px;
+}
+
+/// Input field base styling
+@mixin input-base {
+  background: $color-input-bg;
+  border: 1px solid $color-input-border;
+  border-radius: $radius-button;
+  color: $color-text-primary;
+  font-size: $font-size-xl;
+  padding: $space-padding-sm $space-padding-md;
+}
+
+/// Error state styling
+@mixin error-surface {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: $radius-md;
+  color: #b91c1c;
+  padding: $space-padding-sm $space-padding-md;
+}
+
+/// Warning state styling
+@mixin warning-surface {
+  background: $color-warning-100;
+  border: 1px solid $color-warning-200;
+  border-radius: $radius-md;
+  color: $color-warning-900;
+  padding: $space-padding-sm $space-padding-md;
+}
+
+/// Status badge styling
+@mixin status-badge {
+  border-radius: $radius-xs;
+  display: inline-block;
+  font-size: $font-size-2xs;
+  font-weight: $font-weight-bold;
+  padding: 0.15rem 0.4rem;
+  text-transform: uppercase;
+}

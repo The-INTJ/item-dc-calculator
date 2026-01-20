@@ -1,2 +1,83 @@
+@use 'tokens' as *;
+
 // Interactive state mixins.
-// TODO: add focus, hover, and active helpers.
+// Focus, hover, and active state helpers for buttons and inputs.
+
+/// Focus ring styling with primary color
+@mixin focus-ring {
+  border-color: $color-primary;
+  box-shadow: $shadow-focus-ring;
+  outline: none;
+}
+
+/// Hover state with background color shift
+@mixin hover-lift {
+  transform: translateY(-1px);
+  transition: transform $transition-base;
+
+  &:hover {
+    @content;
+  }
+}
+
+/// Interactive button base state (hover + active)
+@mixin interactive-button {
+  cursor: pointer;
+  transition: transform $transition-fast, opacity $transition-base;
+
+  &:hover {
+    opacity: 0.95;
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:focus {
+    @include focus-ring;
+  }
+}
+
+/// Input field focus state styling
+@mixin input-focus {
+  &:focus {
+    @include focus-ring;
+  }
+}
+
+/// Button hover and active states
+@mixin button-interactive {
+  transition: border-color $transition-base, box-shadow $transition-base, background $transition-base;
+
+  &:hover {
+    background: $color-surface-hover;
+    border-color: $color-border-hover;
+  }
+
+  &:active {
+    transform: translateY(-1px);
+  }
+}
+
+/// Link with hover effect
+@mixin link-interactive {
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:hover {
+    color: $color-primary-hover;
+  }
+
+  &:focus {
+    @include focus-ring;
+  }
+}
+
+/// Disabled state styling
+@mixin disabled-state {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+}

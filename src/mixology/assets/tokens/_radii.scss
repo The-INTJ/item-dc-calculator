@@ -1,3 +1,15 @@
 // Border radius tokens.
-// TODO: define radius scale.
-$radii: () !default;
+// Radius scale extracted from component styles.
+
+$radius-xs: 4px;
+$radius-sm: 8px;
+$radius-md: 10px;
+$radius-lg: 12px;
+$radius-xl: 16px;
+$radius-full: 999px; // pill/circle shape
+
+// Semantic aliases
+$radius-button: $radius-sm;
+$radius-card: $radius-lg;
+$radius-modal: $radius-xl;
+$radius-pill: $radius-full;

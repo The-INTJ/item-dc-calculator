@@ -1,3 +1,28 @@
 // Spacing scale tokens.
-// TODO: define spacing steps.
-$spacing-scale: () !default;
+// Normalized from component values (rem-based for consistency).
+
+$space-xs: 0.25rem; // 4px
+$space-2xs: 0.3rem; // ~5px
+$space-sm: 0.35rem; // ~5.6px
+$space-md: 0.4rem; // ~6.4px
+$space-base: 0.5rem; // 8px
+$space-lg: 0.75rem; // 12px
+$space-xl: 0.9rem; // ~14.4px
+$space-2xl: 0.95rem; // ~15.2px
+$space-3xl: 1rem; // 16px
+$space-4xl: 1.5rem; // 24px
+$space-5xl: 2rem; // 32px
+
+// Semantic spacing aliases for common patterns
+$space-gap-tight: $space-lg; // 0.75rem
+$space-gap-normal: $space-3xl; // 1rem
+$space-gap-loose: $space-4xl; // 1.5rem
+$space-gap-xl: $space-5xl; // 2rem
+
+$space-padding-xs: $space-base; // 0.5rem
+$space-padding-sm: $space-lg; // 0.75rem
+$space-padding-md: $space-3xl; // 1rem
+$space-padding-lg: 1.5rem;
+$space-padding-xl: 2rem;
+
+$space-margin-default: 16px;

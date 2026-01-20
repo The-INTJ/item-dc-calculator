@@ -1,2 +1,100 @@
+@use 'tokens' as *;
+
 // Layout mixins.
-// TODO: add layout helpers.
+// Container queries, responsive helpers, and layout utilities.
+
+/// Container query: minimum width
+/// @param {Number} $size - Container size (sm, md, lg) or custom pixel value
+@mixin container($size) {
+  @if $size == 'sm' {
+    @container (min-width: $container-sm) {
+      @content;
+    }
+  } @else if $size == 'md' {
+    @container (min-width: $container-md) {
+      @content;
+    }
+  } @else if $size == 'lg' {
+    @container (min-width: $container-lg) {
+      @content;
+    }
+  } @else {
+    @container (min-width: $size) {
+      @content;
+    }
+  }
+}
+
+/// Media query: small viewport
+@mixin respond-to-sm {
+  @media (min-width: $breakpoint-sm) {
+    @content;
+  }
+}
+
+/// Media query: medium viewport
+@mixin respond-to-md {
+  @media (min-width: $breakpoint-md) {
+    @content;
+  }
+}
+
+/// Media query: large viewport
+@mixin respond-to-lg {
+  @media (min-width: $breakpoint-lg) {
+    @content;
+  }
+}
+
+/// Flexbox center (both axes)
+@mixin flex-center {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+/// Flexbox column layout
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+/// Grid layout with gap
+@mixin grid($gap: $space-gap-normal, $columns: auto) {
+  display: grid;
+  gap: $gap;
+  @if $columns != auto {
+    grid-template-columns: $columns;
+  }
+}
+
+/// Aspect ratio container (for images, etc.)
+@mixin aspect-ratio($width, $height) {
+  aspect-ratio: $width / $height;
+}
+
+/// Scroll snap container
+@mixin scroll-snap-x {
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+/// Scroll snap item
+@mixin scroll-snap-item {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/// Visually hidden (accessible)
+@mixin sr-only {
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
