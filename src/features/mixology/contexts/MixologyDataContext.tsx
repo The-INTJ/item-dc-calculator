@@ -110,11 +110,14 @@ export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
       };
     }
 
+    const roundDetail = buildRoundDetail(activeContest);
+
     return {
       contest: activeContest,
       roundSummary: buildRoundSummary(activeContest),
-      roundDetail: buildRoundDetail(activeContest),
-      drinks: buildDrinkSummaries(activeContest.drinks),
+      roundDetail,
+      // Only return drinks for the active round, not all drinks
+      drinks: roundDetail.drinks,
       loading: effectiveLoading,
       error,
       refreshAll: refreshAllLocal,

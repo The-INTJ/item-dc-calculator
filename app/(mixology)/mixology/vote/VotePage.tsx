@@ -1,6 +1,7 @@
 'use client';
 
 import { useMixologyData } from '@/mixology/contexts/MixologyDataContext';
+import { useContestState } from '@/mixology/contexts/ContestStateContext';
 import { VoteScorePanel } from '@/mixology/components/ui';
 import { buildTotalsFromScores } from '@/mixology/components/ui/voteUtils';
 import { useVoteScores, useSubmitVotes } from '@/mixology/hooks';
@@ -8,6 +9,7 @@ import { VotePageHeader, VoteActions } from '@/mixology/components/votePage';
 
 export function VotePage() {
   const { contest, drinks, loading, error } = useMixologyData();
+  const { state: contestState } = useContestState();
 
   const categories = (contest?.categories ?? [])
     .slice()
@@ -18,7 +20,10 @@ export function VotePage() {
   const { scores, updateScore } = useVoteScores();
   const { status, message, submitScores, isSubmitting } = useSubmitVotes();
 
-  const canSubmit = drinks.length > 0 && categories.length > 0;
+  // Voting is only allowed when state is 'shake'
+  const isVotingOpen = contestState === 'shake';
+  const isScored = contestState === 'scored';
+  const canSubmit = isVotingOpen && drinks.length > 0 && categories.length > 0;
 
   const handleSubmit = () => {
     void submitScores(scores);
@@ -42,12 +47,30 @@ export function VotePage() {
     );
   }
 
+  // States where voting isn't available yet (debug, set)
+  if (contestState === 'debug' || contestState === 'set') {
+    return (
+      <div className="mixology-vote-page">
+        <VotePageHeader />
+        <div className="mixology-card mixology-card--info">
+          <p>
+            <strong>Voting hasn&apos;t started yet.</strong>
+          </p>
+          <p>
+            The contest is currently in <strong>{contestState === 'debug' ? 'Debug' : 'Set'}</strong> mode.
+            Voting will open once the admin starts the <strong>Shake</strong> phase.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (drinks.length === 0) {
     return (
       <div className="mixology-vote-page">
         <VotePageHeader />
         <div className="mixology-card">
-          <p>No drinks available for voting yet. Please check back soon.</p>
+          <p>No drinks available for voting in this round. Please check back soon.</p>
         </div>
       </div>
     );
@@ -57,21 +80,38 @@ export function VotePage() {
     <div className="mixology-vote-page">
       <VotePageHeader />
 
-      <VoteScorePanel
-        drinks={drinks}
-        categories={categories}
-        totals={totals}
-        scoreByDrinkId={scores}
-        onScoreChange={updateScore}
-      />
+      {isScored && (
+        <div className="mixology-card mixology-card--warning">
+          <p>
+            <strong>Voting is closed.</strong>
+          </p>
+          <p>
+            This round has been scored. If you need to log or change a score,
+            ask the admin to switch back to <strong>Shake</strong> mode.
+          </p>
+        </div>
+      )}
 
-      <VoteActions
-        canSubmit={canSubmit}
-        isSubmitting={isSubmitting}
-        status={status}
-        message={message}
-        onSubmit={handleSubmit}
-      />
+      <div className={isScored ? 'vote-panel--disabled' : ''}>
+        <VoteScorePanel
+          drinks={drinks}
+          categories={categories}
+          totals={totals}
+          scoreByDrinkId={scores}
+          onScoreChange={isVotingOpen ? updateScore : undefined}
+          disabled={!isVotingOpen}
+        />
+      </div>
+
+      {isVotingOpen && (
+        <VoteActions
+          canSubmit={canSubmit}
+          isSubmitting={isSubmitting}
+          status={status}
+          message={message}
+          onSubmit={handleSubmit}
+        />
+      )}
     </div>
   );
 }

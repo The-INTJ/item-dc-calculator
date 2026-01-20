@@ -30,6 +30,15 @@
   display: grid;
   gap: $space-gap-normal;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+
+  &--disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+.vote-panel--disabled {
+  opacity: 0.6;
 }
 
 .mixology-vote-input {

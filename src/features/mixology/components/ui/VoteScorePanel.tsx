@@ -11,6 +11,8 @@ interface VoteScorePanelProps {
   showCreator?: boolean;
   className?: string;
   emptyLabel?: string;
+  /** When true, sliders are disabled and greyed out */
+  disabled?: boolean;
 }
 
 export function VoteScorePanel({
@@ -22,6 +24,7 @@ export function VoteScorePanel({
   showCreator = true,
   className,
   emptyLabel = 'No drinks submitted yet.',
+  disabled = false,
 }: VoteScorePanelProps) {
   if (categories.length === 0) {
     return <div className="mixology-empty">No categories yet.</div>;
@@ -32,7 +35,7 @@ export function VoteScorePanel({
   }
 
   return (
-    <div className={`mixology-vote-scores ${className ?? ''}`.trim()}>
+    <div className={`mixology-vote-scores ${disabled ? 'mixology-vote-scores--disabled' : ''} ${className ?? ''}`.trim()}>
       {drinks.map((drink) => {
         const drinkTotals = categories.map((category) => {
           const total = totals.find(
@@ -51,7 +54,7 @@ export function VoteScorePanel({
             showCreator={showCreator}
             totals={drinkTotals}
           >
-            {onScoreChange && (
+            {onScoreChange && !disabled && (
               <div className="mixology-vote-inputs">
                 {categories.map((category) => {
                   const value = scoreByDrinkId?.[drink.id]?.[category.id] ?? 5;
