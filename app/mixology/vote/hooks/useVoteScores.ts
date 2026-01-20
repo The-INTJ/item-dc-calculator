@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/src/mixology/auth';
 import { useMixologyData } from '@/src/mixology/data/MixologyDataContext';
 import {
@@ -43,12 +43,17 @@ export function useVoteScores(): UseVoteScoresResult {
   const judgeId = session?.firebaseUid ?? session?.sessionId;
   const contestId = contest?.id;
 
-  const categoryIds = (contest?.categories ?? [])
-    .slice()
-    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-    .map((cat) => cat.id);
+  // Memoize derived arrays to prevent infinite re-renders
+  const categoryIds = useMemo(
+    () =>
+      (contest?.categories ?? [])
+        .slice()
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+        .map((cat) => cat.id),
+    [contest?.categories]
+  );
 
-  const drinkIds = drinks.map((d) => d.id);
+  const drinkIds = useMemo(() => drinks.map((d) => d.id), [drinks]);
 
   // Reset remote load flag when contest or judge changes
   useEffect(() => {
