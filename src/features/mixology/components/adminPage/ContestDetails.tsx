@@ -4,7 +4,7 @@
  * ContestDetails - Shows detailed info for a selected contest
  */
 
-import type { Contest, Entry, Judge, ScoreEntry } from '../../types';
+import type { Contest, ContestConfig, Entry, Judge, ScoreEntry } from '../../types';
 import { buildEntrySummary } from '../../types/uiTypes';
 import { getRoundLabel } from '../../lib/contestHelpers';
 import { DrinkCard } from '../ui';
@@ -12,6 +12,7 @@ import { AdminContestActivation } from './AdminContestActivation';
 import { AdminContestRounds } from './AdminContestRounds';
 import { AdminMixologists } from './AdminMixologists';
 import { AdminRoundOverview } from './AdminRoundOverview';
+import { ContestConfigEditor } from './ContestConfigEditor';
 import { ContestPhaseControls } from './ContestPhaseControls';
 
 interface ContestDetailsProps {
@@ -74,6 +75,25 @@ function ScoreItem({ score, drinks, judges }: { score: ScoreEntry; drinks: Entry
 export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }: ContestDetailsProps) {
   const activeRoundLabel = getRoundLabel(contest, contest.activeRoundId);
 
+  const handleSaveConfig = async (config: ContestConfig) => {
+    const response = await fetch(`/api/mixology/contests/${contest.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-mixology-role': 'admin',
+      },
+      body: JSON.stringify({ config }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error ?? 'Failed to update config');
+    }
+
+    const updated = await response.json();
+    onContestUpdated(updated);
+  };
+
   return (
     <div className="admin-contest-details">
       <header className="admin-contest-details__header">
@@ -89,6 +109,7 @@ export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }
         onSetActive={() => onSetActiveContest(contest.id)}
       />
       <ContestPhaseControls contest={contest} onContestUpdated={onContestUpdated} />
+      <ContestConfigEditor contest={contest} onSave={handleSaveConfig} />
       <AdminContestRounds contest={contest} />
       <AdminMixologists contest={contest} />
       <AdminRoundOverview contest={contest} />

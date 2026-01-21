@@ -573,3 +573,152 @@
   color: $color-gray-400;
   font-style: italic;
 }
+
+/* Contest Setup Form */
+.admin-contest-setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-gap-normal;
+  max-width: 600px;
+}
+
+.admin-contest-setup-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.admin-contest-setup-form__field label {
+  @include type-lg;
+  font-weight: $font-weight-semibold;
+}
+
+.admin-contest-setup-form__preview {
+  background: $color-light-100;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  padding: $space-padding-md;
+}
+
+.admin-contest-setup-form__preview h4 {
+  @include type-lg;
+  margin-bottom: $space-base;
+}
+
+.admin-contest-setup-form__mode-toggle {
+  display: flex;
+  gap: $space-base;
+}
+
+.button-secondary--active {
+  background: $color-primary;
+  border-color: $color-primary;
+  color: $color-dark-950;
+}
+
+.admin-contest-setup-form__actions {
+  display: flex;
+  gap: $space-base;
+  justify-content: flex-end;
+  margin-top: $space-lg;
+}
+
+.admin-contest-setup-form__row {
+  display: grid;
+  gap: $space-gap-normal;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Attribute Editor */
+.admin-attribute-editor {
+  display: flex;
+  flex-direction: column;
+  gap: $space-gap-normal;
+}
+
+.admin-attribute-editor__list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-base;
+}
+
+.admin-attribute-row {
+  align-items: flex-start;
+  background: $color-light-100;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  display: flex;
+  gap: $space-base;
+  padding: $space-padding-sm;
+}
+
+.admin-attribute-row__reorder {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-attribute-row__move {
+  background: transparent;
+  border: 1px solid $color-border;
+  border-radius: $radius-xs;
+  color: $color-gray-500;
+  cursor: pointer;
+  font-size: 10px;
+  line-height: 1;
+  padding: $space-xs;
+  transition: background $transition-fast, color $transition-fast;
+
+  &:hover:not(:disabled) {
+    background: $color-gray-200;
+    color: $color-dark-900;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.3;
+  }
+}
+
+.admin-attribute-row__fields {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: $space-base;
+}
+
+.admin-attribute-row__id {
+  max-width: 120px;
+}
+
+.admin-attribute-row__range {
+  align-items: center;
+  display: flex;
+  gap: $space-xs;
+}
+
+.admin-attribute-row__number {
+  max-width: 60px;
+  text-align: center;
+}
+
+.admin-attribute-row__remove {
+  background: transparent;
+  border: 1px solid $color-border;
+  border-radius: $radius-xs;
+  color: $color-error-600;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: $space-xs $space-sm;
+  transition: background $transition-fast;
+
+  &:hover:not(:disabled) {
+    background: rgba($color-error-600, 0.1);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.3;
+  }
+}

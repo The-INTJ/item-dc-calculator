@@ -21,12 +21,10 @@ export function AdminDashboard() {
     refresh,
     setActiveContest,
     updateContest,
-    addContest,
     useLocalDebugData,
     setUseLocalDebugData,
   } = useAdminContestData();
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
-  const [newContestName, setNewContestName] = useState('');
   const loading = false;
   const error = null;
 
@@ -96,12 +94,6 @@ export function AdminDashboard() {
     refresh();
   };
 
-  const handleAddContest = () => {
-    if (!newContestName.trim()) return;
-    addContest(newContestName.trim());
-    setNewContestName('');
-  };
-
   return (
     <div className="admin-dashboard">
       <header className="admin-dashboard__header">
@@ -147,16 +139,9 @@ export function AdminDashboard() {
             </div>
           )}
           <div className="admin-add-contest">
-            <input
-              className="admin-add-contest__input"
-              placeholder="New contest name"
-              value={newContestName}
-              onChange={(e) => setNewContestName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddContest()}
-            />
-            <button type="button" className="button-secondary" onClick={handleAddContest}>
-              Add Contest
-            </button>
+            <Link href="/mixology/admin/contest-setup" className="button-primary">
+              Create New Contest
+            </Link>
           </div>
         </aside>
 
