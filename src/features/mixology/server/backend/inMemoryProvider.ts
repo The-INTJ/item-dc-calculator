@@ -20,7 +20,7 @@ import type {
   ScoreEntry,
   ScoreBreakdown,
 } from './types';
-import { MIXOLOGY_CONFIG } from '../../types/templates';
+import { CHILI_CONFIG, MIXOLOGY_CONFIG } from '../../types/templates';
 
 // Seed data - same as the existing store.ts
 function createSeedData(): Contest[] {
@@ -88,6 +88,83 @@ function createSeedData(): Contest[] {
       entries: [],
       judges: [],
       scores: [],
+    },
+    {
+      id: 'contest-summit-24',
+      name: 'Summit Grand Tasting',
+      slug: 'summit-grand-tasting',
+      phase: 'shake',
+      config: CHILI_CONFIG,
+      location: 'Denver Summit Hall',
+      startTime: '2024-09-22T17:30:00Z',
+      bracketRound: 'Finals',
+      currentEntryId: 'entry-ruby-ridge',
+      defaultContest: false,
+      rounds: [
+        { id: 'round-1', name: 'Qualifiers', number: 1, state: 'scored' },
+        { id: 'round-2', name: 'Finals', number: 2, state: 'shake' },
+      ],
+      activeRoundId: 'round-2',
+      futureRoundId: 'round-2',
+      categories: [
+        { id: 'heat', label: 'Best Heat', description: 'Balanced spice level', sortOrder: 1 },
+        { id: 'flavor', label: 'Best Flavor', description: 'Depth of flavor', sortOrder: 2 },
+        { id: 'overall', label: 'Overall Favorite', description: 'Top overall entry', sortOrder: 3 },
+      ],
+      entries: [
+        {
+          id: 'entry-ruby-ridge',
+          name: 'Ruby Ridge Red',
+          slug: 'ruby-ridge-red',
+          description: 'Smoky ancho base with charred tomato and cocoa nib finish.',
+          round: 'Finals',
+          submittedBy: 'Team Mesa',
+        },
+        {
+          id: 'entry-golden-valley',
+          name: 'Golden Valley Verde',
+          slug: 'golden-valley-verde',
+          description: 'Roasted tomatillo, serrano, and citrus zest with cumin crema.',
+          round: 'Finals',
+          submittedBy: 'Team Plateau',
+        },
+        {
+          id: 'entry-riverstone',
+          name: 'Riverstone Classic',
+          slug: 'riverstone-classic',
+          description: 'Slow-simmered chuck with toasted chili de árbol and oregano.',
+          round: 'Qualifiers',
+          submittedBy: 'Team Canyon',
+        },
+      ],
+      judges: [
+        { id: 'judge-hale', displayName: 'Hale J.', role: 'admin', contact: 'hale@example.com' },
+        { id: 'judge-mira', displayName: 'Mira S.', role: 'judge', contact: 'mira@example.com' },
+        { id: 'judge-olsen', displayName: 'Olsen P.', role: 'judge', contact: 'olsen@example.com' },
+      ],
+      scores: [
+        {
+          id: 'score-10',
+          entryId: 'entry-ruby-ridge',
+          judgeId: 'judge-mira',
+          breakdown: { heat: 8, flavor: 9, texture: 8, appearance: 7, overall: 9 },
+          notes: 'Great depth with a lingering cocoa note.',
+        },
+        {
+          id: 'score-11',
+          entryId: 'entry-ruby-ridge',
+          judgeId: 'judge-olsen',
+          breakdown: { heat: 7, flavor: 8, texture: 8, appearance: 8, overall: 8 },
+          notes: 'Balanced spice; could use more brightness.',
+        },
+        {
+          id: 'score-12',
+          entryId: 'entry-golden-valley',
+          judgeId: 'judge-mira',
+          breakdown: { heat: 6, flavor: 8, texture: 9, appearance: 9, overall: 8 },
+          notes: 'Fresh finish and great mouthfeel.',
+        },
+      ],
     },
   ];
 }
