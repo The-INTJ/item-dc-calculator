@@ -1,6 +1,7 @@
 @use './index' as *;
 
 .mixology-bracket {
+  @include container-parent;
   display: grid;
   gap: $space-gap-loose;
 }
@@ -18,6 +19,7 @@
 
 .mixology-bracket__round-strip {
   @include scroll-snap-x;
+  display: flex;
   gap: $space-gap-normal;
   padding-bottom: $space-base;
 }
