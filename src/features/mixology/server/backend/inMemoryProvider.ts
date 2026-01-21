@@ -20,18 +20,7 @@ import type {
   ScoreEntry,
   ScoreBreakdown,
 } from './types';
-
-const defaultVoteCategories = [
-  { id: 'aroma', label: 'Aroma', sortOrder: 0 },
-  { id: 'balance', label: 'Balance', sortOrder: 1 },
-  { id: 'presentation', label: 'Presentation', sortOrder: 2 },
-  { id: 'creativity', label: 'Creativity', sortOrder: 3 },
-  { id: 'overall', label: 'Overall', sortOrder: 4 },
-];
-
-function cloneVoteCategories() {
-  return defaultVoteCategories.map((category) => ({ ...category }));
-}
+import { MIXOLOGY_CONFIG } from '../../types/templates';
 
 // Seed data - same as the existing store.ts
 function createSeedData(): Contest[] {
@@ -41,12 +30,12 @@ function createSeedData(): Contest[] {
       name: 'Cascadia Summer Throwdown',
       slug: 'cascadia-throwdown',
       phase: 'shake',
+      config: MIXOLOGY_CONFIG,
       location: 'Portland Taproom',
       startTime: '2024-06-18T19:00:00Z',
       bracketRound: 'Round of 8',
       currentDrinkId: 'drink-sea-fog',
       defaultContest: true,
-      categories: cloneVoteCategories(),
       drinks: [
         {
           id: 'drink-sea-fog',
@@ -92,10 +81,10 @@ function createSeedData(): Contest[] {
       name: 'Northstar Invitational',
       slug: 'northstar-invitational',
       phase: 'set',
+      config: MIXOLOGY_CONFIG,
       location: 'Seattle Warehouse',
       startTime: '2024-07-12T18:00:00Z',
       bracketRound: 'Qualifiers',
-      categories: cloneVoteCategories(),
       drinks: [],
       judges: [],
       scores: [],
@@ -142,7 +131,7 @@ function createContestsProvider(getData: () => Contest[]): ContestsProvider {
       const newContest: Contest = {
         ...input,
         id: generateId('contest'),
-        categories: cloneVoteCategories(),
+        config: input.config ?? MIXOLOGY_CONFIG,
         drinks: [],
         judges: [],
         scores: [],
@@ -311,9 +300,18 @@ function createScoresProvider(getData: () => Contest[]): ScoresProvider {
       if (idx === -1) return error('Score not found');
 
       const current = contest.scores[idx];
+      // Merge breakdown updates, filtering out undefined values
+      const mergedBreakdown: ScoreBreakdown = { ...current.breakdown };
+      if (updates.breakdown) {
+        for (const [key, value] of Object.entries(updates.breakdown)) {
+          if (typeof value === 'number') {
+            mergedBreakdown[key] = value;
+          }
+        }
+      }
       contest.scores[idx] = {
         ...current,
-        breakdown: { ...current.breakdown, ...updates } as ScoreBreakdown,
+        breakdown: mergedBreakdown,
         notes: updates.notes ?? current.notes,
       };
       return success(contest.scores[idx]);

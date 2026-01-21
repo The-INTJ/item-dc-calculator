@@ -6,7 +6,7 @@
  * when the user creates an account.
  */
 
-import type { JudgeRole } from '../../types';
+import type { JudgeRole, ScoreBreakdown } from '../../types';
 
 /**
  * User account status
@@ -20,13 +20,8 @@ export interface UserVote {
   contestId: string;
   drinkId: string;
   score: number;
-  breakdown?: {
-    aroma: number;
-    balance: number;
-    presentation: number;
-    creativity: number;
-    overall: number;
-  };
+  /** Dynamic breakdown - keys are attribute IDs from the contest config */
+  breakdown?: ScoreBreakdown;
   notes?: string;
   timestamp: number;
 }

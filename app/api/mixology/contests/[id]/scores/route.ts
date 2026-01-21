@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getBackendProvider } from '@/mixology/server/backend';
-import type { Drink, Judge, JudgeRole, ScoreBreakdown } from '@/mixology/types';
+import type { Drink, Judge, JudgeRole, ScoreBreakdown, Contest } from '@/mixology/types';
+import { getEffectiveConfig, isValidAttributeId, createEmptyBreakdown } from '@/mixology/types';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -15,30 +16,6 @@ interface ScoreSubmitBody {
   value?: number;
   breakdown?: Partial<ScoreBreakdown>;
   notes?: string;
-}
-
-const breakdownKeys: Array<keyof ScoreBreakdown> = [
-  'aroma',
-  'balance',
-  'presentation',
-  'creativity',
-  'overall',
-];
-
-const breakdownKeySet = new Set<string>(breakdownKeys);
-
-function isBreakdownKey(value: string): value is keyof ScoreBreakdown {
-  return breakdownKeySet.has(value);
-}
-
-function createEmptyBreakdown(): ScoreBreakdown {
-  return {
-    aroma: 0,
-    balance: 0,
-    presentation: 0,
-    creativity: 0,
-    overall: 0,
-  };
 }
 
 async function getContestByParam(contestParam: string) {
@@ -116,12 +93,16 @@ export async function POST(request: Request, { params }: RouteParams) {
       });
     }
 
+    // Get config for this contest (falls back to Mixology default)
+    const config = getEffectiveConfig(contest);
+
     let breakdownUpdates: Partial<ScoreBreakdown> | null = null;
 
     if (body.breakdown && Object.keys(body.breakdown).length > 0) {
       breakdownUpdates = body.breakdown;
     } else if (body.categoryId) {
-      if (!isBreakdownKey(body.categoryId)) {
+      // Validate categoryId against contest config
+      if (!isValidAttributeId(body.categoryId, config)) {
         return NextResponse.json({ message: 'Invalid categoryId for scoring.' }, { status: 400 });
       }
       const numericValue = Number(body.value);
@@ -144,7 +125,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 
     if (existing) {
       const updateResult = await provider.scores.update(contest.id, existing.id, {
-        ...breakdownUpdates,
+        breakdown: breakdownUpdates,
         notes: body.notes,
       });
       if (!updateResult.success || !updateResult.data) {
@@ -153,7 +134,14 @@ export async function POST(request: Request, { params }: RouteParams) {
       return NextResponse.json(updateResult.data);
     }
 
-    const breakdown = { ...createEmptyBreakdown(), ...breakdownUpdates };
+    // Create breakdown based on contest config, merging in updates
+    const emptyBreakdown = createEmptyBreakdown(config);
+    const breakdown: ScoreBreakdown = { ...emptyBreakdown };
+    for (const [key, value] of Object.entries(breakdownUpdates)) {
+      if (typeof value === 'number') {
+        breakdown[key] = value;
+      }
+    }
     const submitResult = await provider.scores.submit(contest.id, {
       drinkId,
       judgeId,
