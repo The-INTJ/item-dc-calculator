@@ -1,24 +1,20 @@
-import type { ScoreBreakdown, ScoreEntry } from '../types';
+import type { ScoreBreakdown, ScoreEntry, ContestConfig } from '../types';
 import type { UserVote } from './auth/types';
+import { MIXOLOGY_CONFIG, getAttributeIds } from '../types';
 
 /**
- * Ordered list of breakdown score keys.
+ * Default breakdown keys for backward compatibility (Mixology config).
+ * @deprecated Use getAttributeIds(config) for dynamic configs.
  */
-export const breakdownKeys: Array<keyof ScoreBreakdown> = [
-  'aroma',
-  'balance',
-  'presentation',
-  'creativity',
-  'overall',
-];
-
-const breakdownKeySet = new Set<string>(breakdownKeys);
+export const breakdownKeys: string[] = getAttributeIds(MIXOLOGY_CONFIG);
 
 /**
  * Type guard to check if a string is a valid ScoreBreakdown key.
+ * Without a config, falls back to Mixology defaults.
  */
-export function isBreakdownKey(value: string): value is keyof ScoreBreakdown {
-  return breakdownKeySet.has(value);
+export function isBreakdownKey(value: string, config?: ContestConfig): boolean {
+  const validKeys = config ? getAttributeIds(config) : breakdownKeys;
+  return validKeys.includes(value);
 }
 
 /**
@@ -57,11 +53,12 @@ export function mergeScoreMaps(
  */
 export function buildScoresFromEntries(
   entries: ScoreEntry[],
-  categoryIds: string[]
+  categoryIds: string[],
+  config?: ContestConfig
 ): Record<string, Record<string, number>> {
   return entries.reduce<Record<string, Record<string, number>>>((acc, entry) => {
     categoryIds.forEach((categoryId) => {
-      if (!isBreakdownKey(categoryId)) return;
+      if (!isBreakdownKey(categoryId, config)) return;
       const value = entry.breakdown[categoryId];
       if (!Number.isFinite(value)) return;
       acc[entry.drinkId] = acc[entry.drinkId] ?? {};
@@ -76,11 +73,12 @@ export function buildScoresFromEntries(
  */
 export function buildScoresFromVotes(
   votes: UserVote[],
-  categoryIds: string[]
+  categoryIds: string[],
+  config?: ContestConfig
 ): Record<string, Record<string, number>> {
   return votes.reduce<Record<string, Record<string, number>>>((acc, vote) => {
     categoryIds.forEach((categoryId) => {
-      if (!isBreakdownKey(categoryId)) return;
+      if (!isBreakdownKey(categoryId, config)) return;
       const value = vote.breakdown?.[categoryId];
       if (typeof value !== 'number' || !Number.isFinite(value)) return;
       acc[vote.drinkId] = acc[vote.drinkId] ?? {};
@@ -92,22 +90,29 @@ export function buildScoresFromVotes(
 
 /**
  * Ensures all breakdown keys exist with a value (defaults to 0).
+ * Uses the provided config or falls back to Mixology defaults.
  */
-export function buildFullBreakdown(values: Partial<ScoreBreakdown>): ScoreBreakdown {
-  return breakdownKeys.reduce<ScoreBreakdown>((acc, key) => {
+export function buildFullBreakdown(
+  values: Partial<ScoreBreakdown>,
+  config?: ContestConfig
+): ScoreBreakdown {
+  const keys = config ? getAttributeIds(config) : breakdownKeys;
+  return keys.reduce<ScoreBreakdown>((acc, key) => {
     acc[key] = values[key] ?? 0;
     return acc;
-  }, {} as ScoreBreakdown);
+  }, {});
 }
 
 /**
  * Calculates a single score from breakdown values.
  * Returns `overall` if > 0, otherwise averages all valid scores.
  */
-export function calculateScore(breakdown: ScoreBreakdown): number {
+export function calculateScore(breakdown: ScoreBreakdown, config?: ContestConfig): number {
+  // If overall exists and is > 0, use it
   if (breakdown.overall > 0) return breakdown.overall;
 
-  const scores = breakdownKeys
+  const keys = config ? getAttributeIds(config) : Object.keys(breakdown);
+  const scores = keys
     .map((key) => breakdown[key])
     .filter((value) => Number.isFinite(value));
 

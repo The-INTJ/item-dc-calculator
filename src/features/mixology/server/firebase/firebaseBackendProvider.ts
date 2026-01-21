@@ -631,9 +631,18 @@ function createFirebaseScoresProvider(getDb: () => Firestore | null): ScoresProv
             }
 
             const current = currentContest.scores[scoreIndex];
+            // Merge breakdown updates, filtering out undefined values
+            const mergedBreakdown: ScoreBreakdown = { ...current.breakdown };
+            if (updates.breakdown) {
+              for (const [key, value] of Object.entries(updates.breakdown)) {
+                if (typeof value === 'number') {
+                  mergedBreakdown[key] = value;
+                }
+              }
+            }
             const updatedScore: ScoreEntry = {
               ...current,
-              breakdown: { ...current.breakdown, ...updates } as ScoreBreakdown,
+              breakdown: mergedBreakdown,
               notes: updates.notes ?? current.notes,
             };
 

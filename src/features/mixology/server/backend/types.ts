@@ -59,6 +59,14 @@ export interface JudgesProvider {
 }
 
 /**
+ * Update payload for score entries - breakdown values plus optional notes.
+ */
+export interface ScoreUpdatePayload {
+  breakdown?: Partial<ScoreBreakdown>;
+  notes?: string;
+}
+
+/**
  * Scores provider interface - manage scores/ratings
  */
 export interface ScoresProvider {
@@ -72,7 +80,7 @@ export interface ScoresProvider {
   update(
     contestId: string,
     scoreId: string,
-    updates: Partial<ScoreBreakdown & { notes?: string }>
+    updates: ScoreUpdatePayload
   ): Promise<ProviderResult<ScoreEntry>>;
   delete(contestId: string, scoreId: string): Promise<ProviderResult<void>>;
 }

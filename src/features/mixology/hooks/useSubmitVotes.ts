@@ -4,12 +4,12 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useMixologyData } from '../contexts/MixologyDataContext';
 import {
-  breakdownKeys,
   buildFullBreakdown,
   calculateScore,
   isBreakdownKey,
 } from '../lib/scoreUtils';
 import type { ScoreBreakdown } from '../types';
+import { getEffectiveConfig } from '../types';
 import type { ScoreByDrinkId } from './useVoteScores';
 
 export type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error';
@@ -38,10 +38,14 @@ export function useSubmitVotes(): UseSubmitVotesResult {
 
   const judgeId = session?.firebaseUid ?? session?.sessionId;
 
-  const categoryIds = (contest?.categories ?? [])
-    .slice()
-    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-    .map((cat) => cat.id);
+  // Get config-based category IDs, falling back to legacy categories
+  const config = contest ? getEffectiveConfig(contest) : undefined;
+  const categoryIds = config
+    ? config.attributes.map((attr) => attr.id)
+    : (contest?.categories ?? [])
+        .slice()
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+        .map((cat) => cat.id);
 
   const submitScores = async (scores: ScoreByDrinkId) => {
     if (!contest?.id || !judgeId) {
@@ -54,7 +58,7 @@ export function useSubmitVotes(): UseSubmitVotesResult {
     const entries = Object.entries(scores)
       .map(([drinkId, drinkScores]) => {
         const breakdown = categoryIds.reduce<Partial<ScoreBreakdown>>((acc, categoryId) => {
-          if (!isBreakdownKey(categoryId)) return acc;
+          if (!isBreakdownKey(categoryId, config)) return acc;
           const value = drinkScores?.[categoryId];
           if (!Number.isFinite(value)) return acc;
           acc[categoryId] = value;
@@ -98,12 +102,12 @@ export function useSubmitVotes(): UseSubmitVotesResult {
 
       // Sync to local session
       for (const entry of entries) {
-        const fullBreakdown = buildFullBreakdown(entry.breakdown);
+        const fullBreakdown = buildFullBreakdown(entry.breakdown, config);
         await recordVote({
           contestId: contest.id,
           drinkId: entry.drinkId,
           breakdown: fullBreakdown,
-          score: calculateScore(fullBreakdown),
+          score: calculateScore(fullBreakdown, config),
         });
       }
 
