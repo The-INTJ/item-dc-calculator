@@ -1,33 +1,33 @@
-import type { Contest, Drink } from '../types';
+import type { Contest, Entry } from '../types';
 import {
-  buildDrinkSummary,
+  buildEntrySummary,
   buildRoundSummaryFromContest,
   buildVoteTotalsFromScores,
   type MatchupSummary,
   type RoundDetail,
   type RoundSummary,
-  type DrinkSummary,
+  type EntrySummary,
   type VoteTotals,
 } from '../types/uiTypes';
-import { getActiveRoundId, getDrinksForRound } from './contestHelpers';
+import { getActiveRoundId, getEntriesForRound } from './contestHelpers';
 
 export function buildRoundSummary(contest: Contest): RoundSummary {
   return buildRoundSummaryFromContest(contest);
 }
 
-export function buildDrinkSummaries(drinks: Drink[]): DrinkSummary[] {
-  return drinks.map((drink) => buildDrinkSummary(drink));
+export function buildEntrySummaries(entries: Entry[]): EntrySummary[] {
+  return entries.map((entry) => buildEntrySummary(entry));
 }
 
-export function buildMatchupsFromDrinks(drinks: Drink[]): MatchupSummary[] {
+export function buildMatchupsFromDrinks(drinks: Entry[]): MatchupSummary[] {
   const matchups: MatchupSummary[] = [];
 
   for (let index = 0; index < drinks.length; index += 2) {
-    const drinkIds = [drinks[index]?.id, drinks[index + 1]?.id].filter(Boolean) as string[];
+    const entryIds = [drinks[index]?.id, drinks[index + 1]?.id].filter(Boolean) as string[];
 
     matchups.push({
       id: `matchup-${Math.floor(index / 2) + 1}`,
-      drinkIds,
+      entryIds,
     });
   }
 
@@ -41,7 +41,7 @@ export function buildVoteTotals(contest: Contest): VoteTotals[] {
 export function buildRoundDetail(contest: Contest): RoundDetail {
   const roundSummary = buildRoundSummaryFromContest(contest);
   const activeRoundId = getActiveRoundId(contest);
-  const activeDrinks = activeRoundId ? getDrinksForRound(contest, activeRoundId) : [];
+  const activeDrinks = activeRoundId ? getEntriesForRound(contest, activeRoundId) : [];
 
   return {
     id: contest.id,
@@ -49,7 +49,7 @@ export function buildRoundDetail(contest: Contest): RoundDetail {
     status: roundSummary.status,
     contestId: contest.id,
     matchups: buildMatchupsFromDrinks(activeDrinks),
-    drinks: buildDrinkSummaries(activeDrinks),
+    entries: buildEntrySummaries(activeDrinks),
     voteSummary: buildVoteTotalsFromScores(contest.scores, contest.categories ?? []),
   };
 }

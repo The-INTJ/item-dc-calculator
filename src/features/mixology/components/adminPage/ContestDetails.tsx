@@ -4,8 +4,8 @@
  * ContestDetails - Shows detailed info for a selected contest
  */
 
-import type { Contest, Drink, Judge, ScoreEntry } from '../../types';
-import { buildDrinkSummary } from '../../types/uiTypes';
+import type { Contest, Entry, Judge, ScoreEntry } from '../../types';
+import { buildEntrySummary } from '../../types/uiTypes';
 import { getRoundLabel } from '../../lib/contestHelpers';
 import { DrinkCard } from '../ui';
 import { AdminContestActivation } from './AdminContestActivation';
@@ -20,8 +20,8 @@ interface ContestDetailsProps {
   onSetActiveContest: (contestId: string) => void;
 }
 
-function DrinkItem({ drink, roundLabel }: { drink: Drink; roundLabel: string }) {
-  const summary = buildDrinkSummary(drink);
+function DrinkItem({ drink, roundLabel }: { drink: Entry; roundLabel: string }) {
+  const summary = buildEntrySummary(drink);
 
   return (
     <li className="admin-detail-item">
@@ -47,8 +47,8 @@ function VoterItem({ judge }: { judge: Judge }) {
   );
 }
 
-function ScoreItem({ score, drinks, judges }: { score: ScoreEntry; drinks: Drink[]; judges: Judge[] }) {
-  const drink = drinks.find((d) => d.id === score.drinkId);
+function ScoreItem({ score, drinks, judges }: { score: ScoreEntry; drinks: Entry[]; judges: Judge[] }) {
+  const drink = drinks.find((d) => d.id === (score.entryId ?? score.drinkId));
   const judge = judges.find((j) => j.id === score.judgeId);
   const total = Object.values(score.breakdown).reduce((a, b) => a + b, 0);
 
@@ -100,12 +100,12 @@ export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }
       </section>
 
       <section className="admin-details-section">
-        <h3>Drinks ({contest.drinks.length})</h3>
-        {contest.drinks.length === 0 ? (
+        <h3>Drinks ({(contest.entries ?? contest.drinks ?? []).length})</h3>
+        {(contest.entries ?? contest.drinks ?? []).length === 0 ? (
           <p className="admin-empty">No drinks registered yet.</p>
         ) : (
           <ul className="admin-detail-list">
-            {contest.drinks.map((drink) => (
+            {(contest.entries ?? contest.drinks ?? []).map((drink) => (
               <DrinkItem
                 key={drink.id}
                 drink={drink}
@@ -139,7 +139,7 @@ export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }
               <ScoreItem
                 key={score.id}
                 score={score}
-                drinks={contest.drinks}
+                drinks={contest.entries ?? contest.drinks ?? []}
                 judges={contest.judges}
               />
             ))}

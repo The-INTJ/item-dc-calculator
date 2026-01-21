@@ -1,5 +1,5 @@
-import type { Contest, Drink, ScoreEntry, ScoreBreakdown, VoteCategory } from './types';
-import { getActiveRoundId, getDrinksForRound, getRoundLabel, getRoundStatus } from '../lib/contestHelpers';
+import type { Contest, Entry, ScoreEntry, ScoreBreakdown, VoteCategory } from './types';
+import { getActiveRoundId, getEntriesForRound, getRoundLabel, getRoundStatus } from '../lib/contestHelpers';
 
 export type { VoteCategory } from './types';
 
@@ -16,7 +16,11 @@ export interface RoundSummary {
 
 export interface MatchupSummary {
   id: string;
-  drinkIds: string[];
+  entryIds: string[];
+  winnerEntryId?: string;
+  /** @deprecated Use entryIds instead */
+  drinkIds?: string[];
+  /** @deprecated Use winnerEntryId instead */
   winnerDrinkId?: string;
 }
 
@@ -26,25 +30,32 @@ export interface RoundDetail {
   status: RoundStatus;
   contestId: string;
   matchups: MatchupSummary[];
-  drinks: DrinkSummary[];
+  entries: EntrySummary[];
   voteSummary: VoteTotals[];
+  /** @deprecated Use entries instead */
+  drinks?: EntrySummary[];
 }
 
-export interface DrinkSummary {
+export interface EntrySummary {
   id: string;
   name: string | null;
   creatorName: string;
   imageUrl?: string;
 }
 
+/** @deprecated Use EntrySummary instead */
+export type DrinkSummary = EntrySummary;
+
 export interface VoteTotals {
-  drinkId: string;
+  entryId: string;
   categoryId: string;
   total: number;
   userHasVoted: boolean;
+  /** @deprecated Use entryId instead */
+  drinkId?: string;
 }
 
-const breakdownKeys: Array<keyof ScoreBreakdown> = [
+const breakdownKeys: string[] = [
   'aroma',
   'balance',
   'presentation',
@@ -54,7 +65,7 @@ const breakdownKeys: Array<keyof ScoreBreakdown> = [
 
 const breakdownKeySet = new Set<string>(breakdownKeys);
 
-function isBreakdownKey(value: string): value is keyof ScoreBreakdown {
+function isBreakdownKey(value: string): boolean {
   return breakdownKeySet.has(value);
 }
 
@@ -64,8 +75,8 @@ function uniqueNames(values: Array<string | undefined | null>): string[] {
 
 export function buildRoundSummaryFromContest(contest: Contest): RoundSummary {
   const activeRoundId = getActiveRoundId(contest);
-  const activeDrinks = activeRoundId ? getDrinksForRound(contest, activeRoundId) : [];
-  const matchupCount = Math.floor(activeDrinks.length / 2);
+  const activeEntries = activeRoundId ? getEntriesForRound(contest, activeRoundId) : [];
+  const matchupCount = Math.floor(activeEntries.length / 2);
   const roundName = activeRoundId
     ? getRoundLabel(contest, activeRoundId)
     : contest.bracketRound ?? 'Current Round';
@@ -76,38 +87,44 @@ export function buildRoundSummaryFromContest(contest: Contest): RoundSummary {
     number: null,
     status: activeRoundId ? getRoundStatus(contest, activeRoundId) : 'upcoming',
     matchupCount,
-    contestantNames: uniqueNames(activeDrinks.map((drink) => drink.submittedBy)),
+    contestantNames: uniqueNames(activeEntries.map((entry) => entry.submittedBy)),
   };
 }
 
-export function buildDrinkSummary(drink: Drink): DrinkSummary {
+export function buildEntrySummary(entry: Entry): EntrySummary {
   return {
-    id: drink.id,
-    name: drink.name || null,
-    creatorName: drink.submittedBy,
+    id: entry.id,
+    name: entry.name || null,
+    creatorName: entry.submittedBy,
   };
 }
+
+/** @deprecated Use buildEntrySummary instead */
+export const buildDrinkSummary = buildEntrySummary;
 
 export function buildVoteTotalsFromScores(scores: ScoreEntry[], categories: VoteCategory[]): VoteTotals[] {
   const totalsMap = new Map<string, number>();
 
   scores.forEach((score) => {
+    const scoreEntryId = score.entryId ?? score.drinkId ?? '';
     categories.forEach((category) => {
       if (!isBreakdownKey(category.id)) return;
       const value = score.breakdown[category.id];
       if (typeof value !== 'number') return;
-      const key = `${score.drinkId}:${category.id}`;
+      const key = `${scoreEntryId}:${category.id}`;
       totalsMap.set(key, (totalsMap.get(key) ?? 0) + value);
     });
   });
 
   return Array.from(totalsMap.entries()).map(([key, total]) => {
-    const [drinkId, categoryId] = key.split(':');
+    const [entryId, categoryId] = key.split(':');
     return {
-      drinkId,
+      entryId,
       categoryId,
       total,
       userHasVoted: true,
+      // Deprecated field for backward compatibility
+      drinkId: entryId,
     };
   });
 }

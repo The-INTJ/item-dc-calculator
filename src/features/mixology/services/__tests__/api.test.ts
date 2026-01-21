@@ -10,7 +10,7 @@ describe('extractCurrentContest', () => {
       name: 'Cascadia Classic',
       slug: 'cascadia-classic',
       phase: 'shake',
-      drinks: [],
+      entries: [],
       judges: [],
       scores: [],
     };

@@ -3,7 +3,8 @@ export type {
   ContestPhase,
   JudgeRole,
   Judge,
-  Drink,
+  Entry,
+  Drink, // @deprecated - use Entry instead
   ScoreBreakdown,
   MixologyScoreBreakdown,
   VoteCategory,

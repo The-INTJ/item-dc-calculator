@@ -6,10 +6,12 @@
  * without changing frontend code.
  */
 
-import type { Contest, Drink, Judge, ScoreEntry, ScoreBreakdown } from '../../types';
+import type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown } from '../../types';
 
 // Re-export core types for convenience
-export type { Contest, Drink, Judge, ScoreEntry, ScoreBreakdown };
+export type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown };
+/** @deprecated Use Entry instead */
+export type { Drink } from '../../types';
 
 /**
  * Result wrapper for async operations
@@ -30,22 +32,25 @@ export interface ContestsProvider {
   getDefault(): Promise<ProviderResult<Contest | null>>;
 
   // Write operations
-  create(contest: Omit<Contest, 'id' | 'drinks' | 'judges' | 'scores'>): Promise<ProviderResult<Contest>>;
+  create(contest: Omit<Contest, 'id' | 'entries' | 'judges' | 'scores'>): Promise<ProviderResult<Contest>>;
   update(id: string, updates: Partial<Contest>): Promise<ProviderResult<Contest>>;
   delete(id: string): Promise<ProviderResult<void>>;
   setDefault(id: string): Promise<ProviderResult<Contest>>;
 }
 
 /**
- * Drinks provider interface - manage drinks within contests
+ * Entries provider interface - manage entries within contests
  */
-export interface DrinksProvider {
-  listByContest(contestId: string): Promise<ProviderResult<Drink[]>>;
-  getById(contestId: string, drinkId: string): Promise<ProviderResult<Drink | null>>;
-  create(contestId: string, drink: Omit<Drink, 'id'>): Promise<ProviderResult<Drink>>;
-  update(contestId: string, drinkId: string, updates: Partial<Drink>): Promise<ProviderResult<Drink>>;
-  delete(contestId: string, drinkId: string): Promise<ProviderResult<void>>;
+export interface EntriesProvider {
+  listByContest(contestId: string): Promise<ProviderResult<Entry[]>>;
+  getById(contestId: string, entryId: string): Promise<ProviderResult<Entry | null>>;
+  create(contestId: string, entry: Omit<Entry, 'id'>): Promise<ProviderResult<Entry>>;
+  update(contestId: string, entryId: string, updates: Partial<Entry>): Promise<ProviderResult<Entry>>;
+  delete(contestId: string, entryId: string): Promise<ProviderResult<void>>;
 }
+
+/** @deprecated Use EntriesProvider instead */
+export type DrinksProvider = EntriesProvider;
 
 /**
  * Judges provider interface - manage judges within contests
@@ -70,7 +75,7 @@ export interface ScoreUpdatePayload {
  * Scores provider interface - manage scores/ratings
  */
 export interface ScoresProvider {
-  listByDrink(contestId: string, drinkId: string): Promise<ProviderResult<ScoreEntry[]>>;
+  listByEntry(contestId: string, entryId: string): Promise<ProviderResult<ScoreEntry[]>>;
   listByJudge(contestId: string, judgeId: string): Promise<ProviderResult<ScoreEntry[]>>;
   getById(contestId: string, scoreId: string): Promise<ProviderResult<ScoreEntry | null>>;
   submit(
@@ -83,6 +88,8 @@ export interface ScoresProvider {
     updates: ScoreUpdatePayload
   ): Promise<ProviderResult<ScoreEntry>>;
   delete(contestId: string, scoreId: string): Promise<ProviderResult<void>>;
+  /** @deprecated Use listByEntry instead */
+  listByDrink?(contestId: string, drinkId: string): Promise<ProviderResult<ScoreEntry[]>>;
 }
 
 /**
@@ -91,9 +98,11 @@ export interface ScoresProvider {
 export interface MixologyBackendProvider {
   readonly name: string;
   contests: ContestsProvider;
-  drinks: DrinksProvider;
+  entries: EntriesProvider;
   judges: JudgesProvider;
   scores: ScoresProvider;
+  /** @deprecated Use entries instead */
+  drinks?: EntriesProvider;
 
   /**
    * Initialize the provider (connect to DB, load seed data, etc.)

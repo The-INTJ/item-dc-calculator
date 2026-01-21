@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { Contest, Drink } from '../../types';
+import type { Contest, Entry } from '../../types';
 import { useAdminContestData } from '../../contexts/AdminContestContext';
 import { getRoundLabel } from '../../lib/contestHelpers';
 
@@ -16,8 +16,8 @@ function MixologistRow({
   onRemove,
 }: {
   contest: Contest;
-  drink: Drink;
-  onUpdate: (updates: Partial<Drink>) => void;
+  drink: Entry;
+  onUpdate: (updates: Partial<Entry>) => void;
   onRemove: () => void;
 }) {
   const rounds = contest.rounds ?? [];
@@ -110,11 +110,11 @@ export function AdminMixologists({ contest }: AdminMixologistsProps) {
         </button>
       </div>
 
-      {contest.drinks.length === 0 ? (
+      {(contest.entries ?? contest.drinks ?? []).length === 0 ? (
         <p className="admin-empty">No mixologists added yet.</p>
       ) : (
         <ul className="admin-detail-list">
-          {contest.drinks.map((drink) => (
+          {(contest.entries ?? contest.drinks ?? []).map((drink) => (
             <MixologistRow
               key={drink.id}
               contest={contest}

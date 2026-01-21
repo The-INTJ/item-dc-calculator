@@ -14,7 +14,7 @@ export async function GET(request: Request, { params }: RouteParams) {
   const { id: contestId, drinkId } = await params;
   const provider = await getBackendProvider();
 
-  const result = await provider.drinks.getById(contestId, drinkId);
+  const result = await provider.entries.getById(contestId, drinkId);
   if (!result.success || !result.data) {
     return NextResponse.json({ message: result.error ?? 'Drink not found' }, { status: 404 });
   }
@@ -32,7 +32,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
   try {
     const body = await request.json();
-    const result = await provider.drinks.update(contestId, drinkId, body);
+    const result = await provider.entries.update(contestId, drinkId, body);
 
     if (!result.success) {
       return NextResponse.json({ message: result.error }, { status: 404 });
@@ -52,7 +52,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   const { id: contestId, drinkId } = await params;
   const provider = await getBackendProvider();
 
-  const result = await provider.drinks.delete(contestId, drinkId);
+  const result = await provider.entries.delete(contestId, drinkId);
   if (!result.success) {
     return NextResponse.json({ message: result.error }, { status: 404 });
   }

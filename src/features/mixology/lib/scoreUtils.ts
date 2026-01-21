@@ -57,12 +57,14 @@ export function buildScoresFromEntries(
   config?: ContestConfig
 ): Record<string, Record<string, number>> {
   return entries.reduce<Record<string, Record<string, number>>>((acc, entry) => {
+    const entryId = entry.entryId ?? entry.drinkId;
+    if (!entryId) return acc;
     categoryIds.forEach((categoryId) => {
       if (!isBreakdownKey(categoryId, config)) return;
       const value = entry.breakdown[categoryId];
       if (!Number.isFinite(value)) return;
-      acc[entry.drinkId] = acc[entry.drinkId] ?? {};
-      acc[entry.drinkId][categoryId] = value;
+      acc[entryId] = acc[entryId] ?? {};
+      acc[entryId][categoryId] = value;
     });
     return acc;
   }, {});

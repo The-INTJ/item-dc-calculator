@@ -12,7 +12,7 @@ const mixologySeedData: MixologyData = {
       bracketRound: 'Round of 8',
       currentDrinkId: 'drink-sea-fog',
       defaultContest: true,
-      drinks: [
+      entries: [
         {
           id: 'drink-sea-fog',
           name: 'Sea Fog Collins',
@@ -38,6 +38,7 @@ const mixologySeedData: MixologyData = {
       scores: [
         {
           id: 'score-1',
+          entryId: 'drink-sea-fog',
           drinkId: 'drink-sea-fog',
           judgeId: 'judge-mera',
           breakdown: {
@@ -51,6 +52,7 @@ const mixologySeedData: MixologyData = {
         },
         {
           id: 'score-2',
+          entryId: 'drink-sea-fog',
           drinkId: 'drink-sea-fog',
           judgeId: 'judge-roland',
           breakdown: {
@@ -72,7 +74,7 @@ const mixologySeedData: MixologyData = {
       location: 'Seattle Warehouse',
       startTime: '2024-07-12T18:00:00Z',
       bracketRound: 'Qualifiers',
-      drinks: [],
+      entries: [],
       judges: [],
       scores: [],
     },
