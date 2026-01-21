@@ -51,6 +51,16 @@ Mixology feature styles are loaded via [app/(mixology)/mixology/mixology.scss](a
 - Legacy calculator theme: use semantic tokens under `src/features/legacy/assets/semantic`.
 - Mixology theme: use semantic tokens under `src/features/mixology/styles/semantic`.
 
+### Current reality (needs alignment)
+- MUI themes live in `src/features/legacy/theme` (legacy + mixology) with hardcoded palette values.
+- Semantic tokens are not yet mapped into those MUI themes.
+- Legacy assets currently forward a `semantic/mixology` placeholder, even though it is not populated.
+
+### Decisions (recorded)
+- Move MUI themes to a shared location (e.g. `src/theme`) once migration work starts.
+- Use semantic tokens as the source of truth that drive MUI theme palette values.
+- Remove the `semantic/mixology` placeholder from the legacy assets stack to preserve isolation.
+
 ### Isolation rules
 - Mixology and legacy styles do not import each other’s semantic tokens.
 - Each feature loads its own token index (`styles/index.scss` or `assets/index.scss`).
@@ -70,13 +80,17 @@ Mixology feature styles are loaded via [app/(mixology)/mixology/mixology.scss](a
 ## Migration plan (incremental)
 1. ✅ Token/mixin stacks exist for mixology and legacy under their feature directories.
 2. Define shared primitives and semantic tokens that can be reused across both stacks.
-3. Consolidate duplicated tokens into a shared base if/when needed.
-4. Reduce global styles in `app/globals.scss` to essentials.
-5. Convert legacy calculator Sass to modules with clear class naming.
-6. Convert mixology styles to module equivalents using shared tokens.
-7. Audit for container query usage and replace viewport media queries.
+3. Map semantic tokens into MUI themes (or document a different source-of-truth).
+4. Consolidate duplicated tokens into a shared base if/when needed.
+5. Reduce global styles in `app/globals.scss` to essentials.
+6. Convert legacy calculator Sass to modules with clear class naming.
+7. Convert mixology styles to module equivalents using shared tokens.
+8. Audit for container query usage and replace viewport media queries.
 
 ## Open decisions (resolved)
 - Tokens live under feature-level style folders rather than a global `src/assets`.
 - Theme strategy: shared primitives where possible, per‑theme semantic layers.
 - Container queries: immediate rollout.
+
+## Open decisions (needs confirmation)
+_(none)_
