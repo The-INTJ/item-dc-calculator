@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Contest, ContestPhase, ContestRound, Entry } from '../types';
 import { buildDefaultVoteCategories } from '../components/ui/voteUtils';
+import { CHILI_CONFIG } from '../types/templates';
 import { getActiveRoundId, getRoundById, getRoundLabel } from '../lib/contestHelpers';
 import { useContestState } from './ContestStateContext';
 
@@ -17,6 +18,7 @@ interface AdminContestContextValue extends AdminContestState {
   setUseLocalDebugData: (enabled: boolean) => void;
   setActiveContest: (contestId: string) => void;
   updateContest: (contestId: string, updates: Partial<Contest>) => void;
+  upsertContest: (contest: Contest) => void;
   addContest: (name: string) => void;
   addRound: (contestId: string, round: Omit<ContestRound, 'id' | 'state'>) => void;
   updateRound: (contestId: string, roundId: string, updates: Partial<ContestRound>) => void;
@@ -198,6 +200,44 @@ function buildDebugContests(): Contest[] {
       ],
     },
     {
+      id: 'contest-chili-4',
+      name: 'Smoky Mountain Chili Cook-Off',
+      slug: 'smoky-mountain-chili',
+      phase: 'set',
+      location: 'Cedar Ridge Lodge',
+      startTime: '2024-10-05T18:00:00Z',
+      bracketRound: 'Qualifiers',
+      defaultContest: false,
+      config: CHILI_CONFIG,
+      rounds: [
+        { id: 'round-chili-1', name: 'Qualifiers', number: 1, state: 'set' },
+        { id: 'round-chili-2', name: 'Finals', number: 2, state: 'set' },
+      ],
+      activeRoundId: 'round-chili-1',
+      futureRoundId: 'round-chili-2',
+      categories: buildDefaultVoteCategories(),
+      entries: [
+        {
+          id: 'entry-brimstone',
+          name: 'Brimstone Red',
+          slug: 'brimstone-red',
+          description: 'Habanero-forward chili with charred tomato base.',
+          round: 'round-chili-1',
+          submittedBy: 'Team Ember',
+        },
+        {
+          id: 'entry-riverbend',
+          name: 'Riverbend Verde',
+          slug: 'riverbend-verde',
+          description: 'Tomatillo, lime zest, and roasted poblano.',
+          round: 'round-chili-1',
+          submittedBy: 'Team Rapids',
+        },
+      ],
+      judges: [],
+      scores: [],
+    },
+    {
       id: 'contest-null-3',
       name: 'Phantom Bracket',
       slug: 'phantom-bracket',
@@ -333,6 +373,22 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
         return normalizeContest({ ...contest, ...updates });
       });
       const activeContestId = updates.defaultContest ? contestId : prev.activeContestId;
+      return { ...prev, contests, activeContestId };
+    });
+  }, [updateState]);
+
+  const upsertContest = useCallback((contest: Contest) => {
+    updateState((prev) => {
+      const normalized = normalizeContest(contest);
+      const contests = prev.contests.some((item) => item.id === contest.id)
+        ? prev.contests.map((item) => {
+            if (item.id !== contest.id) {
+              return normalized.defaultContest ? { ...item, defaultContest: false } : item;
+            }
+            return normalized;
+          })
+        : [...prev.contests, normalized];
+      const activeContestId = normalized.defaultContest ? normalized.id : prev.activeContestId;
       return { ...prev, contests, activeContestId };
     });
   }, [updateState]);
@@ -485,6 +541,7 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
       setUseLocalDebugData: handleSetUseLocalDebugData,
       setActiveContest,
       updateContest,
+      upsertContest,
       addContest,
       addRound,
       updateRound,
@@ -502,6 +559,7 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
     handleSetUseLocalDebugData,
     setActiveContest,
     updateContest,
+    upsertContest,
     addContest,
     addRound,
     updateRound,

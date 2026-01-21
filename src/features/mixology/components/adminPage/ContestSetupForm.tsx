@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { getTemplateKeys, DEFAULT_TEMPLATES } from '../../types/templates';
 import { AttributeEditor } from './AttributeEditor';
 import type { AttributeConfig, ContestConfig } from '../../types';
+import { useAdminContestData } from '../../contexts/AdminContestContext';
 
 type ConfigMode = 'template' | 'custom';
 
@@ -28,6 +29,7 @@ function slugify(text: string): string {
 
 export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
   const router = useRouter();
+  const { upsertContest } = useAdminContestData();
   const templateKeys = getTemplateKeys();
 
   const [name, setName] = useState('');
@@ -126,6 +128,8 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
         throw new Error(data.error ?? `Failed to create contest (${response.status})`);
       }
 
+      const createdContest = await response.json();
+      upsertContest(createdContest);
       onSuccess?.();
       router.push('/mixology/admin');
     } catch (err) {
