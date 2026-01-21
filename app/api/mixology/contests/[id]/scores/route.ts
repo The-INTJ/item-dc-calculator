@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getBackendProvider } from '@/mixology/server/backend';
-import type { Drink, Judge, JudgeRole, ScoreBreakdown, Contest } from '@/mixology/types';
+import type { Entry, Judge, JudgeRole, ScoreBreakdown, Contest } from '@/mixology/types';
 import { getEffectiveConfig, isValidAttributeId, createEmptyBreakdown } from '@/mixology/types';
 
 interface RouteParams {
@@ -8,7 +8,8 @@ interface RouteParams {
 }
 
 interface ScoreSubmitBody {
-  drinkId: string;
+  entryId?: string;
+  drinkId?: string; // Deprecated, use entryId
   judgeId: string;
   judgeName?: string;
   judgeRole?: JudgeRole;
@@ -37,11 +38,11 @@ export async function GET(request: Request, { params }: RouteParams) {
   }
 
   const url = new URL(request.url);
-  const drinkId = url.searchParams.get('drinkId');
+  const entryId = url.searchParams.get('entryId') ?? url.searchParams.get('drinkId');
   const judgeId = url.searchParams.get('judgeId');
 
-  if (drinkId) {
-    const result = await provider.scores.listByDrink(contest.id, drinkId);
+  if (entryId) {
+    const result = await provider.scores.listByEntry(contest.id, entryId);
     if (!result.success || !result.data) {
       return NextResponse.json({ message: result.error ?? 'Scores not found' }, { status: 404 });
     }
@@ -71,17 +72,17 @@ export async function POST(request: Request, { params }: RouteParams) {
 
   try {
     const body = (await request.json()) as ScoreSubmitBody;
-    const drinkId = body.drinkId?.trim();
+    const entryId = (body.entryId ?? body.drinkId)?.trim();
     const judgeId = body.judgeId?.trim();
 
-    if (!drinkId || !judgeId) {
-      return NextResponse.json({ message: 'drinkId and judgeId are required.' }, { status: 400 });
+    if (!entryId || !judgeId) {
+      return NextResponse.json({ message: 'entryId and judgeId are required.' }, { status: 400 });
     }
 
-    const drinks: Drink[] = contest.drinks ?? [];
-    const drinkExists = drinks.some((drink) => drink.id === drinkId);
-    if (!drinkExists) {
-      return NextResponse.json({ message: 'Drink not found.' }, { status: 404 });
+    const entries: Entry[] = contest.entries ?? contest.drinks ?? [];
+    const entryExists = entries.some((entry) => entry.id === entryId);
+    if (!entryExists) {
+      return NextResponse.json({ message: 'Entry not found.' }, { status: 404 });
     }
 
     const judges: Judge[] = contest.judges ?? [];
@@ -116,7 +117,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       return NextResponse.json({ message: 'Score breakdown or categoryId + value is required.' }, { status: 400 });
     }
 
-    const existingScores = await provider.scores.listByDrink(contest.id, drinkId);
+    const existingScores = await provider.scores.listByEntry(contest.id, entryId);
     if (!existingScores.success || !existingScores.data) {
       return NextResponse.json({ message: existingScores.error ?? 'Failed to load scores' }, { status: 500 });
     }
@@ -143,7 +144,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       }
     }
     const submitResult = await provider.scores.submit(contest.id, {
-      drinkId,
+      entryId,
       judgeId,
       breakdown,
       notes: body.notes,

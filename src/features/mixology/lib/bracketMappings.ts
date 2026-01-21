@@ -1,15 +1,15 @@
 import type { BracketRound } from '../components/ui/BracketView';
 import type { Contest } from '../types';
 import { buildMatchupsFromDrinks } from './uiMappings';
-import { getContestRounds, getDrinksForRound, getDrinkScore, getRoundStatus } from './contestHelpers';
+import { getContestRounds, getEntriesForRound, getDrinkScore, getRoundStatus } from './contestHelpers';
 
 export function buildBracketRoundsFromContest(contest: Contest): BracketRound[] {
   const rounds = getContestRounds(contest);
 
   return rounds.map((round) => {
-    const drinks = getDrinksForRound(contest, round.id);
+    const drinks = getEntriesForRound(contest, round.id);
     const matchups = buildMatchupsFromDrinks(drinks).map((matchup) => {
-      const [firstId, secondId] = matchup.drinkIds;
+      const [firstId, secondId] = matchup.entryIds ?? matchup.drinkIds ?? [];
       const contestantA = firstId
         ? {
             id: firstId,

@@ -1,4 +1,4 @@
-import type { Contest, ContestRound, Drink, ScoreEntry } from '../types';
+import type { Contest, ContestRound, Entry, ScoreEntry } from '../types';
 import { calculateScore } from './scoreUtils';
 
 export function getContestRounds(contest: Contest): ContestRound[] {
@@ -29,11 +29,18 @@ export function getRoundLabel(contest: Contest, roundId: string | null | undefin
   return roundId ?? 'Unassigned';
 }
 
-export function getDrinksForRound(contest: Contest, roundId: string | null | undefined): Drink[] {
+/**
+ * Get entries for a specific round.
+ */
+export function getEntriesForRound(contest: Contest, roundId: string | null | undefined): Entry[] {
   if (!roundId) return [];
   const round = getRoundById(contest, roundId);
-  return contest.drinks.filter((drink) => drink.round === roundId || drink.round === round?.name);
+  const entries = contest.entries ?? contest.drinks ?? [];
+  return entries.filter((entry) => entry.round === roundId || entry.round === round?.name);
 }
+
+/** @deprecated Use getEntriesForRound instead */
+export const getDrinksForRound = getEntriesForRound;
 
 export function getRoundStatus(contest: Contest, roundId: string): 'upcoming' | 'active' | 'closed' {
   const rounds = getContestRounds(contest);
@@ -50,9 +57,12 @@ export function getRoundStatus(contest: Contest, roundId: string): 'upcoming' | 
   return roundIndex < activeIndex ? 'closed' : 'upcoming';
 }
 
-export function getDrinkScore(entries: ScoreEntry[], drinkId: string): number | null {
-  const scores = entries
-    .filter((entry) => entry.drinkId === drinkId)
+/**
+ * Get the average score for an entry from all judges.
+ */
+export function getEntryScore(scoreEntries: ScoreEntry[], entryId: string): number | null {
+  const scores = scoreEntries
+    .filter((entry) => (entry.entryId ?? entry.drinkId) === entryId)
     .map((entry) => calculateScore(entry.breakdown))
     .filter((score) => Number.isFinite(score));
 
@@ -60,3 +70,6 @@ export function getDrinkScore(entries: ScoreEntry[], drinkId: string): number | 
   const total = scores.reduce((sum, score) => sum + score, 0);
   return Math.round(total / scores.length);
 }
+
+/** @deprecated Use getEntryScore instead */
+export const getDrinkScore = getEntryScore;

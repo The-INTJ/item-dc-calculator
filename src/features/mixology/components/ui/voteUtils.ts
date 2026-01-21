@@ -36,15 +36,16 @@ export function buildTotalsFromScores(scores: ScoreEntry[], categories: VoteCate
       if (!isBreakdownKey(category.id)) return;
       const value = score.breakdown[category.id];
       if (typeof value !== 'number') return;
-      const key = `${score.drinkId}:${category.id}`;
+      const entryId = score.entryId ?? score.drinkId;
+      const key = `${entryId}:${category.id}`;
       totalsMap.set(key, (totalsMap.get(key) ?? 0) + value);
     });
   });
 
   return Array.from(totalsMap.entries()).map(([key, total]) => {
-    const [drinkId, categoryId] = key.split(':');
+    const [entryId, categoryId] = key.split(':');
     return {
-      drinkId,
+      entryId,
       categoryId,
       total,
       userHasVoted: false,

@@ -1,8 +1,8 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
-import { buildRoundDetail, buildRoundSummary, buildDrinkSummaries } from '../lib/uiMappings';
-import type { RoundDetail, RoundSummary, DrinkSummary } from '../types/uiTypes';
+import { buildRoundDetail, buildRoundSummary, buildEntrySummaries } from '../lib/uiMappings';
+import type { RoundDetail, RoundSummary, EntrySummary } from '../types/uiTypes';
 import type { Contest } from '../types';
 import { getCachedContestSnapshot, setCachedContest } from '../services/cache';
 import { useAdminContestData } from './AdminContestContext';
@@ -11,7 +11,7 @@ interface MixologyDataState {
   contest: Contest | null;
   roundSummary: RoundSummary | null;
   roundDetail: RoundDetail | null;
-  drinks: DrinkSummary[];
+  drinks: EntrySummary[];
   loading: boolean;
   error: string | null;
   refreshAll: () => Promise<void>;
@@ -117,7 +117,7 @@ export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
       roundSummary: buildRoundSummary(activeContest),
       roundDetail,
       // Only return drinks for the active round, not all drinks
-      drinks: roundDetail.drinks,
+      drinks: roundDetail.entries ?? roundDetail.drinks ?? [],
       loading: effectiveLoading,
       error,
       refreshAll: refreshAllLocal,

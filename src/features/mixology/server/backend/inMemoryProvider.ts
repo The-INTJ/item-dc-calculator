@@ -10,12 +10,12 @@
 import type {
   MixologyBackendProvider,
   ContestsProvider,
-  DrinksProvider,
+  EntriesProvider,
   JudgesProvider,
   ScoresProvider,
   ProviderResult,
   Contest,
-  Drink,
+  Entry,
   Judge,
   ScoreEntry,
   ScoreBreakdown,
@@ -34,11 +34,11 @@ function createSeedData(): Contest[] {
       location: 'Portland Taproom',
       startTime: '2024-06-18T19:00:00Z',
       bracketRound: 'Round of 8',
-      currentDrinkId: 'drink-sea-fog',
+      currentEntryId: 'entry-sea-fog',
       defaultContest: true,
-      drinks: [
+      entries: [
         {
-          id: 'drink-sea-fog',
+          id: 'entry-sea-fog',
           name: 'Sea Fog Collins',
           slug: 'sea-fog-collins',
           description: 'Gin, kelp simple syrup, yuzu, saline, and soda with dill garnish.',
@@ -46,7 +46,7 @@ function createSeedData(): Contest[] {
           submittedBy: 'Team Estuary',
         },
         {
-          id: 'drink-emberline',
+          id: 'entry-emberline',
           name: 'Emberline Old Fashioned',
           slug: 'emberline-old-fashioned',
           description: 'Smoked rye, burnt sugar bitters, espresso tincture, orange oil.',
@@ -62,14 +62,14 @@ function createSeedData(): Contest[] {
       scores: [
         {
           id: 'score-1',
-          drinkId: 'drink-sea-fog',
+          entryId: 'entry-sea-fog',
           judgeId: 'judge-mera',
           breakdown: { aroma: 8, balance: 9, presentation: 8, creativity: 9, overall: 9 },
           notes: 'Kelp salt plays nicely with citrus; garnish could be tighter.',
         },
         {
           id: 'score-2',
-          drinkId: 'drink-sea-fog',
+          entryId: 'entry-sea-fog',
           judgeId: 'judge-roland',
           breakdown: { aroma: 9, balance: 8, presentation: 8, creativity: 8, overall: 8 },
           notes: 'Great backbone; consider dialing sweetness back a notch.',
@@ -85,7 +85,7 @@ function createSeedData(): Contest[] {
       location: 'Seattle Warehouse',
       startTime: '2024-07-12T18:00:00Z',
       bracketRound: 'Qualifiers',
-      drinks: [],
+      entries: [],
       judges: [],
       scores: [],
     },
@@ -132,7 +132,7 @@ function createContestsProvider(getData: () => Contest[]): ContestsProvider {
         ...input,
         id: generateId('contest'),
         config: input.config ?? MIXOLOGY_CONFIG,
-        drinks: [],
+        entries: [],
         judges: [],
         scores: [],
       };
@@ -167,47 +167,47 @@ function createContestsProvider(getData: () => Contest[]): ContestsProvider {
 }
 
 /**
- * Creates an in-memory drinks provider
+ * Creates an in-memory entries provider
  */
-function createDrinksProvider(getData: () => Contest[]): DrinksProvider {
+function createEntriesProvider(getData: () => Contest[]): EntriesProvider {
   const findContest = (contestId: string) => getData().find((c) => c.id === contestId);
 
   return {
-    async listByContest(contestId): Promise<ProviderResult<Drink[]>> {
+    async listByContest(contestId): Promise<ProviderResult<Entry[]>> {
       const contest = findContest(contestId);
       if (!contest) return error('Contest not found');
-      return success(contest.drinks);
+      return success(contest.entries);
     },
 
-    async getById(contestId, drinkId): Promise<ProviderResult<Drink | null>> {
+    async getById(contestId, entryId): Promise<ProviderResult<Entry | null>> {
       const contest = findContest(contestId);
       if (!contest) return error('Contest not found');
-      return success(contest.drinks.find((d) => d.id === drinkId) ?? null);
+      return success(contest.entries.find((e) => e.id === entryId) ?? null);
     },
 
-    async create(contestId, input): Promise<ProviderResult<Drink>> {
+    async create(contestId, input): Promise<ProviderResult<Entry>> {
       const contest = findContest(contestId);
       if (!contest) return error('Contest not found');
-      const newDrink: Drink = { ...input, id: generateId('drink') };
-      contest.drinks.push(newDrink);
-      return success(newDrink);
+      const newEntry: Entry = { ...input, id: generateId('entry') };
+      contest.entries.push(newEntry);
+      return success(newEntry);
     },
 
-    async update(contestId, drinkId, updates): Promise<ProviderResult<Drink>> {
+    async update(contestId, entryId, updates): Promise<ProviderResult<Entry>> {
       const contest = findContest(contestId);
       if (!contest) return error('Contest not found');
-      const idx = contest.drinks.findIndex((d) => d.id === drinkId);
-      if (idx === -1) return error('Drink not found');
-      contest.drinks[idx] = { ...contest.drinks[idx], ...updates };
-      return success(contest.drinks[idx]);
+      const idx = contest.entries.findIndex((e) => e.id === entryId);
+      if (idx === -1) return error('Entry not found');
+      contest.entries[idx] = { ...contest.entries[idx], ...updates };
+      return success(contest.entries[idx]);
     },
 
-    async delete(contestId, drinkId): Promise<ProviderResult<void>> {
+    async delete(contestId, entryId): Promise<ProviderResult<void>> {
       const contest = findContest(contestId);
       if (!contest) return error('Contest not found');
-      const idx = contest.drinks.findIndex((d) => d.id === drinkId);
-      if (idx === -1) return error('Drink not found');
-      contest.drinks.splice(idx, 1);
+      const idx = contest.entries.findIndex((e) => e.id === entryId);
+      if (idx === -1) return error('Entry not found');
+      contest.entries.splice(idx, 1);
       return success(undefined);
     },
   };
@@ -267,10 +267,15 @@ function createScoresProvider(getData: () => Contest[]): ScoresProvider {
   const findContest = (contestId: string) => getData().find((c) => c.id === contestId);
 
   return {
-    async listByDrink(contestId, drinkId): Promise<ProviderResult<ScoreEntry[]>> {
+    async listByEntry(contestId, entryId): Promise<ProviderResult<ScoreEntry[]>> {
       const contest = findContest(contestId);
       if (!contest) return error('Contest not found');
-      return success(contest.scores.filter((s) => s.drinkId === drinkId));
+      return success(contest.scores.filter((s) => s.entryId === entryId || s.drinkId === entryId));
+    },
+
+    // Deprecated alias
+    async listByDrink(contestId, drinkId): Promise<ProviderResult<ScoreEntry[]>> {
+      return this.listByEntry(contestId, drinkId);
     },
 
     async listByJudge(contestId, judgeId): Promise<ProviderResult<ScoreEntry[]>> {
@@ -336,10 +341,13 @@ export function createInMemoryProvider(): MixologyBackendProvider {
 
   const getData = () => data;
 
+  const entriesProvider = createEntriesProvider(getData);
+
   return {
     name: 'in-memory',
     contests: createContestsProvider(getData),
-    drinks: createDrinksProvider(getData),
+    entries: entriesProvider,
+    drinks: entriesProvider, // Deprecated alias
     judges: createJudgesProvider(getData),
     scores: createScoresProvider(getData),
 

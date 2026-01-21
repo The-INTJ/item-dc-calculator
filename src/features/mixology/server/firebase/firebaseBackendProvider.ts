@@ -22,12 +22,12 @@ import {
 import type {
   MixologyBackendProvider,
   ContestsProvider,
-  DrinksProvider,
+  EntriesProvider,
   JudgesProvider,
   ScoresProvider,
   ProviderResult,
   Contest,
-  Drink,
+  Entry,
   Judge,
   ScoreEntry,
   ScoreBreakdown,
@@ -58,7 +58,7 @@ function error<T>(message: string): ProviderResult<T> {
 
 class ScoreLockError extends Error {
   constructor() {
-    super('Drink score is locked.');
+    super('Entry score is locked.');
     this.name = 'ScoreLockError';
   }
 }
@@ -74,42 +74,40 @@ function createEmptyBreakdown(): ScoreBreakdown {
 }
 
 function addBreakdowns(base: ScoreBreakdown, delta: ScoreBreakdown): ScoreBreakdown {
-  return {
-    aroma: base.aroma + delta.aroma,
-    balance: base.balance + delta.balance,
-    presentation: base.presentation + delta.presentation,
-    creativity: base.creativity + delta.creativity,
-    overall: base.overall + delta.overall,
-  };
+  const result: ScoreBreakdown = {};
+  const allKeys = new Set([...Object.keys(base), ...Object.keys(delta)]);
+  for (const key of allKeys) {
+    result[key] = (base[key] ?? 0) + (delta[key] ?? 0);
+  }
+  return result;
 }
 
 function diffBreakdowns(next: ScoreBreakdown, prev: ScoreBreakdown): ScoreBreakdown {
-  return {
-    aroma: next.aroma - prev.aroma,
-    balance: next.balance - prev.balance,
-    presentation: next.presentation - prev.presentation,
-    creativity: next.creativity - prev.creativity,
-    overall: next.overall - prev.overall,
-  };
+  const result: ScoreBreakdown = {};
+  const allKeys = new Set([...Object.keys(next), ...Object.keys(prev)]);
+  for (const key of allKeys) {
+    result[key] = (next[key] ?? 0) - (prev[key] ?? 0);
+  }
+  return result;
 }
 
-function applyDrinkScoreUpdate(
-  drink: Drink,
+function applyEntryScoreUpdate(
+  entry: Entry,
   judgeId: string,
   breakdown: ScoreBreakdown,
   lockToken: string,
   now: number
-): Drink {
-  const scoreByUser = { ...(drink.scoreByUser ?? {}) };
+): Entry {
+  const scoreByUser = { ...(entry.scoreByUser ?? {}) };
   const previous = scoreByUser[judgeId] ?? createEmptyBreakdown();
   scoreByUser[judgeId] = breakdown;
 
-  const baseTotals = drink.scoreTotals ?? createEmptyBreakdown();
+  const baseTotals = entry.scoreTotals ?? createEmptyBreakdown();
   const delta = diffBreakdowns(breakdown, previous);
   const scoreTotals = addBreakdowns(baseTotals, delta);
 
   return {
-    ...drink,
+    ...entry,
     scoreByUser,
     scoreTotals,
     scoreLock: {
@@ -126,10 +124,10 @@ function buildLockBackoff(attempt: number): number {
   return base + Math.random() * SCORE_LOCK_JITTER_MS;
 }
 
-async function releaseDrinkScoreLock(
+async function releaseEntryScoreLock(
   db: Firestore,
   contestId: string,
-  drinkId: string,
+  entryId: string,
   lockToken: string
 ) {
   await runTransaction(db, async (transaction) => {
@@ -137,38 +135,38 @@ async function releaseDrinkScoreLock(
     const contestSnap = await transaction.get(contestRef);
     if (!contestSnap.exists()) return;
     const contest = { id: contestSnap.id, ...contestSnap.data() } as Contest;
-    const drinkIndex = contest.drinks.findIndex((drink) => drink.id === drinkId);
-    if (drinkIndex === -1) return;
-    const drink = contest.drinks[drinkIndex];
-    if (drink.scoreLock?.token !== lockToken) return;
-    const updatedDrink: Drink = {
-      ...drink,
+    const entryIndex = contest.entries.findIndex((entry) => entry.id === entryId);
+    if (entryIndex === -1) return;
+    const entry = contest.entries[entryIndex];
+    if (entry.scoreLock?.token !== lockToken) return;
+    const updatedEntry: Entry = {
+      ...entry,
       scoreLock: {
         locked: false,
         expiresAt: Date.now(),
         updatedAt: Date.now(),
       },
     };
-    const updatedDrinks = [...contest.drinks];
-    updatedDrinks[drinkIndex] = updatedDrink;
-    transaction.update(contestRef, { drinks: updatedDrinks, updatedAt: serverTimestamp() });
+    const updatedEntries = [...contest.entries];
+    updatedEntries[entryIndex] = updatedEntry;
+    transaction.update(contestRef, { entries: updatedEntries, updatedAt: serverTimestamp() });
   });
 }
 
-async function updateDrinkScoresWithLock<T>({
+async function updateEntryScoresWithLock<T>({
   db,
   contestId,
-  drinkId,
+  entryId,
   lockToken,
   onUpdate,
 }: {
   db: Firestore;
   contestId: string;
-  drinkId: string;
+  entryId: string;
   lockToken: string;
-  onUpdate: (contest: Contest, drinkIndex: number, now: number) => {
+  onUpdate: (contest: Contest, entryIndex: number, now: number) => {
     updatedScores: ScoreEntry[];
-    updatedDrinks: Drink[];
+    updatedEntries: Entry[];
     result: T;
   };
 }): Promise<T> {
@@ -183,22 +181,22 @@ async function updateDrinkScoresWithLock<T>({
           throw new Error('Contest not found');
         }
         const contest = { id: contestSnap.id, ...contestSnap.data() } as Contest;
-        const drinkIndex = contest.drinks.findIndex((drink) => drink.id === drinkId);
-        if (drinkIndex === -1) {
-          throw new Error('Drink not found');
+        const entryIndex = contest.entries.findIndex((entry) => entry.id === entryId);
+        if (entryIndex === -1) {
+          throw new Error('Entry not found');
         }
 
-        const drink = contest.drinks[drinkIndex];
+        const entry = contest.entries[entryIndex];
         const now = Date.now();
-        const lockExpiresAt = drink.scoreLock?.expiresAt ?? 0;
-        if (drink.scoreLock?.locked && lockExpiresAt > now) {
+        const lockExpiresAt = entry.scoreLock?.expiresAt ?? 0;
+        if (entry.scoreLock?.locked && lockExpiresAt > now) {
           throw new ScoreLockError();
         }
 
-        const update = onUpdate(contest, drinkIndex, now);
+        const update = onUpdate(contest, entryIndex, now);
         result = update.result;
         transaction.update(contestRef, {
-          drinks: update.updatedDrinks,
+          entries: update.updatedEntries,
           scores: update.updatedScores,
           updatedAt: serverTimestamp(),
         });
@@ -208,7 +206,7 @@ async function updateDrinkScoresWithLock<T>({
         throw new Error('Score update failed');
       }
 
-      await releaseDrinkScoreLock(db, contestId, drinkId, lockToken);
+      await releaseEntryScoreLock(db, contestId, entryId, lockToken);
       return result;
     } catch (err) {
       lastError = err;
@@ -220,7 +218,7 @@ async function updateDrinkScoresWithLock<T>({
       throw err;
     }
   }
-  throw lastError instanceof Error ? lastError : new Error('Drink score lock retry limit exceeded');
+  throw lastError instanceof Error ? lastError : new Error('Entry score lock retry limit exceeded');
 }
 
 /**
@@ -288,7 +286,7 @@ function createFirebaseContestsProvider(getDb: () => Firestore | null): Contests
         const newContest: Contest = {
           ...input,
           id,
-          drinks: [],
+          entries: [],
           judges: [],
           scores: [],
         };
@@ -371,9 +369,9 @@ function createFirebaseContestsProvider(getDb: () => Firestore | null): Contests
 }
 
 /**
- * Creates Firebase drinks provider (stores drinks as array in contest doc)
+ * Creates Firebase entries provider (stores entries as array in contest doc)
  */
-function createFirebaseDrinksProvider(getDb: () => Firestore | null): DrinksProvider {
+function createFirebaseEntriesProvider(getDb: () => Firestore | null): EntriesProvider {
   const getContest = async (contestId: string): Promise<Contest | null> => {
     const db = getDb();
     if (!db) return null;
@@ -392,50 +390,50 @@ function createFirebaseDrinksProvider(getDb: () => Firestore | null): DrinksProv
   };
 
   return {
-    async listByContest(contestId): Promise<ProviderResult<Drink[]>> {
+    async listByContest(contestId): Promise<ProviderResult<Entry[]>> {
       const contest = await getContest(contestId);
       if (!contest) return error('Contest not found');
-      return success(contest.drinks);
+      return success(contest.entries);
     },
 
-    async getById(contestId, drinkId): Promise<ProviderResult<Drink | null>> {
+    async getById(contestId, entryId): Promise<ProviderResult<Entry | null>> {
       const contest = await getContest(contestId);
       if (!contest) return error('Contest not found');
-      return success(contest.drinks.find((d) => d.id === drinkId) ?? null);
+      return success(contest.entries.find((e) => e.id === entryId) ?? null);
     },
 
-    async create(contestId, input): Promise<ProviderResult<Drink>> {
+    async create(contestId, input): Promise<ProviderResult<Entry>> {
       const contest = await getContest(contestId);
       if (!contest) return error('Contest not found');
 
-      const newDrink: Drink = { ...input, id: generateId('drink') };
-      const newDrinks = [...contest.drinks, newDrink];
-      await updateContest(contestId, { drinks: newDrinks });
+      const newEntry: Entry = { ...input, id: generateId('entry') };
+      const newEntries = [...contest.entries, newEntry];
+      await updateContest(contestId, { entries: newEntries });
 
-      return success(newDrink);
+      return success(newEntry);
     },
 
-    async update(contestId, drinkId, updates): Promise<ProviderResult<Drink>> {
+    async update(contestId, entryId, updates): Promise<ProviderResult<Entry>> {
       const contest = await getContest(contestId);
       if (!contest) return error('Contest not found');
 
-      const idx = contest.drinks.findIndex((d) => d.id === drinkId);
-      if (idx === -1) return error('Drink not found');
+      const idx = contest.entries.findIndex((e) => e.id === entryId);
+      if (idx === -1) return error('Entry not found');
 
-      const updatedDrink = { ...contest.drinks[idx], ...updates };
-      const newDrinks = [...contest.drinks];
-      newDrinks[idx] = updatedDrink;
-      await updateContest(contestId, { drinks: newDrinks });
+      const updatedEntry = { ...contest.entries[idx], ...updates };
+      const newEntries = [...contest.entries];
+      newEntries[idx] = updatedEntry;
+      await updateContest(contestId, { entries: newEntries });
 
-      return success(updatedDrink);
+      return success(updatedEntry);
     },
 
-    async delete(contestId, drinkId): Promise<ProviderResult<void>> {
+    async delete(contestId, entryId): Promise<ProviderResult<void>> {
       const contest = await getContest(contestId);
       if (!contest) return error('Contest not found');
 
-      const newDrinks = contest.drinks.filter((d) => d.id !== drinkId);
-      await updateContest(contestId, { drinks: newDrinks });
+      const newEntries = contest.entries.filter((e) => e.id !== entryId);
+      await updateContest(contestId, { entries: newEntries });
 
       return success(undefined);
     },
@@ -536,10 +534,15 @@ function createFirebaseScoresProvider(getDb: () => Firestore | null): ScoresProv
   };
 
   return {
-    async listByDrink(contestId, drinkId): Promise<ProviderResult<ScoreEntry[]>> {
+    async listByEntry(contestId, entryId): Promise<ProviderResult<ScoreEntry[]>> {
       const contest = await getContest(contestId);
       if (!contest) return error('Contest not found');
-      return success(contest.scores.filter((s) => s.drinkId === drinkId));
+      return success(contest.scores.filter((s) => s.entryId === entryId || s.drinkId === entryId));
+    },
+
+    // Deprecated alias
+    async listByDrink(contestId, drinkId): Promise<ProviderResult<ScoreEntry[]>> {
+      return this.listByEntry(contestId, drinkId);
     },
 
     async listByJudge(contestId, judgeId): Promise<ProviderResult<ScoreEntry[]>> {
@@ -561,16 +564,18 @@ function createFirebaseScoresProvider(getDb: () => Firestore | null): ScoresProv
       const db = getDb();
       if (!db) return error('Firebase not initialized');
 
+      const inputEntryId = input.entryId ?? input.drinkId ?? '';
+
       try {
         const lockToken = generateId('score-lock');
-        const result = await updateDrinkScoresWithLock({
+        const result = await updateEntryScoresWithLock({
           db,
           contestId,
-          drinkId: input.drinkId,
+          entryId: inputEntryId,
           lockToken,
-          onUpdate: (currentContest, drinkIndex, now) => {
+          onUpdate: (currentContest, entryIndex, now) => {
             const existingIndex = currentContest.scores.findIndex(
-              (score) => score.drinkId === input.drinkId && score.judgeId === input.judgeId
+              (score) => (score.entryId === inputEntryId || score.drinkId === inputEntryId) && score.judgeId === input.judgeId
             );
             let updatedScores = [...currentContest.scores];
             let updatedScore: ScoreEntry;
@@ -579,26 +584,27 @@ function createFirebaseScoresProvider(getDb: () => Firestore | null): ScoresProv
               const existingScore = currentContest.scores[existingIndex];
               updatedScore = {
                 ...existingScore,
+                entryId: inputEntryId,
                 breakdown: input.breakdown,
                 notes: input.notes ?? existingScore.notes,
               };
               updatedScores[existingIndex] = updatedScore;
             } else {
-              updatedScore = { ...input, id: generateId('score') };
+              updatedScore = { ...input, id: generateId('score'), entryId: inputEntryId };
               updatedScores = [...currentContest.scores, updatedScore];
             }
 
-            const updatedDrink = applyDrinkScoreUpdate(
-              currentContest.drinks[drinkIndex],
+            const updatedEntry = applyEntryScoreUpdate(
+              currentContest.entries[entryIndex],
               input.judgeId,
               updatedScore.breakdown,
               lockToken,
               now
             );
-            const updatedDrinks = [...currentContest.drinks];
-            updatedDrinks[drinkIndex] = updatedDrink;
+            const updatedEntries = [...currentContest.entries];
+            updatedEntries[entryIndex] = updatedEntry;
 
-            return { updatedScores, updatedDrinks, result: updatedScore };
+            return { updatedScores, updatedEntries, result: updatedScore };
           },
         });
         return success(result);
@@ -617,14 +623,16 @@ function createFirebaseScoresProvider(getDb: () => Firestore | null): ScoresProv
       const db = getDb();
       if (!db) return error('Firebase not initialized');
 
+      const scoreEntryId = contest.scores[idx].entryId ?? contest.scores[idx].drinkId ?? '';
+
       try {
         const lockToken = generateId('score-lock');
-        const result = await updateDrinkScoresWithLock({
+        const result = await updateEntryScoresWithLock({
           db,
           contestId,
-          drinkId: contest.scores[idx].drinkId,
+          entryId: scoreEntryId,
           lockToken,
-          onUpdate: (currentContest, drinkIndex, now) => {
+          onUpdate: (currentContest, entryIndex, now) => {
             const scoreIndex = currentContest.scores.findIndex((score) => score.id === scoreId);
             if (scoreIndex === -1) {
               throw new Error('Score not found');
@@ -649,17 +657,17 @@ function createFirebaseScoresProvider(getDb: () => Firestore | null): ScoresProv
             const updatedScores = [...currentContest.scores];
             updatedScores[scoreIndex] = updatedScore;
 
-            const updatedDrink = applyDrinkScoreUpdate(
-              currentContest.drinks[drinkIndex],
+            const updatedEntry = applyEntryScoreUpdate(
+              currentContest.entries[entryIndex],
               updatedScore.judgeId,
               updatedScore.breakdown,
               lockToken,
               now
             );
-            const updatedDrinks = [...currentContest.drinks];
-            updatedDrinks[drinkIndex] = updatedDrink;
+            const updatedEntries = [...currentContest.entries];
+            updatedEntries[entryIndex] = updatedEntry;
 
-            return { updatedScores, updatedDrinks, result: updatedScore };
+            return { updatedScores, updatedEntries, result: updatedScore };
           },
         });
 
@@ -689,10 +697,13 @@ export function createFirebaseBackendProvider(): MixologyBackendProvider {
 
   const getDb = () => db;
 
+  const entriesProvider = createFirebaseEntriesProvider(getDb);
+
   return {
     name: 'firebase',
     contests: createFirebaseContestsProvider(getDb),
-    drinks: createFirebaseDrinksProvider(getDb),
+    entries: entriesProvider,
+    drinks: entriesProvider, // Deprecated alias
     judges: createFirebaseJudgesProvider(getDb),
     scores: createFirebaseScoresProvider(getDb),
 

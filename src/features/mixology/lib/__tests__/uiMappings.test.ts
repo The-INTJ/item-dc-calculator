@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Contest, Drink } from '../../types';
+import type { Contest, Entry } from '../../types';
 import {
   buildMatchupsFromDrinks,
   buildRoundDetail,
@@ -19,12 +19,12 @@ const baseContest: Contest = {
     { id: 'balance', label: 'Balance', sortOrder: 1 },
     { id: 'overall', label: 'Overall', sortOrder: 2 },
   ],
-  drinks: [],
+  entries: [],
   judges: [],
   scores: [],
 };
 
-function drink(id: string, submittedBy = 'Team A'): Drink {
+function drink(id: string, submittedBy = 'Team A'): Entry {
   return {
     id,
     name: `Drink ${id}`,
@@ -46,7 +46,7 @@ describe('uiMappings', () => {
   it('deduplicates contestant names in round summary', () => {
     const summary = buildRoundSummary({
       ...baseContest,
-      drinks: [drink('a', 'Team A'), drink('b', 'Team A'), drink('c', 'Team B')],
+      entries: [drink('a', 'Team A'), drink('b', 'Team A'), drink('c', 'Team B')],
     });
 
     expect(summary.contestantNames).toEqual(['Team A', 'Team B']);
@@ -57,8 +57,8 @@ describe('uiMappings', () => {
     const matchups = buildMatchupsFromDrinks([drink('a'), drink('b'), drink('c')]);
 
     expect(matchups).toEqual([
-      { id: 'matchup-1', drinkIds: ['a', 'b'] },
-      { id: 'matchup-2', drinkIds: ['c'] },
+      { id: 'matchup-1', entryIds: ['a', 'b'] },
+      { id: 'matchup-2', entryIds: ['c'] },
     ]);
   });
 
@@ -69,6 +69,7 @@ describe('uiMappings', () => {
       scores: [
         {
           id: 'score-1',
+          entryId: 'drink-1',
           drinkId: 'drink-1',
           judgeId: 'judge-1',
           breakdown: {
@@ -84,19 +85,19 @@ describe('uiMappings', () => {
 
     expect(voteTotals).toEqual([
       {
-        drinkId: 'drink-1',
+        entryId: 'drink-1',
         categoryId: 'aroma',
         total: 7,
         userHasVoted: true,
       },
       {
-        drinkId: 'drink-1',
+        entryId: 'drink-1',
         categoryId: 'balance',
         total: 8,
         userHasVoted: true,
       },
       {
-        drinkId: 'drink-1',
+        entryId: 'drink-1',
         categoryId: 'overall',
         total: 8,
         userHasVoted: true,
@@ -110,13 +111,13 @@ describe('uiMappings', () => {
       ...baseContest,
       rounds: [{ id: 'round-1', name: 'Semifinals', number: 1, state: 'shake' as const }],
       activeRoundId: 'round-1',
-      drinks: [drink('a'), drink('b')],
+      entries: [drink('a'), drink('b')],
     };
 
     const detail = buildRoundDetail(contest);
 
     expect(detail.name).toBe('Semifinals');
-    expect(detail.drinks.map((item) => item.id)).toEqual(['a', 'b']);
-    expect(detail.matchups).toEqual([{ id: 'matchup-1', drinkIds: ['a', 'b'] }]);
+    expect((detail.entries ?? detail.drinks ?? []).map((item) => item.id)).toEqual(['a', 'b']);
+    expect(detail.matchups).toEqual([{ id: 'matchup-1', entryIds: ['a', 'b'] }]);
   });
 });

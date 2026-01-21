@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import type { Contest, ContestPhase, ContestRound, Drink } from '../types';
+import type { Contest, ContestPhase, ContestRound, Entry } from '../types';
 import { buildDefaultVoteCategories } from '../components/ui/voteUtils';
 import { getActiveRoundId, getRoundById, getRoundLabel } from '../lib/contestHelpers';
 import { useContestState } from './ContestStateContext';
@@ -24,7 +24,7 @@ interface AdminContestContextValue extends AdminContestState {
   setActiveRound: (contestId: string, roundId: string) => void;
   setRoundState: (contestId: string, roundId: string, state: ContestPhase) => void;
   addMixologist: (contestId: string, mixologist: { name: string; drinkName: string; roundId: string }) => void;
-  updateMixologist: (contestId: string, drinkId: string, updates: Partial<Drink>) => void;
+  updateMixologist: (contestId: string, drinkId: string, updates: Partial<Entry>) => void;
   removeMixologist: (contestId: string, drinkId: string) => void;
   refresh: () => void;
 }
@@ -57,7 +57,7 @@ function buildDefaultContest(): Contest {
     activeRoundId: 'round-1',
     futureRoundId: null,
     categories: buildDefaultVoteCategories(),
-    drinks: [],
+    entries: [],
     judges: [],
     scores: [],
   };
@@ -83,7 +83,7 @@ function buildDebugContests(): Contest[] {
       activeRoundId: 'round-missing',
       futureRoundId: 'round-phantom',
       categories: buildDefaultVoteCategories(),
-      drinks: [
+      entries: [
         {
           id: 'drink-siren',
           name: 'Siren Signal',
@@ -117,6 +117,7 @@ function buildDebugContests(): Contest[] {
       scores: [
         {
           id: 'score-impossible',
+          entryId: 'drink-ghost',
           drinkId: 'drink-ghost',
           judgeId: 'judge-viewer',
           breakdown: { aroma: 15, balance: -2, presentation: 0, creativity: 42, overall: 9 },
@@ -124,6 +125,7 @@ function buildDebugContests(): Contest[] {
         },
         {
           id: 'score-orphaned',
+          entryId: 'drink-does-not-exist',
           drinkId: 'drink-does-not-exist',
           judgeId: 'judge-admin',
           breakdown: { aroma: 8, balance: 8, presentation: 8, creativity: 8, overall: 8 },
@@ -131,6 +133,7 @@ function buildDebugContests(): Contest[] {
         },
         {
           id: 'score-unknown-judge',
+          entryId: 'drink-siren',
           drinkId: 'drink-siren',
           judgeId: 'judge-unknown',
           breakdown: { aroma: 7, balance: 7, presentation: 7, creativity: 7, overall: 7 },
@@ -153,7 +156,7 @@ function buildDebugContests(): Contest[] {
       activeRoundId: 'round-alpha',
       futureRoundId: 'round-beta',
       categories: buildDefaultVoteCategories(),
-      drinks: [
+      entries: [
         {
           id: 'drink-echo',
           name: 'Echo Chamber',
@@ -179,12 +182,14 @@ function buildDebugContests(): Contest[] {
       scores: [
         {
           id: 'score-alpha',
+          entryId: 'drink-echo',
           drinkId: 'drink-echo',
           judgeId: 'judge-alpha',
           breakdown: { aroma: 5, balance: 5, presentation: 5, creativity: 5, overall: 5 },
         },
         {
           id: 'score-viewer',
+          entryId: 'drink-oddball',
           drinkId: 'drink-oddball',
           judgeId: 'judge-viewer-2',
           breakdown: { aroma: 10, balance: 10, presentation: 10, creativity: 10, overall: 10 },
@@ -205,7 +210,7 @@ function buildDebugContests(): Contest[] {
       activeRoundId: null,
       futureRoundId: null,
       categories: buildDefaultVoteCategories(),
-      drinks: [],
+      entries: [],
       judges: [],
       scores: [],
     },
@@ -374,10 +379,10 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
       const contests = prev.contests.map((contest) => {
         if (contest.id !== contestId) return contest;
         const rounds = (contest.rounds ?? []).filter((round) => round.id !== roundId);
-        const drinks = contest.drinks.map((drink) =>
+        const entries = (contest.entries ?? contest.drinks ?? []).map((drink) =>
           drink.round === roundId ? { ...drink, round: '' } : drink
         );
-        return normalizeContest({ ...contest, rounds, drinks });
+        return normalizeContest({ ...contest, rounds, entries });
       });
       return { ...prev, contests };
     });
@@ -424,7 +429,7 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
       updateState((prev) => {
         const contests = prev.contests.map((contest) => {
           if (contest.id !== contestId) return contest;
-          const drink: Drink = {
+          const drink: Entry = {
             id: generateId('drink'),
             name: mixologist.drinkName,
             slug: mixologist.drinkName.toLowerCase().replace(/\s+/g, '-'),
@@ -432,7 +437,7 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
             round: mixologist.roundId,
             submittedBy: mixologist.name,
           };
-          return normalizeContest({ ...contest, drinks: [...contest.drinks, drink] });
+          return normalizeContest({ ...contest, entries: [...(contest.entries ?? contest.drinks ?? []), drink] });
         });
         return { ...prev, contests };
       });
@@ -440,12 +445,12 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
     [updateState]
   );
 
-  const updateMixologist = useCallback((contestId: string, drinkId: string, updates: Partial<Drink>) => {
+  const updateMixologist = useCallback((contestId: string, drinkId: string, updates: Partial<Entry>) => {
     updateState((prev) => {
       const contests = prev.contests.map((contest) => {
         if (contest.id !== contestId) return contest;
-        const drinks = contest.drinks.map((drink) => (drink.id === drinkId ? { ...drink, ...updates } : drink));
-        return normalizeContest({ ...contest, drinks });
+        const entries = (contest.entries ?? contest.drinks ?? []).map((drink) => (drink.id === drinkId ? { ...drink, ...updates } : drink));
+        return normalizeContest({ ...contest, entries });
       });
       return { ...prev, contests };
     });
@@ -455,8 +460,8 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
     updateState((prev) => {
       const contests = prev.contests.map((contest) => {
         if (contest.id !== contestId) return contest;
-        const drinks = contest.drinks.filter((drink) => drink.id !== drinkId);
-        return normalizeContest({ ...contest, drinks });
+        const entries = (contest.entries ?? contest.drinks ?? []).filter((drink) => drink.id !== drinkId);
+        return normalizeContest({ ...contest, entries });
       });
       return { ...prev, contests };
     });
