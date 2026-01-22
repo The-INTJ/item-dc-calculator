@@ -121,12 +121,12 @@ export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }
       </section>
 
       <section className="admin-details-section">
-        <h3>Drinks ({(contest.entries ?? contest.drinks ?? []).length})</h3>
-        {(contest.entries ?? contest.drinks ?? []).length === 0 ? (
+        <h3>Drinks ({contest.entries.length})</h3>
+        {contest.entries.length === 0 ? (
           <p className="admin-empty">No drinks registered yet.</p>
         ) : (
           <ul className="admin-detail-list">
-            {(contest.entries ?? contest.drinks ?? []).map((drink) => (
+            {contest.entries.map((drink) => (
               <DrinkItem
                 key={drink.id}
                 drink={drink}
@@ -160,7 +160,7 @@ export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }
               <ScoreItem
                 key={score.id}
                 score={score}
-                drinks={contest.entries ?? contest.drinks ?? []}
+                drinks={contest.entries}
                 judges={contest.judges}
               />
             ))}

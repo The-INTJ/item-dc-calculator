@@ -4,6 +4,14 @@ This document outlines the refactoring plan for `firebaseBackendProvider.ts` (~7
 
 ---
 
+## Progress
+
+- ✅ Phase 1 completed (file split and provider utilities extraction).
+- ✅ Phase 2.2 completed (removed deprecated `drinks`/`listByDrink` provider usage).
+- ⬜ Remaining Phase 2 items pending.
+
+---
+
 ## Questions Answered
 
 ### 1. Why are we manually building `success`/`error` results?
@@ -189,7 +197,6 @@ export function createFirebaseBackendProvider(): MixologyBackendProvider {
     name: 'firebase',
     contests: createFirebaseContestsProvider(adapter),
     entries: entriesProvider,
-    drinks: entriesProvider, // Deprecated alias
     judges: createFirebaseJudgesProvider(adapter),
     scores: createFirebaseScoresProvider(adapter),
 

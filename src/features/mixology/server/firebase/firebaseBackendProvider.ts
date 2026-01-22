@@ -33,7 +33,6 @@ export function createFirebaseBackendProvider(): MixologyBackendProvider {
     name: 'firebase',
     contests: createFirebaseContestsProvider(adapter),
     entries: entriesProvider,
-    drinks: entriesProvider, // Deprecated alias
     judges: createFirebaseJudgesProvider(adapter),
     scores: createFirebaseScoresProvider(adapter),
 

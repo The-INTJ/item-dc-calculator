@@ -25,7 +25,6 @@ export type {
   ScoreEntry,
   ScoreBreakdown,
   ContestsProvider,
-  DrinksProvider,
   JudgesProvider,
   ScoresProvider,
 } from './types';

@@ -35,12 +35,8 @@ export function getRoundLabel(contest: Contest, roundId: string | null | undefin
 export function getEntriesForRound(contest: Contest, roundId: string | null | undefined): Entry[] {
   if (!roundId) return [];
   const round = getRoundById(contest, roundId);
-  const entries = contest.entries ?? contest.drinks ?? [];
-  return entries.filter((entry) => entry.round === roundId || entry.round === round?.name);
+  return contest.entries.filter((entry) => entry.round === roundId || entry.round === round?.name);
 }
-
-/** @deprecated Use getEntriesForRound instead */
-export const getDrinksForRound = getEntriesForRound;
 
 export function getRoundStatus(contest: Contest, roundId: string): 'upcoming' | 'active' | 'closed' {
   const rounds = getContestRounds(contest);
@@ -70,6 +66,3 @@ export function getEntryScore(scoreEntries: ScoreEntry[], entryId: string): numb
   const total = scores.reduce((sum, score) => sum + score, 0);
   return Math.round(total / scores.length);
 }
-
-/** @deprecated Use getEntryScore instead */
-export const getDrinkScore = getEntryScore;

@@ -1,27 +1,27 @@
 import type { BracketRound } from '../components/ui/BracketView';
 import type { Contest } from '../types';
-import { buildMatchupsFromDrinks } from './uiMappings';
-import { getContestRounds, getEntriesForRound, getDrinkScore, getRoundStatus } from './contestHelpers';
+import { buildMatchupsFromEntries } from './uiMappings';
+import { getContestRounds, getEntriesForRound, getEntryScore, getRoundStatus } from './contestHelpers';
 
 export function buildBracketRoundsFromContest(contest: Contest): BracketRound[] {
   const rounds = getContestRounds(contest);
 
   return rounds.map((round) => {
-    const drinks = getEntriesForRound(contest, round.id);
-    const matchups = buildMatchupsFromDrinks(drinks).map((matchup) => {
-      const [firstId, secondId] = matchup.entryIds ?? matchup.drinkIds ?? [];
+    const entries = getEntriesForRound(contest, round.id);
+    const matchups = buildMatchupsFromEntries(entries).map((matchup) => {
+      const [firstId, secondId] = matchup.entryIds ?? [];
       const contestantA = firstId
         ? {
             id: firstId,
-            name: drinks.find((drink) => drink.id === firstId)?.name ?? 'TBD',
-            score: getDrinkScore(contest.scores, firstId),
+            name: entries.find((entry) => entry.id === firstId)?.name ?? 'TBD',
+            score: getEntryScore(contest.scores, firstId),
           }
         : { id: 'tbd-a', name: 'TBD', score: null };
       const contestantB = secondId
         ? {
             id: secondId,
-            name: drinks.find((drink) => drink.id === secondId)?.name ?? 'TBD',
-            score: getDrinkScore(contest.scores, secondId),
+            name: entries.find((entry) => entry.id === secondId)?.name ?? 'TBD',
+            score: getEntryScore(contest.scores, secondId),
           }
         : { id: 'tbd-b', name: 'TBD', score: null };
 

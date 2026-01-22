@@ -33,11 +33,6 @@ export function createFirebaseScoresProvider(adapter: FirestoreAdapter): ScoresP
       return success(scores);
     },
 
-    // Deprecated alias
-    async listByDrink(contestId, drinkId): Promise<ProviderResult<ScoreEntry[]>> {
-      return this.listByEntry(contestId, drinkId);
-    },
-
     async listByJudge(contestId, judgeId): Promise<ProviderResult<ScoreEntry[]>> {
       const contest = await adapter.getContest(contestId);
       if (!contest) return error('Contest not found');

@@ -336,11 +336,6 @@ function createScoresProvider(getData: () => Contest[]): ScoresProvider {
       return success(contest.scores.filter((s) => s.entryId === entryId || s.drinkId === entryId));
     },
 
-    // Deprecated alias
-    async listByDrink(contestId, drinkId): Promise<ProviderResult<ScoreEntry[]>> {
-      return this.listByEntry(contestId, drinkId);
-    },
-
     async listByJudge(contestId, judgeId): Promise<ProviderResult<ScoreEntry[]>> {
       const contest = findContest(contestId);
       if (!contest) return error('Contest not found');
@@ -410,7 +405,6 @@ export function createInMemoryProvider(): MixologyBackendProvider {
     name: 'in-memory',
     contests: createContestsProvider(getData),
     entries: entriesProvider,
-    drinks: entriesProvider, // Deprecated alias
     judges: createJudgesProvider(getData),
     scores: createScoresProvider(getData),
 

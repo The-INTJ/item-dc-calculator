@@ -18,10 +18,6 @@ export interface MatchupSummary {
   id: string;
   entryIds: string[];
   winnerEntryId?: string;
-  /** @deprecated Use entryIds instead */
-  drinkIds?: string[];
-  /** @deprecated Use winnerEntryId instead */
-  winnerDrinkId?: string;
 }
 
 export interface RoundDetail {
@@ -32,8 +28,6 @@ export interface RoundDetail {
   matchups: MatchupSummary[];
   entries: EntrySummary[];
   voteSummary: VoteTotals[];
-  /** @deprecated Use entries instead */
-  drinks?: EntrySummary[];
 }
 
 export interface EntrySummary {
@@ -51,8 +45,6 @@ export interface VoteTotals {
   categoryId: string;
   total: number;
   userHasVoted: boolean;
-  /** @deprecated Use entryId instead */
-  drinkId?: string;
 }
 
 const breakdownKeys: string[] = [
@@ -123,8 +115,6 @@ export function buildVoteTotalsFromScores(scores: ScoreEntry[], categories: Vote
       categoryId,
       total,
       userHasVoted: true,
-      // Deprecated field for backward compatibility
-      drinkId: entryId,
     };
   });
 }
