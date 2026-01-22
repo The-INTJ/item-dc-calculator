@@ -18,9 +18,9 @@ import type {
   Entry,
   Judge,
   ScoreEntry,
-  ScoreBreakdown,
 } from './types';
 import { generateId, success, error } from './providerUtils';
+import { normalizeScorePayload } from './scoreNormalization';
 import { CHILI_CONFIG, MIXOLOGY_CONFIG } from '../../types/templates';
 
 // Seed data - same as the existing store.ts
@@ -351,9 +351,23 @@ function createScoresProvider(getData: () => Contest[]): ScoresProvider {
     async submit(contestId, input): Promise<ProviderResult<ScoreEntry>> {
       const contest = findContest(contestId);
       if (!contest) return error('Contest not found');
-      const newScore: ScoreEntry = { ...input, id: generateId('score') };
-      contest.scores.push(newScore);
-      return success(newScore);
+      try {
+        const normalized = normalizeScorePayload({
+          contest,
+          updates: input.breakdown,
+          naSections: input.naSections,
+        });
+        const newScore: ScoreEntry = {
+          ...input,
+          id: generateId('score'),
+          breakdown: normalized.breakdown,
+          naSections: normalized.naSections,
+        };
+        contest.scores.push(newScore);
+        return success(newScore);
+      } catch (err) {
+        return error(err instanceof Error ? err.message : 'Invalid score payload');
+      }
     },
 
     async update(contestId, scoreId, updates): Promise<ProviderResult<ScoreEntry>> {
@@ -363,20 +377,27 @@ function createScoresProvider(getData: () => Contest[]): ScoresProvider {
       if (idx === -1) return error('Score not found');
 
       const current = contest.scores[idx];
-      // Merge breakdown updates, filtering out undefined values
-      const mergedBreakdown: ScoreBreakdown = { ...current.breakdown };
-      if (updates.breakdown) {
-        for (const [key, value] of Object.entries(updates.breakdown)) {
-          if (typeof value === 'number' || value === null) {
-            mergedBreakdown[key] = value;
-          }
-        }
+      const mergedNaSections = updates.naSections ?? current.naSections;
+      let mergedBreakdown: ScoreBreakdown;
+      let normalizedNaSections: string[] | undefined;
+      try {
+        const normalized = normalizeScorePayload({
+          contest,
+          baseBreakdown: current.breakdown,
+          updates: updates.breakdown,
+          naSections: mergedNaSections,
+        });
+        mergedBreakdown = normalized.breakdown;
+        normalizedNaSections = normalized.naSections;
+      } catch (err) {
+        return error(err instanceof Error ? err.message : 'Invalid score payload');
       }
+
       contest.scores[idx] = {
         ...current,
         breakdown: mergedBreakdown,
         notes: updates.notes ?? current.notes,
-        naSections: updates.naSections ?? current.naSections,
+        naSections: normalizedNaSections,
       };
       return success(contest.scores[idx]);
     },

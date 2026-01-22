@@ -5,8 +5,9 @@
  * Scores are stored as arrays in contest documents.
  */
 
-import type { ScoresProvider, ScoreEntry, ScoreBreakdown, ProviderResult } from '../../backend/types';
+import type { ScoresProvider, ScoreEntry, ProviderResult } from '../../backend/types';
 import { generateId, success, error, withDb } from '../../backend/providerUtils';
+import { normalizeScorePayload } from '../../backend/scoreNormalization';
 import { createArrayEntityOperations } from '../arrayEntityAdapter';
 import type { FirestoreAdapter } from '../firestoreAdapter';
 import { applyEntryScoreUpdate, updateEntryScoresWithLock } from '../scoring';
@@ -61,19 +62,30 @@ export function createFirebaseScoresProvider(adapter: FirestoreAdapter): ScoresP
 
             let updatedScores = [...contest.scores];
             let updatedScore: ScoreEntry;
+            const normalized = normalizeScorePayload({
+              contest,
+              updates: input.breakdown,
+              naSections: input.naSections,
+            });
 
             if (existingIndex !== -1) {
               const existingScore = contest.scores[existingIndex];
               updatedScore = {
                 ...existingScore,
                 entryId: inputEntryId,
-                breakdown: input.breakdown,
+                breakdown: normalized.breakdown,
                 notes: input.notes ?? existingScore.notes,
-                naSections: input.naSections ?? existingScore.naSections,
+                naSections: normalized.naSections,
               };
               updatedScores[existingIndex] = updatedScore;
             } else {
-              updatedScore = { ...input, id: generateId('score'), entryId: inputEntryId };
+              updatedScore = {
+                ...input,
+                id: generateId('score'),
+                entryId: inputEntryId,
+                breakdown: normalized.breakdown,
+                naSections: normalized.naSections,
+              };
               updatedScores = [...contest.scores, updatedScore];
             }
 
@@ -116,21 +128,17 @@ export function createFirebaseScoresProvider(adapter: FirestoreAdapter): ScoresP
             }
 
             const current = currentContest.scores[currentScoreIdx];
-            const mergedBreakdown: ScoreBreakdown = { ...current.breakdown };
-
-            if (updates.breakdown) {
-              for (const [key, value] of Object.entries(updates.breakdown)) {
-                if (typeof value === 'number' || value === null) {
-                  mergedBreakdown[key] = value;
-                }
-              }
-            }
-
+            const normalized = normalizeScorePayload({
+              contest: currentContest,
+              baseBreakdown: current.breakdown,
+              updates: updates.breakdown,
+              naSections: updates.naSections ?? current.naSections,
+            });
             const updatedScore: ScoreEntry = {
               ...current,
-              breakdown: mergedBreakdown,
+              breakdown: normalized.breakdown,
               notes: updates.notes ?? current.notes,
-              naSections: updates.naSections ?? current.naSections,
+              naSections: normalized.naSections,
             };
 
             const updatedScores = [...currentContest.scores];
