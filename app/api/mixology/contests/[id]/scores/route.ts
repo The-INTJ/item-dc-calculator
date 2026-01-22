@@ -100,6 +100,13 @@ export async function POST(request: Request, { params }: RouteParams) {
       return NextResponse.json({ message: 'naSections must be an array of attribute IDs.' }, { status: 400 });
     }
 
+    const sanitizeBreakdown = (
+      updates: Partial<ScoreBreakdown>
+    ): Partial<ScoreBreakdown> =>
+      Object.fromEntries(
+        Object.entries(updates).filter(([, value]) => value !== undefined)
+      ) as Partial<ScoreBreakdown>;
+
     let breakdownUpdates: Partial<ScoreBreakdown> | null = null;
 
     if (body.breakdown && Object.keys(body.breakdown).length > 0) {
@@ -112,7 +119,9 @@ export async function POST(request: Request, { params }: RouteParams) {
       breakdownUpdates = { [body.categoryId]: numericValue };
     }
 
-    if (!breakdownUpdates && !naSectionsProvided) {
+    const normalizedBreakdown = breakdownUpdates ? sanitizeBreakdown(breakdownUpdates) : null;
+
+    if (!normalizedBreakdown && !naSectionsProvided) {
       return NextResponse.json({ message: 'Score breakdown or categoryId + value is required.' }, { status: 400 });
     }
 
@@ -125,7 +134,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 
     if (existing) {
       const updateResult = await provider.scores.update(contest.id, existing.id, {
-        breakdown: breakdownUpdates ?? undefined,
+        breakdown: normalizedBreakdown ?? undefined,
         notes: body.notes,
         naSections: naSectionsProvided ? body.naSections : undefined,
       });
@@ -140,7 +149,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     const submitResult = await provider.scores.submit(contest.id, {
       entryId,
       judgeId,
-      breakdown: breakdownUpdates ?? {},
+      breakdown: (normalizedBreakdown ?? {}) as ScoreBreakdown,
       notes: body.notes,
       naSections: naSectionsProvided ? body.naSections : undefined,
     });
