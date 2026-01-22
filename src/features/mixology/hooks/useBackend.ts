@@ -9,7 +9,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import type { Contest, Drink, Judge, ScoreEntry } from '../types';
+import type { Contest, Judge, ScoreEntry } from '../types';
 import type { ProviderResult } from '../server/backend';
 import { extractCurrentContest } from '../services/api';
 
@@ -168,7 +168,7 @@ export function useContestMutations() {
   const [state, setState] = useState<MutationState>({ loading: false, error: null });
 
   const createContest = useCallback(
-    async (data: Omit<Contest, 'id' | 'drinks' | 'judges' | 'scores'>): Promise<ProviderResult<Contest>> => {
+    async (data: Omit<Contest, 'id' | 'entries' | 'judges' | 'scores'>): Promise<ProviderResult<Contest>> => {
       if (authLoading || !isAdmin) {
         const error = 'Admin access required';
         setState({ loading: false, error });

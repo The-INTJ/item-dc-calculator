@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Contest, Entry } from '../../types';
 import {
-  buildMatchupsFromDrinks,
+  buildMatchupsFromEntries,
   buildRoundDetail,
   buildRoundSummary,
   buildVoteTotals,
@@ -54,7 +54,7 @@ describe('uiMappings', () => {
 
   // Assumption: matchups are derived by pairing drinks in order, allowing a trailing solo drink.
   it('pairs drinks into ordered matchups', () => {
-    const matchups = buildMatchupsFromDrinks([drink('a'), drink('b'), drink('c')]);
+    const matchups = buildMatchupsFromEntries([drink('a'), drink('b'), drink('c')]);
 
     expect(matchups).toEqual([
       { id: 'matchup-1', entryIds: ['a', 'b'] },
@@ -117,7 +117,7 @@ describe('uiMappings', () => {
     const detail = buildRoundDetail(contest);
 
     expect(detail.name).toBe('Semifinals');
-    expect((detail.entries ?? detail.drinks ?? []).map((item) => item.id)).toEqual(['a', 'b']);
+    expect(detail.entries.map((item) => item.id)).toEqual(['a', 'b']);
     expect(detail.matchups).toEqual([{ id: 'matchup-1', entryIds: ['a', 'b'] }]);
   });
 });

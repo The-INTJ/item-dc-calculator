@@ -117,7 +117,7 @@ export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
       roundSummary: buildRoundSummary(activeContest),
       roundDetail,
       // Only return drinks for the active round, not all drinks
-      drinks: roundDetail.entries ?? roundDetail.drinks ?? [],
+      drinks: roundDetail.entries,
       loading: effectiveLoading,
       error,
       refreshAll: refreshAllLocal,

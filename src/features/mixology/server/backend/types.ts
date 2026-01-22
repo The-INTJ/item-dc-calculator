@@ -49,9 +49,6 @@ export interface EntriesProvider {
   delete(contestId: string, entryId: string): Promise<ProviderResult<void>>;
 }
 
-/** @deprecated Use EntriesProvider instead */
-export type DrinksProvider = EntriesProvider;
-
 /**
  * Judges provider interface - manage judges within contests
  */
@@ -88,8 +85,6 @@ export interface ScoresProvider {
     updates: ScoreUpdatePayload
   ): Promise<ProviderResult<ScoreEntry>>;
   delete(contestId: string, scoreId: string): Promise<ProviderResult<void>>;
-  /** @deprecated Use listByEntry instead */
-  listByDrink?(contestId: string, drinkId: string): Promise<ProviderResult<ScoreEntry[]>>;
 }
 
 /**
@@ -101,8 +96,6 @@ export interface MixologyBackendProvider {
   entries: EntriesProvider;
   judges: JudgesProvider;
   scores: ScoresProvider;
-  /** @deprecated Use entries instead */
-  drinks?: EntriesProvider;
 
   /**
    * Initialize the provider (connect to DB, load seed data, etc.)

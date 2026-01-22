@@ -19,11 +19,11 @@ export function buildEntrySummaries(entries: Entry[]): EntrySummary[] {
   return entries.map((entry) => buildEntrySummary(entry));
 }
 
-export function buildMatchupsFromDrinks(drinks: Entry[]): MatchupSummary[] {
+export function buildMatchupsFromEntries(entries: Entry[]): MatchupSummary[] {
   const matchups: MatchupSummary[] = [];
 
-  for (let index = 0; index < drinks.length; index += 2) {
-    const entryIds = [drinks[index]?.id, drinks[index + 1]?.id].filter(Boolean) as string[];
+  for (let index = 0; index < entries.length; index += 2) {
+    const entryIds = [entries[index]?.id, entries[index + 1]?.id].filter(Boolean) as string[];
 
     matchups.push({
       id: `matchup-${Math.floor(index / 2) + 1}`,
@@ -41,15 +41,15 @@ export function buildVoteTotals(contest: Contest): VoteTotals[] {
 export function buildRoundDetail(contest: Contest): RoundDetail {
   const roundSummary = buildRoundSummaryFromContest(contest);
   const activeRoundId = getActiveRoundId(contest);
-  const activeDrinks = activeRoundId ? getEntriesForRound(contest, activeRoundId) : [];
+  const activeEntries = activeRoundId ? getEntriesForRound(contest, activeRoundId) : [];
 
   return {
     id: contest.id,
     name: roundSummary.name,
     status: roundSummary.status,
     contestId: contest.id,
-    matchups: buildMatchupsFromDrinks(activeDrinks),
-    entries: buildEntrySummaries(activeDrinks),
+    matchups: buildMatchupsFromEntries(activeEntries),
+    entries: buildEntrySummaries(activeEntries),
     voteSummary: buildVoteTotalsFromScores(contest.scores, contest.categories ?? []),
   };
 }

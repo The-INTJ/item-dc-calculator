@@ -39,7 +39,7 @@ export function VoteScorePanel({
       {drinks.map((drink) => {
         const drinkTotals = categories.map((category) => {
           const total = totals.find(
-            (entry) => entry.drinkId === drink.id && entry.categoryId === category.id
+            (entry) => entry.entryId === drink.id && entry.categoryId === category.id
           )?.total;
           return {
             label: category.label,

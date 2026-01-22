@@ -142,8 +142,6 @@ export interface Contest {
   scores: ScoreEntry[];
   /** @deprecated Use currentEntryId instead */
   currentDrinkId?: string;
-  /** @deprecated Use entries instead */
-  drinks?: Entry[];
 }
 
 export interface MixologyData {

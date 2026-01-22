@@ -79,7 +79,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       return NextResponse.json({ message: 'entryId and judgeId are required.' }, { status: 400 });
     }
 
-    const entries: Entry[] = contest.entries ?? contest.drinks ?? [];
+    const entries: Entry[] = contest.entries;
     const entryExists = entries.some((entry) => entry.id === entryId);
     if (!entryExists) {
       return NextResponse.json({ message: 'Entry not found.' }, { status: 404 });
