@@ -51,7 +51,12 @@ function VoterItem({ judge }: { judge: Judge }) {
 function ScoreItem({ score, drinks, judges }: { score: ScoreEntry; drinks: Entry[]; judges: Judge[] }) {
   const drink = drinks.find((d) => d.id === (score.entryId ?? score.drinkId));
   const judge = judges.find((j) => j.id === score.judgeId);
-  const total = Object.values(score.breakdown).reduce((a, b) => a + b, 0);
+  const total = Object.values(score.breakdown).reduce((sum, value) => {
+    if (typeof value !== 'number' || !Number.isFinite(value)) return sum;
+    return sum + value;
+  }, 0);
+  const formatValue = (value: number | null | undefined) =>
+    typeof value === 'number' && Number.isFinite(value) ? value : 'N/A';
 
   return (
     <li className="admin-detail-item admin-score-item">
@@ -60,11 +65,11 @@ function ScoreItem({ score, drinks, judges }: { score: ScoreEntry; drinks: Entry
         <span className="admin-detail-meta">by {judge?.displayName ?? 'Unknown'}</span>
       </div>
       <div className="admin-score-item__breakdown">
-        <span>Aroma: {score.breakdown.aroma}</span>
-        <span>Balance: {score.breakdown.balance}</span>
-        <span>Presentation: {score.breakdown.presentation}</span>
-        <span>Creativity: {score.breakdown.creativity}</span>
-        <span>Overall: {score.breakdown.overall}</span>
+        <span>Aroma: {formatValue(score.breakdown.aroma)}</span>
+        <span>Balance: {formatValue(score.breakdown.balance)}</span>
+        <span>Presentation: {formatValue(score.breakdown.presentation)}</span>
+        <span>Creativity: {formatValue(score.breakdown.creativity)}</span>
+        <span>Overall: {formatValue(score.breakdown.overall)}</span>
         <strong>Total: {total}/50</strong>
       </div>
       {score.notes && <p className="admin-score-item__notes">{score.notes}</p>}

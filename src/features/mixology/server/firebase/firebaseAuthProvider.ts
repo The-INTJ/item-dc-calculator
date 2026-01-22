@@ -279,6 +279,7 @@ export function createFirebaseAuthProvider(): AuthProvider {
             drinkId: data.drinkId,
             score: data.score,
             breakdown: data.breakdown,
+            naSections: data.naSections,
             notes: data.notes,
             timestamp: data.timestamp?.toMillis?.() ?? data.timestamp ?? Date.now(),
           };
@@ -312,6 +313,7 @@ export function createFirebaseAuthProvider(): AuthProvider {
           await updateDoc(doc(db, VOTES_COLLECTION, voteDoc.id), {
             score: vote.score,
             breakdown: vote.breakdown,
+            naSections: vote.naSections,
             notes: vote.notes,
             timestamp: vote.timestamp,
             updatedAt: serverTimestamp(),
@@ -324,6 +326,7 @@ export function createFirebaseAuthProvider(): AuthProvider {
             drinkId: vote.drinkId,
             score: vote.score,
             breakdown: vote.breakdown,
+            naSections: vote.naSections,
             notes: vote.notes,
             timestamp: vote.timestamp,
             createdAt: serverTimestamp(),

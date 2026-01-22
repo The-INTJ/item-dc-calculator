@@ -16,6 +16,7 @@ interface ScoreSubmitBody {
   categoryId?: string;
   value?: number;
   breakdown?: Partial<ScoreBreakdown>;
+  naSections?: string[];
   notes?: string;
 }
 
@@ -96,6 +97,23 @@ export async function POST(request: Request, { params }: RouteParams) {
 
     // Get config for this contest (falls back to Mixology default)
     const config = getEffectiveConfig(contest);
+    const naSectionsProvided = body.naSections !== undefined;
+
+    if (naSectionsProvided && !Array.isArray(body.naSections)) {
+      return NextResponse.json({ message: 'naSections must be an array of attribute IDs.' }, { status: 400 });
+    }
+
+    const normalizedNaSections = Array.isArray(body.naSections)
+      ? body.naSections.map((section) => section.trim()).filter(Boolean)
+      : [];
+
+    for (const section of normalizedNaSections) {
+      if (!isValidAttributeId(section, config)) {
+        return NextResponse.json({ message: `Invalid N/A section: ${section}.` }, { status: 400 });
+      }
+    }
+
+    const naSectionSet = new Set(normalizedNaSections);
 
     let breakdownUpdates: Partial<ScoreBreakdown> | null = null;
 
@@ -106,6 +124,9 @@ export async function POST(request: Request, { params }: RouteParams) {
       if (!isValidAttributeId(body.categoryId, config)) {
         return NextResponse.json({ message: 'Invalid categoryId for scoring.' }, { status: 400 });
       }
+      if (naSectionSet.has(body.categoryId)) {
+        return NextResponse.json({ message: 'Cannot score a section marked N/A.' }, { status: 400 });
+      }
       const numericValue = Number(body.value);
       if (!Number.isFinite(numericValue)) {
         return NextResponse.json({ message: 'Score value must be numeric.' }, { status: 400 });
@@ -113,8 +134,42 @@ export async function POST(request: Request, { params }: RouteParams) {
       breakdownUpdates = { [body.categoryId]: numericValue };
     }
 
-    if (!breakdownUpdates) {
+    if (!breakdownUpdates && !naSectionsProvided) {
       return NextResponse.json({ message: 'Score breakdown or categoryId + value is required.' }, { status: 400 });
+    }
+
+    if (breakdownUpdates) {
+      for (const [key, value] of Object.entries(breakdownUpdates)) {
+        if (!isValidAttributeId(key, config)) {
+          return NextResponse.json({ message: `Invalid breakdown key: ${key}.` }, { status: 400 });
+        }
+
+        if (naSectionSet.has(key)) {
+          if (typeof value === 'number' && Number.isFinite(value)) {
+            return NextResponse.json({ message: `Cannot score N/A section: ${key}.` }, { status: 400 });
+          }
+          if (value !== null && value !== undefined) {
+            return NextResponse.json({ message: `Invalid value for N/A section: ${key}.` }, { status: 400 });
+          }
+          continue;
+        }
+
+        if (value === null) {
+          return NextResponse.json({ message: `Section ${key} must have a numeric score.` }, { status: 400 });
+        }
+
+        if (typeof value !== 'number' || !Number.isFinite(value)) {
+          return NextResponse.json({ message: `Invalid score value for ${key}.` }, { status: 400 });
+        }
+      }
+    }
+
+    const normalizedBreakdownUpdates = breakdownUpdates ? { ...breakdownUpdates } : (naSectionsProvided ? {} : null);
+
+    if (normalizedBreakdownUpdates && naSectionsProvided) {
+      for (const section of normalizedNaSections) {
+        normalizedBreakdownUpdates[section] = null;
+      }
     }
 
     const existingScores = await provider.scores.listByEntry(contest.id, entryId);
@@ -126,8 +181,9 @@ export async function POST(request: Request, { params }: RouteParams) {
 
     if (existing) {
       const updateResult = await provider.scores.update(contest.id, existing.id, {
-        breakdown: breakdownUpdates,
+        breakdown: normalizedBreakdownUpdates ?? undefined,
         notes: body.notes,
+        naSections: naSectionsProvided ? normalizedNaSections : undefined,
       });
       if (!updateResult.success || !updateResult.data) {
         return NextResponse.json({ message: updateResult.error ?? 'Failed to update score' }, { status: 500 });
@@ -138,9 +194,16 @@ export async function POST(request: Request, { params }: RouteParams) {
     // Create breakdown based on contest config, merging in updates
     const emptyBreakdown = createEmptyBreakdown(config);
     const breakdown: ScoreBreakdown = { ...emptyBreakdown };
-    for (const [key, value] of Object.entries(breakdownUpdates)) {
-      if (typeof value === 'number') {
-        breakdown[key] = value;
+    if (naSectionsProvided) {
+      for (const section of normalizedNaSections) {
+        breakdown[section] = null;
+      }
+    }
+    if (normalizedBreakdownUpdates) {
+      for (const [key, value] of Object.entries(normalizedBreakdownUpdates)) {
+        if (typeof value === 'number' || value === null) {
+          breakdown[key] = value;
+        }
       }
     }
     const submitResult = await provider.scores.submit(contest.id, {
@@ -148,6 +211,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       judgeId,
       breakdown,
       notes: body.notes,
+      naSections: normalizedNaSections.length > 0 ? normalizedNaSections : undefined,
     });
 
     if (!submitResult.success || !submitResult.data) {

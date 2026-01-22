@@ -69,6 +69,7 @@ export function createFirebaseScoresProvider(adapter: FirestoreAdapter): ScoresP
                 entryId: inputEntryId,
                 breakdown: input.breakdown,
                 notes: input.notes ?? existingScore.notes,
+                naSections: input.naSections ?? existingScore.naSections,
               };
               updatedScores[existingIndex] = updatedScore;
             } else {
@@ -119,7 +120,7 @@ export function createFirebaseScoresProvider(adapter: FirestoreAdapter): ScoresP
 
             if (updates.breakdown) {
               for (const [key, value] of Object.entries(updates.breakdown)) {
-                if (typeof value === 'number') {
+                if (typeof value === 'number' || value === null) {
                   mergedBreakdown[key] = value;
                 }
               }
@@ -129,6 +130,7 @@ export function createFirebaseScoresProvider(adapter: FirestoreAdapter): ScoresP
               ...current,
               breakdown: mergedBreakdown,
               notes: updates.notes ?? current.notes,
+              naSections: updates.naSections ?? current.naSections,
             };
 
             const updatedScores = [...currentContest.scores];
