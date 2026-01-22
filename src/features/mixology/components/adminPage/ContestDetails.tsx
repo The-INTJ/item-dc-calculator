@@ -1,11 +1,7 @@
 'use client';
-
-/**
- * ContestDetails - Shows detailed info for a selected contest
- */
-
 import type { Contest, ContestConfig, Entry, Judge, ScoreEntry } from '../../types';
 import { buildEntrySummary } from '../../types/uiTypes';
+import { getEffectiveConfig } from '../../types';
 import { getRoundLabel } from '../../lib/contestHelpers';
 import { DrinkCard } from '../ui';
 import { AdminContestActivation } from './AdminContestActivation';
@@ -20,7 +16,6 @@ interface ContestDetailsProps {
   onContestUpdated: (contest: Contest) => void;
   onSetActiveContest: (contestId: string) => void;
 }
-
 function DrinkItem({ drink, roundLabel }: { drink: Entry; roundLabel: string }) {
   const summary = buildEntrySummary(drink);
 
@@ -36,7 +31,6 @@ function getRoleLabel(role: Judge['role']) {
   if (role === 'judge') return 'voter';
   return role;
 }
-
 function VoterItem({ judge }: { judge: Judge }) {
   return (
     <li className="admin-detail-item">
@@ -48,13 +42,17 @@ function VoterItem({ judge }: { judge: Judge }) {
   );
 }
 
-function ScoreItem({ score, drinks, judges }: { score: ScoreEntry; drinks: Entry[]; judges: Judge[] }) {
+function ScoreItem(
+  { score, drinks, judges, config }: { score: ScoreEntry; drinks: Entry[]; judges: Judge[]; config: ContestConfig }
+) {
   const drink = drinks.find((d) => d.id === (score.entryId ?? score.drinkId));
   const judge = judges.find((j) => j.id === score.judgeId);
-  const total = Object.values(score.breakdown).reduce((sum, value) => {
+  const total = config.attributes.reduce((sum, attr) => {
+    const value = score.breakdown[attr.id];
     if (typeof value !== 'number' || !Number.isFinite(value)) return sum;
     return sum + value;
   }, 0);
+  const maxTotal = config.attributes.reduce((sum, attr) => sum + (attr.max ?? 10), 0);
   const formatValue = (value: number | null | undefined) =>
     typeof value === 'number' && Number.isFinite(value) ? value : 'N/A';
 
@@ -65,12 +63,10 @@ function ScoreItem({ score, drinks, judges }: { score: ScoreEntry; drinks: Entry
         <span className="admin-detail-meta">by {judge?.displayName ?? 'Unknown'}</span>
       </div>
       <div className="admin-score-item__breakdown">
-        <span>Aroma: {formatValue(score.breakdown.aroma)}</span>
-        <span>Balance: {formatValue(score.breakdown.balance)}</span>
-        <span>Presentation: {formatValue(score.breakdown.presentation)}</span>
-        <span>Creativity: {formatValue(score.breakdown.creativity)}</span>
-        <span>Overall: {formatValue(score.breakdown.overall)}</span>
-        <strong>Total: {total}/50</strong>
+        {config.attributes.map((attr) => (
+          <span key={attr.id}>{attr.label}: {formatValue(score.breakdown[attr.id])}</span>
+        ))}
+        <strong>Total: {total}/{maxTotal}</strong>
       </div>
       {score.notes && <p className="admin-score-item__notes">{score.notes}</p>}
     </li>
@@ -79,7 +75,7 @@ function ScoreItem({ score, drinks, judges }: { score: ScoreEntry; drinks: Entry
 
 export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }: ContestDetailsProps) {
   const activeRoundLabel = getRoundLabel(contest, contest.activeRoundId);
-
+  const config = getEffectiveConfig(contest);
   const handleSaveConfig = async (config: ContestConfig) => {
     const response = await fetch(`/api/mixology/contests/${contest.id}`, {
       method: 'PATCH',
@@ -167,6 +163,7 @@ export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }
                 score={score}
                 drinks={contest.entries}
                 judges={contest.judges}
+                config={config}
               />
             ))}
           </ul>

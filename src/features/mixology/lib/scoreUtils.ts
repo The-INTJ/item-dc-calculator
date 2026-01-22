@@ -2,24 +2,13 @@ import type { ScoreBreakdown, ScoreEntry, ContestConfig } from '../types';
 import type { UserVote } from './auth/types';
 import { MIXOLOGY_CONFIG, getAttributeIds } from '../types';
 
-/**
- * Default breakdown keys for backward compatibility (Mixology config).
- * @deprecated Use getAttributeIds(config) for dynamic configs.
- */
 export const breakdownKeys: string[] = getAttributeIds(MIXOLOGY_CONFIG);
 
-/**
- * Type guard to check if a string is a valid ScoreBreakdown key.
- * Without a config, falls back to Mixology defaults.
- */
 export function isBreakdownKey(value: string, config?: ContestConfig): boolean {
   const validKeys = config ? getAttributeIds(config) : breakdownKeys;
   return validKeys.includes(value);
 }
 
-/**
- * Creates a score map with default values for each drink/category combination.
- */
 export function buildScoreDefaults(
   drinkIds: string[],
   categoryIds: string[],
@@ -34,9 +23,6 @@ export function buildScoreDefaults(
   }, {});
 }
 
-/**
- * Merges two score maps, with overrides taking precedence.
- */
 export function mergeScoreMaps(
   base: Record<string, Record<string, number>>,
   overrides: Record<string, Record<string, number>>
@@ -48,9 +34,6 @@ export function mergeScoreMaps(
   return merged;
 }
 
-/**
- * Converts ScoreEntry array into a score map keyed by drinkId -> categoryId.
- */
 export function buildScoresFromEntries(
   entries: ScoreEntry[],
   categoryIds: string[],
@@ -70,9 +53,6 @@ export function buildScoresFromEntries(
   }, {});
 }
 
-/**
- * Converts UserVote array into a score map keyed by drinkId -> categoryId.
- */
 export function buildScoresFromVotes(
   votes: UserVote[],
   categoryIds: string[],
@@ -90,10 +70,6 @@ export function buildScoresFromVotes(
   }, {});
 }
 
-/**
- * Ensures all breakdown keys exist with a value (defaults to 0).
- * Uses the provided config or falls back to Mixology defaults.
- */
 export function buildFullBreakdown(
   values: Partial<ScoreBreakdown>,
   config?: ContestConfig
@@ -108,10 +84,9 @@ export function buildFullBreakdown(
 
 /**
  * Calculates a single score from breakdown values.
- * Returns `overall` if > 0, otherwise averages all valid scores.
+ * Uses a positive `overall` override; otherwise averages numeric attributes (including when `overall` is null).
  */
 export function calculateScore(breakdown: ScoreBreakdown, config?: ContestConfig): number {
-  // If overall exists and is > 0, use it
   if (typeof breakdown.overall === 'number' && breakdown.overall > 0) return breakdown.overall;
 
   const keys = config ? getAttributeIds(config) : Object.keys(breakdown);
