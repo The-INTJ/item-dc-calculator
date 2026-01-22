@@ -20,6 +20,7 @@ import type {
   ScoreEntry,
   ScoreBreakdown,
 } from './types';
+import { generateId, success, error } from './providerUtils';
 import { CHILI_CONFIG, MIXOLOGY_CONFIG } from '../../types/templates';
 
 // Seed data - same as the existing store.ts
@@ -167,21 +168,6 @@ function createSeedData(): Contest[] {
       ],
     },
   ];
-}
-
-// Helper to generate unique IDs
-function generateId(prefix: string): string {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-}
-
-// Helper to wrap successful results
-function success<T>(data: T): ProviderResult<T> {
-  return { success: true, data };
-}
-
-// Helper to wrap error results
-function error<T>(message: string): ProviderResult<T> {
-  return { success: false, error: message };
 }
 
 /**

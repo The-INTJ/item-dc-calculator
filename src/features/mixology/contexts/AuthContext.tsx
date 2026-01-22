@@ -225,40 +225,17 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
         return { success: false, error: result.error };
       }
 
-      // Fetch user data from backend
-      const userData = await provider.fetchUserData(result.uid);
-
-      // Get current local session (may have guest data)
-      const currentLocal = readSession();
-
-      // Create new session with backend data
-      const newSession: LocalSession = {
-        sessionId: currentLocal?.sessionId ?? `sess_${Date.now()}`,
-        status: 'synced',
-        firebaseUid: result.uid,
-        profile: userData?.profile ?? {
+      const newSession = await buildSessionFromProvider({
+        uid: result.uid,
+        provider,
+        currentLocal: readSession(),
+        profileDefaults: {
           displayName: credentials.email.split('@')[0],
           email: credentials.email,
-          role: 'viewer',
         },
-        votes: userData?.votes ?? [],
-        createdAt: currentLocal?.createdAt ?? Date.now(),
-        updatedAt: Date.now(),
-        inviteContext: currentLocal?.inviteContext,
-        guestIdentity: currentLocal?.guestIdentity,
-      };
-
-      // If there was local guest data, sync it to backend
-      if (currentLocal && currentLocal.status === 'guest' && currentLocal.votes.length > 0) {
-        for (const vote of currentLocal.votes) {
-          await provider.saveVote(result.uid, vote);
-        }
-        newSession.votes = mergeVotes(newSession.votes, currentLocal.votes);
-      }
+      });
 
       setSession(newSession);
-      writeSession(newSession);
-
       return { success: true };
     },
     []
@@ -273,34 +250,13 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
         return { success: false, error: result.error };
       }
 
-      const userData = await provider.fetchUserData(result.uid);
-      const currentLocal = readSession();
-
-      const newSession: LocalSession = {
-        sessionId: currentLocal?.sessionId ?? `sess_${Date.now()}`,
-        status: 'synced',
-        firebaseUid: result.uid,
-        profile: userData?.profile ?? {
-          displayName: 'Mixology User',
-          role: 'viewer',
-        },
-        votes: userData?.votes ?? [],
-        createdAt: currentLocal?.createdAt ?? Date.now(),
-        updatedAt: Date.now(),
-        inviteContext: currentLocal?.inviteContext,
-        guestIdentity: currentLocal?.guestIdentity,
-      };
-
-      if (currentLocal && currentLocal.status === 'guest' && currentLocal.votes.length > 0) {
-        for (const vote of currentLocal.votes) {
-          await provider.saveVote(result.uid, vote);
-        }
-        newSession.votes = mergeVotes(newSession.votes, currentLocal.votes);
-      }
+      const newSession = await buildSessionFromProvider({
+        uid: result.uid,
+        provider,
+        currentLocal: readSession(),
+      });
 
       setSession(newSession);
-      writeSession(newSession);
-
       return { success: true };
     },
     []
@@ -327,42 +283,20 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
         setInviteContextCookie(options.inviteContext);
       }
 
-      const userData = await provider.fetchUserData(result.uid);
-      const currentLocal = readSession();
-      const resolvedInvite = options?.inviteContext ?? currentLocal?.inviteContext;
-
-      const fallbackDisplayName = trimmedName;
-
-      const newSession: LocalSession = {
-        sessionId: currentLocal?.sessionId ?? `sess_${Date.now()}`,
-        status: 'synced',
-        firebaseUid: result.uid,
-        profile: userData?.profile ?? {
-          displayName: fallbackDisplayName,
-          role: 'viewer',
-        },
-        votes: userData?.votes ?? [],
-        createdAt: currentLocal?.createdAt ?? Date.now(),
-        updatedAt: Date.now(),
-        inviteContext: resolvedInvite,
-        guestIdentity: currentLocal?.guestIdentity,
-      };
-
-      if (currentLocal && currentLocal.status === 'guest' && currentLocal.votes.length > 0) {
-        for (const vote of currentLocal.votes) {
-          await provider.saveVote(result.uid, vote);
-        }
-        newSession.votes = mergeVotes(newSession.votes, currentLocal.votes);
-      }
+      const newSession = await buildSessionFromProvider({
+        uid: result.uid,
+        provider,
+        currentLocal: readSession(),
+        profileDefaults: { displayName: trimmedName },
+        inviteContext: options?.inviteContext,
+      });
 
       setSession(newSession);
-      writeSession(newSession);
 
-      if (trimmedName) {
-        await provider.updateProfile(result.uid, { displayName: trimmedName });
-        const updated = updateProfileInSession({ displayName: trimmedName });
-        if (updated) setSession(updated);
-      }
+      // Update profile in backend with the display name
+      await provider.updateProfile(result.uid, { displayName: trimmedName });
+      const updated = updateProfileInSession({ displayName: trimmedName });
+      if (updated) setSession(updated);
 
       return { success: true };
     },
@@ -518,4 +452,60 @@ function mergeVotes(local: UserVote[], remote: UserVote[]): UserVote[] {
   }
 
   return Array.from(merged.values());
+}
+
+/**
+ * Options for building a synced session after successful authentication
+ */
+interface BuildSessionOptions {
+  uid: string;
+  provider: AuthProvider;
+  currentLocal: LocalSession | null;
+  profileDefaults?: Partial<UserProfile>;
+  inviteContext?: InviteContext;
+}
+
+/**
+ * Builds a LocalSession from backend data after successful authentication.
+ * Handles merging guest votes to backend and creating the session object.
+ *
+ * This consolidates the repeated logic from login, loginWithGoogle, and loginAnonymously.
+ */
+async function buildSessionFromProvider({
+  uid,
+  provider,
+  currentLocal,
+  profileDefaults,
+  inviteContext,
+}: BuildSessionOptions): Promise<LocalSession> {
+  const userData = await provider.fetchUserData(uid);
+  const now = Date.now();
+
+  // Build the new session
+  const newSession: LocalSession = {
+    sessionId: currentLocal?.sessionId ?? `sess_${now}`,
+    status: 'synced',
+    firebaseUid: uid,
+    profile: userData?.profile ?? {
+      displayName: profileDefaults?.displayName ?? 'Mixology User',
+      email: profileDefaults?.email,
+      role: profileDefaults?.role ?? 'viewer',
+    },
+    votes: userData?.votes ?? [],
+    createdAt: currentLocal?.createdAt ?? now,
+    updatedAt: now,
+    inviteContext: inviteContext ?? currentLocal?.inviteContext,
+    guestIdentity: currentLocal?.guestIdentity,
+  };
+
+  // If there was local guest data with votes, sync them to backend
+  if (currentLocal?.status === 'guest' && currentLocal.votes.length > 0) {
+    for (const vote of currentLocal.votes) {
+      await provider.saveVote(uid, vote);
+    }
+    newSession.votes = mergeVotes(newSession.votes, currentLocal.votes);
+  }
+
+  writeSession(newSession);
+  return newSession;
 }
