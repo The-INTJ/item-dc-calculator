@@ -100,7 +100,8 @@ export function buildFullBreakdown(
 ): ScoreBreakdown {
   const keys = config ? getAttributeIds(config) : breakdownKeys;
   return keys.reduce<ScoreBreakdown>((acc, key) => {
-    acc[key] = values[key] ?? 0;
+    const value = values[key];
+    acc[key] = value === null ? null : value ?? 0;
     return acc;
   }, {});
 }
@@ -111,12 +112,12 @@ export function buildFullBreakdown(
  */
 export function calculateScore(breakdown: ScoreBreakdown, config?: ContestConfig): number {
   // If overall exists and is > 0, use it
-  if (breakdown.overall > 0) return breakdown.overall;
+  if (typeof breakdown.overall === 'number' && breakdown.overall > 0) return breakdown.overall;
 
   const keys = config ? getAttributeIds(config) : Object.keys(breakdown);
   const scores = keys
     .map((key) => breakdown[key])
-    .filter((value) => Number.isFinite(value));
+    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
 
   if (scores.length === 0) return 0;
   return Math.round(scores.reduce((sum, value) => sum + value, 0) / scores.length);

@@ -66,6 +66,7 @@ export interface JudgesProvider {
 export interface ScoreUpdatePayload {
   breakdown?: Partial<ScoreBreakdown>;
   notes?: string;
+  naSections?: string[];
 }
 
 /**

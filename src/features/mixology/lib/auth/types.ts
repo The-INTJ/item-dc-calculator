@@ -22,6 +22,7 @@ export interface UserVote {
   score: number;
   /** Dynamic breakdown - keys are attribute IDs from the contest config */
   breakdown?: ScoreBreakdown;
+  naSections?: string[];
   notes?: string;
   timestamp: number;
 }

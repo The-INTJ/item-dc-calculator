@@ -367,7 +367,7 @@ function createScoresProvider(getData: () => Contest[]): ScoresProvider {
       const mergedBreakdown: ScoreBreakdown = { ...current.breakdown };
       if (updates.breakdown) {
         for (const [key, value] of Object.entries(updates.breakdown)) {
-          if (typeof value === 'number') {
+          if (typeof value === 'number' || value === null) {
             mergedBreakdown[key] = value;
           }
         }
@@ -376,6 +376,7 @@ function createScoresProvider(getData: () => Contest[]): ScoresProvider {
         ...current,
         breakdown: mergedBreakdown,
         notes: updates.notes ?? current.notes,
+        naSections: updates.naSections ?? current.naSections,
       };
       return success(contest.scores[idx]);
     },

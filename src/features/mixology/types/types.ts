@@ -81,7 +81,7 @@ export type Drink = Entry;
  * For Chili: { heat, flavor, texture, appearance, overall }
  * etc.
  */
-export type ScoreBreakdown = Record<string, number>;
+export type ScoreBreakdown = Record<string, number | null>;
 
 /**
  * Legacy fixed breakdown for backward compatibility.
@@ -108,6 +108,7 @@ export interface ScoreEntry {
   judgeId: string;
   breakdown: ScoreBreakdown;
   notes?: string;
+  naSections?: string[];
   /** @deprecated Use entryId instead */
   drinkId?: string;
 }
