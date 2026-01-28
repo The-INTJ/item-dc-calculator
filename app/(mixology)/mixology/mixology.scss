@@ -3,7 +3,7 @@
  * 
  * This file loads all mixology styles using modern @use syntax.
  * This is imported by mixology/layout.tsx separately from globals.scss
- * to avoid SASS variable conflicts between legacy and mixology variable definitions.
+ * to avoid SASS variable conflicts between dc-calculator and mixology variable definitions.
  * 
  * Each partial uses @use to load the assets it needs.
  */

@@ -11,7 +11,7 @@ export const themeMap: Record<ThemeName, Theme> = {
 
 export const themeLabels: Record<ThemeName, string> = {
   mixology: 'Mixology',
-  legacy: 'Legacy',
+  legacy: 'DC Calculator',
 };
 
 export { legacyTheme, mixologyTheme };

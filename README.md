@@ -2,12 +2,12 @@
 
 A Next.js app router project that now hosts two experiences:
 - The new Mixology Rating App (contest-first entry point)
-- The legacy D&D item DC calculator (available on a dedicated route)
+- The D&D item DC calculator app (available on a dedicated route)
 
 ## Project context
 
 This repository currently serves two purposes so we can modernize without losing the original tool:
-- **Legacy app**: the original D&D item DC calculator, preserved as-is with minimal changes to keep it working in the new Next.js shell.
+- **DC-calculator app**: the original D&D item DC calculator, preserved as-is with minimal changes to keep it working in the new Next.js shell.
 - **Mixology Rating App (mixing competition)**: the new app we are actively building, focused on contests, judges, and drink scoring.
 
 The README sections below are intended to help React developers ramp up quickly on both areas without wading through the entire codebase.
@@ -27,24 +27,24 @@ The README sections below are intended to help React developers ramp up quickly 
   - `npm install`
 
 Tooling notes:
-- ESLint uses the flat config in `eslint.config.js`; the legacy `.eslintrc.json` file has been removed.
+- ESLint uses the flat config in `eslint.config.js`; the previous `.eslintrc.json` file has been removed.
 
 ## Project layout
 - `app/` — Next.js entry points. The default landing highlights the mixology shell; `layout.tsx` loads global SCSS once for the whole app.
 - `src/` — Calculator components, styles, and utility logic preserved from the Vite project.
 - `public/` — Static assets served by Next.js.
 
-## Legacy app: D&D item DC calculator
-The legacy calculator lives inside the Next.js app to keep it accessible while the new mixology app is built.
+## DC-calculator app: D&D item DC calculator
+The dc-calculator lives inside the Next.js app to keep it accessible while the new mixology app is built.
 
 **Where it lives**
-- Route: `/legacy`
+- Route: `/dc-calculator`
 - Code: `src/` contains the original calculator components, styles, and logic.
 
 **Behavioral notes**
 - The calculator runs fully on the client to keep `localStorage` access straightforward.
 - Global SCSS is still imported via `app/globals.scss` rather than CSS Modules, so styles apply app-wide.
-- The legacy calculator is intentionally hidden from the default experience and is reachable only via direct URL access at `/legacy`.
+- The dc-calculator app is a first-class experience with its own dedicated route at `/dc-calculator`.
 
 **Why this matters**
 - This codebase is stable and not the active focus, but it still ships. Any shared layout or global style changes can affect it.
@@ -59,7 +59,7 @@ This is the app we are actively building: judges rate drinks during contests, wi
 - Code: `src/mixology/` contains the new domain logic.
 
 **Current state**
-- Routing and landing shell are in place alongside the legacy app.
+- Routing and landing shell are in place alongside the dc-calculator app.
 - Typed contest/drink/judge/score model exists with seeded, read-only API responses:
   - `GET /api/mixology/contests` returns all seeded contests and the default/current contest snapshot.
   - `GET /api/mixology/contests?slug={contestSlug}` returns a specific contest (404 if missing).

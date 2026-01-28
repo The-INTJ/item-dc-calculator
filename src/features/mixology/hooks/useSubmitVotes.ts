@@ -38,7 +38,7 @@ export function useSubmitVotes(): UseSubmitVotesResult {
 
   const judgeId = session?.firebaseUid ?? session?.sessionId;
 
-  // Get config-based category IDs, falling back to legacy categories
+  // Get config-based category IDs, falling back to dc-calculator-era categories
   const config = contest ? getEffectiveConfig(contest) : undefined;
   const categoryIds = config
     ? config.attributes.map((attr) => attr.id)

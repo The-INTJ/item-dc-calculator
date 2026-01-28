@@ -84,7 +84,7 @@ export type Drink = Entry;
 export type ScoreBreakdown = Record<string, number | null>;
 
 /**
- * Legacy fixed breakdown for backward compatibility.
+ * DC-calculator-era fixed breakdown for backward compatibility.
  * Use ScoreBreakdown (dynamic) for new code.
  */
 export interface MixologyScoreBreakdown {
