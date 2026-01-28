@@ -1,28 +1,28 @@
 # UX Plan
 
 ## Scope and intent
-This document outlines the component architecture and user experience plan for the Mixology Rating App and the legacy D&D calculator. It focuses on navigation, page structure, user flows, and component responsibilities. No code changes are proposed here.
+This document outlines the component architecture and user experience plan for the Mixology Rating App and the DC-calculator D&D experience. It focuses on navigation, page structure, user flows, and component responsibilities. No code changes are proposed here.
 
 ## Context
-- This project started as a **D&D calculator** ("legacy app").
+- This project started as a **D&D item DC calculator** (dc-calculator app).
 - The **Mixology Rating App** was added as a learning exercise in architecture and full-stack development.
 - The two apps are architecturally separate and should remain so.
-- The legacy app should be hidden from casual discovery; only direct URL access (`/legacy`) should reach it.
-- Mixology is the primary, default experience.
+- The dc-calculator app is a first-class, peer experience with its own route and dedicated styling.
+- Mixology is the default landing experience, with the dc-calculator accessible as an equally supported app.
 
 ## Progress tracker
 See [UX Progress](UXProgress.md) for the current status of UX-related tasks and decisions.
 
 ## Goals
 - Establish clear entry points and navigation for mixology users.
-- Hide the legacy D&D app from the default experience.
+- Keep the dc-calculator app distinct while maintaining parity with mixology for discoverability and care.
 - Provide a focused navbar that highlights contest state and key routes.
 - Build a bracket/tournament system for drink competitions.
 - Support distinct user flows for guests, authenticated users, mixologists, and admins.
 - Provide admin tooling for round/bracket management.
 
 ## Guiding principles
-1. Default experience is mixology; legacy is hidden.
+1. Default experience is mixology; dc-calculator remains visible and supported as a peer app.
 2. Navbar should stay focused and communicate contest state.
 3. User roles drive widget visibility (guest, user, mixologist, admin).
 4. Component composition over monolithic pages.
@@ -47,10 +47,10 @@ See [UX Progress](UXProgress.md) for the current status of UX-related tasks and 
 | `/mixology/admin/rounds` | Round/bracket management | Planned (currently in admin dashboard) |
 | `/mixology/admin/drinks` | Drink management | Planned (currently in admin dashboard) |
 | `/mixology/admin/users` | User management | Planned |
-| `/legacy` | D&D calculator (hidden) | Direct URL only |
+| `/dc-calculator` | Item DC calculator | Public |
 
 ### Navigation visibility
-- **Legacy app**: No external links. Only accessible via `/legacy`. The legacy navbar remains internal to the legacy layout.
+- **DC-calculator app**: Available at `/dc-calculator`, with its own scoped layout and navigation.
 - **Mixology app**: `SiteHeader` renders for `/` and `/mixology/*` routes, with `NavBar` links, contest state badge, and an auth banner for protected pages.
 
 ---

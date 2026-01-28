@@ -13,13 +13,13 @@ This doc is a sweep for “intern-grade” smells: overgrown files, duplicated l
 - `src/features/mixology/components/adminPage/ContestSetupForm.tsx` (~320)
 - `src/features/mixology/lib/auth/storage.ts` (~268)
 - `src/features/mixology/hooks/useBackend.ts` (~248)
-- `src/features/legacy/dcCalculations.ts` (~216)
+- `dc-calculator feature: dcCalculations.ts` (~216)
 - `src/features/mixology/components/adminPage/AttributeEditor.tsx` (~213)
 - `src/features/mixology/components/adminPage/ContestConfigEditor.tsx` (~206)
 - `src/features/mixology/lib/auth/types.ts` (~205)
 - `src/features/mixology/lib/auth/mockAuthProvider.ts` (~205)
-- `src/features/legacy/Effects/Common.tsx` (~188)
-- `src/features/legacy/values.ts` (~187)
+- `dc-calculator feature: Effects/Common.tsx` (~188)
+- `dc-calculator feature: values.ts` (~187)
 - `src/features/mixology/components/adminPage/ContestDetails.tsx` (~172)
 - `src/features/mixology/components/adminPage/AdminDashboard.tsx` (~164)
 - `app/api/mixology/contests/[id]/scores/route.ts` (~161)
@@ -41,14 +41,14 @@ This doc is a sweep for “intern-grade” smells: overgrown files, duplicated l
 - `src/features/mixology/server/backend/types.ts` (~116)
 - `src/features/mixology/lib/auth/cookies.ts` (~113)
 - `src/features/mixology/components/auth/GuestPrompt.tsx` (~107)
-- `src/features/legacy/Header/TitleBar.tsx` (~106)
-- `src/features/legacy/App.tsx` (~105)
+- `dc-calculator feature: Header/TitleBar.tsx` (~106)
+- `dc-calculator feature: App.tsx` (~105)
 
 ## Duplicate-ish logic to consolidate
 
 - **Auth “session hydrate” logic is repeated across login flows.** `login`, `loginWithGoogle`, and `loginAnonymously` all build near-identical `LocalSession` objects, merge guest votes, and persist to storage. This looks like a single helper (e.g., `buildSyncedSession` + `mergeGuestVotes`) that is currently copy/pasted in three places, increasing the chance of drift (e.g., profile defaults, invite context handling). See `AuthContext.tsx`. 
 - **Firestore provider CRUD boilerplate is duplicated across contests/entries/judges/scores.** `firebaseBackendProvider.ts` repeats “get contest → find item → update array → update doc” across `createFirebaseEntriesProvider`, `createFirebaseJudgesProvider`, and `createFirebaseScoresProvider`. Similarly, `inMemoryProvider.ts` repeats near-identical CRUD logic across multiple provider factories. There is obvious refactor potential into generic helpers and/or a shared adapter. 
-- **Legacy DC calculation logic has multiple overlapping paths.** `calculateEffectDC` routes to specialized handlers but also retains `originalEffectDCMethod`, with additional shared logic (e.g., dice contributions, base+mods). The combination of new rules and fallback rules makes it easy for implementations to diverge or for partial upgrades to leave old behavior in place. See `dcCalculations.ts`. 
+- **DC-calculator DC calculation logic has multiple overlapping paths.** `calculateEffectDC` routes to specialized handlers but also retains `originalEffectDCMethod`, with additional shared logic (e.g., dice contributions, base+mods). The combination of new rules and fallback rules makes it easy for implementations to diverge or for partial upgrades to leave old behavior in place. See `dcCalculations.ts`. 
 
 ## Odd architecture / mixed concerns
 
@@ -66,4 +66,4 @@ This doc is a sweep for “intern-grade” smells: overgrown files, duplicated l
 1. Extract a `buildSessionFromProvider()` helper in `AuthContext.tsx` and share it across login flows.
 2. Extract CRUD helpers for array-backed items in `firebaseBackendProvider.ts` and `inMemoryProvider.ts`.
 3. Move contest creation API logic (payload shaping + validation) into a small service module so `ContestSetupForm` can call it as a single async function.
-4. Add tests around the DC calculation logic before changing behavior, since it includes a legacy fallback.
+4. Add tests around the DC calculation logic before changing behavior, since it includes a dc-calculator-era fallback.

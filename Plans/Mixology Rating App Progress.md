@@ -1,10 +1,10 @@
 # Mixology Rating App Progress
 
 ## Overview
-We are introducing a contest-focused Mixology Rating App that will sit alongside the existing Shard DC calculator. The mixology experience is the primary entry point during events, while the legacy calculator remains available on a secondary route for returning users and archival workflows.
+We are introducing a contest-focused Mixology Rating App that will sit alongside the existing Shard DC calculator. The mixology experience is the primary entry point during events, while the dc-calculator app remains available on a dedicated peer route for shared workflows.
 
 ## Step Log
-- **Step 1 (Scaffolding and coexistence)**: Completed. Added dedicated mixology routing and navigation while preserving the legacy calculator on a separate path.
+- **Step 1 (Scaffolding and coexistence)**: Completed. Added dedicated mixology routing and navigation while preserving the dc-calculator app on a separate path.
 - **Step 2 (Data model and backend foundation)**: Completed. Defined typed contest/drink/judge/score schemas with seeded data, plus read-only API at `/api/mixology/contests`.
 - **Step 2.5 (Backend abstraction layer)**: Completed. Created a provider-based abstraction layer enabling seamless switching between in-memory, Firebase, or other backends without modifying frontend code. Added full CRUD API endpoints and basic admin validation UI.
 - **Step 3 (Guest/user session management)**: Completed. Built localStorage-based session persistence, guest mode with optional account creation, and auth provider abstraction for future Firebase integration.
@@ -14,11 +14,11 @@ We are introducing a contest-focused Mixology Rating App that will sit alongside
 - **Step 7 (Bracket + score panel)**: Completed. Added bracket view backed by contest rounds and vote score panels with contest-state gating and totals.
 
 ## Architectural Decisions
-- **Routing structure**: The mixology experience lives under `/mixology`, with the landing page at `/`. This ensures contest participants arrive at the mixology shell by default while keeping the new flow isolated from legacy code paths.
-- **Legacy exposure**: The original Shard DC calculator resides at `/legacy`. It is no longer linked from the mixology header and is only accessible via direct URL.
-- **Navigation and layouts**: The shared header renders only on `/` and `/mixology` routes and does not surface legacy navigation. The main content area remains neutral to support both the new shell and legacy UI without altering existing calculator components.
+- **Routing structure**: The mixology experience lives under `/mixology`, with the landing page at `/`. This ensures contest participants arrive at the mixology shell by default while keeping the new flow isolated from dc-calculator code paths.
+- **DC-calculator exposure**: The original Shard DC calculator resides at `/dc-calculator` as a peer experience with its own dedicated route.
+- **Navigation and layouts**: The shared header renders only on `/` and `/mixology` routes and does not surface dc-calculator navigation. The main content area remains neutral to support both the new shell and dc-calculator UI without altering existing calculator components.
 - **Feature placement**: Future mixology features (admin tools, voting, standings, brackets, invites) should be added within the `/mixology` route and associated subdirectories. Any new API routes or server actions should be namespaced for mixology to avoid collisions with calculator logic.
-- **Constraints/assumptions**: Legacy calculator behavior and styling should remain untouched aside from the navigation wrapper. Mixology additions should avoid modifying shared legacy styles; instead, prefer scoped styles or new modules under the mixology tree.
+- **Constraints/assumptions**: DC-calculator behavior and styling should remain supported aside from shared layout work. Mixology additions should avoid modifying shared dc-calculator styles; instead, prefer scoped styles or new modules under the mixology tree.
 - **Backend provider pattern**: All data access goes through `MixologyBackendProvider` interface (`src/features/mixology/server/backend/types.ts`). To switch backends (e.g., from in-memory to Firebase), implement the provider interface and swap the factory call in `src/features/mixology/server/backend/index.ts`. Frontend hooks and API routes remain unchanged.
 - **Session/auth pattern**: User sessions are stored in localStorage with a provider abstraction for authentication. Guest users can vote and their data persists locally. When they create an account, local data is migrated to the backend. The auth provider can be swapped from mock to Firebase without changing any UI code.
 
@@ -175,7 +175,7 @@ The account page at `/mixology/account` provides:
 
 ## Target End-State
 - Judges and admins access the Mixology Rating App as the default experience for contests, including authentication, role-based access, drink/contest management, voting, live standings, brackets, and invite flows.
-- The Shard DC calculator remains fully functional on its dedicated route for long-term support.
+- The Shard DC calculator remains fully functional on its dedicated dc-calculator route for long-term support.
 - Documentation (this file) stays current with changes, decisions, and any trade-offs made during implementation.
 
 ## Upcoming Steps (planned)

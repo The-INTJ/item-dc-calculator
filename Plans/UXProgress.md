@@ -1,6 +1,6 @@
 # UX Progress
 
-This document tracks UX and component implementation milestones for the Mixology Rating App and legacy isolation. Each item is small, testable, and scoped to one behavior or surface. Check items off as they land.
+This document tracks UX and component implementation milestones for the Mixology Rating App and dc-calculator coexistence. Each item is small, testable, and scoped to one behavior or surface. Check items off as they land.
 
 ## Legend
 - ✅ Done
@@ -11,25 +11,25 @@ This document tracks UX and component implementation milestones for the Mixology
 
 ## Phase 0 — Current state assessment
 - ✅ Mixology routes exist under `/mixology`.
-- ✅ Legacy routes exist under `/legacy`.
+- ✅ DC-calculator routes exist under `/dc-calculator`.
 - ✅ Auth context and session management exist.
-- ✅ Legacy is not linked from mixology navigation.
+- ✅ DC-calculator route remains available alongside mixology routes.
 - ✅ `SiteHeader` + `NavBar` render for mixology routes with contest state badge.
 - ⬜ Landing page does not show role-based widgets.
 
 ---
 
-## Phase 1 — Legacy isolation
+## Phase 1 — DC-calculator coexistence
 
-### 1.1 Remove legacy links from mixology
-- ✅ Remove any navbar links pointing to `/legacy` from mixology layout.
-- ✅ Ensure mixology layout does not import legacy navbar.
-- ✅ Verify `/legacy` is only accessible via direct URL.
+### 1.1 Clarify dc-calculator access
+- ✅ Ensure nav links can surface `/dc-calculator` alongside mixology layout.
+- ✅ Keep mixology layout independent from dc-calculator navigation.
+- ✅ Verify `/dc-calculator` remains accessible as a peer route.
 
-### 1.2 Legacy navbar containment
-- ✅ Confirm legacy navbar is scoped to legacy layout only.
-- ✅ Remove legacy navbar from any shared components.
-- ✅ Test that navigating to `/legacy` shows legacy navbar, not mixology navbar.
+### 1.2 DC-calculator navbar containment
+- ✅ Confirm dc-calculator navbar is scoped to the dc-calculator layout only.
+- ✅ Remove dc-calculator navbar from any shared components.
+- ✅ Test that navigating to `/dc-calculator` shows dc-calculator navbar, not mixology navbar.
 
 ---
 

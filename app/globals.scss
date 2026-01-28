@@ -1,11 +1,11 @@
 /**
  * Global Styles Entry Point
  * 
- * Uses modern @use syntax for both legacy and mixology apps.
+ * Uses modern @use syntax for both dc-calculator and mixology apps.
  * Each app has its own namespaced variables to avoid conflicts.
  */
 
-// Legacy app styles (DC Calculator)
+// DC calculator app styles
 @use '../src/features/legacy/legacy';
 
 // Mixology app styles are loaded separately via app/mixology/layout.tsx

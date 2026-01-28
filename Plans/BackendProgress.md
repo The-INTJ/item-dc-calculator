@@ -133,4 +133,4 @@ This document tracks backend implementation milestones for the Mixology Rating A
 ## Notes
 - All users are judges (any visitor can score).
 - Use feature flags or env toggles when switching providers.
-- Keep the legacy calculator isolated from mixology backend changes.
+- Keep the dc-calculator app isolated from mixology backend changes.

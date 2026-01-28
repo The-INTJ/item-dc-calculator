@@ -16,7 +16,7 @@ See [Backend Progress](BackendProgress.md) for the current backend task status.
 - Allow a judge to mark themselves as the mixer of a drink (no voting allowed; auto‑assign full score).
 - Allow any scoring section to be marked as “N/A” so non‑drinkers can still score presentation and we can normalize aggregates.
 - Preserve the provider abstraction so UI code does not care about backend implementation.
-- Keep the legacy calculator isolated.
+- Keep the dc-calculator app isolated from mixology backend changes.
 
 ## Current foundation (already implemented)
 - Provider abstraction in [src/features/mixology/server/backend/types.ts](src/features/mixology/server/backend/types.ts).

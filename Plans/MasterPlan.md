@@ -29,7 +29,7 @@ See [Mixology Rating App Progress](Mixology%20Rating%20App%20Progress.md) for th
 - **Bracket progression & matchup outcomes**: `BracketView` renders rounds from contest data, but winner propagation and admin matchup tooling are not implemented. Decide on a bracket library or custom logic. (UX Plan.)
 - **Guest identity persistence & privacy**: Guest identity is stored in cookies/localStorage and optionally registered in Firestore. Define server validation and retention policies. (Backend Plan.)
 - **N/A scoring aggregation**: Validate scoring math, weights, and edge cases so UI, backend, and data model align. (Backend Plan + UX Plan.)
-- **Theme boundaries & MUI Base usage**: Token and mixin layers exist under feature styles; decide how to reconcile shared primitives and semantic tokens between mixology and legacy. (Style Plan.)
+- **Theme boundaries & MUI Base usage**: Token and mixin layers exist under feature styles; decide how to reconcile shared primitives and semantic tokens between mixology and dc-calculator. (Style Plan.)
 
 ## Top items (linchpin do-dos)
 1. **Persist contest lifecycle state and round data in the backend** so admin controls, voting gates, and bracket views stay consistent across clients. (Backend Plan + UX Plan)
@@ -46,7 +46,7 @@ See [Mixology Rating App Progress](Mixology%20Rating%20App%20Progress.md) for th
 - Implement matchup winners + bracket advancement.
 - Implement mixer scoring rules + N/A scoring aggregation.
 - Formalize invite validation endpoint and contest lookup.
-- Consolidate token strategy between mixology + legacy themes.
+- Consolidate token strategy between mixology + dc-calculator themes.
 
 ## Ordered execution plan
 1. **UX Plan (Participant Decision + account roles)**
@@ -60,7 +60,7 @@ See [Mixology Rating App Progress](Mixology%20Rating%20App%20Progress.md) for th
 4. **UX Plan (Bracket + standings)**
    - Expand bracket UI to show winners, active round, and standings.
 5. **Style Plan (Token system + theme boundaries)**
-   - Align token/semantic layers across mixology and legacy; reduce duplicated token stacks.
+   - Align token/semantic layers across mixology and dc-calculator; reduce duplicated token stacks.
 6. **Scoring enhancements**
    - Add N/A scoring support and normalized aggregation.
 
