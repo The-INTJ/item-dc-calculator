@@ -47,9 +47,6 @@ const SEED_DATA: Contest[] = [
 
 const createSeedData = (): Contest[] => JSON.parse(JSON.stringify(SEED_DATA));
 
-type CollectionKey = 'entries' | 'judges';
-type CollectionItem<K extends CollectionKey> = Contest[K][number];
-
 const createWithContest = (getData: () => Contest[]) => <Result>(
   contestId: string,
   handler: (contest: Contest) => ProviderResult<Result>
@@ -58,15 +55,13 @@ const createWithContest = (getData: () => Contest[]) => <Result>(
   return contest ? handler(contest) : error('Contest not found');
 };
 
-const createCollectionProvider = <K extends CollectionKey, CreateInput>(
+const createCollectionProvider = <Item extends { id: string }, CreateInput>(
   getData: () => Contest[],
-  key: K,
-  createItem: (input: CreateInput) => CollectionItem<K>,
+  getCollection: (contest: Contest) => Item[],
+  createItem: (input: CreateInput) => Item,
   label: string
 ) => {
-  type Item = CollectionItem<K>;
   const withContest = createWithContest(getData);
-  const getCollection = (contest: Contest) => contest[key];
 
   return {
     listByContest: async (contestId: string) =>
@@ -217,13 +212,13 @@ export function createInMemoryProvider(): MixologyBackendProvider {
     contests: createContestsProvider(getData),
     entries: createCollectionProvider<Entry, Omit<Entry, 'id'>>(
       getData,
-      'entries',
+      (contest) => contest.entries,
       (input) => ({ ...input, id: generateId('entry') }),
       'Entry'
     ) as EntriesProvider,
     judges: createCollectionProvider<Judge, Omit<Judge, 'id'> & { id?: string }>(
       getData,
-      'judges',
+      (contest) => contest.judges,
       (input) => ({ ...input, id: input.id ?? generateId('judge') }),
       'Judge'
     ) as JudgesProvider,
