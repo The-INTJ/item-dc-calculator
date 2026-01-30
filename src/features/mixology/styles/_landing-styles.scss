@@ -1,0 +1,282 @@
+@use './index' as *;
+
+/**
+ * Landing page styles
+ * Dynamic home page with auth-aware and contest-phase-aware components
+ */
+
+/* Landing Page Layout */
+.landing-page {
+  display: flex;
+  flex-direction: column;
+  gap: $space-gap-xl;
+  max-width: $container-lg;
+  margin: 0 auto;
+  padding: $space-padding-lg;
+}
+
+.landing-header {
+  text-align: center;
+  padding: $space-padding-lg 0;
+}
+
+.landing-header h1 {
+  @include type-5xl;
+  margin: 0 0 $space-sm;
+  color: $color-text-primary;
+}
+
+.landing-tagline {
+  @include type-lg;
+  color: $color-text-secondary;
+  margin: 0;
+}
+
+.landing-main {
+  display: flex;
+  flex-direction: column;
+  gap: $space-gap-xl;
+}
+
+/* Status Section - Auth + Voting Cards */
+.landing-status-section {
+  display: grid;
+  gap: $space-gap-normal;
+  grid-template-columns: 1fr;
+
+  @media (min-width: $breakpoint-md) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Auth Status Card */
+.landing-auth-card {
+  @include card-elevated;
+  display: flex;
+  flex-direction: column;
+  gap: $space-gap-normal;
+}
+
+.landing-auth-card--loading {
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  color: $color-text-muted;
+}
+
+.landing-auth-card--logged-in {
+  border-left: 4px solid $color-success-500;
+}
+
+.landing-auth-card--signed-out {
+  border-left: 4px solid $color-warning-700;
+}
+
+.landing-auth-card__greeting {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-base;
+}
+
+.landing-auth-card__icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.landing-auth-card--logged-in .landing-auth-card__icon {
+  color: $color-success-600;
+}
+
+.landing-auth-card__greeting h3 {
+  @include type-xl;
+  margin: 0;
+  color: $color-text-primary;
+}
+
+.landing-auth-card__status {
+  @include type-sm;
+  color: $color-text-muted;
+  margin: $space-xs 0 0;
+}
+
+.landing-auth-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  padding-top: $space-sm;
+  border-top: 1px solid $color-divider;
+}
+
+.landing-logout-link {
+  @include button-interactive;
+  background: none;
+  border: none;
+  color: $color-text-muted;
+  cursor: pointer;
+  @include type-sm;
+  padding: 0;
+  text-align: left;
+
+  &:hover {
+    color: $color-text-secondary;
+  }
+}
+
+/* Voting Status Card */
+.landing-status-card {
+  @include card-elevated;
+  display: flex;
+  gap: $space-gap-normal;
+  align-items: flex-start;
+}
+
+.landing-status-card__icon {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.landing-status-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  flex: 1;
+}
+
+.landing-status-card__content h3 {
+  @include type-xl;
+  margin: 0;
+  color: $color-text-primary;
+}
+
+.landing-status-card__content p {
+  @include type-md;
+  color: $color-text-secondary;
+  margin: 0;
+}
+
+.landing-status-card--voting-open {
+  border: 2px solid $color-success-500;
+  background: linear-gradient(135deg, $color-success-50, transparent);
+
+  .landing-status-card__content h3 {
+    color: $color-success-700;
+  }
+}
+
+.landing-status-card--scored {
+  border: 2px solid $color-primary;
+  background: linear-gradient(135deg, rgba($color-primary, 0.05), transparent);
+}
+
+.landing-status-card--waiting {
+  border: 2px solid $color-border;
+}
+
+/* Arrow Links */
+.landing-arrow-link {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-sm;
+  text-decoration: none;
+  font-weight: $font-weight-semibold;
+  transition: gap $transition-base;
+
+  &:hover {
+    gap: $space-base;
+  }
+}
+
+.landing-arrow-link--subtle {
+  color: $color-text-secondary;
+  @include type-sm;
+
+  &:hover {
+    color: $color-primary;
+  }
+}
+
+.landing-arrow {
+  font-size: 1.2em;
+  transition: transform $transition-base;
+}
+
+.landing-arrow-link:hover .landing-arrow {
+  transform: translateX(4px);
+}
+
+/* Navigation Cards */
+.landing-nav-cards {
+  display: grid;
+  gap: $space-gap-normal;
+  grid-template-columns: 1fr;
+
+  @media (min-width: $breakpoint-sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: $breakpoint-lg) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.landing-nav-card {
+  @include card-surface;
+  @include button-interactive;
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+  transition: transform $transition-base, box-shadow $transition-base;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+  }
+
+  &:hover .landing-arrow {
+    transform: translateX(4px);
+  }
+}
+
+.landing-nav-card__icon {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.landing-nav-card__content h3 {
+  @include type-lg;
+  margin: 0;
+  color: $color-text-primary;
+}
+
+.landing-nav-card__content p {
+  @include type-sm;
+  color: $color-text-muted;
+  margin: 0;
+}
+
+.landing-nav-card > .landing-arrow {
+  position: absolute;
+  top: $space-padding-md;
+  right: $space-padding-md;
+  color: $color-text-muted;
+  transition: transform $transition-base, color $transition-base;
+}
+
+.landing-nav-card:hover > .landing-arrow {
+  color: $color-primary;
+}
+
+.landing-nav-card--admin {
+  border: 1px dashed $color-border;
+  background: $color-light-100;
+
+  &:hover {
+    border-style: solid;
+    border-color: $color-primary;
+  }
+}
