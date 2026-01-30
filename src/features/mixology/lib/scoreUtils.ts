@@ -45,7 +45,7 @@ export function buildScoresFromEntries(
     categoryIds.forEach((categoryId) => {
       if (!isBreakdownKey(categoryId, config)) return;
       const value = entry.breakdown[categoryId];
-      if (!Number.isFinite(value)) return;
+      if (typeof value !== 'number' || !Number.isFinite(value)) return;
       acc[entryId] = acc[entryId] ?? {};
       acc[entryId][categoryId] = value;
     });
