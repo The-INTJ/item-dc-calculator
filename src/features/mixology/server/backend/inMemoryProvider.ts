@@ -48,6 +48,7 @@ const SEED_DATA: Contest[] = [
 const createSeedData = (): Contest[] => JSON.parse(JSON.stringify(SEED_DATA));
 
 type CollectionKey = 'entries' | 'judges';
+type CollectionItem<K extends CollectionKey> = Contest[K][number];
 
 const createWithContest = (getData: () => Contest[]) => <Result>(
   contestId: string,
@@ -57,17 +58,19 @@ const createWithContest = (getData: () => Contest[]) => <Result>(
   return contest ? handler(contest) : error('Contest not found');
 };
 
-const createCollectionProvider = <T extends { id: string }, CreateInput>(
+const createCollectionProvider = <K extends CollectionKey, CreateInput>(
   getData: () => Contest[],
-  key: CollectionKey,
-  createItem: (input: CreateInput) => T,
+  key: K,
+  createItem: (input: CreateInput) => CollectionItem<K>,
   label: string
 ) => {
+  type Item = CollectionItem<K>;
   const withContest = createWithContest(getData);
-  const getCollection = (contest: Contest) => contest[key] as T[];
+  const getCollection = (contest: Contest) => contest[key];
 
   return {
-    listByContest: async (contestId: string) => withContest(contestId, (contest) => success(getCollection(contest))),
+    listByContest: async (contestId: string) =>
+      withContest(contestId, (contest) => success(getCollection(contest))),
     getById: async (contestId: string, id: string) =>
       withContest(contestId, (contest) =>
         success(getCollection(contest).find((item) => item.id === id) ?? null)
@@ -78,7 +81,7 @@ const createCollectionProvider = <T extends { id: string }, CreateInput>(
         getCollection(contest).push(newItem);
         return success(newItem);
       }),
-    update: async (contestId: string, id: string, updates: Partial<T>) =>
+    update: async (contestId: string, id: string, updates: Partial<Item>) =>
       withContest(contestId, (contest) => {
         const collection = getCollection(contest);
         const idx = collection.findIndex((item) => item.id === id);
