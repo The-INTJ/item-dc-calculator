@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import type { Contest, ContestPhase } from '../../types';
 import { useAdminContestData } from '../../contexts/AdminContestContext';
 import { getRoundById } from '../../lib/contestHelpers';
@@ -16,30 +15,22 @@ interface AdminContestRoundsProps {
 
 export function AdminContestRounds({ contest }: AdminContestRoundsProps) {
   const { addRound, removeRound, setActiveRound, setRoundState } = useAdminContestData();
-  const [roundName, setRoundName] = useState('');
-  const [roundNumber, setRoundNumber] = useState('');
 
   const rounds = contest.rounds ?? [];
   const activeRound = getRoundById(contest, contest.activeRoundId);
 
   const handleAddRound = () => {
-    if (!roundName.trim()) return;
-    addRound(contest.id, {
-      name: roundName.trim(),
-      number: roundNumber ? Number(roundNumber) : null,
-    });
-    setRoundName('');
-    setRoundNumber('');
+    void addRound(contest.id);
   };
 
   const handleRoundClick = (roundId: string) => {
     // Clicking a round makes it active and syncs global state to that round's state
-    setActiveRound(contest.id, roundId);
+    void setActiveRound(contest.id, roundId);
   };
 
   const handleStateChange = (roundId: string, newState: ContestPhase) => {
     // Setting a round's state updates that round; if it's the active round, global state updates too
-    setRoundState(contest.id, roundId, newState);
+    void setRoundState(contest.id, roundId, newState);
   };
 
   return (
@@ -54,7 +45,7 @@ export function AdminContestRounds({ contest }: AdminContestRoundsProps) {
       </div>
 
       <ul className="admin-detail-list admin-rounds-list">
-        {rounds.map((round) => {
+        {rounds.map((round, index) => {
           const isActive = round.id === contest.activeRoundId;
           return (
             <li
@@ -67,10 +58,9 @@ export function AdminContestRounds({ contest }: AdminContestRoundsProps) {
                 onClick={() => handleRoundClick(round.id)}
               >
                 <div className="admin-round-item__info">
-                  <strong>{round.name}</strong>
+                  <strong>Round {index + 1}</strong>
                   <span className="admin-detail-meta">
-                    {round.number ? `Round ${round.number}` : 'Unnumbered'}
-                    {isActive && ' • Active'}
+                    {isActive && 'Active'}
                   </span>
                 </div>
                 <span className={`admin-round-badge admin-round-badge--${round.state}`}>
@@ -108,7 +98,7 @@ export function AdminContestRounds({ contest }: AdminContestRoundsProps) {
               <button
                 type="button"
                 className="button-secondary admin-round-item__remove"
-                onClick={() => removeRound(contest.id, round.id)}
+                onClick={() => void removeRound(contest.id, round.id)}
                 disabled={isActive}
               >
                 Remove
@@ -119,18 +109,6 @@ export function AdminContestRounds({ contest }: AdminContestRoundsProps) {
       </ul>
 
       <div className="admin-rounds-add">
-        <input
-          className="admin-rounds-input"
-          placeholder="Round name"
-          value={roundName}
-          onChange={(event) => setRoundName(event.target.value)}
-        />
-        <input
-          className="admin-rounds-input"
-          placeholder="Number"
-          value={roundNumber}
-          onChange={(event) => setRoundNumber(event.target.value)}
-        />
         <button type="button" className="button-secondary" onClick={handleAddRound}>
           Add round
         </button>

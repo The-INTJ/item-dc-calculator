@@ -75,7 +75,12 @@ function initializeFirebase(): {
   db = getFirestore(app);
 
   // Connect to emulators if enabled (dev only)
-  if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === 'true') {
+  const useEmulators = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === 'true';
+  console.log('[Firebase] Emulator flag:', process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS);
+  console.log('[Firebase] useEmulators:', useEmulators);
+  console.log('[Firebase] Already connected:', (globalThis as any).__fbEmulatorsConnected);
+  
+  if (useEmulators) {
     // Guard so Next/React strict mode / HMR doesn't reconnect repeatedly
     if (!(globalThis as any).__fbEmulatorsConnected) {
       console.log('[Firebase] Connecting to emulators...');

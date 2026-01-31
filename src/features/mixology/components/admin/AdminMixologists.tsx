@@ -59,9 +59,9 @@ function MixologistRow({
         disabled={updating || removing}
       >
         {rounds.length === 0 ? <option value="">No rounds</option> : null}
-        {rounds.map((round) => (
+        {rounds.map((round, index) => (
           <option key={round.id} value={round.id}>
-            {round.name}
+            Round {index + 1}
           </option>
         ))}
       </select>
@@ -141,9 +141,9 @@ export function AdminMixologists({ contest }: AdminMixologistsProps) {
           disabled={loading}
         >
           <option value="">Select round</option>
-          {roundOptions.map((round) => (
+          {roundOptions.map((round, index) => (
             <option key={round.id} value={round.id}>
-              {round.name}
+              Round {index + 1}
             </option>
           ))}
         </select>

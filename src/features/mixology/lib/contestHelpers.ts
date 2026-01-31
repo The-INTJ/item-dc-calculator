@@ -24,9 +24,11 @@ export function getRoundById(contest: Contest, roundId: string | null | undefine
 }
 
 export function getRoundLabel(contest: Contest, roundId: string | null | undefined): string {
-  const round = getRoundById(contest, roundId);
-  if (round) return round.name;
-  return roundId ?? 'Unassigned';
+  if (!roundId) return 'Unassigned';
+  const rounds = getContestRounds(contest);
+  const roundIndex = rounds.findIndex((round) => round.id === roundId);
+  if (roundIndex !== -1) return `Round ${roundIndex + 1}`;
+  return 'Unassigned';
 }
 
 /**

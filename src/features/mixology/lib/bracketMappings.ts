@@ -6,7 +6,7 @@ import { getContestRounds, getEntriesForRound, getEntryScore, getRoundStatus } f
 export function buildBracketRoundsFromContest(contest: Contest): BracketRound[] {
   const rounds = getContestRounds(contest);
 
-  return rounds.map((round) => {
+  return rounds.map((round, index) => {
     const entries = getEntriesForRound(contest, round.id);
     const matchups = buildMatchupsFromEntries(entries).map((matchup) => {
       const [firstId, secondId] = matchup.entryIds ?? [];
@@ -35,7 +35,7 @@ export function buildBracketRoundsFromContest(contest: Contest): BracketRound[] 
 
     return {
       id: round.id,
-      name: round.name,
+      name: `Round ${index + 1}`,
       status: getRoundStatus(contest, round.id),
       matchups,
     };

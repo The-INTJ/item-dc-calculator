@@ -2,7 +2,6 @@
 
 import type { Contest } from '../../types';
 import { useContestState, contestStateLabels } from '../../contexts/ContestStateContext';
-import { getRoundById } from '../../lib/contestHelpers';
 
 interface ContestPhaseControlsProps {
   contest: Contest;
@@ -11,7 +10,9 @@ interface ContestPhaseControlsProps {
 
 export function ContestPhaseControls({ contest }: ContestPhaseControlsProps) {
   const { state, label } = useContestState();
-  const activeRound = getRoundById(contest, contest.activeRoundId);
+  const rounds = contest.rounds ?? [];
+  const activeRoundIndex = rounds.findIndex((r) => r.id === contest.activeRoundId);
+  const activeRound = activeRoundIndex !== -1 ? rounds[activeRoundIndex] : null;
 
   return (
     <section className="admin-details-section admin-phase-controls">
@@ -21,7 +22,7 @@ export function ContestPhaseControls({ contest }: ContestPhaseControlsProps) {
           <p className="admin-detail-meta">
             Current: <strong>{label}</strong>
             {activeRound && (
-              <> (from {activeRound.name}: {contestStateLabels[activeRound.state]})</>
+              <> (from Round {activeRoundIndex + 1}: {contestStateLabels[activeRound.state]})</>
             )}
           </p>
         </div>

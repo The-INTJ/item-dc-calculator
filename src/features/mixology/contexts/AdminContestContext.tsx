@@ -19,11 +19,11 @@ interface AdminContestContextValue extends AdminContestState {
   upsertContest: (contest: Contest) => void;
   addContest: (name: string) => void;
   deleteContest: (contestId: string) => Promise<{ success: boolean; error?: string }>;
-  addRound: (contestId: string, round: Omit<ContestRound, 'id' | 'state'>) => void;
-  updateRound: (contestId: string, roundId: string, updates: Partial<ContestRound>) => void;
-  removeRound: (contestId: string, roundId: string) => void;
-  setActiveRound: (contestId: string, roundId: string) => void;
-  setRoundState: (contestId: string, roundId: string, state: ContestPhase) => void;
+  addRound: (contestId: string) => Promise<{ success: boolean; error?: string }>;
+  updateRound: (contestId: string, roundId: string, updates: Partial<ContestRound>) => Promise<{ success: boolean; error?: string }>;
+  removeRound: (contestId: string, roundId: string) => Promise<{ success: boolean; error?: string }>;
+  setActiveRound: (contestId: string, roundId: string) => Promise<{ success: boolean; error?: string }>;
+  setRoundState: (contestId: string, roundId: string, state: ContestPhase) => Promise<{ success: boolean; error?: string }>;
   addMixologist: (contestId: string, mixologist: { name: string; drinkName: string; roundId: string }) => Promise<{ success: boolean; data?: Entry; error?: string }>;
   updateMixologist: (contestId: string, drinkId: string, updates: Partial<Entry>) => Promise<{ success: boolean; data?: Entry; error?: string }>;
   removeMixologist: (contestId: string, drinkId: string) => Promise<{ success: boolean; error?: string }>;
@@ -151,69 +151,208 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
     });
   }, [updateState]);
 
-  const addRound = useCallback((contestId: string, round: Omit<ContestRound, 'id' | 'state'>) => {
+  const addRound = useCallback(async (contestId: string): Promise<{ success: boolean; error?: string }> => {
+    // Find the contest to calculate the next round number
+    const contest = state.contests.find((c) => c.id === contestId);
+    if (!contest) {
+      return { success: false, error: 'Contest not found' };
+    }
+    
+    const existingRounds = contest.rounds ?? [];
+    const roundNumber = existingRounds.length + 1;
+    const nextRound: ContestRound = {
+      id: generateId('round'),
+      name: `Round ${roundNumber}`,
+      number: roundNumber,
+      state: 'set',
+    };
+    const newRounds = [...existingRounds, nextRound];
+    
+    // Optimistically update local state
     updateState((prev) => {
-      const contests = prev.contests.map((contest) => {
-        if (contest.id !== contestId) return contest;
-        const nextRound: ContestRound = { ...round, id: generateId('round'), state: 'set' };
+      const contests = prev.contests.map((c) => {
+        if (c.id !== contestId) return c;
         return normalizeContest({
-          ...contest,
-          rounds: [...(contest.rounds ?? []), nextRound],
+          ...c,
+          rounds: newRounds,
         });
       });
       return { ...prev, contests };
     });
-  }, [updateState]);
+    
+    // Persist to Firestore
+    const result = await adminApi.updateContest(contestId, { rounds: newRounds });
+    
+    if (!result.success) {
+      // Rollback on failure
+      updateState((prev) => {
+        const contests = prev.contests.map((c) => {
+          if (c.id !== contestId) return c;
+          return normalizeContest({ ...c, rounds: existingRounds });
+        });
+        return { ...prev, contests };
+      });
+    }
+    
+    return result;
+  }, [state.contests, updateState]);
 
-  const updateRound = useCallback((contestId: string, roundId: string, updates: Partial<ContestRound>) => {
+  const updateRound = useCallback(async (contestId: string, roundId: string, updates: Partial<ContestRound>): Promise<{ success: boolean; error?: string }> => {
+    const contest = state.contests.find((c) => c.id === contestId);
+    if (!contest) {
+      return { success: false, error: 'Contest not found' };
+    }
+    
+    const existingRounds = contest.rounds ?? [];
+    const newRounds = existingRounds.map((round) =>
+      round.id === roundId ? { ...round, ...updates } : round
+    );
+    
+    // Optimistically update local state
     updateState((prev) => {
-      const contests = prev.contests.map((contest) => {
-        if (contest.id !== contestId) return contest;
-        const rounds = (contest.rounds ?? []).map((round) =>
-          round.id === roundId ? { ...round, ...updates } : round
-        );
-        return normalizeContest({ ...contest, rounds });
+      const contests = prev.contests.map((c) => {
+        if (c.id !== contestId) return c;
+        return normalizeContest({ ...c, rounds: newRounds });
       });
       return { ...prev, contests };
     });
-  }, [updateState]);
+    
+    // Persist to Firestore
+    const result = await adminApi.updateContest(contestId, { rounds: newRounds });
+    
+    if (!result.success) {
+      // Rollback on failure
+      updateState((prev) => {
+        const contests = prev.contests.map((c) => {
+          if (c.id !== contestId) return c;
+          return normalizeContest({ ...c, rounds: existingRounds });
+        });
+        return { ...prev, contests };
+      });
+    }
+    
+    return result;
+  }, [state.contests, updateState]);
 
-  const removeRound = useCallback((contestId: string, roundId: string) => {
+  const removeRound = useCallback(async (contestId: string, roundId: string): Promise<{ success: boolean; error?: string }> => {
+    const contest = state.contests.find((c) => c.id === contestId);
+    if (!contest) {
+      return { success: false, error: 'Contest not found' };
+    }
+    
+    const existingRounds = contest.rounds ?? [];
+    // Remove the round and renumber remaining rounds
+    const newRounds = existingRounds
+      .filter((round) => round.id !== roundId)
+      .map((round, index) => ({
+        ...round,
+        name: `Round ${index + 1}`,
+        number: index + 1,
+      }));
+    const entries = contest?.entries?.map((drink) =>
+      drink.round === roundId ? { ...drink, round: '' } : drink
+    );
+    
+    // Optimistically update local state
     updateState((prev) => {
-      const contests = prev.contests.map((contest) => {
-        if (contest.id !== contestId) return contest;
-        const rounds = (contest.rounds ?? []).filter((round) => round.id !== roundId);
-        const entries = contest?.entries?.map((drink) =>
-          drink.round === roundId ? { ...drink, round: '' } : drink
-        );
-        return normalizeContest({ ...contest, rounds, entries });
+      const contests = prev.contests.map((c) => {
+        if (c.id !== contestId) return c;
+        return normalizeContest({ ...c, rounds: newRounds, entries });
       });
       return { ...prev, contests };
     });
-  }, [updateState]);
+    
+    // Persist to Firestore
+    const result = await adminApi.updateContest(contestId, { rounds: newRounds, entries });
+    
+    if (!result.success) {
+      // Rollback on failure
+      updateState((prev) => {
+        const contests = prev.contests.map((c) => {
+          if (c.id !== contestId) return c;
+          return normalizeContest({ ...c, rounds: existingRounds, entries: contest.entries });
+        });
+        return { ...prev, contests };
+      });
+    }
+    
+    return result;
+  }, [state.contests, updateState]);
 
-  const setActiveRound = useCallback((contestId: string, roundId: string) => {
+  const setActiveRound = useCallback(async (contestId: string, roundId: string): Promise<{ success: boolean; error?: string }> => {
+    const contest = state.contests.find((c) => c.id === contestId);
+    if (!contest) {
+      return { success: false, error: 'Contest not found' };
+    }
+    
+    const previousActiveRoundId = contest.activeRoundId;
+    
+    // Optimistically update local state
     updateState((prev) => {
-      const contests = prev.contests.map((contest) => {
-        if (contest.id !== contestId) return contest;
-        return normalizeContest({ ...contest, activeRoundId: roundId });
+      const contests = prev.contests.map((c) => {
+        if (c.id !== contestId) return c;
+        return normalizeContest({ ...c, activeRoundId: roundId });
       });
       return { ...prev, contests };
     });
-  }, [updateState]);
+    
+    // Persist to Firestore
+    const result = await adminApi.updateContest(contestId, { activeRoundId: roundId });
+    
+    if (!result.success) {
+      // Rollback on failure
+      updateState((prev) => {
+        const contests = prev.contests.map((c) => {
+          if (c.id !== contestId) return c;
+          return normalizeContest({ ...c, activeRoundId: previousActiveRoundId });
+        });
+        return { ...prev, contests };
+      });
+    }
+    
+    return result;
+  }, [state.contests, updateState]);
 
-  const setRoundState = useCallback((contestId: string, roundId: string, newState: ContestPhase) => {
+  const setRoundState = useCallback(async (contestId: string, roundId: string, newState: ContestPhase): Promise<{ success: boolean; error?: string }> => {
+    const contest = state.contests.find((c) => c.id === contestId);
+    if (!contest) {
+      return { success: false, error: 'Contest not found' };
+    }
+    
+    const existingRounds = contest.rounds ?? [];
+    const newRounds = existingRounds.map((round) =>
+      round.id === roundId ? { ...round, state: newState } : round
+    );
+    
+    // Determine the new contest phase based on the active round's state
+    const activeRoundId = contest.activeRoundId;
+    const newPhase = activeRoundId === roundId ? newState : contest.phase;
+    
+    // Optimistically update local state
     updateState((prev) => {
-      const contests = prev.contests.map((contest) => {
-        if (contest.id !== contestId) return contest;
-        const rounds = (contest.rounds ?? []).map((round) =>
-          round.id === roundId ? { ...round, state: newState } : round
-        );
-        return normalizeContest({ ...contest, rounds });
+      const contests = prev.contests.map((c) => {
+        if (c.id !== contestId) return c;
+        return normalizeContest({ ...c, rounds: newRounds, phase: newPhase });
       });
       return { ...prev, contests };
     });
-  }, [updateState]);
+    
+    // Persist to Firestore
+    const result = await adminApi.updateContest(contestId, { rounds: newRounds, phase: newPhase });
+    
+    if (!result.success) {
+      // Rollback on failure
+      updateState((prev) => {
+        const contests = prev.contests.map((c) => {
+          if (c.id !== contestId) return c;
+          return normalizeContest({ ...c, rounds: existingRounds, phase: contest.phase });
+        });
+        return { ...prev, contests };
+      });
+    }
+    
+    return result;
+  }, [state.contests, updateState]);
 
   const addContest = useCallback((name: string) => {
     updateState((prev) => {
