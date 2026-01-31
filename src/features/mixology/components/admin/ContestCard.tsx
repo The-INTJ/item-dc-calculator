@@ -20,10 +20,8 @@ function getPhaseColor(phase: Contest['phase']): string {
     case 'scored':
       return 'var(--phase-scored, #f59e0b)';
     case 'set':
-      return 'var(--phase-set, #3b82f6)';
-    case 'debug':
     default:
-      return 'var(--phase-debug, #94a3b8)';
+      return 'var(--phase-set, #3b82f6)';
   }
 }
 

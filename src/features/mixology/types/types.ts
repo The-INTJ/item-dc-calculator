@@ -1,11 +1,10 @@
 /**
  * Contest lifecycle states as defined in the Master Plan:
- * - debug: Admin-only testing mode (not used during live events)
  * - set: Guests arriving and choosing roles
  * - shake: Entries being judged, timer running, voting OPEN
  * - scored: Voting CLOSED, tallying scores
  */
-export type ContestPhase = 'debug' | 'set' | 'shake' | 'scored';
+export type ContestPhase = 'set' | 'shake' | 'scored';
 export type JudgeRole = 'admin' | 'judge' | 'viewer';
 
 // ============================================================================

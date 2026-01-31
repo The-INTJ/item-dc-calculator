@@ -15,8 +15,6 @@ interface AdminContestState {
 }
 
 interface AdminContestContextValue extends AdminContestState {
-  useLocalDebugData: boolean;
-  setUseLocalDebugData: (enabled: boolean) => void;
   setActiveContest: (contestId: string) => void;
   updateContest: (contestId: string, updates: Partial<Contest>) => void;
   upsertContest: (contest: Contest) => void;
@@ -34,8 +32,6 @@ interface AdminContestContextValue extends AdminContestState {
 }
 
 const STORAGE_KEY = 'mixology-admin-contests-v1';
-const DEBUG_STORAGE_KEY = 'mixology-admin-debug-contests-v1';
-const DEBUG_TOGGLE_KEY = 'mixology-admin-local-debug-data-v1';
 
 const defaultRounds: ContestRound[] = [
   { id: 'round-1', name: 'Round 1', number: 1, state: 'set' },
@@ -52,7 +48,7 @@ function buildDefaultContest(): Contest {
     id: 'contest-local-1',
     name: 'Local Test Contest',
     slug: 'local-test-contest',
-    phase: 'debug',
+    phase: 'set',
     location: 'Local Only',
     startTime: new Date().toISOString(),
     bracketRound: 'Round 1',
@@ -67,198 +63,6 @@ function buildDefaultContest(): Contest {
   };
 }
 
-function buildDebugContests(): Contest[] {
-  return [
-    {
-      id: 'contest-impossible-1',
-      name: 'Impossible Invitational',
-      slug: 'impossible-invitational',
-      phase: 'shake',
-      location: 'Nowhere Annex',
-      startTime: '2024-04-01T18:30:00Z',
-      bracketRound: 'Round ?: Mystery',
-      currentDrinkId: 'drink-ghost',
-      defaultContest: true,
-      rounds: [
-        { id: 'round-zero', name: 'Round Zero', number: 0, state: 'scored' },
-        { id: 'round-one', name: 'Round One', number: 1, state: 'shake' },
-        { id: 'round-two', name: 'Round Two', number: 2, state: 'set' },
-      ],
-      activeRoundId: 'round-missing',
-      futureRoundId: 'round-phantom',
-      categories: buildDefaultVoteCategories(),
-      entries: [
-        {
-          id: 'drink-siren',
-          name: 'Siren Signal',
-          slug: 'siren-signal',
-          description: 'Smoked saline spritz with a phantom garnish.',
-          round: 'round-zero',
-          submittedBy: 'Team Mirage',
-        },
-        {
-          id: 'drink-null',
-          name: 'Null & Void',
-          slug: 'null-and-void',
-          description: 'Missing notes on purpose to test fallbacks.',
-          round: 'Round Zero',
-          submittedBy: 'Team Missing',
-        },
-        {
-          id: 'drink-ghost',
-          name: 'Ghost Variable',
-          slug: 'ghost-variable',
-          description: 'Exists as the current drink but the round is missing.',
-          round: 'round-ghost',
-          submittedBy: 'Team 404',
-        },
-      ],
-      judges: [
-        { id: 'judge-admin', displayName: 'Admin Debug', role: 'admin', contact: 'debug@example.com' },
-        { id: 'judge-viewer', displayName: 'Viewer V.', role: 'viewer' },
-        { id: 'judge-missing', displayName: 'Judge Missing', role: 'judge' },
-      ],
-      scores: [
-        {
-          id: 'score-impossible',
-          entryId: 'drink-ghost',
-          drinkId: 'drink-ghost',
-          judgeId: 'judge-viewer',
-          breakdown: { aroma: 15, balance: -2, presentation: 0, creativity: 42, overall: 9 },
-          notes: 'Out-of-range totals to test validation.',
-        },
-        {
-          id: 'score-orphaned',
-          entryId: 'drink-does-not-exist',
-          drinkId: 'drink-does-not-exist',
-          judgeId: 'judge-admin',
-          breakdown: { aroma: 8, balance: 8, presentation: 8, creativity: 8, overall: 8 },
-          notes: 'References a missing drink.',
-        },
-        {
-          id: 'score-unknown-judge',
-          entryId: 'drink-siren',
-          drinkId: 'drink-siren',
-          judgeId: 'judge-unknown',
-          breakdown: { aroma: 7, balance: 7, presentation: 7, creativity: 7, overall: 7 },
-        },
-      ],
-    },
-    {
-      id: 'contest-edgecase-2',
-      name: 'Edge Case Cup',
-      slug: 'edge-case-cup',
-      phase: 'set',
-      location: 'Underflow Hall',
-      startTime: '2024-05-20T20:00:00Z',
-      bracketRound: 'Qualifiers',
-      defaultContest: false,
-      rounds: [
-        { id: 'round-alpha', name: 'Alpha Round', number: 1, state: 'set' },
-        { id: 'round-beta', name: 'Beta Round', number: 2, state: 'scored' },
-      ],
-      activeRoundId: 'round-alpha',
-      futureRoundId: 'round-beta',
-      categories: buildDefaultVoteCategories(),
-      entries: [
-        {
-          id: 'drink-echo',
-          name: 'Echo Chamber',
-          slug: 'echo-chamber',
-          description: 'Duplicate rounds, duplicate judges.',
-          round: 'round-alpha',
-          submittedBy: 'Team Loop',
-        },
-        {
-          id: 'drink-oddball',
-          name: 'Oddball Old Fashioned',
-          slug: 'oddball-old-fashioned',
-          description: 'Drink assigned to a future round name instead of ID.',
-          round: 'Beta Round',
-          submittedBy: 'Team Timewarp',
-        },
-      ],
-      judges: [
-        { id: 'judge-alpha', displayName: 'Alpha', role: 'judge' },
-        { id: 'judge-beta', displayName: 'Beta', role: 'judge' },
-        { id: 'judge-viewer-2', displayName: 'Viewer Two', role: 'viewer' },
-      ],
-      scores: [
-        {
-          id: 'score-alpha',
-          entryId: 'drink-echo',
-          drinkId: 'drink-echo',
-          judgeId: 'judge-alpha',
-          breakdown: { aroma: 5, balance: 5, presentation: 5, creativity: 5, overall: 5 },
-        },
-        {
-          id: 'score-viewer',
-          entryId: 'drink-oddball',
-          drinkId: 'drink-oddball',
-          judgeId: 'judge-viewer-2',
-          breakdown: { aroma: 10, balance: 10, presentation: 10, creativity: 10, overall: 10 },
-          notes: 'Viewer role submitted a score.',
-        },
-      ],
-    },
-    {
-      id: 'contest-chili-4',
-      name: 'Smoky Mountain Chili Cook-Off',
-      slug: 'smoky-mountain-chili',
-      phase: 'set',
-      location: 'Cedar Ridge Lodge',
-      startTime: '2024-10-05T18:00:00Z',
-      bracketRound: 'Qualifiers',
-      defaultContest: false,
-      config: CHILI_CONFIG,
-      rounds: [
-        { id: 'round-chili-1', name: 'Qualifiers', number: 1, state: 'set' },
-        { id: 'round-chili-2', name: 'Finals', number: 2, state: 'set' },
-      ],
-      activeRoundId: 'round-chili-1',
-      futureRoundId: 'round-chili-2',
-      categories: buildDefaultVoteCategories(),
-      entries: [
-        {
-          id: 'entry-brimstone',
-          name: 'Brimstone Red',
-          slug: 'brimstone-red',
-          description: 'Habanero-forward chili with charred tomato base.',
-          round: 'round-chili-1',
-          submittedBy: 'Team Ember',
-        },
-        {
-          id: 'entry-riverbend',
-          name: 'Riverbend Verde',
-          slug: 'riverbend-verde',
-          description: 'Tomatillo, lime zest, and roasted poblano.',
-          round: 'round-chili-1',
-          submittedBy: 'Team Rapids',
-        },
-      ],
-      judges: [],
-      scores: [],
-    },
-    {
-      id: 'contest-null-3',
-      name: 'Phantom Bracket',
-      slug: 'phantom-bracket',
-      phase: 'debug',
-      location: undefined,
-      startTime: undefined,
-      bracketRound: undefined,
-      defaultContest: false,
-      rounds: [],
-      activeRoundId: null,
-      futureRoundId: null,
-      categories: buildDefaultVoteCategories(),
-      entries: [],
-      judges: [],
-      scores: [],
-    },
-  ];
-}
-
 function normalizeContest(contest: Contest): Contest {
   const rounds = (contest.rounds ?? []).map((round) => ({
     ...round,
@@ -268,7 +72,7 @@ function normalizeContest(contest: Contest): Contest {
   const activeRound = getRoundById({ ...contest, rounds }, activeRoundId);
   const bracketRound = getRoundLabel({ ...contest, rounds }, activeRoundId);
   // Sync contest phase to the active round's state
-  const phase = activeRound?.state ?? contest.phase ?? 'debug';
+  const phase = activeRound?.state ?? contest.phase ?? 'set';
 
   return {
     ...contest,
@@ -279,22 +83,8 @@ function normalizeContest(contest: Contest): Contest {
   };
 }
 
-function loadDebugToggle(): boolean {
-  if (typeof window === 'undefined') return false;
-  return window.localStorage.getItem(DEBUG_TOGGLE_KEY) === 'true';
-}
-
-function persistDebugToggle(enabled: boolean) {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(DEBUG_TOGGLE_KEY, String(enabled));
-}
-
-function getStorageKey(useLocalDebugData: boolean) {
-  return useLocalDebugData ? DEBUG_STORAGE_KEY : STORAGE_KEY;
-}
-
-function buildInitialState(useLocalDebugData: boolean): AdminContestState {
-  const contests = useLocalDebugData ? buildDebugContests() : [buildDefaultContest()];
+function buildInitialState(): AdminContestState {
+  const contests = [buildDefaultContest()];
   const normalized = contests.map((contest) => normalizeContest(contest));
   const activeContestId = normalized.find((contest) => contest.defaultContest)?.id ?? normalized[0]?.id ?? null;
   const normalizedContests = activeContestId
@@ -303,14 +93,14 @@ function buildInitialState(useLocalDebugData: boolean): AdminContestState {
   return { contests: normalizedContests, activeContestId, lastUpdatedAt: null };
 }
 
-function loadState(useLocalDebugData: boolean): AdminContestState {
+function loadState(): AdminContestState {
   if (typeof window === 'undefined') {
-    return buildInitialState(useLocalDebugData);
+    return buildInitialState();
   }
 
-  const stored = window.localStorage.getItem(getStorageKey(useLocalDebugData));
+  const stored = window.localStorage.getItem(STORAGE_KEY);
   if (!stored) {
-    return buildInitialState(useLocalDebugData);
+    return buildInitialState();
   }
 
   try {
@@ -322,26 +112,24 @@ function loadState(useLocalDebugData: boolean): AdminContestState {
       : contests;
     return { contests: normalizedContests, activeContestId, lastUpdatedAt: parsed.lastUpdatedAt ?? null };
   } catch {
-    return buildInitialState(useLocalDebugData);
+    return buildInitialState();
   }
 }
 
-function persistState(state: AdminContestState, useLocalDebugData: boolean) {
+function persistState(state: AdminContestState) {
   if (typeof window === 'undefined') return;
-  window.localStorage.setItem(getStorageKey(useLocalDebugData), JSON.stringify(state));
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
 const AdminContestContext = createContext<AdminContestContextValue | undefined>(undefined);
 
 export function AdminContestProvider({ children }: { children: React.ReactNode }) {
-  const initialDebug = loadDebugToggle();
-  const [useLocalDebugData, setUseLocalDebugData] = useState(initialDebug);
-  const [state, setState] = useState<AdminContestState>(() => loadState(initialDebug));
+  const [state, setState] = useState<AdminContestState>(() => loadState());
   const { setState: setGlobalState } = useContestState();
 
   useEffect(() => {
-    persistState(state, useLocalDebugData);
-  }, [state, useLocalDebugData]);
+    persistState(state);
+  }, [state]);
 
   // Sync active contest's phase to global ContestState whenever it changes
   useEffect(() => {
@@ -352,12 +140,6 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
       setGlobalState(activeContest.phase);
     }
   }, [state, setGlobalState]);
-
-  const handleSetUseLocalDebugData = useCallback((enabled: boolean) => {
-    setUseLocalDebugData(enabled);
-    persistDebugToggle(enabled);
-    setState(loadState(enabled));
-  }, []);
 
   const updateState = useCallback((updater: (prev: AdminContestState) => AdminContestState) => {
     setState((prev) => {
@@ -565,8 +347,8 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
   }, [updateState]);
 
   const refresh = useCallback(() => {
-    setState(loadState(useLocalDebugData));
-  }, [useLocalDebugData]);
+    setState(loadState());
+  }, []);
 
   const value = useMemo<AdminContestContextValue>(() => {
     const activeContest =
@@ -578,8 +360,6 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
       contests: state.contests,
       activeContestId: activeContest?.id ?? state.activeContestId,
       lastUpdatedAt: state.lastUpdatedAt,
-      useLocalDebugData,
-      setUseLocalDebugData: handleSetUseLocalDebugData,
       setActiveContest,
       updateContest,
       upsertContest,
@@ -597,8 +377,6 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
     };
   }, [
     state,
-    useLocalDebugData,
-    handleSetUseLocalDebugData,
     setActiveContest,
     updateContest,
     upsertContest,

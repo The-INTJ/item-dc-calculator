@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * AdminDashboard - Main admin view for testing backend integration
- * Allows viewing contests, their details, and testing CRUD operations.
+ * AdminDashboard - Main admin view for managing contests
+ * Allows viewing contests, their details, and performing CRUD operations.
  */
 
 import { useEffect, useState } from 'react';
@@ -21,8 +21,6 @@ export function AdminDashboard() {
     refresh,
     setActiveContest,
     updateContest,
-    useLocalDebugData,
-    setUseLocalDebugData,
   } = useAdminContestData();
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
   const loading = false;
@@ -99,23 +97,9 @@ export function AdminDashboard() {
       <header className="admin-dashboard__header">
         <h1>Mixology Admin Dashboard</h1>
         <p>
-          This is a validation UI to test the backend abstraction layer.
+          Manage contests, rounds, entries, and judges.
           Select a contest to view its details.
         </p>
-        <div className="admin-debug-toggle">
-          <label className="admin-debug-toggle__label">
-            <input
-              type="checkbox"
-              checked={useLocalDebugData}
-              onChange={(event) => setUseLocalDebugData(event.target.checked)}
-            />
-            <span>Use local debug dataset</span>
-          </label>
-          <p className="admin-detail-meta">
-            This toggle swaps the admin view to pre-populated local data for stress testing. It is
-            separate from the live contest debug state.
-          </p>
-        </div>
         <button onClick={refresh} className="button-secondary">
           Refresh Data
         </button>

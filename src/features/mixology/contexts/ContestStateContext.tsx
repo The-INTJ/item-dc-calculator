@@ -4,24 +4,21 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 
 /**
  * Contest lifecycle states as defined in the Master Plan:
- * - Debug: Pre-contest setup and testing
  * - Set: Guests arriving, choosing roles
  * - Shake: Mixing in progress, voting OPEN
  * - Scored: Voting CLOSED, scores being tallied
  */
-export type ContestState = 'debug' | 'set' | 'shake' | 'scored';
+export type ContestState = 'set' | 'shake' | 'scored';
 
-export const CONTEST_STATES: ContestState[] = ['debug', 'set', 'shake', 'scored'];
+export const CONTEST_STATES: ContestState[] = ['set', 'shake', 'scored'];
 
 export const contestStateLabels: Record<ContestState, string> = {
-  debug: 'Debug',
   set: 'Set',
   shake: 'Shake',
   scored: 'Scored',
 };
 
 export const contestStateDescriptions: Record<ContestState, string> = {
-  debug: 'Admin-only testing mode with extra logs and debug UI. Not used during live events.',
   set: 'Guests arriving and choosing roles. Happens once at competition start; admin can return here if needed.',
   shake: 'Drinks are being made, timer running, voting is OPEN.',
   scored: 'Voting CLOSED. Tallying scores, preparing next round. Admin triggers next Shake when ready.',
@@ -40,13 +37,13 @@ const STORAGE_KEY = 'mixology-contest-state';
 
 function getInitialState(): ContestState {
   if (typeof window === 'undefined') {
-    return 'debug';
+    return 'set';
   }
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored && CONTEST_STATES.includes(stored as ContestState)) {
     return stored as ContestState;
   }
-  return 'debug';
+  return 'set';
 }
 
 interface ContestStateProviderProps {
@@ -54,7 +51,7 @@ interface ContestStateProviderProps {
 }
 
 export function ContestStateProvider({ children }: ContestStateProviderProps) {
-  const [state, setStateInternal] = useState<ContestState>('debug');
+  const [state, setStateInternal] = useState<ContestState>('set');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
