@@ -1,13 +1,16 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useAuth } from '@/mixology/contexts/AuthContext';
-import { useContestState, contestStateLabels } from '@/mixology/contexts/ContestStateContext';
-import { navItems } from './navItems';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useAuth } from "@/mixology/contexts/AuthContext";
+import {
+  useContestState,
+  contestStateLabels,
+} from "@/mixology/contexts/ContestStateContext";
+import { navItems } from "./navItems";
 
 function isActiveLink(pathname: string, href: string) {
-  if (href === '/mixology') {
+  if (href === "/mixology") {
     return pathname === href;
   }
 
@@ -17,7 +20,7 @@ function isActiveLink(pathname: string, href: string) {
 export function NavBar() {
   const pathname = usePathname();
   const { role, loading } = useAuth();
-  const isAdmin = role === 'admin';
+  const isAdmin = role === "admin";
   const { state, label } = useContestState();
 
   return (
@@ -28,12 +31,12 @@ export function NavBar() {
         }
         const isActive = isActiveLink(pathname, item.href);
         const className = [
-          'site-nav__link',
-          item.variant === 'secondary' ? 'site-nav__link--secondary' : '',
-          isActive ? 'site-nav__link--active' : '',
+          "site-nav__link",
+          item.variant === "secondary" ? "site-nav__link--secondary" : "",
+          isActive ? "site-nav__link--active" : "",
         ]
           .filter(Boolean)
-          .join(' ');
+          .join(" ");
 
         return (
           <Link key={item.key} href={item.href} className={className}>
@@ -42,7 +45,11 @@ export function NavBar() {
         );
       })}
       <div className="site-nav__status" aria-live="polite">
-        <span className={`site-nav__phase site-nav__phase--${state}`}>{label}</span>
+        {label && (
+          <span className={`site-nav__phase site-nav__phase--${state}`}>
+            {label}
+          </span>
+        )}
       </div>
     </nav>
   );
