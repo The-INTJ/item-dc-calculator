@@ -1,4 +1,4 @@
-import { AdminDashboard } from '@/mixology/components/adminPage';
+import { AdminDashboard } from '@/src/features/mixology/components/admin';
 
 export const metadata = {
   title: 'Admin Dashboard | Mixology Rating App',

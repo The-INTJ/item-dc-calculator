@@ -17,29 +17,46 @@ function MixologistRow({
 }: {
   contest: Contest;
   drink: Entry;
-  onUpdate: (updates: Partial<Entry>) => void;
-  onRemove: () => void;
+  onUpdate: (updates: Partial<Entry>) => Promise<void>;
+  onRemove: () => Promise<void>;
 }) {
   const rounds = contest.rounds ?? [];
+  const [updating, setUpdating] = useState(false);
+  const [removing, setRemoving] = useState(false);
+
+  const handleUpdate = async (updates: Partial<Entry>) => {
+    setUpdating(true);
+    await onUpdate(updates);
+    setUpdating(false);
+  };
+
+  const handleRemove = async () => {
+    setRemoving(true);
+    await onRemove();
+    // No need to set removing false as component unmounts
+  };
 
   return (
     <li className="admin-detail-item admin-mixologist-item">
       <input
         className="admin-mixologist-input"
         value={drink.submittedBy}
-        onChange={(event) => onUpdate({ submittedBy: event.target.value })}
+        onChange={(event) => handleUpdate({ submittedBy: event.target.value })}
         placeholder="Mixologist name"
+        disabled={updating || removing}
       />
       <input
         className="admin-mixologist-input"
         value={drink.name ?? ''}
-        onChange={(event) => onUpdate({ name: event.target.value })}
+        onChange={(event) => handleUpdate({ name: event.target.value })}
         placeholder="Drink name"
+        disabled={updating || removing}
       />
       <select
         className="admin-mixologist-select"
         value={drink.round}
-        onChange={(event) => onUpdate({ round: event.target.value })}
+        onChange={(event) => handleUpdate({ round: event.target.value })}
+        disabled={updating || removing}
       >
         {rounds.length === 0 ? <option value="">No rounds</option> : null}
         {rounds.map((round) => (
@@ -48,8 +65,13 @@ function MixologistRow({
           </option>
         ))}
       </select>
-      <button type="button" className="button-secondary" onClick={onRemove}>
-        Remove
+      <button 
+        type="button" 
+        className="button-secondary" 
+        onClick={handleRemove}
+        disabled={updating || removing}
+      >
+        {removing ? 'Removing...' : 'Remove'}
       </button>
     </li>
   );
@@ -60,6 +82,8 @@ export function AdminMixologists({ contest }: AdminMixologistsProps) {
   const [mixologistName, setMixologistName] = useState('');
   const [drinkName, setDrinkName] = useState('');
   const [roundId, setRoundId] = useState(contest.futureRoundId ?? contest.activeRoundId ?? '');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const rounds = contest.rounds ?? [];
   const roundOptions = useMemo(() => rounds.slice(), [rounds]);
@@ -70,11 +94,26 @@ export function AdminMixologists({ contest }: AdminMixologistsProps) {
     }
   }, [contest.futureRoundId, contest.activeRoundId, roundId]);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!mixologistName.trim() || !roundId) return;
-    addMixologist(contest.id, { name: mixologistName.trim(), drinkName: drinkName.trim(), roundId });
-    setMixologistName('');
-    setDrinkName('');
+    
+    setLoading(true);
+    setError(null);
+    
+    const result = await addMixologist(contest.id, { 
+      name: mixologistName.trim(), 
+      drinkName: drinkName.trim(), 
+      roundId 
+    });
+    
+    if (result && result.success) {
+      setMixologistName('');
+      setDrinkName('');
+    } else if (result) {
+      setError(result.error ?? 'Failed to add mixologist');
+    }
+    
+    setLoading(false);
   };
 
   return (
@@ -86,17 +125,20 @@ export function AdminMixologists({ contest }: AdminMixologistsProps) {
           placeholder="Mixologist name"
           value={mixologistName}
           onChange={(event) => setMixologistName(event.target.value)}
+          disabled={loading}
         />
         <input
           className="admin-mixologist-input"
           placeholder="Drink name"
           value={drinkName}
           onChange={(event) => setDrinkName(event.target.value)}
+          disabled={loading}
         />
         <select
           className="admin-mixologist-select"
           value={roundId}
           onChange={(event) => setRoundId(event.target.value)}
+          disabled={loading}
         >
           <option value="">Select round</option>
           {roundOptions.map((round) => (
@@ -105,10 +147,17 @@ export function AdminMixologists({ contest }: AdminMixologistsProps) {
             </option>
           ))}
         </select>
-        <button type="button" className="button-secondary" onClick={handleAdd}>
-          Add mixologist
+        <button 
+          type="button" 
+          className="button-secondary" 
+          onClick={handleAdd}
+          disabled={loading}
+        >
+          {loading ? 'Adding...' : 'Add mixologist'}
         </button>
       </div>
+
+      {error && <p className="admin-phase-controls__message--error">{error}</p>}
 
       {contest?.entries?.length === 0 ? (
         <p className="admin-empty">No mixologists added yet.</p>
@@ -119,8 +168,12 @@ export function AdminMixologists({ contest }: AdminMixologistsProps) {
               key={drink.id}
               contest={contest}
               drink={drink}
-              onUpdate={(updates) => updateMixologist(contest.id, drink.id, updates)}
-              onRemove={() => removeMixologist(contest.id, drink.id)}
+              onUpdate={async (updates) => {
+                await updateMixologist(contest.id, drink.id, updates);
+              }}
+              onRemove={async () => {
+                await removeMixologist(contest.id, drink.id);
+              }}
             />
           ))}
         </ul>

@@ -2,7 +2,7 @@
 export * from './auth';
 
 // Admin page components
-export * from './adminPage';
+export * from './admin';
 
 // Vote page components
 export * from './votePage';

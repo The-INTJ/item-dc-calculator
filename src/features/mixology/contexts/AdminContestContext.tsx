@@ -6,6 +6,7 @@ import { buildDefaultVoteCategories } from '../components/ui/voteUtils';
 import { CHILI_CONFIG } from '../types/templates';
 import { getActiveRoundId, getRoundById, getRoundLabel } from '../lib/contestHelpers';
 import { useContestState } from './ContestStateContext';
+import { adminApi } from '../services/adminApi';
 
 interface AdminContestState {
   contests: Contest[];
@@ -25,9 +26,9 @@ interface AdminContestContextValue extends AdminContestState {
   removeRound: (contestId: string, roundId: string) => void;
   setActiveRound: (contestId: string, roundId: string) => void;
   setRoundState: (contestId: string, roundId: string, state: ContestPhase) => void;
-  addMixologist: (contestId: string, mixologist: { name: string; drinkName: string; roundId: string }) => void;
-  updateMixologist: (contestId: string, drinkId: string, updates: Partial<Entry>) => void;
-  removeMixologist: (contestId: string, drinkId: string) => void;
+  addMixologist: (contestId: string, mixologist: { name: string; drinkName: string; roundId: string }) => Promise<{ success: boolean; data?: Entry; error?: string }>;
+  updateMixologist: (contestId: string, drinkId: string, updates: Partial<Entry>) => Promise<{ success: boolean; data?: Entry; error?: string }>;
+  removeMixologist: (contestId: string, drinkId: string) => Promise<{ success: boolean; error?: string }>;
   refresh: () => void;
 }
 
@@ -481,46 +482,67 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
   }, [updateState]);
 
   const addMixologist = useCallback(
-    (contestId: string, mixologist: { name: string; drinkName: string; roundId: string }) => {
-      updateState((prev) => {
-        const contests = prev.contests.map((contest) => {
-          if (contest.id !== contestId) return contest;
-          const drink: Entry = {
-            id: generateId('drink'),
-            name: mixologist.drinkName,
-            slug: mixologist.drinkName.toLowerCase().replace(/\s+/g, '-'),
-            description: '',
-            round: mixologist.roundId,
-            submittedBy: mixologist.name,
-          };
-          return normalizeContest({ ...contest, entries: [...contest.entries, drink] });
+    async (contestId: string, mixologist: { name: string; drinkName: string; roundId: string }) => {
+      const entry: Omit<Entry, 'id'> = {
+        name: mixologist.drinkName,
+        slug: mixologist.drinkName.toLowerCase().replace(/\s+/g, '-'),
+        description: '',
+        round: mixologist.roundId,
+        submittedBy: mixologist.name,
+      };
+
+      const result = await adminApi.createEntry(contestId, entry);
+      
+      if (result.success && result.data) {
+        updateState((prev) => {
+          const contests = prev.contests.map((contest) => {
+            if (contest.id !== contestId) return contest;
+            return normalizeContest({ ...contest, entries: [...contest.entries, result.data!] });
+          });
+          return { ...prev, contests };
         });
-        return { ...prev, contests };
-      });
+        return result;
+      }
+      
+      return result;
     },
     [updateState]
   );
 
-  const updateMixologist = useCallback((contestId: string, drinkId: string, updates: Partial<Entry>) => {
-    updateState((prev) => {
-      const contests = prev.contests.map((contest) => {
-        if (contest.id !== contestId) return contest;
-        const entries = contest?.entries?.map((drink) => (drink.id === drinkId ? { ...drink, ...updates } : drink));
-        return normalizeContest({ ...contest, entries });
+  const updateMixologist = useCallback(async (contestId: string, drinkId: string, updates: Partial<Entry>) => {
+    const result = await adminApi.updateEntry(contestId, drinkId, updates);
+    
+    if (result.success && result.data) {
+      updateState((prev) => {
+        const contests = prev.contests.map((contest) => {
+          if (contest.id !== contestId) return contest;
+          const entries = contest?.entries?.map((drink) => (drink.id === drinkId ? result.data! : drink)).filter((entry): entry is Entry => entry !== undefined) ?? [];
+          return normalizeContest({ ...contest, entries });
+        });
+        return { ...prev, contests };
       });
-      return { ...prev, contests };
-    });
+      return result;
+    }
+    
+    return result;
   }, [updateState]);
 
-  const removeMixologist = useCallback((contestId: string, drinkId: string) => {
-    updateState((prev) => {
-      const contests = prev.contests.map((contest) => {
-        if (contest.id !== contestId) return contest;
-        const entries = contest?.entries?.filter((drink) => drink.id !== drinkId);
-        return normalizeContest({ ...contest, entries });
+  const removeMixologist = useCallback(async (contestId: string, drinkId: string) => {
+    const result = await adminApi.deleteEntry(contestId, drinkId);
+    
+    if (result.success) {
+      updateState((prev) => {
+        const contests = prev.contests.map((contest) => {
+          if (contest.id !== contestId) return contest;
+          const entries = contest?.entries?.filter((drink) => drink.id !== drinkId);
+          return normalizeContest({ ...contest, entries });
+        });
+        return { ...prev, contests };
       });
-      return { ...prev, contests };
-    });
+      return result;
+    }
+    
+    return result;
   }, [updateState]);
 
   const refresh = useCallback(() => {

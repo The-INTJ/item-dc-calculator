@@ -1,4 +1,4 @@
-import { ContestSetupForm } from '@/mixology/components/adminPage/ContestSetupForm';
+import { ContestSetupForm } from '@/src/features/mixology/components/admin/ContestSetupForm';
 
 export const metadata = {
   title: 'Create Contest | Admin Dashboard',
