@@ -117,7 +117,7 @@ describe('uiMappings', () => {
     const detail = buildRoundDetail(contest);
 
     expect(detail.name).toBe('Semifinals');
-    expect(detail.entries.map((item) => item.id)).toEqual(['a', 'b']);
+    expect(detail?.entries?.map((item) => item.id)).toEqual(['a', 'b']);
     expect(detail.matchups).toEqual([{ id: 'matchup-1', entryIds: ['a', 'b'] }]);
   });
 });

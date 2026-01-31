@@ -68,7 +68,7 @@ export function useSubmitVotes(): UseSubmitVotesResult {
       })
       .filter((entry) => Object.keys(entry.breakdown).length > 0);
 
-    if (entries.length === 0) {
+    if (entries?.length === 0) {
       setStatus('error');
       setMessage('Enter at least one score before submitting.');
       return;
@@ -79,7 +79,7 @@ export function useSubmitVotes(): UseSubmitVotesResult {
 
     try {
       const responses = await Promise.all(
-        entries.map(({ drinkId, breakdown }) =>
+        entries?.map(({ drinkId, breakdown }) =>
           fetch(`/api/mixology/contests/${contest.id}/scores`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

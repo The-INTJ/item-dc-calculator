@@ -122,12 +122,12 @@ export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }
       </section>
 
       <section className="admin-details-section">
-        <h3>Drinks ({contest.entries.length})</h3>
-        {contest.entries.length === 0 ? (
+        <h3>Drinks ({contest.entries?.length})</h3>
+        {contest.entries?.length === 0 ? (
           <p className="admin-empty">No drinks registered yet.</p>
         ) : (
           <ul className="admin-detail-list">
-            {contest.entries.map((drink) => (
+            {contest?.entries?.map((drink) => (
               <DrinkItem
                 key={drink.id}
                 drink={drink}

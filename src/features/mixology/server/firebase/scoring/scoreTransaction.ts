@@ -94,7 +94,7 @@ export async function updateEntryScoresWithLock<T>({
         }
 
         const contest = { id: contestSnap.id, ...contestSnap.data() } as Contest;
-        const entryIndex = contest.entries.findIndex((entry: Entry) => entry.id === entryId);
+        const entryIndex = contest?.entries?.findIndex((entry: Entry) => entry.id === entryId);
 
         if (entryIndex === -1) {
           throw new Error('Entry not found');

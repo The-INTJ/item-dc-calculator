@@ -39,7 +39,7 @@ export function buildScoresFromEntries(
   categoryIds: string[],
   config?: ContestConfig
 ): Record<string, Record<string, number>> {
-  return entries.reduce<Record<string, Record<string, number>>>((acc, entry) => {
+  return entries?.reduce<Record<string, Record<string, number>>>((acc, entry) => {
     const entryId = entry.entryId ?? entry.drinkId;
     if (!entryId) return acc;
     categoryIds.forEach((categoryId) => {

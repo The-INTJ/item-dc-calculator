@@ -13,14 +13,14 @@ export function buildBracketRoundsFromContest(contest: Contest): BracketRound[] 
       const contestantA = firstId
         ? {
             id: firstId,
-            name: entries.find((entry) => entry.id === firstId)?.name ?? 'TBD',
+            name: entries?.find((entry) => entry.id === firstId)?.name ?? 'TBD',
             score: getEntryScore(contest.scores, firstId),
           }
         : { id: 'tbd-a', name: 'TBD', score: null };
       const contestantB = secondId
         ? {
             id: secondId,
-            name: entries.find((entry) => entry.id === secondId)?.name ?? 'TBD',
+            name: entries?.find((entry) => entry.id === secondId)?.name ?? 'TBD',
             score: getEntryScore(contest.scores, secondId),
           }
         : { id: 'tbd-b', name: 'TBD', score: null };

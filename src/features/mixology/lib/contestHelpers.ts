@@ -31,11 +31,15 @@ export function getRoundLabel(contest: Contest, roundId: string | null | undefin
 
 /**
  * Get entries for a specific round.
+ * Handles both legacy entries (stored with round name) and new entries (stored with round ID).
+ * @param contest - The contest containing entries and rounds
+ * @param roundId - The round ID to filter by
+ * @returns Array of entries matching the specified round
  */
 export function getEntriesForRound(contest: Contest, roundId: string | null | undefined): Entry[] {
   if (!roundId) return [];
   const round = getRoundById(contest, roundId);
-  return contest.entries.filter((entry) => entry.round === roundId || entry.round === round?.name);
+  return contest.entries?.filter((entry) => entry.round === roundId || entry.round === round?.name) ?? [];
 }
 
 export function getRoundStatus(contest: Contest, roundId: string): 'upcoming' | 'active' | 'closed' {

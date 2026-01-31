@@ -110,11 +110,11 @@ export function AdminMixologists({ contest }: AdminMixologistsProps) {
         </button>
       </div>
 
-      {contest.entries.length === 0 ? (
+      {contest?.entries?.length === 0 ? (
         <p className="admin-empty">No mixologists added yet.</p>
       ) : (
         <ul className="admin-detail-list">
-          {contest.entries.map((drink) => (
+          {contest?.entries?.map((drink) => (
             <MixologistRow
               key={drink.id}
               contest={contest}

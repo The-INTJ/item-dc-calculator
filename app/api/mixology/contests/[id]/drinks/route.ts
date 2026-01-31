@@ -14,7 +14,7 @@ export async function GET(request: Request, { params }: RouteParams) {
   const { id: contestId } = await params;
   const provider = await getBackendProvider();
 
-  const result = await provider.entries.listByContest(contestId);
+  const result = await provider?.entries?.listByContest(contestId);
   if (!result.success) {
     return NextResponse.json({ message: result.error }, { status: 404 });
   }
@@ -32,7 +32,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 
   try {
     const body = await request.json();
-    const result = await provider.entries.create(contestId, body);
+    const result = await provider?.entries?.create(contestId, body);
 
     if (!result.success) {
       return NextResponse.json({ message: result.error }, { status: 400 });

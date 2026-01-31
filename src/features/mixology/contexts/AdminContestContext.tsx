@@ -435,7 +435,7 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
       const contests = prev.contests.map((contest) => {
         if (contest.id !== contestId) return contest;
         const rounds = (contest.rounds ?? []).filter((round) => round.id !== roundId);
-        const entries = contest.entries.map((drink) =>
+        const entries = contest?.entries?.map((drink) =>
           drink.round === roundId ? { ...drink, round: '' } : drink
         );
         return normalizeContest({ ...contest, rounds, entries });
@@ -505,7 +505,7 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
     updateState((prev) => {
       const contests = prev.contests.map((contest) => {
         if (contest.id !== contestId) return contest;
-        const entries = contest.entries.map((drink) => (drink.id === drinkId ? { ...drink, ...updates } : drink));
+        const entries = contest?.entries?.map((drink) => (drink.id === drinkId ? { ...drink, ...updates } : drink));
         return normalizeContest({ ...contest, entries });
       });
       return { ...prev, contests };
@@ -516,7 +516,7 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
     updateState((prev) => {
       const contests = prev.contests.map((contest) => {
         if (contest.id !== contestId) return contest;
-        const entries = contest.entries.filter((drink) => drink.id !== drinkId);
+        const entries = contest?.entries?.filter((drink) => drink.id !== drinkId);
         return normalizeContest({ ...contest, entries });
       });
       return { ...prev, contests };

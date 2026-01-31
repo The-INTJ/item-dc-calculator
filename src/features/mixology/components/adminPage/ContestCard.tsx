@@ -45,9 +45,9 @@ export function ContestCard({ contest, onSelect, isSelected }: ContestCardProps)
       </div>
       <p className="admin-contest-card__location">{contest.location ?? 'No location set'}</p>
       <div className="admin-contest-card__stats">
-        <span>{contest.entries.length} drinks</span>
-        <span>{contest.judges.length} judges</span>
-        <span>{contest.scores.length} scores</span>
+        <span>{contest.entries?.length} drinks</span>
+        <span>{contest.judges?.length} judges</span>
+        <span>{contest.scores?.length} scores</span>
       </div>
       {contest.defaultContest && (
         <span className="admin-contest-card__default">Current Default</span>
