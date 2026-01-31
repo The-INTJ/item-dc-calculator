@@ -4,16 +4,10 @@
  * This module provides a singleton instance of the backend provider
  * and a React context for accessing it throughout the application.
  * 
- * NOTE: API routes run server-side where Firebase client SDK doesn't work.
- * For now, API routes use in-memory provider. Client-side auth uses Firebase.
- * 
- * Future options:
- * 1. Use Firebase Admin SDK for server-side operations
- * 2. Move all data operations to client-side with Firebase client SDK
- * 3. Use Vercel Edge Functions with Firebase REST API
+ * Uses Firebase backend provider for cloud data persistence.
  */
 
-import { createInMemoryProvider } from './inMemoryProvider';
+import { createFirebaseBackendProvider } from '../firebase/firebaseBackendProvider';
 import type { MixologyBackendProvider } from './types';
 
 // Export types for external use
@@ -44,9 +38,8 @@ let _initPromise: Promise<void> | null = null;
  */
 export async function getBackendProvider(): Promise<MixologyBackendProvider> {
   if (!_provider) {
-    // Using in-memory provider for API routes (server-side)
-    // Client-side auth uses Firebase directly via AuthContext
-    _provider = createInMemoryProvider();
+    // Use Firebase provider for cloud data persistence
+    _provider = createFirebaseBackendProvider();
   }
 
   if (!_initPromise) {

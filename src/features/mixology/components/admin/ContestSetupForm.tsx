@@ -41,8 +41,6 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
   const [customAttributes, setCustomAttributes] = useState<AttributeConfig[]>([
     { id: 'overall', label: 'Overall', description: 'Overall impression', min: 0, max: 10 },
   ]);
-  const [location, setLocation] = useState('');
-  const [startTime, setStartTime] = useState('');
   const [entryLabel, setEntryLabel] = useState('');
   const [entryLabelPlural, setEntryLabelPlural] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -107,8 +105,6 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
         };
       }
 
-      if (location.trim()) payload.location = location.trim();
-      if (startTime) payload.startTime = new Date(startTime).toISOString();
       if (configMode === 'template' && (entryLabel.trim() || entryLabelPlural.trim())) {
         payload.entryLabel = entryLabel.trim() || undefined;
         payload.entryLabelPlural = entryLabelPlural.trim() || undefined;
@@ -232,29 +228,6 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
           </div>
         </>
       )}
-
-      <div className="admin-contest-setup-form__field">
-        <label htmlFor="contest-location">Location (optional)</label>
-        <input
-          id="contest-location"
-          type="text"
-          className="admin-rounds-input"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          placeholder="e.g. Downtown Convention Center"
-        />
-      </div>
-
-      <div className="admin-contest-setup-form__field">
-        <label htmlFor="contest-start-time">Start Time (optional)</label>
-        <input
-          id="contest-start-time"
-          type="datetime-local"
-          className="admin-rounds-input"
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
-        />
-      </div>
 
       <div className="admin-contest-setup-form__row">
         <div className="admin-contest-setup-form__field">

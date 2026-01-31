@@ -10,8 +10,8 @@
  */
 
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
-import { getAuth, type Auth } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getAuth, connectAuthEmulator, type Auth } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator, type Firestore } from 'firebase/firestore';
 
 // Access env vars directly so Next.js can inline them at build time
 const firebaseConfig = {
@@ -42,14 +42,13 @@ let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
 
-function initializeFirebase(): { app: FirebaseApp | null; auth: Auth | null; db: Firestore | null } {
-  // Server-side: don't initialize
-  if (typeof window === 'undefined') {
-    return { app: null, auth: null, db: null };
-  }
-
+function initializeFirebase(): { 
+  app: FirebaseApp | null; 
+  auth: Auth | null; 
+  db: Firestore | null;
+} {
   // Already initialized
-  if (app && auth && db) {
+  if (app && db) {
     return { app, auth, db };
   }
 
@@ -68,8 +67,30 @@ function initializeFirebase(): { app: FirebaseApp | null; auth: Auth | null; db:
     app = getApps()[0];
   }
 
-  auth = getAuth(app);
+  // Auth is only available client-side
+  if (typeof window !== 'undefined') {
+    auth = getAuth(app);
+  }
+  
   db = getFirestore(app);
+
+  // Connect to emulators if enabled (dev only)
+  if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === 'true') {
+    // Guard so Next/React strict mode / HMR doesn't reconnect repeatedly
+    if (!(globalThis as any).__fbEmulatorsConnected) {
+      console.log('[Firebase] Connecting to emulators...');
+      
+      if (auth) {
+        connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+        console.log('[Firebase] Connected to Auth Emulator');
+      }
+      
+      connectFirestoreEmulator(db, '127.0.0.1', 8080);
+      console.log('[Firebase] Connected to Firestore Emulator');
+
+      (globalThis as any).__fbEmulatorsConnected = true;
+    }
+  }
 
   return { app, auth, db };
 }

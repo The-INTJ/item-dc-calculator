@@ -42,11 +42,11 @@ export async function POST(request: Request) {
     const result = await provider.contests.create(body);
 
     if (!result.success) {
-      return NextResponse.json({ message: result.error }, { status: 400 });
+      return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
     return NextResponse.json(result.data, { status: 201 });
   } catch {
-    return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 }

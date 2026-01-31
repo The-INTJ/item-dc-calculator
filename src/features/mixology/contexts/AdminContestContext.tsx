@@ -66,7 +66,34 @@ const AdminContestContext = createContext<AdminContestContextValue | undefined>(
 
 export function AdminContestProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AdminContestState>(() => loadState());
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const { setState: setGlobalState } = useContestState();
+
+  // Fetch contests from the API on mount
+  useEffect(() => {
+    const fetchContests = async () => {
+      try {
+        const result = await adminApi.listContests();
+        if (result.success && result.data) {
+          const { contests: fetchedContests, currentContest } = result.data;
+          setState((prev) => ({
+            ...prev,
+            contests: fetchedContests.map(normalizeContest),
+            activeContestId: currentContest?.id ?? fetchedContests.find((c) => c.defaultContest)?.id ?? fetchedContests[0]?.id ?? null,
+            lastUpdatedAt: Date.now(),
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to fetch contests:', error);
+      } finally {
+        setIsInitialLoad(false);
+      }
+    };
+
+    if (isInitialLoad) {
+      void fetchContests();
+    }
+  }, [isInitialLoad]);
 
   // Sync active contest's phase to global ContestState whenever it changes
   useEffect(() => {
@@ -295,7 +322,7 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
   }, [updateState]);
 
   const refresh = useCallback(() => {
-    setState(loadState());
+    setIsInitialLoad(true);
   }, []);
 
   const value = useMemo<AdminContestContextValue>(() => {

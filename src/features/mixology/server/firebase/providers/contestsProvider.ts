@@ -7,6 +7,17 @@
 import type { ContestsProvider, Contest, ProviderResult } from '../../backend/types';
 import { generateId, withDb } from '../../backend/providerUtils';
 import type { FirestoreAdapter } from '../firestoreAdapter';
+import { getTemplate, getDefaultConfig } from '../../../types/templates';
+
+/** Input shape from the API when creating a contest */
+interface ContestCreateInput {
+  name: string;
+  slug: string;
+  configTemplate?: string;
+  config?: Contest['config'];
+  entryLabel?: string;
+  entryLabelPlural?: string;
+}
 
 /**
  * Creates the Firebase contests provider.
@@ -28,13 +39,37 @@ export function createFirebaseContestsProvider(adapter: FirestoreAdapter): Conte
     create(input): Promise<ProviderResult<Contest>> {
       return withDb(adapter, async () => {
         const id = generateId('contest');
+        const typedInput = input as ContestCreateInput;
+
+        // Resolve config from template or use provided config
+        let resolvedConfig = typedInput.config;
+        if (!resolvedConfig && typedInput.configTemplate) {
+          resolvedConfig = getTemplate(typedInput.configTemplate);
+        }
+        if (!resolvedConfig) {
+          resolvedConfig = getDefaultConfig();
+        }
+
+        // Apply entry label overrides if provided
+        if (typedInput.entryLabel || typedInput.entryLabelPlural) {
+          resolvedConfig = {
+            ...resolvedConfig,
+            entryLabel: typedInput.entryLabel || resolvedConfig.entryLabel,
+            entryLabelPlural: typedInput.entryLabelPlural || resolvedConfig.entryLabelPlural,
+          };
+        }
+
         const newContest: Contest = {
-          ...input,
           id,
+          name: typedInput.name,
+          slug: typedInput.slug,
+          phase: 'set', // Default phase for new contests
+          config: resolvedConfig,
           entries: [],
           judges: [],
           scores: [],
         };
+        
         await adapter.createContest(id, newContest);
         return newContest;
       });
