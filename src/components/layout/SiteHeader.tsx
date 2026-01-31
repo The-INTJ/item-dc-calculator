@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/mixology/contexts/AuthContext';
+import { useCurrentContest } from '@/mixology/hooks';
 import { NavBar } from './NavBar';
+import styles from '@/components/styles/Header.module.scss';
 
 const authRequiredPrefixes = [
   '/mixology/admin',
@@ -19,6 +21,7 @@ function needsAuthBanner(pathname: string) {
 export function SiteHeader() {
   const pathname = usePathname();
   const { isAuthenticated, loading } = useAuth();
+  const { data: contest } = useCurrentContest();
 
   const showHeader = pathname === '/' || pathname.startsWith('/mixology');
 
@@ -31,7 +34,9 @@ export function SiteHeader() {
 
   return (
     <header className="site-header">
-      <div className="site-header__brand">Mixology Rating App</div>
+      <Link href="/" className={styles.homeLink}>
+        {contest?.name ?? 'Home'}
+      </Link>
       <NavBar />
       {showAuthBanner ? (
         <div className="auth-banner" role="status" aria-live="polite">

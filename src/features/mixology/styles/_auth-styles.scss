@@ -15,7 +15,7 @@
 }
 
 .auth-form h2 {
-  @include type-4xl;
+  @include type-lg;
   margin: 0 0 $space-sm;
   text-align: center;
 }
@@ -80,7 +80,7 @@
 }
 
 .guest-prompt h2 {
-  @include type-4xl;
+  @include type-lg;
   margin: 0;
 }
 
@@ -264,7 +264,7 @@
 }
 
 .confirm-modal h2 {
-  @include type-4xl;
+  @include type-lg;
   margin: 0;
 }
 

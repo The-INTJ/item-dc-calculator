@@ -1,0 +1,36 @@
+@use '../tokens/colors' as *;
+@use '../tokens/motion' as *;
+@use '../tokens/spacing' as *;
+@use '../mixins/typography' as *;
+
+.homeLink {
+    color: inherit;
+    text-decoration: none;
+    position: relative;
+    transition: color $transition-slow;
+    @include type-lg();
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -#{$space-xs};
+        left: 0;
+        width: 0;
+        height: $space-xs;
+        background-color: currentColor;
+        transition: width $transition-slow;
+    }
+
+    &:hover {
+        color: $color-info-600;
+
+        &::after {
+            width: 100%;
+        }
+    }
+
+    &:focus {
+        outline: $space-xs solid $color-info-600;
+        outline-offset: $space-xs;
+    }
+}

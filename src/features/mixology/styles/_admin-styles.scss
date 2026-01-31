@@ -20,7 +20,7 @@
 }
 
 .admin-dashboard__header h1 {
-  @include type-5xl;
+  @include type-lg;
   margin-bottom: $space-sm;
 }
 
@@ -71,7 +71,7 @@
 
 .admin-sidebar h2 {
   color: $color-light-100;
-  @include type-2xl;
+  @include type-lg;
   margin-bottom: $space-gap-normal;
 }
 
@@ -172,7 +172,7 @@
 }
 
 .admin-contest-details__header h2 {
-  @include type-4xl;
+  @include type-lg;
   margin-bottom: 0.25rem;
 }
 
@@ -187,7 +187,7 @@
 }
 
 .admin-details-section h3 {
-  @include type-2xl;
+  @include type-lg;
   margin-bottom: $space-lg;
 }
 

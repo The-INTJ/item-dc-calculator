@@ -10,9 +10,9 @@ export const MIXOLOGY_CONFIG: ContestConfig = {
   entryLabelPlural: 'Drinks',
   attributes: [
     { id: 'aroma', label: 'Aroma', description: 'How appealing is the scent?' },
-    { id: 'balance', label: 'Balance', description: 'How well do the flavors work together?' },
+    { id: 'taste', label: 'Taste', description: 'How well do the flavors work together?' },
     { id: 'presentation', label: 'Presentation', description: 'Visual appeal and garnish' },
-    { id: 'creativity', label: 'Creativity', description: 'Originality and innovation' },
+    { id: 'xFactor', label: 'xFactor', description: 'Originality and innovation' },
     { id: 'overall', label: 'Overall', description: 'Overall impression' },
   ],
 };

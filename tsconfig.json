@@ -33,7 +33,8 @@
       "@/mixology/services/*": ["./src/features/mixology/services/*"],
       "@/mixology/server/*": ["./src/features/mixology/server/*"],
       "@/mixology/types/*": ["./src/features/mixology/types/*"],
-      "@/mixology/styles/*": ["./src/features/mixology/styles/*"]
+      "@/mixology/styles/*": ["./src/features/mixology/styles/*"],
+      "@/components/styles/*": ["./src/features/mixology/styles/components/*"]
     },
     "plugins": [
       {

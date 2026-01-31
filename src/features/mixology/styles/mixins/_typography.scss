@@ -3,6 +3,11 @@
 // Typography mixins.
 // Reusable type styles for consistent text patterns.
 
+@mixin type-base {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-regular;
+}
+
 /// Font size and weight preset: extra small labels (0.7rem, 600)
 @mixin type-2xs {
   font-size: $font-size-2xs;
@@ -15,54 +20,22 @@
   font-weight: $font-weight-semibold;
 }
 
-/// Font size and weight preset: small body (0.8rem)
 @mixin type-sm {
   font-size: $font-size-sm;
+  font-weight: $font-weight-regular;
 }
 
-/// Font size and weight preset: base body text (0.85rem)
-@mixin type-base {
-  font-size: $font-size-base;
-}
-
-/// Font size and weight preset: medium body (0.875rem)
+/// Font size preset: paragraph (1rem)
 @mixin type-md {
   font-size: $font-size-md;
 }
 
-/// Font size and weight preset: button/default (0.9rem, 600)
 @mixin type-lg {
   font-size: $font-size-lg;
-  font-weight: $font-weight-semibold;
 }
 
-/// Font size preset: paragraph (1rem)
 @mixin type-xl {
   font-size: $font-size-xl;
-}
-
-/// Font size and weight preset: card title (1.1rem, 600)
-@mixin type-2xl {
-  font-size: $font-size-2xl;
-  font-weight: $font-weight-semibold;
-}
-
-/// Font size and weight preset: section heading (1.125rem, 600)
-@mixin type-3xl {
-  font-size: $font-size-3xl;
-  font-weight: $font-weight-semibold;
-}
-
-/// Font size and weight preset: h2 (1.5rem, 600)
-@mixin type-4xl {
-  font-size: $font-size-4xl;
-  font-weight: $font-weight-semibold;
-}
-
-/// Font size and weight preset: h1 (1.75rem, 700)
-@mixin type-5xl {
-  font-size: $font-size-5xl;
-  font-weight: $font-weight-bold;
 }
 
 /// Uppercase with letter spacing
