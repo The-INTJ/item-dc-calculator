@@ -1,6 +1,6 @@
 import { createTheme } from '@mui/material/styles';
 
-const legacyTheme = createTheme({
+const dcCalculatorTheme = createTheme({
   palette: {
     mode: 'light',
     primary: {
@@ -30,4 +30,4 @@ const legacyTheme = createTheme({
   },
 });
 
-export default legacyTheme;
+export default dcCalculatorTheme;

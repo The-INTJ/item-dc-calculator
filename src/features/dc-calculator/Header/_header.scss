@@ -10,13 +10,13 @@
 
   position: sticky;
   top: 0;
-  background-color: $legacy-color-main-brown;
-  color: $legacy-color-text-inverse;
+  background-color: $dc-calculator-color-main-brown;
+  color: $dc-calculator-color-text-inverse;
 
   text-align: center;
 
   button {
-    color: $legacy-color-text-inverse;
+    color: $dc-calculator-color-text-inverse;
   }
 
   .title-bar-title {
@@ -35,12 +35,12 @@
 }
 
 .success {
-  background-color: $legacy-color-success;
+  background-color: $dc-calculator-color-success;
   transition: opacity 0.5s ease-in-out;
 }
 
 .fail {
-  background-color: $legacy-color-error;
+  background-color: $dc-calculator-color-error;
   transition: opacity 0.5s ease-in-out;
 }
 
@@ -75,8 +75,8 @@
   }
   .item {
     // spacing
-    margin: $legacy-margin-small;
-    padding: $legacy-padding-small;
+    margin: $dc-calculator-margin-small;
+    padding: $dc-calculator-padding-small;
     border-radius: 8px;
 
     // text size
@@ -93,7 +93,7 @@
     // misc
     border: none;
     cursor: pointer;
-    text-shadow: 1px 1px 1px $legacy-color-shadow-strong;
+    text-shadow: 1px 1px 1px $dc-calculator-color-shadow-strong;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     
     &:hover {
@@ -106,25 +106,25 @@
 
     @keyframes shimmer {
       0% {
-        text-shadow: 0 0 1px $legacy-color-text-inverse, 0 0 1px $legacy-color-highlight, 0 0 1px $legacy-color-highlight, 0 0 1px $legacy-color-highlight, 0 0 1px $legacy-color-text-inverse;
+        text-shadow: 0 0 1px $dc-calculator-color-text-inverse, 0 0 1px $dc-calculator-color-highlight, 0 0 1px $dc-calculator-color-highlight, 0 0 1px $dc-calculator-color-highlight, 0 0 1px $dc-calculator-color-text-inverse;
       }
       16.67% {
-        text-shadow: 0 0 2px $legacy-color-text-inverse, 0 0 2px $legacy-color-highlight, 0 0 2px $legacy-color-highlight, 0 0 2px $legacy-color-highlight, 0 0 2px $legacy-color-text-inverse;
+        text-shadow: 0 0 2px $dc-calculator-color-text-inverse, 0 0 2px $dc-calculator-color-highlight, 0 0 2px $dc-calculator-color-highlight, 0 0 2px $dc-calculator-color-highlight, 0 0 2px $dc-calculator-color-text-inverse;
       }
       33.33% {
-        text-shadow: 0 0 3px $legacy-color-text-inverse, 0 0 3px $legacy-color-highlight, 0 0 3px $legacy-color-highlight, 0 0 3px $legacy-color-highlight, 0 0 3px $legacy-color-text-inverse;
+        text-shadow: 0 0 3px $dc-calculator-color-text-inverse, 0 0 3px $dc-calculator-color-highlight, 0 0 3px $dc-calculator-color-highlight, 0 0 3px $dc-calculator-color-highlight, 0 0 3px $dc-calculator-color-text-inverse;
       }
       50% {
-        text-shadow: 0 0 4px $legacy-color-text-inverse, 0 0 4px $legacy-color-highlight, 0 0 4px $legacy-color-highlight, 0 0 4px $legacy-color-highlight, 0 0 4px $legacy-color-text-inverse;
+        text-shadow: 0 0 4px $dc-calculator-color-text-inverse, 0 0 4px $dc-calculator-color-highlight, 0 0 4px $dc-calculator-color-highlight, 0 0 4px $dc-calculator-color-highlight, 0 0 4px $dc-calculator-color-text-inverse;
       }
       66.67% {
-        text-shadow: 0 0 3px $legacy-color-text-inverse, 0 0 3px $legacy-color-highlight, 0 0 3px $legacy-color-highlight, 0 0 3px $legacy-color-highlight, 0 0 3px $legacy-color-text-inverse;
+        text-shadow: 0 0 3px $dc-calculator-color-text-inverse, 0 0 3px $dc-calculator-color-highlight, 0 0 3px $dc-calculator-color-highlight, 0 0 3px $dc-calculator-color-highlight, 0 0 3px $dc-calculator-color-text-inverse;
       }
       83.33% {
-        text-shadow: 0 0 2px $legacy-color-text-inverse, 0 0 2px $legacy-color-highlight, 0 0 2px $legacy-color-highlight, 0 0 2px $legacy-color-highlight, 0 0 2px $legacy-color-text-inverse;
+        text-shadow: 0 0 2px $dc-calculator-color-text-inverse, 0 0 2px $dc-calculator-color-highlight, 0 0 2px $dc-calculator-color-highlight, 0 0 2px $dc-calculator-color-highlight, 0 0 2px $dc-calculator-color-text-inverse;
       }
       100% {
-        text-shadow: 0 0 1px $legacy-color-text-inverse, 0 0 1px $legacy-color-highlight, 0 0 1px $legacy-color-highlight, 0 0 1px $legacy-color-highlight, 0 0 1px $legacy-color-text-inverse;
+        text-shadow: 0 0 1px $dc-calculator-color-text-inverse, 0 0 1px $dc-calculator-color-highlight, 0 0 1px $dc-calculator-color-highlight, 0 0 1px $dc-calculator-color-highlight, 0 0 1px $dc-calculator-color-text-inverse;
       }
     }
 

@@ -11,19 +11,19 @@
 .effect-item {
     display: flex;
     height: fit-content;
-    background-color: $legacy-color-surface-alt;
+    background-color: $dc-calculator-color-surface-alt;
     border-radius: 6px;
-    gap: $legacy-margin-medium;
-    box-shadow: 0 0 4px 2px $legacy-color-shadow-strong;
+    gap: $dc-calculator-margin-medium;
+    box-shadow: 0 0 4px 2px $dc-calculator-color-shadow-strong;
     
     h3 {
-        padding: $legacy-padding-medium;
+        padding: $dc-calculator-padding-medium;
     }
     &.open {
         display: grid;
         grid-template-rows: auto auto auto;
         grid-template-columns: 1fr;
-        padding: $legacy-padding-medium;
+        padding: $dc-calculator-padding-medium;
         @media screen and (min-width: 400px) {
             grid-template-rows: auto auto;
             grid-template-columns: auto auto;

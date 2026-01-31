@@ -1,0 +1,29 @@
+// DC-calculator app design tokens
+// These are prefixed with dc-calculator- to avoid conflicts with mixology tokens
+
+$dc-calculator-border-radius-small: 5px;
+$dc-calculator-border-radius-medium: 10px;
+$dc-calculator-border-radius-large: 20px;
+
+$dc-calculator-padding-small: 6px;
+$dc-calculator-padding-medium: 12px;
+$dc-calculator-padding-large: 24px;
+
+$dc-calculator-margin-small: 6px;
+$dc-calculator-margin-medium: 12px;
+$dc-calculator-margin-large: 24px;
+
+$dc-calculator-color-main-brown: #401f0d;
+$dc-calculator-color-brown: #2f1c0f;
+$dc-calculator-color-background-blue: #627890;
+$dc-calculator-color-surface: #f9f9f9;
+$dc-calculator-color-surface-alt: #ffffff;
+$dc-calculator-color-text-primary: #101010;
+$dc-calculator-color-text-inverse: #ffffff;
+$dc-calculator-color-shadow-strong: rgba(0, 0, 0, 0.4);
+$dc-calculator-color-shadow-subtle: rgba(0, 0, 0, 0.2);
+$dc-calculator-color-overlay: rgba(0, 0, 0, 0.5);
+$dc-calculator-color-success: #2e7d32;
+$dc-calculator-color-error: #c62828;
+$dc-calculator-color-border-muted: #cccccc;
+$dc-calculator-color-highlight: #f8f8f8;

@@ -19,7 +19,7 @@
 }
 
 .player-chance-details {
-  color: $legacy-color-text-inverse;
+  color: $dc-calculator-color-text-inverse;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -33,7 +33,7 @@
 
 .player-mod-input {
   background-color: transparent;
-  color: $legacy-color-text-inverse;
+  color: $dc-calculator-color-text-inverse;
   border: none;
   border-radius: 100%;
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
@@ -48,6 +48,6 @@
   max-width: 290px;
   text-align: center;
   z-index: 2;
-  color: $legacy-color-text-inverse;
+  color: $dc-calculator-color-text-inverse;
   margin-top: 430px!important;
 }

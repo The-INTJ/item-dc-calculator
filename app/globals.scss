@@ -6,7 +6,7 @@
  */
 
 // DC calculator app styles
-@use '../src/features/legacy/legacy';
+@use '../src/features/dc-calculator/index' as dcCalculator;
 
 // Mixology app styles are loaded separately via app/mixology/layout.tsx
 // to keep the two apps' styles properly isolated
