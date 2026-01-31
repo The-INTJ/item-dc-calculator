@@ -72,68 +72,79 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
   // Initialize on mount
   useEffect(() => {
     const init = async () => {
-      const provider = getAuthProvider();
-      await provider.initialize();
+      try {
+        const provider = getAuthProvider();
+        await provider.initialize();
 
-      const existingSession = readSession();
-      const currentUid = provider.getCurrentUid();
+        const existingSession = readSession();
+        const currentUid = provider.getCurrentUid();
 
-      const hydrateSessionFromBackend = async (
-        uid: string,
-        baseSession?: LocalSession | null
-      ): Promise<LocalSession> => {
-        const userData = await provider.fetchUserData(uid);
-        const now = Date.now();
-        const shouldMergeLocal = !baseSession?.firebaseUid || baseSession.firebaseUid === uid;
-        const localVotes = shouldMergeLocal ? baseSession?.votes ?? [] : [];
-        const localProfile = shouldMergeLocal ? baseSession?.profile : undefined;
-        const localInvite = shouldMergeLocal ? baseSession?.inviteContext : undefined;
-        const localGuestIdentity = shouldMergeLocal ? baseSession?.guestIdentity : undefined;
+        const hydrateSessionFromBackend = async (
+          uid: string,
+          baseSession?: LocalSession | null
+        ): Promise<LocalSession> => {
+          try {
+            const userData = await provider.fetchUserData(uid);
+            const now = Date.now();
+            const shouldMergeLocal = !baseSession?.firebaseUid || baseSession.firebaseUid === uid;
+            const localVotes = shouldMergeLocal ? baseSession?.votes ?? [] : [];
+            const localProfile = shouldMergeLocal ? baseSession?.profile : undefined;
+            const localInvite = shouldMergeLocal ? baseSession?.inviteContext : undefined;
+            const localGuestIdentity = shouldMergeLocal ? baseSession?.guestIdentity : undefined;
 
-        const merged: LocalSession = {
-          sessionId: baseSession?.sessionId ?? `sess_${now}`,
-          status: 'synced',
-          firebaseUid: uid,
-          profile: {
-            displayName:
-              localProfile?.displayName ??
-              userData?.profile?.displayName ??
-              userData?.profile?.email?.split('@')[0] ??
-              'Mixology User',
-            email: localProfile?.email ?? userData?.profile?.email,
-            role: userData?.profile?.role ?? localProfile?.role ?? 'viewer',
-          },
-          votes: mergeVotes(localVotes, userData?.votes ?? []),
-          createdAt: baseSession?.createdAt ?? now,
-          updatedAt: now,
-          inviteContext: localInvite ?? getInviteContextCookie() ?? undefined,
-          guestIdentity: localGuestIdentity,
+            const merged: LocalSession = {
+              sessionId: baseSession?.sessionId ?? `sess_${now}`,
+              status: 'synced',
+              firebaseUid: uid,
+              profile: {
+                displayName:
+                  localProfile?.displayName ??
+                  userData?.profile?.displayName ??
+                  userData?.profile?.email?.split('@')[0] ??
+                  'Mixology User',
+                email: localProfile?.email ?? userData?.profile?.email,
+                role: userData?.profile?.role ?? localProfile?.role ?? 'viewer',
+              },
+              votes: mergeVotes(localVotes, userData?.votes ?? []),
+              createdAt: baseSession?.createdAt ?? now,
+              updatedAt: now,
+              inviteContext: localInvite ?? getInviteContextCookie() ?? undefined,
+              guestIdentity: localGuestIdentity,
+            };
+
+            writeSession(merged);
+            return merged;
+          } catch (error) {
+            console.error('[Auth] Failed to hydrate session from backend:', error);
+            const fallback: LocalSession = baseSession ?? createGuestSession();
+            writeSession(fallback);
+            return fallback;
+          }
         };
 
-        writeSession(merged);
-        return merged;
-      };
+        if (existingSession) {
+          setSession(existingSession);
 
-      if (existingSession) {
-        setSession(existingSession);
-
-        if (currentUid) {
-          const needsRefresh = existingSession.firebaseUid !== currentUid;
-          const refreshed = await hydrateSessionFromBackend(
-            currentUid,
-            needsRefresh ? null : existingSession
-          );
-          setSession(refreshed);
-        } else if (existingSession.firebaseUid && provider.isAuthenticated()) {
-          const refreshed = await hydrateSessionFromBackend(existingSession.firebaseUid, existingSession);
+          if (currentUid) {
+            const needsRefresh = existingSession.firebaseUid !== currentUid;
+            const refreshed = await hydrateSessionFromBackend(
+              currentUid,
+              needsRefresh ? null : existingSession
+            );
+            setSession(refreshed);
+          } else if (existingSession.firebaseUid && provider.isAuthenticated()) {
+            const refreshed = await hydrateSessionFromBackend(existingSession.firebaseUid, existingSession);
+            setSession(refreshed);
+          }
+        } else if (currentUid) {
+          const refreshed = await hydrateSessionFromBackend(currentUid, null);
           setSession(refreshed);
         }
-      } else if (currentUid) {
-        const refreshed = await hydrateSessionFromBackend(currentUid, null);
-        setSession(refreshed);
+      } catch (error) {
+        console.error('[Auth] Failed to initialize auth provider:', error);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     init();
