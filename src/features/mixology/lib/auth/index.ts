@@ -1,5 +1,5 @@
 /**
- * Auth module index
+ * Auth module index - Cloud-first approach
  */
 
 // Types
@@ -20,26 +20,11 @@ export type {
 // Context and hooks - re-export from contexts folder
 export { MixologyAuthProvider, useAuth } from '../../contexts/AuthContext';
 
-// Storage utilities (for advanced use cases)
-export {
-  readSession,
-  writeSession,
-  clearSession,
-  createGuestSession,
-  setInviteContext,
-} from './storage';
+// Minimal storage utilities (cloud-first)
+export { createGuestSession, createCloudSession } from './storage';
 
-export {
-  getGuestId,
-  setGuestId,
-  getGuestIndex,
-  setGuestIndex,
-  addGuestToIndex,
-  ensureGuestIdentity,
-  clearGuestIdentity,
-  getInviteContextCookie,
-  setInviteContextCookie,
-} from './cookies';
+// Invite context cookie helpers
+export { getInviteContextCookie, setInviteContextCookie, clearInviteContext } from './cookies';
 
 export { parseInviteSearchParams } from './invite';
 

@@ -1,56 +1,67 @@
-# Backend Plan
+# Backend Plan - Cloud-First Architecture
+
+## Status: IN PROGRESS - Local session management removed
+**Last Updated:** January 31, 2026
+
+All local data persistence (localStorage, sessionStorage) has been removed. The app now operates in cloud-only mode with Firebase/Firestore as the single source of truth.
 
 ## Scope and intent
-This document outlines the backend architecture plan for the Mixology Rating App. It focuses on auth, user/session flows, data modeling, Firestore structure, and how we will evolve the current provider abstraction to support production workflows. No code changes are proposed here.
+This document outlines the backend architecture plan for the Mixology Rating App. It focuses on auth, user/session flows, data modeling, Firestore structure. All data is stored in and fetched from Firestore - no local persistence of contest data, votes, or user profiles.
 
 ## Progress tracker
 See [Backend Progress](BackendProgress.md) for the current backend task status.
 
 ## Goals
-- Support QR/URL invite flows that auto-create a guest session.
-- Provide guest account creation with cookie + local session persistence and collision‑safe identifiers.
-- Enable Google authentication alongside email/password.
-- Enable anonymous Firebase authentication for guest flows.
-- Provide admin authentication and role-based access for contest/drink management.
-- Allow any user (guest or registered) to vote; admins can vote like anyone else.
-- Allow a judge to mark themselves as the mixer of a drink (no voting allowed; auto‑assign full score).
-- Allow any scoring section to be marked as “N/A” so non‑drinkers can still score presentation and we can normalize aggregates.
-- Preserve the provider abstraction so UI code does not care about backend implementation.
-- Keep the dc-calculator app isolated from mixology backend changes.
+- Cloud-first architecture: all data stored in and fetched from Firestore
+- Firebase Auth handles all authentication and token persistence
+- Support anonymous Firebase auth for guest flows (no custom cookie-based guest tracking)
+- Enable Google authentication alongside email/password
+- Provide admin authentication and role-based access for contest/drink management
+- Allow any user (guest or registered) to vote; admins can vote like anyone else
+- Allow a judge to mark themselves as the mixer of a drink (no voting allowed; auto‑assign full score)
+- Allow any scoring section to be marked as "N/A" so non-drinkers can still score presentation and we can normalize aggregates
+- Show friendly error messages when cloud data cannot be loaded
+- Keep the dc-calculator app isolated from mixology backend changes
 
-## Current foundation (already implemented)
-- Provider abstraction in [src/features/mixology/server/backend/types.ts](src/features/mixology/server/backend/types.ts).
-- In-memory backend in [src/features/mixology/server/backend/inMemoryProvider.ts](src/features/mixology/server/backend/inMemoryProvider.ts).
-- Firebase client integration in [src/features/mixology/server/firebase](src/features/mixology/server/firebase).
-- Auth context and session storage in [src/features/mixology/contexts](src/features/mixology/contexts) and [src/features/mixology/lib/auth](src/features/mixology/lib/auth).
-- Contest lifecycle context in [src/features/mixology/contexts/ContestStateContext.tsx](src/features/mixology/contexts/ContestStateContext.tsx).
-- Local admin contest storage in [src/features/mixology/contexts/AdminContestContext.tsx](src/features/mixology/contexts/AdminContestContext.tsx).
-- Mixology routing in [app/(mixology)/mixology](app/(mixology)/mixology).
-- Mixology API routes under [app/api/mixology](app/api/mixology).
+## Current foundation (cloud-first implementation)
+- **Removed:** All localStorage/sessionStorage for contest data, votes, and profiles
+- **Firebase Auth** handles token persistence automatically (no custom session storage)
+- Provider abstraction in [src/features/mixology/server/backend/types.ts](src/features/mixology/server/backend/types.ts)
+- In-memory backend for testing in [src/features/mixology/server/backend/inMemoryProvider.ts](src/features/mixology/server/backend/inMemoryProvider.ts)
+- Firebase client integration in [src/features/mixology/server/firebase](src/features/mixology/server/firebase)
+- Cloud-only auth context in [src/features/mixology/contexts/AuthContext.tsx](src/features/mixology/contexts/AuthContext.tsx)
+- Contest lifecycle context (cloud-synced) in [src/features/mixology/contexts/ContestStateContext.tsx](src/features/mixology/contexts/ContestStateContext.tsx)
+- Admin contest context (cloud-synced) in [src/features/mixology/contexts/AdminContestContext.tsx](src/features/mixology/contexts/AdminContestContext.tsx)
+- Mixology routing in [app/(mixology)/mixology](app/(mixology)/mixology)
+- Mixology API routes under [app/api/mixology](app/api/mixology)
 
 ## Guiding principles
-1. Backend providers must implement the same interface so the UI remains stable.
-2. Auth logic should be composable: guest → registered user → admin.
-3. Session identity must be stable across browser refresh and short-term device reuse.
-4. Firestore rules should enforce least-privilege access.
-5. All server-side privileged operations should use Admin SDK.
-6. Voting is open to any user; the only restriction is mixer auto-scoring on rounds where they are the mixer.
+1. Backend providers must implement the same interface so the UI remains stable
+2. All user data, votes, and contest state live in Firestore - no local persistence
+3. Firebase Auth handles all token persistence automatically
+4. Auth logic should be composable: guest → registered user → admin
+5. When cloud data cannot be loaded, show friendly error states (not blank screens)
+6. Firestore rules should enforce least-privilege access
+7. All server-side privileged operations should use Admin SDK
+8. Voting is open to any user; the only restriction is mixer auto-scoring on rounds where they are the mixer
 
 ---
 
 ## Planned architecture
 
-### 1) Auth & session strategy
-**Client auth:**
-- Firebase Auth for email/password, Google OAuth, and anonymous sign-in.
-- Auth state stored in local session and synchronized when connected.
+- Firebase Auth for email/password, Google OAuth, and anonymous sign-in
+- Firebase handles token persistence automatically (no custom session storage)
+- Auth state synced from Firestore on load
 
 **Guest session:**
-- Use anonymous Firebase sign-in when a URL includes the onboarding query or when the user chooses “Continue as Guest.”
-- Store guest identity in cookies for routing continuity and in localStorage for session state.
-- Guests can rate but are treated as “temporary users” in Firestore.
+- Use Firebase anonymous authentication (no custom guest cookies or IDs)
+- Anonymous users can vote and participate fully
+- Anonymous users can upgrade to full accounts (linking Firebase anonymous → registered)
 
-**Session data sources:**
+**Session data:**
+- All data fetched from Firestore on app load
+- No localStorage/cookies for contest data, votes, or profiles
+- Only invite context cookie for onboarding flow continuity
 - Cookies: short session continuity + referral metadata.
 - localStorage: rich session state (votes, profile, pending sync) as defined in [src/features/mixology/lib/auth/types.ts](src/features/mixology/lib/auth/types.ts).
 
@@ -65,20 +76,20 @@ See [Backend Progress](BackendProgress.md) for the current backend task status.
 
 **Server logic:**
 - Validate invite id and contest slug.
-- Create a minimal guest record if none exists (see guest creation below).
-
-### 3) Guest creation & collision-safe IDs
+### 3) Guest creation & Firebase anonymous auth
 **Identity requirements:**
-- Guests must not collide across devices or sessions.
-- Must allow multiple guests on the same device without overwriting.
+- Guests use Firebase anonymous authentication
+- No custom collision-safe IDs needed (Firebase handles this)
+- Anonymous users can be upgraded to registered accounts via Firebase account linking
 
 **Plan:**
-- Use cryptographically strong random ID (e.g., 128 bits) and prefix with `guest_`.
-- Store a per-device “guest index” in cookies to allow multiple guests.
-- Use hashed or opaque identifiers in Firestore; do not use invite code as primary ID.
+- Use `signInAnonymously()` from Firebase Auth
+- Store anonymous user data in Firestore under their Firebase UID
+- Invite context stored in cookies only for onboarding flow
 
 **Cookie strategy:**
-- `mixology_guest_id` (current guest)
+- `mixology_invite_context` only (contest slug, invite id, source)
+- No guest ID cookies (Firebase Auth handles identity)
 - `mixology_guest_index` (array of guest ids for quick selection)
 - `mixology_invite_context` (contest slug, invite id, source)
 
@@ -151,24 +162,30 @@ Defined in [src/features/mixology/types/types.ts](src/features/mixology/types/ty
   - `userId`, `guestId`, `drinkId`, `score`, `naSections`, `isMixerScore`, `createdAt`
 
 ### Session payload updates
-- Add `inviteContext` to local session.
-- Add `guestIdentity` metadata for easy reconciliation with Firestore.
+- Removed `pendingSync` (no local data to sync)
+- Removed `guestIdentity` custom tracking (Firebase Auth handles this)
+- `inviteContext` still stored for onboarding flow continuity
+- All votes and profile data fetched from Firestore
 
 ---
 
 ## Backend provider roadmap
 
-### Phase 1: Client-side Firebase (current)
-- Continue using Firebase Auth client SDK in [src/features/mixology/server/firebase/firebaseAuthProvider.ts](src/features/mixology/server/firebase/firebaseAuthProvider.ts).
-- Keep in-memory backend for contest data for now.
+### Phase 1: Cloud-first client (CURRENT)
+- Firebase Auth for all authentication (email/password, Google OAuth, anonymous)
+- All contest data, votes, and profiles fetched from Firestore
+- No local data persistence (removed localStorage/sessionStorage)
+- Friendly error states when cloud is unavailable
 
-### Phase 2: Firestore data provider (client or server)
-- `firebaseBackendProvider.ts` implements the provider but is not wired to API routes.
-- Add feature flag or config to swap provider in [src/features/mixology/server/backend/index.ts](src/features/mixology/server/backend/index.ts).
+### Phase 2: Firestore data provider
+- Complete Firestore backend provider implementation
+- Wire to API routes for server-side operations
+- Add feature flag for switching between in-memory and Firestore
 
 ### Phase 3: Admin SDK server routes
-- Add server actions or API routes for admin-only operations.
-- Move sensitive data validation to server.
+- Add server actions or API routes for admin-only operations
+- Move sensitive data validation to server
+- Implement Firestore security rules
 
 ---
 
@@ -190,9 +207,9 @@ Defined in [src/features/mixology/types/types.ts](src/features/mixology/types/ty
 - `/api/mixology/contests/[id]/scores` (score read/write)
 - `/api/mixology/invite` (planned: validate invite, return contest)
 - `/api/mixology/guests` (planned: create guest)
-
----
-
+- Should anonymous users be allowed to create drinks in "practice mode" without admin approval?
+- What is the expected retention window for anonymous user records in Firestore?
+- How do we handle offline scenarios with cloud-only architecture?
 ## Open questions
 - Should guest users be allowed to create drinks in “practice mode” without admin approval?
 - Do we want multi-device guest session merging?
@@ -201,8 +218,11 @@ Defined in [src/features/mixology/types/types.ts](src/features/mixology/types/ty
 ---
 
 ## Next steps
-1. Wire Firestore backend provider behind a feature flag.
-2. Add Admin SDK integration for server-side contest updates.
-3. Implement invite validation and guest creation APIs.
-4. Implement mixer scoring logic and UI enforcement.
-5. Add N/A scoring and aggregation rules.
+1. ~~Remove all localStorage/sessionStorage for data persistence~~ ✅ DONE
+2. ~~Switch to Firebase anonymous auth for guests~~ ✅ DONE
+3. ~~Add error states for cloud failures~~ ✅ DONE
+4. Wire Firestore backend provider to production data flow
+5. Implement Admin SDK integration for server-side contest updates
+6. Implement invite validation and contest loading from Firestore
+7. Implement mixer scoring logic and UI enforcement
+8. Add N/A scoring and aggregation rules

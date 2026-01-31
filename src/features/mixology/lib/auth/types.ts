@@ -141,6 +141,9 @@ export interface AuthState {
 
   /** User's role */
   role: JudgeRole | null;
+
+  /** Error message if cloud sync fails */
+  error?: string | null;
 }
 
 /**

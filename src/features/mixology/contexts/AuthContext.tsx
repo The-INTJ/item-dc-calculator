@@ -1,10 +1,11 @@
 'use client';
 
 /**
- * Auth context and provider for Mixology.
+ * Auth context and provider for Mixology - Cloud-first approach.
  *
- * Manages user sessions, guest mode, and authentication state.
- * Automatically persists to localStorage and syncs with backend when possible.
+ * Manages user sessions and authentication state.
+ * All data (votes, profiles) is stored in and fetched from Firestore.
+ * Firebase Auth handles token persistence automatically.
  */
 
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
@@ -19,26 +20,8 @@ import type {
   GuestSessionResult,
 } from '../lib/auth/types';
 import type { AuthProvider } from '../lib/auth/provider';
-import {
-  readSession,
-  writeSession,
-  createGuestSession,
-  addVoteToSession,
-  updateProfileInSession,
-  upgradeToRegistered,
-  markAsSynced,
-  clearPendingSync,
-  recordSyncFailure,
-  setInviteContext,
-  clearSession,
-} from '../lib/auth/storage';
-import {
-  clearGuestIdentity,
-  ensureGuestIdentity,
-  getInviteContextCookie,
-  setInviteContextCookie,
-} from '../lib/auth/cookies';
-import { registerGuestIdentity } from '../server/firebase/guest';
+import { createGuestSession, createCloudSession } from '../lib/auth/storage';
+import { getInviteContextCookie, setInviteContextCookie, clearInviteContext } from '../lib/auth/cookies';
 import { createMockAuthProvider } from '../lib/auth/mockAuthProvider';
 import { createFirebaseAuthProvider } from '../server/firebase/firebaseAuthProvider';
 import { isFirebaseConfigured } from '../server/firebase/config';
@@ -68,80 +51,42 @@ interface AuthProviderProps {
 export function MixologyAuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<LocalSession | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Initialize on mount
+  // Initialize - fetch from cloud only
   useEffect(() => {
     const init = async () => {
       try {
         const provider = getAuthProvider();
         await provider.initialize();
 
-        const existingSession = readSession();
         const currentUid = provider.getCurrentUid();
 
-        const hydrateSessionFromBackend = async (
-          uid: string,
-          baseSession?: LocalSession | null
-        ): Promise<LocalSession> => {
+        if (currentUid) {
+          // Fetch user data from Firestore
           try {
-            const userData = await provider.fetchUserData(uid);
-            const now = Date.now();
-            const shouldMergeLocal = !baseSession?.firebaseUid || baseSession.firebaseUid === uid;
-            const localVotes = shouldMergeLocal ? baseSession?.votes ?? [] : [];
-            const localProfile = shouldMergeLocal ? baseSession?.profile : undefined;
-            const localInvite = shouldMergeLocal ? baseSession?.inviteContext : undefined;
-            const localGuestIdentity = shouldMergeLocal ? baseSession?.guestIdentity : undefined;
-
-            const merged: LocalSession = {
-              sessionId: baseSession?.sessionId ?? `sess_${now}`,
-              status: 'synced',
-              firebaseUid: uid,
-              profile: {
-                displayName:
-                  localProfile?.displayName ??
-                  userData?.profile?.displayName ??
-                  userData?.profile?.email?.split('@')[0] ??
-                  'Mixology User',
-                email: localProfile?.email ?? userData?.profile?.email,
-                role: userData?.profile?.role ?? localProfile?.role ?? 'viewer',
+            const userData = await provider.fetchUserData(currentUid);
+            const inviteContext = getInviteContextCookie() ?? undefined;
+            
+            const cloudSession = createCloudSession({
+              firebaseUid: currentUid,
+              profile: userData?.profile ?? {
+                displayName: 'Mixology User',
+                role: 'viewer',
               },
-              votes: mergeVotes(localVotes, userData?.votes ?? []),
-              createdAt: baseSession?.createdAt ?? now,
-              updatedAt: now,
-              inviteContext: localInvite ?? getInviteContextCookie() ?? undefined,
-              guestIdentity: localGuestIdentity,
-            };
+              inviteContext,
+            });
 
-            writeSession(merged);
-            return merged;
-          } catch (error) {
-            console.error('[Auth] Failed to hydrate session from backend:', error);
-            const fallback: LocalSession = baseSession ?? createGuestSession();
-            writeSession(fallback);
-            return fallback;
+            setSession(cloudSession);
+            setError(null);
+          } catch (err) {
+            console.error('[Auth] Failed to fetch user data from cloud:', err);
+            setError('Unable to load user data from cloud. Please check your connection.');
           }
-        };
-
-        if (existingSession) {
-          setSession(existingSession);
-
-          if (currentUid) {
-            const needsRefresh = existingSession.firebaseUid !== currentUid;
-            const refreshed = await hydrateSessionFromBackend(
-              currentUid,
-              needsRefresh ? null : existingSession
-            );
-            setSession(refreshed);
-          } else if (existingSession.firebaseUid && provider.isAuthenticated()) {
-            const refreshed = await hydrateSessionFromBackend(existingSession.firebaseUid, existingSession);
-            setSession(refreshed);
-          }
-        } else if (currentUid) {
-          const refreshed = await hydrateSessionFromBackend(currentUid, null);
-          setSession(refreshed);
         }
       } catch (error) {
         console.error('[Auth] Failed to initialize auth provider:', error);
+        setError('Unable to initialize authentication. Please refresh the page.');
       } finally {
         setLoading(false);
       }
@@ -150,49 +95,75 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
     init();
   }, []);
 
-  // Start guest session with Firestore fallback
+  // Start guest session with Firebase anonymous auth
   const startGuestSession = useCallback(
     async (options?: {
       displayName?: string;
       inviteContext?: InviteContext;
     }): Promise<GuestSessionResult> => {
-      const identity = ensureGuestIdentity(true);
-      const newSession = createGuestSession({
-        displayName: options?.displayName,
-        guestId: identity.guestId,
-        guestIndex: identity.guestIndex,
-        inviteContext: options?.inviteContext,
-      });
+      const trimmedName = options?.displayName?.trim();
+      if (!trimmedName) {
+        return {
+          success: false,
+          syncedToFirestore: false,
+          error: 'Display name is required',
+        };
+      }
 
       if (options?.inviteContext) {
         setInviteContextCookie(options.inviteContext);
       }
 
-      // Attempt Firestore registration with graceful fallback
-      const result = await registerGuestIdentity(
-        identity.guestId,
-        options?.inviteContext,
-        options?.displayName
-      );
+      const provider = getAuthProvider();
+      const result = await provider.loginAnonymously();
 
-      // Session is saved regardless of Firestore success
-      setSession(newSession);
-      writeSession(newSession);
+      if (!result.success || !result.uid) {
+        return {
+          success: false,
+          syncedToFirestore: false,
+          error: result.error ?? 'Failed to create guest session',
+        };
+      }
 
-      return {
-        success: true,
-        syncedToFirestore: result.syncedToFirestore,
-        error: result.error,
-      };
+      // Create session in Firestore immediately
+      try {
+        await provider.updateProfile(result.uid, { displayName: trimmedName });
+        
+        const guestSession = createCloudSession({
+          firebaseUid: result.uid,
+          profile: {
+            displayName: trimmedName,
+            role: 'viewer',
+          },
+          inviteContext: options?.inviteContext,
+        });
+
+        setSession(guestSession);
+        setError(null);
+
+        return {
+          success: true,
+          syncedToFirestore: true,
+        };
+      } catch (err) {
+        console.error('[Auth] Failed to sync guest session to Firestore:', err);
+        setError('Guest session created but failed to sync to cloud');
+        return {
+          success: true,
+          syncedToFirestore: false,
+          error: 'Cloud sync failed',
+        };
+      }
     },
     []
   );
 
   const applyInviteContext = useCallback((inviteContext: InviteContext) => {
     setInviteContextCookie(inviteContext);
-    const updated = setInviteContext(inviteContext);
-    if (updated) setSession(updated);
-  }, []);
+    if (session) {
+      setSession({ ...session, inviteContext });
+    }
+  }, [session]);
 
   // Register new account
   const register = useCallback(
@@ -204,26 +175,28 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
         return { success: false, error: result.error };
       }
 
-      // Upgrade local session
-      const upgraded = upgradeToRegistered(result.uid, {
-        displayName: data.displayName,
-        email: data.email,
-      });
+      // Create cloud session
+      try {
+        const cloudSession = createCloudSession({
+          firebaseUid: result.uid,
+          profile: {
+            displayName: data.displayName,
+            email: data.email,
+            role: 'viewer',
+          },
+          inviteContext: session?.inviteContext,
+        });
 
-      if (upgraded) {
-        // Sync any pending data
-        const syncResult = await provider.syncToBackend(upgraded);
-        if (syncResult.success) {
-          const synced = markAsSynced(result.uid);
-          setSession(synced);
-        } else {
-          setSession(upgraded);
-        }
+        setSession(cloudSession);
+        setError(null);
+        return { success: true };
+      } catch (err) {
+        console.error('[Auth] Failed to create session after registration:', err);
+        setError('Account created but failed to initialize session');
+        return { success: false, error: 'Failed to initialize session' };
       }
-
-      return { success: true };
     },
-    []
+    [session]
   );
 
   // Login
@@ -236,18 +209,26 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
         return { success: false, error: result.error };
       }
 
-      const newSession = await buildSessionFromProvider({
-        uid: result.uid,
-        provider,
-        currentLocal: readSession(),
-        profileDefaults: {
-          displayName: credentials.email.split('@')[0],
-          email: credentials.email,
-        },
-      });
+      try {
+        const userData = await provider.fetchUserData(result.uid);
+        const cloudSession = createCloudSession({
+          firebaseUid: result.uid,
+          profile: userData?.profile ?? {
+            displayName: credentials.email.split('@')[0],
+            email: credentials.email,
+            role: 'viewer',
+          },
+          inviteContext: getInviteContextCookie() ?? undefined,
+        });
 
-      setSession(newSession);
-      return { success: true };
+        setSession(cloudSession);
+        setError(null);
+        return { success: true };
+      } catch (err) {
+        console.error('[Auth] Failed to fetch user data after login:', err);
+        setError('Logged in but failed to load user data from cloud');
+        return { success: false, error: 'Failed to load user data' };
+      }
     },
     []
   );
@@ -261,14 +242,25 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
         return { success: false, error: result.error };
       }
 
-      const newSession = await buildSessionFromProvider({
-        uid: result.uid,
-        provider,
-        currentLocal: readSession(),
-      });
+      try {
+        const userData = await provider.fetchUserData(result.uid);
+        const cloudSession = createCloudSession({
+          firebaseUid: result.uid,
+          profile: userData?.profile ?? {
+            displayName: 'Google User',
+            role: 'viewer',
+          },
+          inviteContext: getInviteContextCookie() ?? undefined,
+        });
 
-      setSession(newSession);
-      return { success: true };
+        setSession(cloudSession);
+        setError(null);
+        return { success: true };
+      } catch (err) {
+        console.error('[Auth] Failed to fetch user data after Google login:', err);
+        setError('Logged in but failed to load user data from cloud');
+        return { success: false, error: 'Failed to load user data' };
+      }
     },
     []
   );
@@ -278,40 +270,9 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
       displayName?: string;
       inviteContext?: InviteContext;
     }): Promise<{ success: boolean; error?: string }> => {
-      const trimmedName = options?.displayName?.trim();
-      if (!trimmedName) {
-        return { success: false, error: 'Display name is required to continue as guest.' };
-      }
-
-      const provider = getAuthProvider();
-      const result = await provider.loginAnonymously();
-
-      if (!result.success || !result.uid) {
-        return { success: false, error: result.error };
-      }
-
-      if (options?.inviteContext) {
-        setInviteContextCookie(options.inviteContext);
-      }
-
-      const newSession = await buildSessionFromProvider({
-        uid: result.uid,
-        provider,
-        currentLocal: readSession(),
-        profileDefaults: { displayName: trimmedName },
-        inviteContext: options?.inviteContext,
-      });
-
-      setSession(newSession);
-
-      // Update profile in backend with the display name
-      await provider.updateProfile(result.uid, { displayName: trimmedName });
-      const updated = updateProfileInSession({ displayName: trimmedName });
-      if (updated) setSession(updated);
-
-      return { success: true };
+      return startGuestSession(options);
     },
-    []
+    [startGuestSession]
   );
 
   // Logout
@@ -319,9 +280,9 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
     const provider = getAuthProvider();
     await provider.logout();
 
-    clearSession();
-    clearGuestIdentity();
+    clearInviteContext();
     setSession(null);
+    setError(null);
   }, []);
 
   const resetSessionForNewAccount = useCallback(async () => {
@@ -330,77 +291,77 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
       await provider.logout();
     }
 
-    clearSession();
-    clearGuestIdentity();
-    setInviteContextCookie(null);
+    clearInviteContext();
     setSession(null);
+    setError(null);
   }, []);
 
-  // Update profile
+  // Update profile - saves to Firestore only
   const updateProfile = useCallback(
     async (updates: Partial<UserProfile>) => {
-      const updated = updateProfileInSession(updates);
-      if (updated) {
-        setSession(updated);
+      if (!session?.firebaseUid) {
+        setError('No active session');
+        return;
+      }
 
-        // If synced, also update backend
-        if (updated.status === 'synced' && updated.firebaseUid) {
-          const provider = getAuthProvider();
-          await provider.updateProfile(updated.firebaseUid, updates);
-        }
+      try {
+        const provider = getAuthProvider();
+        await provider.updateProfile(session.firebaseUid, updates);
+
+        // Update local session state
+        setSession({
+          ...session,
+          profile: { ...session.profile, ...updates },
+          updatedAt: Date.now(),
+        });
+        setError(null);
+      } catch (err) {
+        console.error('[Auth] Failed to update profile:', err);
+        setError('Failed to update profile in cloud');
       }
     },
-    []
+    [session]
   );
 
-  // Record vote
+  // Record vote - saves to Firestore only
   const recordVote = useCallback(
     async (vote: Omit<UserVote, 'timestamp'>) => {
-      const fullVote: UserVote = { ...vote, timestamp: Date.now() };
-      const updated = addVoteToSession(fullVote);
+      if (!session?.firebaseUid) {
+        setError('No active session');
+        return;
+      }
 
-      if (updated) {
-        setSession(updated);
+      try {
+        const provider = getAuthProvider();
+        const fullVote: UserVote = { ...vote, timestamp: Date.now() };
+        await provider.saveVote(session.firebaseUid, fullVote);
 
-        // If synced, also save to backend
-        if (updated.status === 'synced' && updated.firebaseUid) {
-          const provider = getAuthProvider();
-          await provider.saveVote(updated.firebaseUid, fullVote);
-        }
+        // Update local session state optimistically
+        setSession({
+          ...session,
+          votes: [...session.votes, fullVote],
+          updatedAt: Date.now(),
+        });
+        setError(null);
+      } catch (err) {
+        console.error('[Auth] Failed to save vote:', err);
+        setError('Failed to save vote to cloud');
       }
     },
-    []
+    [session]
   );
 
-  // Update last path
+  // Update last path - in-memory only, not persisted
   const updateLastPath = useCallback((path: string) => {
-    const current = readSession();
-    if (current) {
-      const updated = { ...current, lastPath: path, updatedAt: Date.now() };
-      setSession(updated);
-      writeSession(updated);
+    if (session) {
+      setSession({ ...session, lastPath: path, updatedAt: Date.now() });
     }
-  }, []);
-
-  // Force sync
-  const syncPendingData = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
-    if (!session?.firebaseUid || !session.pendingSync) {
-      return { success: true }; // Nothing to sync
-    }
-
-    const provider = getAuthProvider();
-    const result = await provider.syncToBackend(session);
-
-    if (result.success) {
-      clearPendingSync();
-      const synced = markAsSynced(session.firebaseUid);
-      if (synced) setSession(synced);
-      return { success: true };
-    }
-
-    recordSyncFailure();
-    return { success: false, error: result.error };
   }, [session]);
+
+  // No pending sync in cloud-only mode
+  const syncPendingData = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
+    return { success: true }; // No-op in cloud-only mode
+  }, []);
 
   // Derived state
   const isAuthenticated = session?.status === 'registered' || session?.status === 'synced';
@@ -413,6 +374,7 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
     isAuthenticated,
     isGuest,
     role,
+    error,
     startGuestSession,
     register,
     login,
@@ -439,84 +401,4 @@ export function useAuth(): AuthContextValue {
     throw new Error('useAuth must be used within MixologyAuthProvider');
   }
   return context;
-}
-
-/**
- * Merge votes from two sources, preferring newer timestamps
- */
-function mergeVotes(local: UserVote[], remote: UserVote[]): UserVote[] {
-  const merged = new Map<string, UserVote>();
-
-  // Add remote votes first
-  for (const vote of remote) {
-    const key = `${vote.contestId}:${vote.drinkId}`;
-    merged.set(key, vote);
-  }
-
-  // Override with local votes if newer
-  for (const vote of local) {
-    const key = `${vote.contestId}:${vote.drinkId}`;
-    const existing = merged.get(key);
-    if (!existing || vote.timestamp > existing.timestamp) {
-      merged.set(key, vote);
-    }
-  }
-
-  return Array.from(merged.values());
-}
-
-/**
- * Options for building a synced session after successful authentication
- */
-interface BuildSessionOptions {
-  uid: string;
-  provider: AuthProvider;
-  currentLocal: LocalSession | null;
-  profileDefaults?: Partial<UserProfile>;
-  inviteContext?: InviteContext;
-}
-
-/**
- * Builds a LocalSession from backend data after successful authentication.
- * Handles merging guest votes to backend and creating the session object.
- *
- * This consolidates the repeated logic from login, loginWithGoogle, and loginAnonymously.
- */
-async function buildSessionFromProvider({
-  uid,
-  provider,
-  currentLocal,
-  profileDefaults,
-  inviteContext,
-}: BuildSessionOptions): Promise<LocalSession> {
-  const userData = await provider.fetchUserData(uid);
-  const now = Date.now();
-
-  // Build the new session
-  const newSession: LocalSession = {
-    sessionId: currentLocal?.sessionId ?? `sess_${now}`,
-    status: 'synced',
-    firebaseUid: uid,
-    profile: userData?.profile ?? {
-      displayName: profileDefaults?.displayName ?? 'Mixology User',
-      email: profileDefaults?.email,
-      role: profileDefaults?.role ?? 'viewer',
-    },
-    votes: userData?.votes ?? [],
-    createdAt: currentLocal?.createdAt ?? now,
-    updatedAt: now,
-    inviteContext: inviteContext ?? currentLocal?.inviteContext,
-    guestIdentity: currentLocal?.guestIdentity,
-  };
-
-  // If there was local guest data with votes, sync them to backend
-  if (currentLocal?.status === 'guest' && currentLocal.votes.length > 0) {
-    for (const vote of currentLocal.votes) {
-      await provider.saveVote(uid, vote);
-    }
-    newSession.votes = mergeVotes(newSession.votes, currentLocal.votes);
-  }
-
-  writeSession(newSession);
-  return newSession;
 }

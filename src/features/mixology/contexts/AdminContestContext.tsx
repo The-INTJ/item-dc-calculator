@@ -3,7 +3,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Contest, ContestPhase, ContestRound, Entry } from '../types';
 import { buildDefaultVoteCategories } from '../components/ui/voteUtils';
-import { CHILI_CONFIG } from '../types/templates';
 import { getActiveRoundId, getRoundById, getRoundLabel } from '../lib/contestHelpers';
 import { useContestState } from './ContestStateContext';
 import { adminApi } from '../services/adminApi';
@@ -31,36 +30,8 @@ interface AdminContestContextValue extends AdminContestState {
   refresh: () => void;
 }
 
-const STORAGE_KEY = 'mixology-admin-contests-v1';
-
-const defaultRounds: ContestRound[] = [
-  { id: 'round-1', name: 'Round 1', number: 1, state: 'set' },
-  { id: 'round-2', name: 'Round 2', number: 2, state: 'set' },
-  { id: 'round-3', name: 'Finals', number: 3, state: 'set' },
-];
-
 function generateId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function buildDefaultContest(): Contest {
-  return {
-    id: 'contest-local-1',
-    name: 'Local Test Contest',
-    slug: 'local-test-contest',
-    phase: 'set',
-    location: 'Local Only',
-    startTime: new Date().toISOString(),
-    bracketRound: 'Round 1',
-    defaultContest: true,
-    rounds: defaultRounds,
-    activeRoundId: 'round-1',
-    futureRoundId: null,
-    categories: buildDefaultVoteCategories(),
-    entries: [],
-    judges: [],
-    scores: [],
-  };
 }
 
 function normalizeContest(contest: Contest): Contest {
@@ -83,42 +54,12 @@ function normalizeContest(contest: Contest): Contest {
   };
 }
 
-function buildInitialState(): AdminContestState {
-  const contests = [buildDefaultContest()];
-  const normalized = contests.map((contest) => normalizeContest(contest));
-  const activeContestId = normalized.find((contest) => contest.defaultContest)?.id ?? normalized[0]?.id ?? null;
-  const normalizedContests = activeContestId
-    ? normalized.map((contest) => ({ ...contest, defaultContest: contest.id === activeContestId }))
-    : normalized;
-  return { contests: normalizedContests, activeContestId, lastUpdatedAt: null };
-}
-
+/**
+ * Load initial state - cloud-only, no localStorage.
+ * Returns empty state; data will be fetched from Firestore.
+ */
 function loadState(): AdminContestState {
-  if (typeof window === 'undefined') {
-    return buildInitialState();
-  }
-
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (!stored) {
-    return buildInitialState();
-  }
-
-  try {
-    const parsed = JSON.parse(stored) as AdminContestState;
-    const contests = (parsed.contests ?? []).map((contest) => normalizeContest(contest));
-    const activeContestId = parsed.activeContestId ?? contests.find((c) => c.defaultContest)?.id ?? null;
-    const normalizedContests = activeContestId
-      ? contests.map((contest) => ({ ...contest, defaultContest: contest.id === activeContestId }))
-      : contests;
-    return { contests: normalizedContests, activeContestId, lastUpdatedAt: parsed.lastUpdatedAt ?? null };
-  } catch {
-    return buildInitialState();
-  }
-}
-
-function persistState(state: AdminContestState) {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  return { contests: [], activeContestId: null, lastUpdatedAt: null };
 }
 
 const AdminContestContext = createContext<AdminContestContextValue | undefined>(undefined);
@@ -126,10 +67,6 @@ const AdminContestContext = createContext<AdminContestContextValue | undefined>(
 export function AdminContestProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AdminContestState>(() => loadState());
   const { setState: setGlobalState } = useContestState();
-
-  useEffect(() => {
-    persistState(state);
-  }, [state]);
 
   // Sync active contest's phase to global ContestState whenever it changes
   useEffect(() => {
@@ -253,12 +190,23 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
 
   const addContest = useCallback((name: string) => {
     updateState((prev) => {
+      const now = new Date().toISOString();
       const newContest = normalizeContest({
-        ...buildDefaultContest(),
         id: generateId('contest'),
         name,
         slug: name.toLowerCase().replace(/\s+/g, '-'),
+        phase: 'set',
+        location: '',
+        startTime: now,
+        bracketRound: 'Round 1',
         defaultContest: false,
+        rounds: [],
+        activeRoundId: null,
+        futureRoundId: null,
+        categories: buildDefaultVoteCategories(),
+        entries: [],
+        judges: [],
+        scores: [],
       });
       return { ...prev, contests: [...prev.contests, newContest] };
     });

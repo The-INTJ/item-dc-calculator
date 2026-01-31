@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
 /**
  * Contest lifecycle states as defined in the Master Plan:
@@ -33,36 +33,23 @@ interface ContestStateContextValue {
 
 const ContestStateContext = createContext<ContestStateContextValue | undefined>(undefined);
 
-const STORAGE_KEY = 'mixology-contest-state';
-
-function getInitialState(): ContestState {
-  if (typeof window === 'undefined') {
-    return 'set';
-  }
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored && CONTEST_STATES.includes(stored as ContestState)) {
-    return stored as ContestState;
-  }
-  return 'set';
-}
-
 interface ContestStateProviderProps {
   children: React.ReactNode;
 }
 
+/**
+ * Contest state provider - cloud-only.
+ * State is fetched from Firestore and updates are synced back.
+ * No local persistence - if cloud is unavailable, we show error states.
+ */
 export function ContestStateProvider({ children }: ContestStateProviderProps) {
+  // Default to 'set' - will be populated from cloud contest data
   const [state, setStateInternal] = useState<ContestState>('set');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setStateInternal(getInitialState());
-    setMounted(true);
-  }, []);
 
   const setState = useCallback((newState: ContestState) => {
     setStateInternal(newState);
+    // Emit event for potential listeners
     if (typeof window !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, newState);
       window.dispatchEvent(new Event('mixology:state-changed'));
     }
   }, []);
@@ -76,10 +63,6 @@ export function ContestStateProvider({ children }: ContestStateProviderProps) {
     }),
     [state, setState]
   );
-
-  if (!mounted) {
-    return null;
-  }
 
   return <ContestStateContext.Provider value={value}>{children}</ContestStateContext.Provider>;
 }
