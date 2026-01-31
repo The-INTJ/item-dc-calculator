@@ -21,6 +21,7 @@ interface AdminContestContextValue extends AdminContestState {
   updateContest: (contestId: string, updates: Partial<Contest>) => void;
   upsertContest: (contest: Contest) => void;
   addContest: (name: string) => void;
+  deleteContest: (contestId: string) => Promise<{ success: boolean; error?: string }>;
   addRound: (contestId: string, round: Omit<ContestRound, 'id' | 'state'>) => void;
   updateRound: (contestId: string, roundId: string, updates: Partial<ContestRound>) => void;
   removeRound: (contestId: string, roundId: string) => void;
@@ -481,6 +482,24 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
     });
   }, [updateState]);
 
+  const deleteContest = useCallback(async (contestId: string) => {
+    const result = await adminApi.deleteContest(contestId);
+    
+    if (result.success) {
+      updateState((prev) => {
+        const contests = prev.contests.filter((contest) => contest.id !== contestId);
+        // If we deleted the active contest, switch to the first remaining one
+        const activeContestId = prev.activeContestId === contestId
+          ? contests.find((c) => c.defaultContest)?.id ?? contests[0]?.id ?? null
+          : prev.activeContestId;
+        return { ...prev, contests, activeContestId };
+      });
+      return result;
+    }
+    
+    return result;
+  }, [updateState]);
+
   const addMixologist = useCallback(
     async (contestId: string, mixologist: { name: string; drinkName: string; roundId: string }) => {
       const entry: Omit<Entry, 'id'> = {
@@ -565,6 +584,7 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
       updateContest,
       upsertContest,
       addContest,
+      deleteContest,
       addRound,
       updateRound,
       removeRound,
@@ -583,6 +603,7 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
     updateContest,
     upsertContest,
     addContest,
+    deleteContest,
     addRound,
     updateRound,
     removeRound,

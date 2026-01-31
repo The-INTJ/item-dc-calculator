@@ -1,9 +1,12 @@
 'use client';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Contest, ContestConfig, Entry, Judge, ScoreEntry } from '../../types';
 import { buildEntrySummary } from '../../types/uiTypes';
 import { getEffectiveConfig } from '../../types';
 import { getRoundLabel } from '../../lib/contestHelpers';
 import { DrinkCard } from '../ui';
+import { useAdminContestData } from '../../contexts/AdminContestContext';
 import { AdminContestActivation } from './AdminContestActivation';
 import { AdminContestRounds } from './AdminContestRounds';
 import { AdminMixologists } from './AdminMixologists';
@@ -74,8 +77,14 @@ function ScoreItem(
 }
 
 export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }: ContestDetailsProps) {
+  const router = useRouter();
+  const { deleteContest } = useAdminContestData();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  
   const activeRoundLabel = getRoundLabel(contest, contest.activeRoundId);
   const config = getEffectiveConfig(contest);
+  
   const handleSaveConfig = async (config: ContestConfig) => {
     const response = await fetch(`/api/mixology/contests/${contest.id}`, {
       method: 'PATCH',
@@ -95,14 +104,52 @@ export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }
     onContestUpdated(updated);
   };
 
+  const handleDeleteContest = async () => {
+    const contestName = contest.name;
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${contestName}"?\n\nThis will permanently delete:\n• All rounds\n• All entries/drinks\n• All scores\n\nThis action cannot be undone.`
+    );
+    
+    if (!confirmed) return;
+    
+    setIsDeleting(true);
+    setDeleteError(null);
+    
+    const result = await deleteContest(contest.id);
+    
+    if (result.success) {
+      // Navigate back to admin dashboard
+      router.push('/mixology/admin');
+    } else {
+      setDeleteError(result.error ?? 'Failed to delete contest');
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="admin-contest-details">
       <header className="admin-contest-details__header">
-        <h2>{contest.name}</h2>
-        <p className="admin-detail-meta">
-          {contest.location ?? 'No location'} • {activeRoundLabel}
-        </p>
+        <div>
+          <h2>{contest.name}</h2>
+          <p className="admin-detail-meta">
+            {contest.location ?? 'No location'} • {activeRoundLabel}
+          </p>
+        </div>
+        <button
+          type="button"
+          className="button-secondary button-secondary--danger"
+          onClick={handleDeleteContest}
+          disabled={isDeleting}
+        >
+          {isDeleting ? 'Deleting...' : 'Delete Contest'}
+        </button>
       </header>
+
+      {deleteError && (
+        <div className="admin-phase-controls__message--error" style={{ marginBottom: '1rem' }}>
+          {deleteError}
+        </div>
+      )}
 
       <AdminContestActivation
         contest={contest}
