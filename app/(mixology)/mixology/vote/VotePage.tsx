@@ -48,7 +48,7 @@ export function VotePage() {
   }
 
   // States where voting isn't available yet (debug, set)
-  if (contestState === 'debug' || contestState === 'set') {
+  if (contestState === 'set') {
     return (
       <div className="mixology-vote-page">
         <VotePageHeader />
@@ -57,7 +57,7 @@ export function VotePage() {
             <strong>Voting hasn&apos;t started yet.</strong>
           </p>
           <p>
-            The contest is currently in <strong>{contestState === 'debug' ? 'Debug' : 'Set'}</strong> mode.
+            The contest is currently in <strong>{'Set'}</strong> mode.
             Voting will open once the admin starts the <strong>Shake</strong> phase.
           </p>
         </div>
