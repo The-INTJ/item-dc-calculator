@@ -7,6 +7,7 @@ import { getEffectiveConfig } from '../../types';
 import { getRoundLabel } from '../../lib/contestHelpers';
 import { DrinkCard } from '../ui';
 import { useAdminContestData } from '../../contexts/AdminContestContext';
+import { adminApi } from '../../services/adminApi';
 import { AdminContestActivation } from './AdminContestActivation';
 import { AdminContestRounds } from './AdminContestRounds';
 import { AdminMixologists } from './AdminMixologists';
@@ -86,22 +87,11 @@ export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }
   const config = getEffectiveConfig(contest);
   
   const handleSaveConfig = async (config: ContestConfig) => {
-    const response = await fetch(`/api/mixology/contests/${contest.id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-mixology-role': 'admin',
-      },
-      body: JSON.stringify({ config }),
-    });
-
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-      throw new Error(data.error ?? 'Failed to update config');
+    const result = await adminApi.updateContestConfig(contest.id, config);
+    if (!result.success || !result.data) {
+      throw new Error(result.error ?? 'Failed to update config');
     }
-
-    const updated = await response.json();
-    onContestUpdated(updated);
+    onContestUpdated(result.data);
   };
 
   const handleDeleteContest = async () => {

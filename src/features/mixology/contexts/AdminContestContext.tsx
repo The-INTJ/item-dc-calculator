@@ -112,18 +112,65 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
     });
   }, []);
 
-  const updateContest = useCallback((contestId: string, updates: Partial<Contest>) => {
+  const getContestById = useCallback(
+    (contestId: string) => state.contests.find((contest) => contest.id === contestId),
+    [state.contests]
+  );
+
+  const replaceContestInState = useCallback((contest: Contest) => {
     updateState((prev) => {
-      const contests = prev.contests.map((contest) => {
-        if (contest.id !== contestId) {
-          return updates.defaultContest ? { ...contest, defaultContest: false } : contest;
-        }
-        return normalizeContest({ ...contest, ...updates });
-      });
-      const activeContestId = updates.defaultContest ? contestId : prev.activeContestId;
-      return { ...prev, contests, activeContestId };
+      const normalized = normalizeContest(contest);
+      const defaultContestId = normalized.defaultContest ? normalized.id : null;
+      const contests = prev.contests.map((item) =>
+        item.id === normalized.id ? normalized : item
+      );
+      const updatedContests = defaultContestId
+        ? contests.map((item) =>
+            item.id === defaultContestId ? item : { ...item, defaultContest: false }
+          )
+        : contests;
+      const activeContestId = defaultContestId ?? prev.activeContestId;
+      return { ...prev, contests: updatedContests, activeContestId };
     });
   }, [updateState]);
+
+  const applyContestUpdate = useCallback(
+    (contestId: string, updater: (contest: Contest) => Contest) => {
+      let previousContest: Contest | null = null;
+
+      updateState((prev) => {
+        let defaultContestId: string | null = null;
+        const contests = prev.contests.map((contest) => {
+          if (contest.id !== contestId) {
+            return contest;
+          }
+          previousContest = contest;
+          const updated = normalizeContest(updater(contest));
+          if (updated.defaultContest) {
+            defaultContestId = updated.id;
+          }
+          return updated;
+        });
+        const updatedContests = defaultContestId
+          ? contests.map((contest) =>
+              contest.id === defaultContestId ? contest : { ...contest, defaultContest: false }
+            )
+          : contests;
+        const activeContestId = defaultContestId ?? prev.activeContestId;
+        return { ...prev, contests: updatedContests, activeContestId };
+      });
+
+      return previousContest;
+    },
+    [updateState]
+  );
+
+  const updateContest = useCallback(
+    (contestId: string, updates: Partial<Contest>) => {
+      applyContestUpdate(contestId, (contest) => ({ ...contest, ...updates }));
+    },
+    [applyContestUpdate]
+  );
 
   const upsertContest = useCallback((contest: Contest) => {
     updateState((prev) => {
@@ -141,23 +188,47 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
     });
   }, [updateState]);
 
-  const setActiveContest = useCallback((contestId: string) => {
-    updateState((prev) => {
-      const contests = prev.contests.map((contest) => ({
-        ...contest,
-        defaultContest: contest.id === contestId,
-      }));
-      return { ...prev, contests, activeContestId: contestId };
-    });
-  }, [updateState]);
+  const setActiveContest = useCallback(
+    (contestId: string) => {
+      updateContest(contestId, { defaultContest: true });
+    },
+    [updateContest]
+  );
+
+  const commitContestUpdate = useCallback(
+    async (
+      contestId: string,
+      updater: (contest: Contest) => Contest,
+      persist: () => Promise<{ success: boolean; data?: Contest; error?: string }>
+    ) => {
+      const existingContest = getContestById(contestId);
+      if (!existingContest) {
+        return { success: false, error: 'Contest not found' };
+      }
+
+      applyContestUpdate(contestId, updater);
+      const result = await persist();
+
+      if (!result.success) {
+        replaceContestInState(existingContest);
+        return result;
+      }
+
+      if (result.data) {
+        replaceContestInState(result.data);
+      }
+
+      return result;
+    },
+    [applyContestUpdate, getContestById, replaceContestInState]
+  );
 
   const addRound = useCallback(async (contestId: string): Promise<{ success: boolean; error?: string }> => {
-    // Find the contest to calculate the next round number
-    const contest = state.contests.find((c) => c.id === contestId);
+    const contest = getContestById(contestId);
     if (!contest) {
       return { success: false, error: 'Contest not found' };
     }
-    
+
     const existingRounds = contest.rounds ?? [];
     const roundNumber = existingRounds.length + 1;
     const nextRound: ContestRound = {
@@ -167,81 +238,39 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
       state: 'set',
     };
     const newRounds = [...existingRounds, nextRound];
-    
-    // Optimistically update local state
-    updateState((prev) => {
-      const contests = prev.contests.map((c) => {
-        if (c.id !== contestId) return c;
-        return normalizeContest({
-          ...c,
-          rounds: newRounds,
-        });
-      });
-      return { ...prev, contests };
-    });
-    
-    // Persist to Firestore
-    const result = await adminApi.updateContest(contestId, { rounds: newRounds });
-    
-    if (!result.success) {
-      // Rollback on failure
-      updateState((prev) => {
-        const contests = prev.contests.map((c) => {
-          if (c.id !== contestId) return c;
-          return normalizeContest({ ...c, rounds: existingRounds });
-        });
-        return { ...prev, contests };
-      });
-    }
-    
-    return result;
-  }, [state.contests, updateState]);
+
+    return commitContestUpdate(
+      contestId,
+      (current) => ({ ...current, rounds: newRounds }),
+      () => adminApi.updateContest(contestId, { rounds: newRounds })
+    );
+  }, [commitContestUpdate, getContestById]);
 
   const updateRound = useCallback(async (contestId: string, roundId: string, updates: Partial<ContestRound>): Promise<{ success: boolean; error?: string }> => {
-    const contest = state.contests.find((c) => c.id === contestId);
+    const contest = getContestById(contestId);
     if (!contest) {
       return { success: false, error: 'Contest not found' };
     }
-    
+
     const existingRounds = contest.rounds ?? [];
     const newRounds = existingRounds.map((round) =>
       round.id === roundId ? { ...round, ...updates } : round
     );
-    
-    // Optimistically update local state
-    updateState((prev) => {
-      const contests = prev.contests.map((c) => {
-        if (c.id !== contestId) return c;
-        return normalizeContest({ ...c, rounds: newRounds });
-      });
-      return { ...prev, contests };
-    });
-    
-    // Persist to Firestore
-    const result = await adminApi.updateContest(contestId, { rounds: newRounds });
-    
-    if (!result.success) {
-      // Rollback on failure
-      updateState((prev) => {
-        const contests = prev.contests.map((c) => {
-          if (c.id !== contestId) return c;
-          return normalizeContest({ ...c, rounds: existingRounds });
-        });
-        return { ...prev, contests };
-      });
-    }
-    
-    return result;
-  }, [state.contests, updateState]);
+
+    return commitContestUpdate(
+      contestId,
+      (current) => ({ ...current, rounds: newRounds }),
+      () => adminApi.updateContest(contestId, { rounds: newRounds })
+    );
+  }, [commitContestUpdate, getContestById]);
 
   const removeRound = useCallback(async (contestId: string, roundId: string): Promise<{ success: boolean; error?: string }> => {
-    const contest = state.contests.find((c) => c.id === contestId);
+    const contest = getContestById(contestId);
     if (!contest) {
       return { success: false, error: 'Contest not found' };
     }
-    
+
     const existingRounds = contest.rounds ?? [];
-    // Remove the round and renumber remaining rounds
     const newRounds = existingRounds
       .filter((round) => round.id !== roundId)
       .map((round, index) => ({
@@ -252,107 +281,39 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
     const entries = contest?.entries?.map((drink) =>
       drink.round === roundId ? { ...drink, round: '' } : drink
     );
-    
-    // Optimistically update local state
-    updateState((prev) => {
-      const contests = prev.contests.map((c) => {
-        if (c.id !== contestId) return c;
-        return normalizeContest({ ...c, rounds: newRounds, entries });
-      });
-      return { ...prev, contests };
-    });
-    
-    // Persist to Firestore
-    const result = await adminApi.updateContest(contestId, { rounds: newRounds, entries });
-    
-    if (!result.success) {
-      // Rollback on failure
-      updateState((prev) => {
-        const contests = prev.contests.map((c) => {
-          if (c.id !== contestId) return c;
-          return normalizeContest({ ...c, rounds: existingRounds, entries: contest.entries });
-        });
-        return { ...prev, contests };
-      });
-    }
-    
-    return result;
-  }, [state.contests, updateState]);
+
+    return commitContestUpdate(
+      contestId,
+      (current) => ({ ...current, rounds: newRounds, entries }),
+      () => adminApi.updateContest(contestId, { rounds: newRounds, entries })
+    );
+  }, [commitContestUpdate, getContestById]);
 
   const setActiveRound = useCallback(async (contestId: string, roundId: string): Promise<{ success: boolean; error?: string }> => {
-    const contest = state.contests.find((c) => c.id === contestId);
-    if (!contest) {
-      return { success: false, error: 'Contest not found' };
-    }
-    
-    const previousActiveRoundId = contest.activeRoundId;
-    
-    // Optimistically update local state
-    updateState((prev) => {
-      const contests = prev.contests.map((c) => {
-        if (c.id !== contestId) return c;
-        return normalizeContest({ ...c, activeRoundId: roundId });
-      });
-      return { ...prev, contests };
-    });
-    
-    // Persist to Firestore
-    const result = await adminApi.updateContest(contestId, { activeRoundId: roundId });
-    
-    if (!result.success) {
-      // Rollback on failure
-      updateState((prev) => {
-        const contests = prev.contests.map((c) => {
-          if (c.id !== contestId) return c;
-          return normalizeContest({ ...c, activeRoundId: previousActiveRoundId });
-        });
-        return { ...prev, contests };
-      });
-    }
-    
-    return result;
-  }, [state.contests, updateState]);
+    return commitContestUpdate(
+      contestId,
+      (current) => ({ ...current, activeRoundId: roundId }),
+      () => adminApi.updateContest(contestId, { activeRoundId: roundId })
+    );
+  }, [commitContestUpdate]);
 
   const setRoundState = useCallback(async (contestId: string, roundId: string, newState: ContestPhase): Promise<{ success: boolean; error?: string }> => {
-    const contest = state.contests.find((c) => c.id === contestId);
+    const contest = getContestById(contestId);
     if (!contest) {
       return { success: false, error: 'Contest not found' };
     }
-    
+
     const existingRounds = contest.rounds ?? [];
     const newRounds = existingRounds.map((round) =>
       round.id === roundId ? { ...round, state: newState } : round
     );
-    
-    // Determine the new contest phase based on the active round's state
-    const activeRoundId = contest.activeRoundId;
-    const newPhase = activeRoundId === roundId ? newState : contest.phase;
-    
-    // Optimistically update local state
-    updateState((prev) => {
-      const contests = prev.contests.map((c) => {
-        if (c.id !== contestId) return c;
-        return normalizeContest({ ...c, rounds: newRounds, phase: newPhase });
-      });
-      return { ...prev, contests };
-    });
-    
-    // Persist to Firestore
-    const result = await adminApi.updateContest(contestId, { rounds: newRounds, phase: newPhase });
-    
-    if (!result.success) {
-      // Rollback on failure
-      updateState((prev) => {
-        const contests = prev.contests.map((c) => {
-          if (c.id !== contestId) return c;
-          return normalizeContest({ ...c, rounds: existingRounds, phase: contest.phase });
-        });
-        return { ...prev, contests };
-      });
-    }
-    
-    return result;
-  }, [state.contests, updateState]);
+
+    return commitContestUpdate(
+      contestId,
+      (current) => ({ ...current, rounds: newRounds }),
+      () => adminApi.updateContest(contestId, { rounds: newRounds })
+    );
+  }, [commitContestUpdate, getContestById]);
 
   const addContest = useCallback((name: string) => {
     updateState((prev) => {
