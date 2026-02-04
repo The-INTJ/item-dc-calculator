@@ -19,7 +19,7 @@ async function getContestByParam(contestParam: string) {
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {
-  const adminError = requireAdmin(request);
+  const adminError = await requireAdmin(request);
   if (adminError) {
     return adminError;
   }

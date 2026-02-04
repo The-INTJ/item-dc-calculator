@@ -3,7 +3,7 @@ import { getBackendProvider } from '@/mixology/server/backend';
 import { requireAdmin } from '../_lib/requireAdmin';
 
 export async function GET(request: Request) {
-  const adminError = requireAdmin(request);
+  const adminError = await requireAdmin(request);
   if (adminError) {
     return adminError;
   }
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const adminError = requireAdmin(request);
+  const adminError = await requireAdmin(request);
   if (adminError) {
     return adminError;
   }

@@ -30,7 +30,7 @@ export async function GET(_: Request, { params }: RouteParams) {
 }
 
 export async function POST(request: Request, { params }: RouteParams) {
-  const adminError = requireAdmin(request);
+  const adminError = await requireAdmin(request);
   if (adminError) {
     return adminError;
   }

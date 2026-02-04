@@ -7,7 +7,7 @@ interface RouteParams {
 }
 
 export async function GET(request: Request, { params }: RouteParams) {
-  const adminError = requireAdmin(request);
+  const adminError = await requireAdmin(request);
   if (adminError) {
     return adminError;
   }
@@ -29,7 +29,7 @@ export async function GET(request: Request, { params }: RouteParams) {
 }
 
 export async function PATCH(request: Request, { params }: RouteParams) {
-  const adminError = requireAdmin(request);
+  const adminError = await requireAdmin(request);
   if (adminError) {
     return adminError;
   }
@@ -51,7 +51,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {
-  const adminError = requireAdmin(request);
+  const adminError = await requireAdmin(request);
   if (adminError) {
     return adminError;
   }
