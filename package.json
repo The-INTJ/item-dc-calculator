@@ -21,6 +21,7 @@
     "@mui/material": "^6.4.2",
     "@scalar/nextjs-api-reference": "^0.9.11",
     "firebase": "^12.6.0",
+    "firebase-admin": "^13.6.1",
     "next": "^15.5.9",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
