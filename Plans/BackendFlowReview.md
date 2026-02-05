@@ -27,20 +27,20 @@ Provide a high-level map of the current backend flow, highlight non-standard Nex
    - `MixologyAuthProvider` uses a singleton auth provider. It uses Firebase auth if configured; otherwise falls back to a mock provider.
    - On initialization it loads user data from Firestore when a Firebase UID exists.
 
-2. **Server-side auth (placeholder)**
-   - `getCurrentUser` reads a session cookie but does not validate it; it returns `null` until Firebase Admin SDK is set up.
+2. **Server-side auth**
+   - `getCurrentUser` validates Firebase session cookies via Admin SDK.
+   - `getCurrentUserFromRequest` validates Bearer tokens from Authorization header.
+   - `requireAdmin` checks real auth first, allows legacy `x-mixology-role` header only in dev/when explicitly enabled.
 
 ## Non-standard Next.js / Firebase usage
 
 ### Next.js patterns that stand out
-- **Authorization via custom header only**: API routes gate admin access solely on `x-mixology-role` header, which is easy to spoof without a real auth layer.
 - **API routes use provider singleton with side effects**: A module-level singleton is created and initialized lazily. This is workable but deviates from typical stateless route handlers and can be brittle in serverless environments.
 - **Route param handling uses `params: Promise<...>`**: Next.js route handlers typically accept plain params, and the async `params` shape indicates custom handling.
 
 ### Firebase patterns that stand out
-- **Firebase client SDK used on the server**: The backend provider and auth provider use Firebase client SDK for server routes instead of Firebase Admin SDK. This makes server-side security and admin actions harder/less reliable.
+- **Firebase client SDK used on the server**: The backend provider uses Firebase client SDK for Firestore instead of Firebase Admin SDK. This is workable but admin operations need to go through the separate Admin SDK setup.
 - **Uses `NEXT_PUBLIC_*` envs server-side**: Backend uses env vars intended for client usage, meaning server behavior is tightly coupled to client configuration.
-- **Auth on server is a stub**: `getCurrentUser` is a placeholder and always returns `null` until Firebase Admin SDK is added.
 - **Local-only fallback for data writes**: Backend provider initializes with a warning and then proceeds without persistence if Firebase is misconfigured. This can lead to silent data loss.
 
 ## Files to Refactor (ordered by impact)
@@ -50,10 +50,6 @@ Provide a high-level map of the current backend flow, highlight non-standard Nex
   - Singleton provider and initialization logic; central to backend wiring.
 - **`src/features/mixology/server/firebase/firebaseBackendProvider.ts`**
   - Uses client SDK and local-only fallback logic; main Firebase integration point.
-- **`src/features/mixology/server/auth.ts`**
-  - Server auth is currently stubbed; needs real verification.
-- **`app/api/mixology/_lib/requireAdmin.ts`**
-  - Authorization is a static header check. Replace with real auth/claims.
 
 ### Important but secondary
 - **`src/features/mixology/contexts/AuthContext.tsx`**
@@ -65,10 +61,10 @@ Provide a high-level map of the current backend flow, highlight non-standard Nex
 
 ## Architectures and flows to consider
 
-### 1) Proper server-side Firebase Admin flow
-- Use Firebase Admin SDK in API routes (or an internal server layer) to validate session cookies and access Firestore securely.
-- Replace `requireAdmin` header check with verification of Firebase ID token / custom claims.
-- Keep client SDK usage on the client only; the server handles authenticated Firestore access with admin privileges.
+### 1) ~~Proper server-side Firebase Admin flow~~ ✓ DONE
+- ~~Use Firebase Admin SDK in API routes (or an internal server layer) to validate session cookies and access Firestore securely.~~
+- ~~Replace `requireAdmin` header check with verification of Firebase ID token / custom claims.~~
+- ~~Keep client SDK usage on the client only; the server handles authenticated Firestore access with admin privileges.~~
 
 ### 2) Clear separation of data access vs. API handling
 - Move request parsing/validation into route handlers, keep provider layer pure (no route-specific logic).
@@ -86,15 +82,44 @@ Provide a high-level map of the current backend flow, highlight non-standard Nex
 
 > **Only include libraries if they solve a concrete problem without bloat.**
 
-- **`firebase-admin`** (server only)
-  - Needed to securely verify auth tokens and use Firestore with admin privileges.
-  - This is the most meaningful addition because it enables correct server-side auth and data access.
+- **`firebase-admin`** ✓ INSTALLED
+  - Now installed and configured for server-side auth and admin operations.
 
 No additional client libraries are recommended at this time; fetching and state management are already handled and extra layers would add complexity without clear payoff.
 
 ---
 
 ## Completed Refactors
+
+### 2026-02-04: Implemented proper server-side auth
+
+**Problem:** Server auth (`getCurrentUser`, `getCurrentUserFromRequest`) was a stub returning `null`.
+
+**Changes:**
+- Implemented `src/features/mixology/server/firebase/admin.ts` with Firebase Admin SDK initialization
+- Updated `src/features/mixology/server/auth.ts` to verify session cookies and ID tokens via Admin SDK
+- Updated `app/api/mixology/_lib/requireAdmin.ts` to check real auth first, fall back to legacy header only in dev or when explicitly enabled
+
+**Result:** Server-side auth now properly validates Firebase tokens. Admin routes are secured with real authentication.
+
+---
+
+### 2026-02-04: Simplified MixologyDataContext
+
+**Problem:** `MixologyDataContext` had dead code from a planned server integration that was never completed - hardcoded null values, no-op functions, and commented TODOs.
+
+**Changes:**
+- Removed hardcoded `serverContest`, `serverLoading`, `serverError` variables
+- Removed no-op `refresh` function and unnecessary `refreshAllLocal` wrapper
+- Removed unused `useCallback` import and `buildEntrySummaries` import
+- Simplified loading state to derive from `contests.length === 0`
+- Consolidated duplicate `useEffect` cleanup patterns
+- Deleted orphaned `lib/auth/__tests__/cookies.test.ts` (tested removed functions)
+- Fixed `lib/auth/__tests__/invite.test.ts` (removed test for removed `guestIndex` option)
+
+**Result:** ~60 lines deleted total (35 from component, 25 from orphaned tests), cleaner component that only uses data from AdminContestContext.
+
+---
 
 ### 2026-02-04: Removed dead code from client data layer
 

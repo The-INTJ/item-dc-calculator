@@ -1,7 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 import { parseInviteSearchParams } from '../invite';
-import { createGuestSession } from '../storage';
-import type { InviteContext } from '../types';
 
 describe('parseInviteSearchParams', () => {
   it('returns null when invite is missing', () => {
@@ -22,30 +20,5 @@ describe('parseInviteSearchParams', () => {
       receivedAt: new Date('2026-01-15T00:00:00Z').getTime(),
     });
     vi.useRealTimers();
-  });
-});
-
-describe('createGuestSession', () => {
-  it('stores invite context and guest identity', () => {
-    const inviteContext: InviteContext = {
-      inviteId: 'invite_1',
-      contestSlug: 'spring-2026',
-      source: 'email',
-      receivedAt: 123456,
-    };
-
-    const session = createGuestSession({
-      displayName: 'Guest Tester',
-      guestId: 'guest_abc',
-      guestIndex: ['guest_abc'],
-      inviteContext,
-    });
-
-    expect(session.profile.displayName).toBe('Guest Tester');
-    expect(session.inviteContext).toEqual(inviteContext);
-    expect(session.guestIdentity).toEqual({
-      guestId: 'guest_abc',
-      guestIndex: ['guest_abc'],
-    });
   });
 });

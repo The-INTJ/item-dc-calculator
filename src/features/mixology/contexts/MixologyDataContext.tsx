@@ -1,7 +1,7 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
-import { buildRoundDetail, buildRoundSummary, buildEntrySummaries } from '../lib/uiMappings';
+import React, { createContext, useContext, useEffect, useMemo, useRef } from 'react';
+import { buildRoundDetail, buildRoundSummary } from '../lib/uiMappings';
 import type { RoundDetail, RoundSummary, EntrySummary } from '../types/uiTypes';
 import type { Contest } from '../types';
 import { getCachedContestSnapshot, setCachedContest } from '../services/cache';
@@ -26,74 +26,47 @@ interface MixologyDataProviderProps {
 }
 
 export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
-  const { contests, activeContestId, lastUpdatedAt, refresh: refreshLocal } = useAdminContestData();
-  // TODO: Server integration placeholder (disabled for local admin testing).
-  // const { data: serverContest, loading: serverLoading, error: serverError, refresh } = useCurrentContest();
-  const serverContest: Contest | null = null;
-  const serverLoading = false;
-  const serverError: string | null = null;
-  const refresh = async () => {
-    // Intentionally no-op until server endpoints are ready.
-  };
-  const refreshAllLocal = useCallback(async () => {
-    refreshLocal();
-  }, [refreshLocal]);
-  const contest = serverContest ?? contests.find((item) => item.id === activeContestId) ?? null;
-  const loading = serverLoading;
-  const error = serverError;
+  const { contests, activeContestId, lastUpdatedAt, refresh } = useAdminContestData();
+  const contest = contests.find((item) => item.id === activeContestId) ?? null;
   const lastUpdatedAtRef = useRef<number | null>(null);
   const cachedSnapshot = getCachedContestSnapshot();
   const contestUpdatedEvent = 'mixology:contest-updated';
 
-  useEffect(() => {
-    if (!loading) {
-      lastUpdatedAtRef.current = Date.now();
-    }
-  }, [loading, contest]);
-
+  // Update timestamp when contest data changes
   useEffect(() => {
     if (contest) {
+      lastUpdatedAtRef.current = Date.now();
       setCachedContest(contest, Date.now());
     }
   }, [contest]);
 
+  // Auto-refresh on tab visibility change
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        void refreshAllLocal();
+        refresh();
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [refresh]);
 
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibility);
-    };
-  }, [refreshAllLocal]);
-
+  // Auto-refresh on interval (every 2 minutes)
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      void refreshAllLocal();
-    }, 2 * 60 * 1000);
-
+    const interval = window.setInterval(() => refresh(), 2 * 60 * 1000);
     return () => window.clearInterval(interval);
-  }, [refreshAllLocal]);
+  }, [refresh]);
 
+  // Listen for external contest update events
   useEffect(() => {
-    const handleContestUpdated = () => {
-      void refreshAllLocal();
-    };
-
+    const handleContestUpdated = () => refresh();
     window.addEventListener(contestUpdatedEvent, handleContestUpdated);
-
-    return () => {
-      window.removeEventListener(contestUpdatedEvent, handleContestUpdated);
-    };
-  }, [refreshAllLocal]);
+    return () => window.removeEventListener(contestUpdatedEvent, handleContestUpdated);
+  }, [refresh]);
 
   const value = useMemo<MixologyDataState>(() => {
     const activeContest = contest ?? cachedSnapshot.contest;
-    const effectiveLoading = loading && !activeContest;
     const effectiveUpdatedAt = contest ? lastUpdatedAtRef.current ?? lastUpdatedAt : cachedSnapshot.updatedAt;
 
     if (!activeContest) {
@@ -102,10 +75,10 @@ export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
         roundSummary: null,
         roundDetail: null,
         drinks: [],
-        loading: effectiveLoading,
-        error,
-        refreshAll: refreshAllLocal,
-        refreshRound: async () => refreshAllLocal(),
+        loading: contests.length === 0,
+        error: null,
+        refreshAll: async () => refresh(),
+        refreshRound: async () => refresh(),
         lastUpdatedAt: effectiveUpdatedAt,
       };
     }
@@ -116,15 +89,14 @@ export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
       contest: activeContest,
       roundSummary: buildRoundSummary(activeContest),
       roundDetail,
-      // Only return drinks for the active round, not all drinks
       drinks: roundDetail.entries,
-      loading: effectiveLoading,
-      error,
-      refreshAll: refreshAllLocal,
-      refreshRound: async () => refreshAllLocal(),
+      loading: false,
+      error: null,
+      refreshAll: async () => refresh(),
+      refreshRound: async () => refresh(),
       lastUpdatedAt: effectiveUpdatedAt,
     };
-  }, [contest, loading, error, refreshAllLocal, cachedSnapshot.contest, cachedSnapshot.updatedAt, lastUpdatedAt]);
+  }, [contest, contests.length, refresh, cachedSnapshot.contest, cachedSnapshot.updatedAt, lastUpdatedAt]);
 
   return <MixologyDataContext.Provider value={value}>{children}</MixologyDataContext.Provider>;
 }
