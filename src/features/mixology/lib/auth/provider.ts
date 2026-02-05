@@ -1,8 +1,5 @@
 /**
- * Auth provider interface for backend abstraction.
- *
- * This allows swapping between mock auth (for dev) and Firebase auth
- * without changing any component code.
+ * Auth provider interface for Firebase authentication.
  */
 
 import type { LocalSession, RegistrationData, LoginCredentials, UserProfile, UserVote } from './types';
@@ -81,4 +78,9 @@ export interface AuthProvider {
    * Update profile on the backend
    */
   updateProfile(uid: string, updates: Partial<UserProfile>): Promise<AuthResult>;
+
+  /**
+   * Get the current user's ID token for API authorization
+   */
+  getIdToken(): Promise<string | null>;
 }

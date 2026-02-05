@@ -22,7 +22,6 @@ import type {
 import type { AuthProvider } from '../lib/auth/provider';
 import { createGuestSession, createCloudSession } from '../lib/auth/storage';
 import { getInviteContextCookie, setInviteContextCookie, clearInviteContext } from '../lib/auth/cookies';
-import { createMockAuthProvider } from '../lib/auth/mockAuthProvider';
 import { createFirebaseAuthProvider } from '../server/firebase/firebaseAuthProvider';
 import { isFirebaseConfigured } from '../server/firebase/config';
 
@@ -34,14 +33,21 @@ let authProvider: AuthProvider | null = null;
 
 function getAuthProvider(): AuthProvider {
   if (!authProvider) {
-    if (isFirebaseConfigured()) {
-      authProvider = createFirebaseAuthProvider();
-    } else {
-      console.warn('[Auth] Firebase not configured; using local-only auth provider.');
-      authProvider = createMockAuthProvider();
+    if (!isFirebaseConfigured()) {
+      throw new Error('[Auth] Firebase is not configured. Set NEXT_PUBLIC_FIREBASE_* environment variables.');
     }
+    authProvider = createFirebaseAuthProvider();
   }
   return authProvider;
+}
+
+/**
+ * Get the current user's ID token for API authorization.
+ * Returns null if not authenticated.
+ */
+export async function getAuthToken(): Promise<string | null> {
+  if (!authProvider) return null;
+  return authProvider.getIdToken();
 }
 
 interface AuthProviderProps {

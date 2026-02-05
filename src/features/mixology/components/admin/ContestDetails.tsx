@@ -6,7 +6,7 @@ import { buildEntrySummary } from '../../types/uiTypes';
 import { getEffectiveConfig } from '../../types';
 import { getRoundLabel } from '../../lib/contestHelpers';
 import { DrinkCard } from '../ui';
-import { useAdminContestData } from '../../contexts/AdminContestContext';
+import { useContestData } from '../../contexts/contest';
 import { adminApi } from '../../services/adminApi';
 import { AdminContestActivation } from './AdminContestActivation';
 import { AdminContestRounds } from './AdminContestRounds';
@@ -79,7 +79,7 @@ function ScoreItem(
 
 export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }: ContestDetailsProps) {
   const router = useRouter();
-  const { deleteContest } = useAdminContestData();
+  const { deleteContest } = useContestData();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   
@@ -105,13 +105,13 @@ export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }
     setIsDeleting(true);
     setDeleteError(null);
     
-    const result = await deleteContest(contest.id);
+    const success = await deleteContest(contest.id);
     
-    if (result.success) {
+    if (success) {
       // Navigate back to admin dashboard
       router.push('/mixology/admin');
     } else {
-      setDeleteError(result.error ?? 'Failed to delete contest');
+      setDeleteError('Failed to delete contest');
       setIsDeleting(false);
     }
   };

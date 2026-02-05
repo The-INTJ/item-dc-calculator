@@ -116,6 +116,8 @@ When instructed to “refactor according to the Dev Standards,” follow these r
 - **Testing (where infrastructure exists):**
   - For shared components and critical logic, add or maintain basic tests (unit or component tests).
   - Align with the project’s existing testing tools and patterns.
+- **React**
+  - We are on React 19 with the React Compiler. Do not use "useMemo". They are no longer needed.
 
 ---
 

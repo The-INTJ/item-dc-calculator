@@ -2,14 +2,12 @@
  * Admin API Service Layer
  * 
  * Centralized service for all admin API calls.
- * Provides type-safe wrappers around fetch() with consistent error handling.
+ * Uses Firebase ID tokens for authentication.
  */
 
 import type { Contest, Entry, ContestConfig } from '../types';
+import { getAuthToken } from '../contexts/AuthContext';
 
-/**
- * Result wrapper for async operations
- */
 interface ProviderResult<T> {
   success: boolean;
   data?: T;
@@ -17,20 +15,23 @@ interface ProviderResult<T> {
 }
 
 /**
- * Internal helper for making API requests with admin auth
+ * Internal helper for making authenticated API requests
  */
 async function apiRequest<T>(
   url: string, 
   options: Record<string, unknown> & { method?: string; body?: string; headers?: Record<string, string> } = {}
 ): Promise<ProviderResult<T>> {
   try {
+    const token = await getAuthToken();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const res = await fetch(url, {
       ...options,
-      headers: { 
-        'Content-Type': 'application/json',
-        'x-mixology-role': 'admin',
-        ...options.headers 
-      },
+      headers: { ...headers, ...options.headers },
     });
     
     const json = await res.json();

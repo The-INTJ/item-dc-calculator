@@ -8,7 +8,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
-import { useAdminContestData } from '../../contexts/AdminContestContext';
+import { useContestData } from '../../contexts/contest';
 import type { Contest } from '../../types';
 import { ContestCard } from './ContestCard';
 import { ContestDetails } from './ContestDetails';
@@ -21,7 +21,7 @@ export function AdminDashboard() {
     refresh,
     setActiveContest,
     updateContest,
-  } = useAdminContestData();
+  } = useContestData();
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
   const loading = false;
   const error = null;

@@ -2,13 +2,13 @@
 
 import type { ReactNode } from 'react';
 import { MixologyDataProvider } from '@/mixology/contexts/MixologyDataContext';
-import { AdminContestProvider } from '@/mixology/contexts/AdminContestContext';
+import { ContestProvider } from '@/mixology/contexts/contest';
 import './mixology.scss';
 
 export default function MixologyLayout({ children }: { children: ReactNode }) {
   return (
-    <AdminContestProvider>
+    <ContestProvider>
       <MixologyDataProvider>{children}</MixologyDataProvider>
-    </AdminContestProvider>
+    </ContestProvider>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { Contest, Entry } from '../../types';
-import { useAdminContestData } from '../../contexts/AdminContestContext';
+import { useContestData } from '../../contexts/contest';
 import { getRoundLabel } from '../../lib/contestHelpers';
 
 interface AdminMixologistsProps {
@@ -78,7 +78,7 @@ function MixologistRow({
 }
 
 export function AdminMixologists({ contest }: AdminMixologistsProps) {
-  const { addMixologist, updateMixologist, removeMixologist } = useAdminContestData();
+  const { addMixologist, updateMixologist, removeMixologist } = useContestData();
   const [mixologistName, setMixologistName] = useState('');
   const [drinkName, setDrinkName] = useState('');
   const [roundId, setRoundId] = useState(contest.futureRoundId ?? contest.activeRoundId ?? '');
@@ -106,11 +106,11 @@ export function AdminMixologists({ contest }: AdminMixologistsProps) {
       roundId 
     });
     
-    if (result && result.success) {
+    if (result) {
       setMixologistName('');
       setDrinkName('');
-    } else if (result) {
-      setError(result.error ?? 'Failed to add mixologist');
+    } else {
+      setError('Failed to add mixologist');
     }
     
     setLoading(false);

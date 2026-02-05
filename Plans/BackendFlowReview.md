@@ -8,7 +8,7 @@ Provide a high-level map of the current backend flow, highlight non-standard Nex
 ### Request/data flow (contests, entries, scores)
 1. **Client UI and hooks**
    - Admin and app UI use client hooks (`useBackend`) and service wrappers (`adminApi`) to call the Next.js API routes via `fetch`.
-   - Admin-only calls send a role header `x-mixology-role: admin` and rely on that header for access control.
+   - Admin calls use Firebase ID tokens via Bearer auth header.
 
 2. **Next.js route handlers**
    - API routes live under `app/api/mixology/...` and call `getBackendProvider()` to get a backend provider instance.
@@ -24,8 +24,9 @@ Provide a high-level map of the current backend flow, highlight non-standard Nex
 
 ### Authentication flow
 1. **Client auth context**
-   - `MixologyAuthProvider` uses a singleton auth provider. It uses Firebase auth if configured; otherwise falls back to a mock provider.
+   - `MixologyAuthProvider` uses a singleton Firebase auth provider.
    - On initialization it loads user data from Firestore when a Firebase UID exists.
+   - Exports `getAuthToken()` for obtaining ID tokens for API calls.
 
 2. **Server-side auth**
    - `getCurrentUser` validates Firebase session cookies via Admin SDK.
@@ -53,9 +54,7 @@ Provide a high-level map of the current backend flow, highlight non-standard Nex
 
 ### Important but secondary
 - **`src/features/mixology/contexts/AuthContext.tsx`**
-  - Client auth is cloud-first but mixes local session logic and has fallback providers.
-- **`src/features/mixology/services/adminApi.ts`**
-  - Centralized admin API uses hard-coded admin header; replace with auth tokens or cookie-based auth.
+  - Client auth is cloud-first with clean session management.
 - **`app/api/mixology/contests/[id]/route.ts`** and related routes
   - Contest lookup does an in-memory search after fetching all contests; consider server-side query patterns.
 
@@ -77,7 +76,40 @@ Provide a high-level map of the current backend flow, highlight non-standard Nex
 ### 4) Unify admin/client data paths
 - Right now there are duplicate pathways (hooks + adminApi + contexts) that all fetch via API routes.
 - Consolidate into one client data layer (e.g., a single service module) so the UI isn’t split across multiple fetching patterns.
+### 5) Consolidate ContestStateContext into AdminContestContext
 
+**Current situation:**
+- `ContestStateContext` (~75 lines) holds a single `state` value (`'set' | 'shake' | 'scored'`) with labels/descriptions.
+- `AdminContestContext` fetches contests and syncs the active contest's `phase` to `ContestStateContext` via an effect.
+- Multiple components use `useContestState()` to read the current state.
+
+**Problem:** This is unnecessary indirection. The contest phase is already stored on the contest object in `AdminContestContext`. The sync effect creates a redundant data path and adds complexity.
+
+**Proposed architecture:**
+1. **Move constants to a standalone file** (`src/features/mixology/constants/contestStates.ts`):
+   ```typescript
+   export type ContestState = 'set' | 'shake' | 'scored';
+   export const CONTEST_STATES: ContestState[] = ['set', 'shake', 'scored'];
+   export const contestStateLabels: Record<ContestState, string> = { ... };
+   export const contestStateDescriptions: Record<ContestState, string> = { ... };
+   ```
+
+2. **Extend `AdminContestContext`** to expose state-derived values:
+   - Add `currentPhase`, `currentPhaseLabel`, `currentPhaseDescription` to the context value.
+   - These are computed from the active contest's `phase` field.
+
+3. **Delete `ContestStateContext.tsx`** entirely.
+
+4. **Update consumers** to use `useAdminContestData()` instead of `useContestState()`:
+   - `NavBar.tsx`: `const { currentPhase, currentPhaseLabel } = useAdminContestData();`
+   - `AdminStateControls.tsx`: Same pattern.
+   - `ContestPhaseControls.tsx`: Same pattern.
+
+**Benefits:**
+- Eliminates ~75 lines and one context provider.
+- Removes the sync effect that copies data between contexts.
+- Single source of truth for contest state.
+- Simpler provider tree in `RootLayoutClient.tsx`.
 ## Libraries to Consider (minimal)
 
 > **Only include libraries if they solve a concrete problem without bloat.**
@@ -134,3 +166,33 @@ No additional client libraries are recommended at this time; fetching and state 
 - Updated `hooks/index.ts` exports
 
 **Result:** ~190 lines deleted, single responsibility for `useBackend.ts` (just fetches current contest), cleaner separation between admin operations (`adminApi`) and public data access (`useCurrentContest`).
+
+---
+
+### 2026-02-04: Removed mock auth provider and cache layer
+
+**Problem:** 
+- `mockAuthProvider.ts` (~190 lines) was only used when Firebase wasn't configured. Since Firebase is always required in production, this was dead weight.
+- `cache.ts` (~28 lines) provided "show last contest while loading" caching that was redundant with `AdminContestContext` already holding contest state.
+
+**Changes:**
+- Deleted `lib/auth/mockAuthProvider.ts`
+- Deleted `services/cache.ts` and `services/__tests__/cache.test.ts`
+- Updated `AuthContext.tsx` to throw an error if Firebase isn't configured instead of falling back to mock
+- Removed cache imports/usage from `MixologyDataContext.tsx`
+
+**Result:** ~260 lines deleted, cleaner architecture with no fallback paths.
+
+---
+
+### 2026-02-04: Migrated adminApi to use Bearer tokens
+
+**Problem:** `adminApi.ts` used the legacy `x-mixology-role: admin` header for authentication, which is easy to spoof.
+
+**Changes:**
+- Added `getIdToken()` method to `AuthProvider` interface and Firebase implementation
+- Exported `getAuthToken()` from `AuthContext` for obtaining current ID token
+- Updated `adminApi.ts` to call `getAuthToken()` and send `Authorization: Bearer <token>` header
+- Removed hardcoded `x-mixology-role: admin` header
+
+**Result:** Admin API calls now use real Firebase authentication. Legacy header can be disabled in production by setting `MIXOLOGY_ALLOW_ADMIN_HEADER=false`.

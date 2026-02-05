@@ -1,0 +1,30 @@
+import type { Contest, ContestPhase, ContestRound, Entry } from '../../types';
+
+export interface ContestState {
+  contests: Contest[];
+  activeContestId: string | null;
+  lastUpdatedAt: number | null;
+}
+
+export type ContestStateUpdater = (prev: ContestState) => ContestState;
+
+export interface ContestContextValue extends ContestState {
+  updateState: (updater: ContestStateUpdater) => void;
+  refresh: () => void;
+}
+
+export interface ContestActions {
+  setActiveContest: (contestId: string) => void;
+  updateContest: (contestId: string, updates: Partial<Contest>) => void;
+  upsertContest: (contest: Contest) => void;
+  addContest: (name: string) => Promise<Contest | null>;
+  deleteContest: (contestId: string) => Promise<boolean>;
+  addRound: (contestId: string) => Promise<boolean>;
+  updateRound: (contestId: string, roundId: string, updates: Partial<ContestRound>) => Promise<boolean>;
+  removeRound: (contestId: string, roundId: string) => Promise<boolean>;
+  setActiveRound: (contestId: string, roundId: string) => Promise<boolean>;
+  setRoundState: (contestId: string, roundId: string, state: ContestPhase) => Promise<boolean>;
+  addMixologist: (contestId: string, mixologist: { name: string; drinkName: string; roundId: string }) => Promise<Entry | null>;
+  updateMixologist: (contestId: string, drinkId: string, updates: Partial<Entry>) => Promise<Entry | null>;
+  removeMixologist: (contestId: string, drinkId: string) => Promise<boolean>;
+}

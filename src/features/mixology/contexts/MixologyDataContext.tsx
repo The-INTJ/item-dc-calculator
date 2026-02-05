@@ -4,8 +4,7 @@ import React, { createContext, useContext, useEffect, useMemo, useRef } from 're
 import { buildRoundDetail, buildRoundSummary } from '../lib/uiMappings';
 import type { RoundDetail, RoundSummary, EntrySummary } from '../types/uiTypes';
 import type { Contest } from '../types';
-import { getCachedContestSnapshot, setCachedContest } from '../services/cache';
-import { useAdminContestData } from './AdminContestContext';
+import { useContestData } from './contest';
 
 interface MixologyDataState {
   contest: Contest | null;
@@ -26,17 +25,15 @@ interface MixologyDataProviderProps {
 }
 
 export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
-  const { contests, activeContestId, lastUpdatedAt, refresh } = useAdminContestData();
+  const { contests, activeContestId, lastUpdatedAt, refresh } = useContestData();
   const contest = contests.find((item) => item.id === activeContestId) ?? null;
   const lastUpdatedAtRef = useRef<number | null>(null);
-  const cachedSnapshot = getCachedContestSnapshot();
   const contestUpdatedEvent = 'mixology:contest-updated';
 
   // Update timestamp when contest data changes
   useEffect(() => {
     if (contest) {
       lastUpdatedAtRef.current = Date.now();
-      setCachedContest(contest, Date.now());
     }
   }, [contest]);
 
@@ -66,10 +63,7 @@ export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
   }, [refresh]);
 
   const value = useMemo<MixologyDataState>(() => {
-    const activeContest = contest ?? cachedSnapshot.contest;
-    const effectiveUpdatedAt = contest ? lastUpdatedAtRef.current ?? lastUpdatedAt : cachedSnapshot.updatedAt;
-
-    if (!activeContest) {
+    if (!contest) {
       return {
         contest: null,
         roundSummary: null,
@@ -79,24 +73,24 @@ export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
         error: null,
         refreshAll: async () => refresh(),
         refreshRound: async () => refresh(),
-        lastUpdatedAt: effectiveUpdatedAt,
+        lastUpdatedAt: lastUpdatedAtRef.current ?? lastUpdatedAt,
       };
     }
 
-    const roundDetail = buildRoundDetail(activeContest);
+    const roundDetail = buildRoundDetail(contest);
 
     return {
-      contest: activeContest,
-      roundSummary: buildRoundSummary(activeContest),
+      contest,
+      roundSummary: buildRoundSummary(contest),
       roundDetail,
       drinks: roundDetail.entries,
       loading: false,
       error: null,
       refreshAll: async () => refresh(),
       refreshRound: async () => refresh(),
-      lastUpdatedAt: effectiveUpdatedAt,
+      lastUpdatedAt: lastUpdatedAtRef.current ?? lastUpdatedAt,
     };
-  }, [contest, contests.length, refresh, cachedSnapshot.contest, cachedSnapshot.updatedAt, lastUpdatedAt]);
+  }, [contest, contests.length, refresh, lastUpdatedAt]);
 
   return <MixologyDataContext.Provider value={value}>{children}</MixologyDataContext.Provider>;
 }

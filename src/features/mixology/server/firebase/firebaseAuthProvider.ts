@@ -362,5 +362,16 @@ export function createFirebaseAuthProvider(): AuthProvider {
         return { success: false, error: message };
       }
     },
+
+    async getIdToken(): Promise<string | null> {
+      if (!currentUser) {
+        return null;
+      }
+      try {
+        return await currentUser.getIdToken();
+      } catch {
+        return null;
+      }
+    },
   };
 }
