@@ -1,6 +1,6 @@
-import SignedInLanding from '@/mixology/ViewSnippets/SignedInLanding';
-import SignedOutLanding from '@/mixology/ViewSnippets/SignedOutLanding';
-import { getCurrentUser } from '@/mixology/lib/api/serverAuth';
+import SignedInLanding from '@/contest/ViewSnippets/SignedInLanding';
+import SignedOutLanding from '@/contest/ViewSnippets/SignedOutLanding';
+import { getCurrentUser } from '@/contest/lib/api/serverAuth';
 
 export const dynamic = 'force-dynamic';
 

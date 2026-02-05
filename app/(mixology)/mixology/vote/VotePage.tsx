@@ -1,13 +1,13 @@
 'use client';
 
-import { useMixologyData } from '@/mixology/contexts/MixologyDataContext';
-import { useRoundState } from '@/src/features/mixology/contexts/RoundStateContext';
-import { VoteScorePanel } from '@/mixology/components/ui/VoteScorePanel';
-import { buildTotalsFromScores } from '@/mixology/components/ui/voteUtils';
-import { useVoteScores } from '@/mixology/lib/hooks/useVoteScores';
-import { useSubmitVotes } from '@/mixology/lib/hooks/useSubmitVotes';
-import { VotePageHeader } from '@/mixology/components/votePage/VotePageHeader';
-import { VoteActions } from '@/mixology/components/votePage/VoteActions';
+import { useMixologyData } from '@/contest/contexts/MixologyDataContext';
+import { useRoundState } from '@/src/features/contest/contexts/RoundStateContext';
+import { VoteScorePanel } from '@/contest/components/ui/VoteScorePanel';
+import { buildTotalsFromScores } from '@/contest/components/ui/voteUtils';
+import { useVoteScores } from '@/contest/lib/hooks/useVoteScores';
+import { useSubmitVotes } from '@/contest/lib/hooks/useSubmitVotes';
+import { VotePageHeader } from '@/contest/components/votePage/VotePageHeader';
+import { VoteActions } from '@/contest/components/votePage/VoteActions';
 
 export function VotePage() {
   const { contest, drinks, loading, error } = useMixologyData();

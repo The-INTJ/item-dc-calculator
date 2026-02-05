@@ -26,42 +26,9 @@ Deleted deprecated types (`Drink`, `MixologyScoreBreakdown`, `MixologyData`, `Vo
 
 ---
 
-## Phase 2: Rename Feature Directory & Path Aliases
+## Phase 2: Rename Feature Directory & Path Aliases ✅ Completed
 
-### 2.1 — Rename `src/features/mixology/` → `src/features/contest/`
-
-This is the single most impactful rename. Every import using `@/mixology/...` will need updating.
-
-### 2.2 — Update `tsconfig.json` path aliases
-
-**Delete all** `@/mixology*` aliases. **Add** equivalent `@/contest*` aliases:
-
-```jsonc
-// DELETE these:
-"@/mixology": ["./src/features/mixology"],
-"@/mixology/*": ["./src/features/mixology/*"],
-"@/mixology/components/*": [...],
-"@/mixology/contexts/*": [...],
-"@/mixology/hooks/*": [...],
-"@/mixology/lib/*": [...],
-"@/mixology/services/*": [...],
-"@/mixology/server/*": [...],
-"@/mixology/types/*": [...],
-"@/mixology/styles/*": [...],
-"@/components/styles/*": [...]
-
-// ADD these:
-"@/contest": ["./src/features/contest"],
-"@/contest/*": ["./src/features/contest/*"]
-```
-
-Simplify to just two aliases — the individual sub-path aliases are unnecessary with `@/contest/*`.
-
-### 2.3 — Global find-and-replace all imports
-
-Replace `@/mixology/` → `@/contest/` and `@/src/features/mixology/` → `@/src/features/contest/` across all files.
-
----
+Renamed `src/features/mixology/` to `src/features/contest/`, replaced all `@/mixology*` and `@/src/features/mixology*` imports, and simplified `tsconfig.json` aliases to only `@/contest` and `@/contest/*`.
 
 ## Phase 3: Rename App Router Paths
 

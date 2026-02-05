@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUserFromRequest } from '@/mixology/lib/api/serverAuth';
+import { getCurrentUserFromRequest } from '@/contest/lib/api/serverAuth';
 
 function allowLegacyAdminHeader(request: Request): boolean {
   const role = request.headers.get('x-mixology-role');
