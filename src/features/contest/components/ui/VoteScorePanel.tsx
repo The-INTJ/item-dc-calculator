@@ -28,15 +28,15 @@ export function VoteScorePanel({
   disabled = false,
 }: VoteScorePanelProps) {
   if (categories.length === 0) {
-    return <div className="mixology-empty">No categories yet.</div>;
+    return <div className="contest-empty">No categories yet.</div>;
   }
 
   if (drinks.length === 0) {
-    return <div className="mixology-empty">{emptyLabel}</div>;
+    return <div className="contest-empty">{emptyLabel}</div>;
   }
 
   return (
-    <div className={`mixology-vote-scores ${disabled ? 'mixology-vote-scores--disabled' : ''} ${className ?? ''}`.trim()}>
+    <div className={`contest-vote-scores ${disabled ? 'contest-vote-scores--disabled' : ''} ${className ?? ''}`.trim()}>
       {drinks.map((drink) => {
         const drinkTotals = categories.map((category) => {
           const total = totals.find(
@@ -56,20 +56,20 @@ export function VoteScorePanel({
             totals={drinkTotals}
           >
             {onScoreChange && !disabled && (
-              <div className="mixology-vote-inputs">
+              <div className="contest-vote-inputs">
                 {categories.map((category) => {
                   const value = scoreByDrinkId?.[drink.id]?.[category.id] ?? 5;
                   return (
-                    <div key={category.id} className="mixology-vote-slider">
-                      <div className="mixology-vote-slider__label-row">
-                        <label className="mixology-vote-slider__label" htmlFor={`score-${drink.id}-${category.id}`}>
+                    <div key={category.id} className="contest-vote-slider">
+                      <div className="contest-vote-slider__label-row">
+                        <label className="contest-vote-slider__label" htmlFor={`score-${drink.id}-${category.id}`}>
                           {category.label}
                         </label>
-                        <span className="mixology-vote-slider__value">{value}</span>
+                        <span className="contest-vote-slider__value">{value}</span>
                       </div>
                       <Slider
                         id={`score-${drink.id}-${category.id}`}
-                        className="mixology-vote-slider__field"
+                        className="contest-vote-slider__field"
                         min={1}
                         max={10}
                         step={1}

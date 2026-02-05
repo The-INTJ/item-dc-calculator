@@ -31,18 +31,18 @@ export function VotePage() {
 
   if (loading) {
     return (
-      <div className="mixology-vote-page">
+      <div className="contest-vote-page">
         <VotePageHeader />
-        <div className="mixology-card">Loading drinks...</div>
+        <div className="contest-card">Loading drinks...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="mixology-vote-page">
+      <div className="contest-vote-page">
         <VotePageHeader />
-        <div className="mixology-card">Error: {error}</div>
+        <div className="contest-card">Error: {error}</div>
       </div>
     );
   }
@@ -50,9 +50,9 @@ export function VotePage() {
   // States where voting isn't available yet (debug, set)
   if (contestState === 'set') {
     return (
-      <div className="mixology-vote-page">
+      <div className="contest-vote-page">
         <VotePageHeader />
-        <div className="mixology-card mixology-card--info">
+        <div className="contest-card contest-card--info">
           <p>
             <strong>Voting hasn&apos;t started yet.</strong>
           </p>
@@ -67,9 +67,9 @@ export function VotePage() {
 
   if (drinks.length === 0) {
     return (
-      <div className="mixology-vote-page">
+      <div className="contest-vote-page">
         <VotePageHeader />
-        <div className="mixology-card">
+        <div className="contest-card">
           <p>No drinks available for voting in this round. Please check back soon.</p>
         </div>
       </div>
@@ -77,11 +77,11 @@ export function VotePage() {
   }
 
   return (
-    <div className="mixology-vote-page">
+    <div className="contest-vote-page">
       <VotePageHeader />
 
       {isScored && (
-        <div className="mixology-card mixology-card--warning">
+        <div className="contest-card contest-card--warning">
           <p>
             <strong>Voting is closed.</strong>
           </p>

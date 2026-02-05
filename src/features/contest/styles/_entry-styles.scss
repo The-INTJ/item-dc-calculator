@@ -1,29 +1,29 @@
 @use './index' as *;
 
-.mixology-entry-card {
+.contest-entry-card {
   display: flex;
   flex-direction: column;
   gap: $space-lg;
   text-align: left;
 }
 
-.mixology-entry-card__header {
+.contest-entry-card__header {
   display: grid;
   gap: 0.25rem;
 }
 
-.mixology-entry-card__title {
+.contest-entry-card__title {
   @include type-lg;
   margin: 0;
 }
 
-.mixology-entry-card__creator {
+.contest-entry-card__creator {
   @include type-base;
   margin: 0;
   opacity: 0.8;
 }
 
-.mixology-entry-card__totals {
+.contest-entry-card__totals {
   display: grid;
   gap: $space-md;
   list-style: none;
@@ -31,13 +31,13 @@
   padding: 0;
 }
 
-.mixology-entry-card__totals li {
+.contest-entry-card__totals li {
   display: flex;
   justify-content: space-between;
   @include type-base;
 }
 
-.mixology-entry-grid {
+.contest-entry-grid {
   display: grid;
   gap: $space-gap-normal;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

@@ -8,28 +8,28 @@ export type NavItem = {
 
 export const navItems: NavItem[] = [
   {
-    key: 'mixology-home',
-    label: 'Mixology home',
+    key: 'contest-home',
+    label: 'Contest home',
     href: '/contest',
   },
   {
-    key: 'mixology-current-round',
+    key: 'contest-current-round',
     label: 'Current Round',
     href: '/contest/vote',
   },
   {
-    key: 'mixology-bracket',
+    key: 'contest-bracket',
     label: 'Bracket',
     href: '/contest/bracket',
   },
   {
-    key: 'mixology-account',
+    key: 'contest-account',
     label: 'Account',
     href: '/contest/account',
     variant: 'secondary',
   },
   {
-    key: 'mixology-admin',
+    key: 'contest-admin',
     label: 'Admin',
     href: '/contest/admin',
     variant: 'secondary',

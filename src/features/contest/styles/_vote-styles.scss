@@ -1,17 +1,17 @@
 @use './index' as *;
 
-.mixology-vote-layout {
+.contest-vote-layout {
   display: grid;
   gap: $space-gap-loose;
 }
 
-.mixology-vote-tabs {
+.contest-vote-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: $space-gap-tight;
 }
 
-.mixology-vote-tabs__button {
+.contest-vote-tabs__button {
   background: transparent;
   border: 1px solid currentColor;
   border-radius: $radius-pill;
@@ -26,7 +26,7 @@
   }
 }
 
-.mixology-vote-scores {
+.contest-vote-scores {
   display: grid;
   gap: $space-gap-normal;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -41,43 +41,43 @@
   opacity: 0.6;
 }
 
-.mixology-vote-input {
+.contest-vote-input {
   display: grid;
   gap: $space-sm;
 }
 
-.mixology-vote-inputs {
+.contest-vote-inputs {
   display: grid;
   gap: $space-xl;
 }
 
-.mixology-vote-slider {
+.contest-vote-slider {
   display: grid;
   gap: $space-2xs;
 }
 
-.mixology-vote-slider__label-row {
+.contest-vote-slider__label-row {
   align-items: baseline;
   display: flex;
   justify-content: space-between;
 }
 
-.mixology-vote-slider__label {
+.contest-vote-slider__label {
   @include type-sm;
   font-weight: $font-weight-semibold;
   opacity: 0.75;
 }
 
-.mixology-vote-slider__value {
+.contest-vote-slider__value {
   @include type-sm;
   font-weight: $font-weight-semibold;
 }
 
-.mixology-vote-slider__field {
+.contest-vote-slider__field {
   color: inherit;
 }
 
-.mixology-vote-actions {
+.contest-vote-actions {
   margin-top: $space-margin-default;
   align-items: flex-start;
   display: flex;
@@ -85,7 +85,7 @@
   gap: $space-base;
 }
 
-.mixology-vote-actions__message {
+.contest-vote-actions__message {
   @include type-base;
   margin: 0;
   opacity: 0.75;
@@ -100,6 +100,6 @@
   }
 }
 
-.mixology-empty {
+.contest-empty {
   opacity: 0.7;
 }

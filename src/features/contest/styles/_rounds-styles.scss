@@ -1,6 +1,6 @@
 @use './index' as *;
 
-.mixology-round-card {
+.contest-round-card {
   align-items: flex-start;
   display: flex;
   flex-direction: column;
@@ -9,7 +9,7 @@
   width: 100%;
 }
 
-.mixology-round-card__header {
+.contest-round-card__header {
   align-items: center;
   display: flex;
   justify-content: space-between;
@@ -17,26 +17,26 @@
   gap: $space-lg;
 }
 
-.mixology-round-card__eyebrow {
+.contest-round-card__eyebrow {
   @include type-label;
   margin: 0;
 }
 
-.mixology-round-card__title {
+.contest-round-card__title {
   @include type-lg;
   margin: 0.15rem 0 0;
 }
 
-.mixology-round-card__status {
+.contest-round-card__status {
   @include type-label;
 }
 
-.mixology-round-card__meta {
+.contest-round-card__meta {
   @include type-lg;
   margin: 0;
 }
 
-.mixology-round-card__contestants {
+.contest-round-card__contestants {
   display: grid;
   gap: $space-2xs;
   list-style: none;
@@ -44,10 +44,10 @@
   padding: 0;
 }
 
-.mixology-round-card__empty {
+.contest-round-card__empty {
   opacity: 0.7;
 }
 
-.mixology-round-card--compact .mixology-round-card__meta {
+.contest-round-card--compact .contest-round-card__meta {
   display: none;
 }

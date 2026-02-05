@@ -13,11 +13,11 @@ function formatUpdatedAt(timestamp: number | null) {
 
 function BracketHeader({ onRefresh, onVote, updatedAt }: { onRefresh: () => void; onVote: () => void; updatedAt: number | null }) {
   return (
-    <section className="mixology-hero">
+    <section className="contest-hero">
       <h1>Mixology Bracket</h1>
       <p>Track the current round and see which drinks are advancing.</p>
       <p>{formatUpdatedAt(updatedAt)}</p>
-      <div className="mixology-actions">
+      <div className="contest-actions">
         <button type="button" className="button-secondary" onClick={onRefresh}>
           Refresh
         </button>
@@ -31,7 +31,7 @@ function BracketHeader({ onRefresh, onVote, updatedAt }: { onRefresh: () => void
 
 function BracketOverview({ hasRound }: { hasRound: boolean }) {
   return (
-    <div className="mixology-card">
+    <div className="contest-card">
       <h2>Bracket status</h2>
       {hasRound ? (
         <p>Current round details are ready for review.</p>
@@ -53,7 +53,7 @@ export function BracketClient() {
   }, [contest]);
 
   return (
-    <div className="mixology-landing">
+    <div className="contest-landing">
       <BracketHeader
         onRefresh={() => setUpdatedAt(Date.now())}
         onVote={() => router.push('/contest/vote')}
@@ -61,8 +61,8 @@ export function BracketClient() {
       />
 
       <BracketOverview hasRound={rounds.length > 0} />
-      {loading && <div className="mixology-card">Loading bracket...</div>}
-      {error && <div className="mixology-card">Error: {error}</div>}
+      {loading && <div className="contest-card">Loading bracket...</div>}
+      {error && <div className="contest-card">Error: {error}</div>}
       {!loading && !error && <BracketView rounds={rounds} />}
     </div>
   );

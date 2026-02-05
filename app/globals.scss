@@ -145,14 +145,14 @@ body {
   padding: 1.5rem 1.25rem 2.5rem;
 }
 
-.mixology-landing {
+.contest-landing {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
 }
 
-.mixology-hero {
+.contest-hero {
   background: linear-gradient(135deg, #0ea5e9, #7c3aed);
   border-radius: 16px;
   color: #f8fafc;
@@ -162,23 +162,23 @@ body {
   box-shadow: 0 20px 60px rgba(79, 70, 229, 0.35);
 }
 
-.mixology-hero h1 {
+.contest-hero h1 {
   font-size: clamp(2.1rem, 3vw, 2.8rem);
   margin-bottom: 0.5rem;
 }
 
-.mixology-hero p {
+.contest-hero p {
   line-height: 1.6;
   margin: 0;
   max-width: 72ch;
 }
 
-.mixology-hero .mixology-actions {
+.contest-hero .contest-actions {
   align-items: center;
   width: 100%;
 }
 
-.mixology-actions {
+.contest-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
@@ -234,13 +234,13 @@ body {
   cursor: not-allowed;
 }
 
-.mixology-panels {
+.contest-panels {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
-.mixology-card {
+.contest-card {
   background: radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.08), transparent 35%),
     #0b1120;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -262,12 +262,12 @@ body {
   }
 }
 
-.mixology-card h2 {
+.contest-card h2 {
   font-size: 1.2rem;
   margin-bottom: 0.4rem;
 }
 
-.mixology-card p {
+.contest-card p {
   line-height: 1.5;
   margin: 0.2rem 0;
 }
@@ -295,31 +295,31 @@ body {
     padding: 2rem 1.5rem 3rem;
   }
 
-  .mixology-landing {
+  .contest-landing {
     gap: 2rem;
   }
 
-  .mixology-hero {
+  .contest-hero {
     align-items: center;
     padding: 2rem;
   }
 
-  .mixology-hero .mixology-actions {
+  .contest-hero .contest-actions {
     width: auto;
   }
 }
 
 @media (min-width: 900px) {
-  .mixology-actions {
+  .contest-actions {
     margin-top: 0.75rem;
   }
 
-  .mixology-panels {
+  .contest-panels {
     gap: 1.25rem;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
 
-  .mixology-card {
+  .contest-card {
     padding: 1.35rem;
   }
 }

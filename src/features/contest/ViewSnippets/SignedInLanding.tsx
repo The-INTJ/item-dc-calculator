@@ -12,14 +12,14 @@ interface SignedInLandingProps {
 
 export default function SignedInLanding({ user }: SignedInLandingProps) {
   return (
-    <div className="mixology-landing">
-      <section className="mixology-hero">
+    <div className="contest-landing">
+      <section className="contest-hero">
         <h1>Welcome back, {user.displayName}!</h1>
         <p>
           Jump back into the action. Continue rating drinks, check your progress,
           or explore ongoing contests.
         </p>
-        <div className="mixology-actions">
+        <div className="contest-actions">
           <Link href="/contest/vote" className="button-primary">
             Start voting
           </Link>
@@ -29,7 +29,7 @@ export default function SignedInLanding({ user }: SignedInLandingProps) {
           <AdminOnlyLink
             href="/contest/admin"
             className="button-secondary"
-            dataTestId="mixology-admin-link"
+            dataTestId="contest-admin-link"
           >
             Admin dashboard
           </AdminOnlyLink>

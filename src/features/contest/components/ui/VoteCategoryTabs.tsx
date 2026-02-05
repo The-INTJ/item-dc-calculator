@@ -16,12 +16,12 @@ export function VoteCategoryTabs({
   emptyLabel = 'No categories yet.',
 }: VoteCategoryTabsProps) {
   if (categories.length === 0) {
-    return <div className="mixology-empty">{emptyLabel}</div>;
+    return <div className="contest-empty">{emptyLabel}</div>;
   }
 
   return (
     <div
-      className={`mixology-vote-tabs ${className ?? ''}`.trim()}
+      className={`contest-vote-tabs ${className ?? ''}`.trim()}
       role="tablist"
       aria-label="Vote categories"
     >
@@ -32,7 +32,7 @@ export function VoteCategoryTabs({
             key={category.id}
             type="button"
             onClick={() => onChange(category.id)}
-            className={`mixology-vote-tabs__button ${isActive ? 'mixology-vote-tabs__button--active' : ''}`.trim()}
+            className={`contest-vote-tabs__button ${isActive ? 'contest-vote-tabs__button--active' : ''}`.trim()}
             aria-pressed={isActive}
             role="tab"
           >

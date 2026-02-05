@@ -3,11 +3,11 @@
   "info": {
     "title": "Contest Judging API",
     "version": "2.0.0",
-    "description": "API for managing contests, entries, judges, and scoring. Supports multiple contest types (mixology, chili, cosplay, dance, etc.) through configurable ContestConfig."
+    "description": "API for managing contests, entries, judges, and scoring. Supports multiple contest types through configurable ContestConfig."
   },
   "servers": [
     {
-      "url": "/api/mixology",
+      "url": "/api/contest",
       "description": "Contest API"
     }
   ],
@@ -16,7 +16,7 @@
       "AdminRole": {
         "type": "apiKey",
         "in": "header",
-        "name": "x-mixology-role",
+        "name": "x-contest-role",
         "description": "Set to 'admin' for admin-only endpoints"
       }
     },
@@ -481,7 +481,7 @@
         }
       }
     },
-    "/contests/{id}/drinks": {
+    "/contests/{id}/entries": {
       "parameters": [
         {
           "name": "id",
@@ -493,7 +493,7 @@
       ],
       "get": {
         "summary": "List entries in a contest",
-        "description": "Returns all entries for a contest. Note: This endpoint uses 'drinks' path for backward compatibility but returns Entry objects.",
+        "description": "Returns all entries for a contest.",
         "tags": ["Entries"],
         "security": [{ "AdminRole": [] }],
         "responses": {
@@ -584,7 +584,7 @@
         }
       }
     },
-    "/contests/{id}/drinks/{drinkId}": {
+    "/contests/{id}/entries/{entryId}": {
       "parameters": [
         {
           "name": "id",
@@ -594,10 +594,10 @@
           "schema": { "type": "string" }
         },
         {
-          "name": "drinkId",
+          "name": "entryId",
           "in": "path",
           "required": true,
-          "description": "Entry ID (path uses 'drinkId' for backward compatibility)",
+          "description": "Entry ID",
           "schema": { "type": "string" }
         }
       ],
@@ -749,7 +749,7 @@
             "schema": { "type": "string" }
           },
           {
-            "name": "drinkId",
+            "name": "entryId",
             "in": "query",
             "description": "Filter by entry ID (deprecated, use entryId)",
             "required": false,
@@ -819,7 +819,7 @@
                 "type": "object",
                 "properties": {
                   "entryId": { "type": "string", "description": "Entry being scored" },
-                  "drinkId": { "type": "string", "description": "Entry being scored (deprecated, use entryId)" },
+                  "entryId": { "type": "string", "description": "Entry being scored" },
                   "judgeId": { "type": "string" },
                   "judgeName": { "type": "string", "description": "Name for auto-created judge" },
                   "judgeRole": { "$ref": "#/components/schemas/JudgeRole" },

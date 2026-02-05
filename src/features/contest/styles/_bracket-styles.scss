@@ -1,38 +1,38 @@
 @use './index' as *;
 
-.mixology-bracket {
+.contest-bracket {
   @include container-parent;
   display: grid;
   gap: $space-gap-loose;
 }
 
-.mixology-bracket__mobile {
+.contest-bracket__mobile {
   display: grid;
   gap: $space-lg;
 }
 
-.mixology-bracket__hint {
+.contest-bracket__hint {
   @include type-base;
   margin: 0;
   opacity: 0.75;
 }
 
-.mixology-bracket__round-strip {
+.contest-bracket__round-strip {
   @include scroll-snap-x;
   display: flex;
   gap: $space-gap-normal;
   padding-bottom: $space-base;
 }
 
-.mixology-bracket__round {
+.contest-bracket__round {
   @include scroll-snap-item;
 }
 
-.mixology-bracket__desktop {
+.contest-bracket__desktop {
   display: none;
 }
 
-.mixology-bracket__grid {
+.contest-bracket__grid {
   display: grid;
   gap: $space-gap-loose;
   grid-auto-columns: minmax(220px, 1fr);
@@ -41,79 +41,79 @@
   padding-bottom: $space-base;
 }
 
-.mixology-bracket__round-card {
+.contest-bracket__round-card {
   display: flex;
   flex-direction: column;
   gap: $space-lg;
 }
 
-.mixology-bracket__round-header {
+.contest-bracket__round-header {
   align-items: center;
   display: flex;
   gap: $space-lg;
   justify-content: space-between;
 }
 
-.mixology-bracket__round-title {
+.contest-bracket__round-title {
   @include type-xl;
   margin: 0;
 }
 
-.mixology-bracket__round-status {
+.contest-bracket__round-status {
   @include type-label;
 }
 
-.mixology-bracket__matchups {
+.contest-bracket__matchups {
   display: grid;
   gap: $space-lg;
 }
 
-.mixology-matchup-card {
+.contest-matchup-card {
   display: grid;
   gap: $space-base;
   text-align: left;
 }
 
-.mixology-matchup-card__team {
+.contest-matchup-card__team {
   align-items: center;
   display: flex;
   gap: $space-lg;
   justify-content: space-between;
 }
 
-.mixology-matchup-card__name {
+.contest-matchup-card__name {
   margin: 0;
 }
 
-.mixology-matchup-card__score {
+.contest-matchup-card__score {
   font-weight: $font-weight-semibold;
 }
 
-.mixology-matchup-card__team--winner {
+.contest-matchup-card__team--winner {
   font-weight: $font-weight-bold;
 }
 
-.mixology-matchup-card__team--winner .mixology-matchup-card__name {
+.contest-matchup-card__team--winner .contest-matchup-card__name {
   text-decoration: underline;
 }
 
-.mixology-matchup-card__badge {
+.contest-matchup-card__badge {
   @include type-label;
 }
 
 // Container queries for responsive behavior
 @include container('sm') {
-  .mixology-bracket__round {
+  .contest-bracket__round {
     flex-basis: 80%;
   }
 }
 
 @include container('lg') {
-  .mixology-bracket__mobile {
+  .contest-bracket__mobile {
     display: none;
   }
 
-  .mixology-bracket__desktop {
+  .contest-bracket__desktop {
     display: block;
   }
 }

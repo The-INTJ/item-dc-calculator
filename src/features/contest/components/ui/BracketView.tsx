@@ -38,32 +38,32 @@ function MatchupRow({ contestant, winnerId }: { contestant: BracketContestant; w
 
   return (
     <div
-      className={`mixology-matchup-card__team ${isWinner ? 'mixology-matchup-card__team--winner' : ''}`.trim()}
+      className={`contest-matchup-card__team ${isWinner ? 'contest-matchup-card__team--winner' : ''}`.trim()}
     >
-      <p className="mixology-matchup-card__name">{contestant.name}</p>
-      <span className="mixology-matchup-card__score">{score}</span>
+      <p className="contest-matchup-card__name">{contestant.name}</p>
+      <span className="contest-matchup-card__score">{score}</span>
     </div>
   );
 }
 
 function MatchupCard({ matchup }: { matchup: BracketMatchup }) {
   return (
-    <div className="mixology-card mixology-matchup-card">
+    <div className="contest-card contest-matchup-card">
       <MatchupRow contestant={matchup.contestantA} winnerId={matchup.winnerId} />
       <MatchupRow contestant={matchup.contestantB} winnerId={matchup.winnerId} />
-      {matchup.winnerId && <span className="mixology-matchup-card__badge">Winner decided</span>}
+      {matchup.winnerId && <span className="contest-matchup-card__badge">Winner decided</span>}
     </div>
   );
 }
 
 function BracketRoundColumn({ round }: { round: BracketRound }) {
   return (
-    <div className="mixology-card mixology-bracket__round-card">
-      <header className="mixology-bracket__round-header">
-        <h3 className="mixology-bracket__round-title">{round.name}</h3>
-        <span className="mixology-bracket__round-status">{formatRoundStatus(round.status)}</span>
+    <div className="contest-card contest-bracket__round-card">
+      <header className="contest-bracket__round-header">
+        <h3 className="contest-bracket__round-title">{round.name}</h3>
+        <span className="contest-bracket__round-status">{formatRoundStatus(round.status)}</span>
       </header>
-      <div className="mixology-bracket__matchups">
+      <div className="contest-bracket__matchups">
         {round.matchups.map((matchup) => (
           <MatchupCard key={matchup.id} matchup={matchup} />
         ))}
@@ -74,22 +74,22 @@ function BracketRoundColumn({ round }: { round: BracketRound }) {
 
 export function BracketView({ rounds }: BracketViewProps) {
   return (
-    <section className="mixology-bracket">
-      <div className="mixology-bracket__mobile">
-        <p className="mixology-bracket__hint">Swipe to move between rounds.</p>
-        <div className="mixology-bracket__round-strip" role="list">
+    <section className="contest-bracket">
+      <div className="contest-bracket__mobile">
+        <p className="contest-bracket__hint">Swipe to move between rounds.</p>
+        <div className="contest-bracket__round-strip" role="list">
           {rounds.map((round) => (
-            <div key={round.id} className="mixology-bracket__round" role="listitem">
+            <div key={round.id} className="contest-bracket__round" role="listitem">
               <BracketRoundColumn round={round} />
             </div>
           ))}
         </div>
       </div>
 
-      <div className="mixology-bracket__desktop">
-        <div className="mixology-bracket__grid" role="list">
+      <div className="contest-bracket__desktop">
+        <div className="contest-bracket__grid" role="list">
           {rounds.map((round) => (
-            <div key={round.id} className="mixology-bracket__column" role="listitem">
+            <div key={round.id} className="contest-bracket__column" role="listitem">
               <BracketRoundColumn round={round} />
             </div>
           ))}
