@@ -6,7 +6,7 @@
  */
 
 import type { Contest, Entry, ContestConfig } from '../types';
-import { getAuthToken } from '../contexts/AuthContext';
+import { getAuthToken } from '../contexts/auth/getAuthToken';
 
 interface ProviderResult<T> {
   success: boolean;

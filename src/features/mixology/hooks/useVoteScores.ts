@@ -6,7 +6,6 @@ import { useMixologyData } from '../contexts/MixologyDataContext';
 import {
   buildScoreDefaults,
   buildScoresFromEntries,
-  buildScoresFromVotes,
   mergeScoreMaps,
 } from '../lib/scoreUtils';
 import type { ScoreEntry } from '../types';
@@ -71,18 +70,7 @@ export function useVoteScores(): UseVoteScoresResult {
     setDraftScores((prev) => mergeScoreMaps(defaults, prev));
   }, [categoryIds, drinkIds]);
 
-  // Step 2: Overlay local session votes
-  useEffect(() => {
-    if (!contestId || !judgeId || categoryIds.length === 0) return;
-
-    const localVotes = session?.votes?.filter((vote) => vote.contestId === contestId) ?? [];
-    if (localVotes.length > 0) {
-      const mapped = buildScoresFromVotes(localVotes, categoryIds);
-      setDraftScores((prev) => mergeScoreMaps(prev, mapped));
-    }
-  }, [categoryIds, contestId, judgeId, session?.votes]);
-
-  // Step 3: Fetch and overlay remote scores
+  // Step 2: Fetch and overlay remote scores
   useEffect(() => {
     if (!contestId || !judgeId || categoryIds.length === 0 || hasLoadedRemoteScores.current) {
       return;

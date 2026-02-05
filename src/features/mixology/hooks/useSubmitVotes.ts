@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useContestData } from '../contexts/contest';
 import { useMixologyData } from '../contexts/MixologyDataContext';
 import {
   buildFullBreakdown,
@@ -30,7 +31,8 @@ export interface UseSubmitVotesResult {
  * Manages submission state and syncs with local session storage.
  */
 export function useSubmitVotes(): UseSubmitVotesResult {
-  const { session, role, recordVote } = useAuth();
+  const { session, role } = useAuth();
+  const { recordVote } = useContestData();
   const { contest, refreshAll } = useMixologyData();
 
   const [status, setStatus] = useState<SubmitStatus>('idle');

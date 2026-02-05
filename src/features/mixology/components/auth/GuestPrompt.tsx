@@ -16,7 +16,7 @@ interface GuestPromptProps {
 }
 
 export function GuestPrompt({ onContinue, onSwitchToLogin, onSwitchToRegister }: GuestPromptProps) {
-  const { loginAnonymously } = useAuth();
+  const { startGuestSession } = useAuth();
   const [displayName, setDisplayName] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,9 +33,7 @@ export function GuestPrompt({ onContinue, onSwitchToLogin, onSwitchToRegister }:
 
     setBusy(true);
 
-    const result = await loginAnonymously({
-      displayName: trimmedName,
-    });
+    const result = await startGuestSession(trimmedName);
 
     setBusy(false);
 

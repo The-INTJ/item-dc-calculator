@@ -13,7 +13,7 @@ import { useAuth } from '@/mixology/contexts/AuthContext';
 
 export default function MixologyOnboardPage() {
   const router = useRouter();
-  const { loading, isGuest, loginAnonymously, loginWithGoogle, resetSessionForNewAccount } =
+  const { loading, isGuest, startGuestSession, loginWithGoogle, resetSessionForNewAccount } =
     useAuth();
   const [error, setError] = useState<string | null>(null);
   const [syncWarning, setSyncWarning] = useState<string | null>(null);
@@ -37,9 +37,7 @@ export default function MixologyOnboardPage() {
 
     setBusyAction('anonymous');
 
-    const result = await loginAnonymously({
-      displayName: trimmedName,
-    });
+    const result = await startGuestSession(trimmedName);
 
     setBusyAction(null);
 

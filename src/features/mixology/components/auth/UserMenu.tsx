@@ -12,7 +12,7 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ onLogin, onRegister }: UserMenuProps) {
-  const { session, isAuthenticated, isGuest, logout, syncPendingData } = useAuth();
+  const { session, isAuthenticated, isGuest, logout } = useAuth();
 
   if (!session) {
     return (
@@ -26,11 +26,6 @@ export function UserMenu({ onLogin, onRegister }: UserMenuProps) {
       </div>
     );
   }
-
-  const hasPending = session.pendingSync && (
-    (session.pendingSync.votes?.length ?? 0) > 0 ||
-    session.pendingSync.profileUpdates
-  );
 
   return (
     <div className="user-menu">
@@ -49,30 +44,11 @@ export function UserMenu({ onLogin, onRegister }: UserMenuProps) {
         </div>
       )}
 
-      {hasPending && isAuthenticated && (
-        <button
-          type="button"
-          onClick={() => syncPendingData()}
-          className="user-menu__sync"
-        >
-          Sync pending data
-        </button>
-      )}
-
       {isAuthenticated && (
         <button type="button" onClick={logout} className="user-menu__logout">
           Sign Out
         </button>
       )}
-
-      <div className="user-menu__stats">
-        <span>{session.votes.length} votes</span>
-        {session.pendingSync?.votes?.length ? (
-          <span className="user-menu__pending">
-            ({session.pendingSync.votes.length} pending sync)
-          </span>
-        ) : null}
-      </div>
     </div>
   );
 }

@@ -1,2 +1,2 @@
 export { ContestProvider, useContestData } from './ContestContext';
-export type { ContestState, ContestActions } from './types';
+export type { ContestState, ContestActions, Vote, VoteInput, VotingActions } from './types';

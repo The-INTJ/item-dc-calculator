@@ -7,7 +7,7 @@
  */
 
 import type { Contest, Entry } from '../types';
-import { getAuthToken } from '../contexts/AuthContext';
+import { getAuthToken } from '../contexts/auth/getAuthToken';
 
 async function apiRequest<T>(
   url: string,

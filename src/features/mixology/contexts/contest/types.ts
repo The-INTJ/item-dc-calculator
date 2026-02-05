@@ -1,4 +1,24 @@
-import type { Contest, ContestPhase, ContestRound, Entry } from '../../types';
+import type { Contest, ContestPhase, ContestRound, Entry, ScoreBreakdown } from '../../types';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Vote Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface Vote {
+  contestId: string;
+  drinkId: string;
+  score: number;
+  breakdown?: ScoreBreakdown;
+  naSections?: string[];
+  notes?: string;
+  timestamp: number;
+}
+
+export type VoteInput = Omit<Vote, 'timestamp'>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Contest State
+// ─────────────────────────────────────────────────────────────────────────────
 
 export interface ContestState {
   contests: Contest[];
@@ -27,4 +47,8 @@ export interface ContestActions {
   addMixologist: (contestId: string, mixologist: { name: string; drinkName: string; roundId: string }) => Promise<Entry | null>;
   updateMixologist: (contestId: string, drinkId: string, updates: Partial<Entry>) => Promise<Entry | null>;
   removeMixologist: (contestId: string, drinkId: string) => Promise<boolean>;
+}
+
+export interface VotingActions {
+  recordVote: (vote: VoteInput) => Promise<void>;
 }

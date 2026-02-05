@@ -1,5 +1,5 @@
 import type { ScoreBreakdown, ScoreEntry, ContestConfig } from '../types';
-import type { UserVote } from '../contexts/auth/types';
+import type { Vote } from '../contexts/contest/types';
 import { MIXOLOGY_CONFIG, getAttributeIds } from '../types';
 
 export const breakdownKeys: string[] = getAttributeIds(MIXOLOGY_CONFIG);
@@ -54,7 +54,7 @@ export function buildScoresFromEntries(
 }
 
 export function buildScoresFromVotes(
-  votes: UserVote[],
+  votes: Vote[],
   categoryIds: string[],
   config?: ContestConfig
 ): Record<string, Record<string, number>> {

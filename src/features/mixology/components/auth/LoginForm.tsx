@@ -13,7 +13,7 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
-  const { login, loginAnonymously, loginWithGoogle } = useAuth();
+  const { login, startGuestSession, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +54,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
     setError(null);
     setAnonymousLoading(true);
 
-    const result = await loginAnonymously();
+    const result = await startGuestSession('Guest User');
 
     setAnonymousLoading(false);
     if (result.success) {

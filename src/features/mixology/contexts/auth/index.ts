@@ -1,27 +1,22 @@
 /**
- * Auth module index - Cloud-first approach
+ * Auth module exports
  */
 
-// Types
 export type {
   UserStatus,
-  UserVote,
-  PendingSync,
   UserProfile,
-  LocalSession,
+  Session,
+  AuthState,
+  AuthAction,
   RegistrationData,
   LoginCredentials,
-  AuthState,
-  AuthActions,
-  AuthContextValue,
+  AuthResult,
   GuestSessionResult,
+  AuthContextValue,
+  AuthProviderProps,
 } from './types';
 
-// Context and hooks - re-export from contexts folder
 export { MixologyAuthProvider, useAuth } from '../AuthContext';
-
-// Minimal storage utilities (cloud-first)
-export { createGuestSession, createCloudSession } from './storage';
-
-// Provider interface (for implementing custom backends)
-export type { AuthProvider, AuthResult } from './provider';
+export { createSession } from './storage';
+export { getAuthToken } from './getAuthToken';
+export type { AuthProvider } from './provider';

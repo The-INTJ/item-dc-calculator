@@ -20,29 +20,15 @@ import {
   getDoc,
   setDoc,
   updateDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-  addDoc,
   serverTimestamp,
 } from 'firebase/firestore';
 
 import type { AuthProvider, AuthResult } from '../../contexts/auth/provider';
-import type {
-  RegistrationData,
-  LoginCredentials,
-  UserProfile,
-  UserVote,
-  LocalSession,
-} from '../../contexts/auth/types';
+import type { RegistrationData, LoginCredentials, UserProfile } from '../../contexts/auth/types';
 import { initializeFirebase, isFirebaseConfigured } from './config';
 
-// Firestore collection names
 const USERS_COLLECTION = 'mixology_users';
-const VOTES_COLLECTION = 'mixology_votes';
 
-// Current Firebase user
 let currentUser: User | null = null;
 
 export function createFirebaseAuthProvider(): AuthProvider {
@@ -57,20 +43,16 @@ export function createFirebaseAuthProvider(): AuthProvider {
       auth = firebase.auth;
       db = firebase.db;
 
-      const activeAuth = auth;
-      const activeDb = db;
-
-      if (!isFirebaseConfigured() || !activeAuth || !activeDb) {
-        console.warn('[FirebaseAuth] Firebase not configured or unavailable; using local-only mode.');
+      if (!isFirebaseConfigured() || !auth || !db) {
+        console.warn('[FirebaseAuth] Firebase not configured');
         return;
       }
 
-      // Listen for auth state changes
+      const activeAuth = auth;
       return new Promise((resolve) => {
         const unsubscribe = onAuthStateChanged(activeAuth, (user) => {
           currentUser = user;
-          console.log('[FirebaseAuth] Auth state changed:', user?.uid ?? 'signed out');
-          unsubscribe(); // Only need initial state
+          unsubscribe();
           resolve();
         });
       });
@@ -82,16 +64,10 @@ export function createFirebaseAuthProvider(): AuthProvider {
       }
 
       try {
-        const userCredential = await createUserWithEmailAndPassword(
-          auth,
-          data.email,
-          data.password
-        );
-
+        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredential.user;
         currentUser = user;
 
-        // Create user profile in Firestore
         await setDoc(doc(db, USERS_COLLECTION, user.uid), {
           displayName: data.displayName,
           email: data.email,
@@ -100,11 +76,9 @@ export function createFirebaseAuthProvider(): AuthProvider {
           updatedAt: serverTimestamp(),
         });
 
-        console.log('[FirebaseAuth] Registered user:', user.uid);
         return { success: true, uid: user.uid };
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Registration failed';
-        console.error('[FirebaseAuth] Registration error:', message);
         return { success: false, error: message };
       }
     },
@@ -115,20 +89,11 @@ export function createFirebaseAuthProvider(): AuthProvider {
       }
 
       try {
-        const userCredential = await signInWithEmailAndPassword(
-          auth,
-          credentials.email,
-          credentials.password
-        );
-
-        const user = userCredential.user;
-        currentUser = user;
-
-        console.log('[FirebaseAuth] Logged in user:', user.uid);
-        return { success: true, uid: user.uid };
+        const userCredential = await signInWithEmailAndPassword(auth, credentials.email, credentials.password);
+        currentUser = userCredential.user;
+        return { success: true, uid: userCredential.user.uid };
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Login failed';
-        console.error('[FirebaseAuth] Login error:', message);
         return { success: false, error: message };
       }
     },
@@ -156,11 +121,9 @@ export function createFirebaseAuthProvider(): AuthProvider {
           });
         }
 
-        console.log('[FirebaseAuth] Logged in with Google:', user.uid);
         return { success: true, uid: user.uid };
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Google sign-in failed';
-        console.error('[FirebaseAuth] Google login error:', message);
         return { success: false, error: message };
       }
     },
@@ -186,11 +149,9 @@ export function createFirebaseAuthProvider(): AuthProvider {
           });
         }
 
-        console.log('[FirebaseAuth] Logged in anonymously:', user.uid);
         return { success: true, uid: user.uid };
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Anonymous sign-in failed';
-        console.error('[FirebaseAuth] Anonymous login error:', message);
         return { success: false, error: message };
       }
     },
@@ -203,11 +164,9 @@ export function createFirebaseAuthProvider(): AuthProvider {
       try {
         await signOut(auth);
         currentUser = null;
-        console.log('[FirebaseAuth] Logged out');
         return { success: true };
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Logout failed';
-        console.error('[FirebaseAuth] Logout error:', message);
         return { success: false, error: message };
       }
     },
@@ -220,126 +179,15 @@ export function createFirebaseAuthProvider(): AuthProvider {
       return currentUser?.uid ?? null;
     },
 
-    async syncToBackend(session: LocalSession): Promise<AuthResult> {
-      if (!isFirebaseConfigured() || !currentUser || !db) {
-        return { success: false, error: 'Not authenticated or Firebase not configured' };
-      }
+    async fetchUserData(uid: string): Promise<{ profile?: UserProfile } | null> {
+      if (!isFirebaseConfigured() || !db) return null;
 
       try {
-        const uid = currentUser.uid;
-
-        // Sync profile updates
-        if (session.pendingSync?.profileUpdates) {
-          await updateDoc(doc(db, USERS_COLLECTION, uid), {
-            ...session.pendingSync.profileUpdates,
-            updatedAt: serverTimestamp(),
-          });
-        }
-
-        // Sync votes
-        if (session.pendingSync?.votes) {
-          for (const vote of session.pendingSync.votes) {
-            await this.saveVote(uid, vote);
-          }
-        }
-
-        console.log('[FirebaseAuth] Synced data for user:', uid);
-        return { success: true, uid };
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Sync failed';
-        console.error('[FirebaseAuth] Sync error:', message);
-        return { success: false, error: message };
-      }
-    },
-
-    async fetchUserData(
-      uid: string
-    ): Promise<{ profile?: UserProfile; votes?: UserVote[] } | null> {
-      if (!isFirebaseConfigured() || !db) {
-        return null;
-      }
-
-      try {
-        // Fetch profile
         const userDoc = await getDoc(doc(db, USERS_COLLECTION, uid));
-        const profile = userDoc.exists()
-          ? (userDoc.data() as UserProfile)
-          : undefined;
-
-        // Fetch votes
-        const votesQuery = query(
-          collection(db, VOTES_COLLECTION),
-          where('userId', '==', uid)
-        );
-        const votesSnapshot = await getDocs(votesQuery);
-        const votes: UserVote[] = votesSnapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            contestId: data.contestId,
-            drinkId: data.drinkId,
-            score: data.score,
-            breakdown: data.breakdown,
-            naSections: data.naSections,
-            notes: data.notes,
-            timestamp: data.timestamp?.toMillis?.() ?? data.timestamp ?? Date.now(),
-          };
-        });
-
-        return { profile, votes };
-      } catch (error) {
-        console.error('[FirebaseAuth] Fetch user data error:', error);
+        const profile = userDoc.exists() ? (userDoc.data() as UserProfile) : undefined;
+        return { profile };
+      } catch {
         return null;
-      }
-    },
-
-    async saveVote(uid: string, vote: UserVote): Promise<AuthResult> {
-      if (!isFirebaseConfigured() || !db) {
-        return { success: false, error: 'Firebase not configured' };
-      }
-
-      try {
-        // Check if vote already exists for this user/contest/drink
-        const votesQuery = query(
-          collection(db, VOTES_COLLECTION),
-          where('userId', '==', uid),
-          where('contestId', '==', vote.contestId),
-          where('drinkId', '==', vote.drinkId)
-        );
-        const existing = await getDocs(votesQuery);
-
-        if (!existing.empty) {
-          // Update existing vote
-          const voteDoc = existing.docs[0];
-          await updateDoc(doc(db, VOTES_COLLECTION, voteDoc.id), {
-            score: vote.score,
-            breakdown: vote.breakdown,
-            naSections: vote.naSections,
-            notes: vote.notes,
-            timestamp: vote.timestamp,
-            updatedAt: serverTimestamp(),
-          });
-        } else {
-          // Create new vote
-          await addDoc(collection(db, VOTES_COLLECTION), {
-            userId: uid,
-            contestId: vote.contestId,
-            drinkId: vote.drinkId,
-            score: vote.score,
-            breakdown: vote.breakdown,
-            naSections: vote.naSections,
-            notes: vote.notes,
-            timestamp: vote.timestamp,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-          });
-        }
-
-        console.log('[FirebaseAuth] Saved vote for user:', uid);
-        return { success: true, uid };
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Save vote failed';
-        console.error('[FirebaseAuth] Save vote error:', message);
-        return { success: false, error: message };
       }
     },
 
@@ -353,20 +201,15 @@ export function createFirebaseAuthProvider(): AuthProvider {
           ...updates,
           updatedAt: serverTimestamp(),
         });
-
-        console.log('[FirebaseAuth] Updated profile for user:', uid);
         return { success: true, uid };
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Update profile failed';
-        console.error('[FirebaseAuth] Update profile error:', message);
         return { success: false, error: message };
       }
     },
 
     async getIdToken(): Promise<string | null> {
-      if (!currentUser) {
-        return null;
-      }
+      if (!currentUser) return null;
       try {
         return await currentUser.getIdToken();
       } catch {
