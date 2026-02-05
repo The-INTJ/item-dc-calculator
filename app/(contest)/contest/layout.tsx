@@ -3,9 +3,9 @@
 import type { ReactNode } from 'react';
 import { ContestDataProvider } from '@/contest/contexts/ContestDataContext';
 import { ContestProvider } from '@/contest/contexts/contest/ContestContext';
-import './mixology.scss';
+import './contest.scss';
 
-export default function MixologyLayout({ children }: { children: ReactNode }) {
+export default function ContestLayout({ children }: { children: ReactNode }) {
   return (
     <ContestProvider>
       <ContestDataProvider>{children}</ContestDataProvider>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useMemo, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useRef } from 'react';
 import { buildRoundDetail, buildRoundSummary, type RoundDetail, type RoundSummary, type EntrySummary } from '../lib/helpers/uiMappings';
 import type { Contest } from './contest/contestTypes';
 import { useContestData } from './contest/ContestContext';
@@ -61,7 +61,7 @@ export function ContestDataProvider({ children }: ContestDataProviderProps) {
     return () => window.removeEventListener(contestUpdatedEvent, handleContestUpdated);
   }, [refresh]);
 
-  const value = useMemo<ContestDataState>(() => {
+  const value: ContestDataState = (() => {
     if (!contest) {
       return {
         contest: null,
@@ -89,7 +89,7 @@ export function ContestDataProvider({ children }: ContestDataProviderProps) {
       refreshRound: async () => refresh(),
       lastUpdatedAt: lastUpdatedAtRef.current ?? lastUpdatedAt,
     };
-  }, [contest, contests.length, refresh, lastUpdatedAt]);
+  })();
 
   return <ContestDataContext.Provider value={value}>{children}</ContestDataContext.Provider>;
 }

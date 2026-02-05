@@ -4,7 +4,7 @@
 
 import type { ContestConfig } from '../../contexts/contest/contestTypes';
 
-export const MIXOLOGY_CONFIG: ContestConfig = {
+export const DEFAULT_CONFIG: ContestConfig = {
   topic: 'Mixology',
   entryLabel: 'Drink',
   entryLabelPlural: 'Drinks',
@@ -56,7 +56,7 @@ export const DANCE_CONFIG: ContestConfig = {
 };
 
 export const DEFAULT_TEMPLATES: Record<string, ContestConfig> = {
-  mixology: MIXOLOGY_CONFIG,
+  mixology: DEFAULT_CONFIG,
   chili: CHILI_CONFIG,
   cosplay: COSPLAY_CONFIG,
   dance: DANCE_CONFIG,
@@ -71,8 +71,9 @@ export function getTemplateKeys(): string[] {
 }
 
 /**
- * Get the default config (Mixology) for backward compatibility.
+ * Get a default config.
  */
 export function getDefaultConfig(): ContestConfig {
-  return MIXOLOGY_CONFIG;
+  const firstTemplateKey = Object.keys(DEFAULT_TEMPLATES)[0];
+  return DEFAULT_TEMPLATES[firstTemplateKey] ?? DEFAULT_CONFIG;
 }

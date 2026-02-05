@@ -1,9 +1,9 @@
 /**
- * Mixology App Styles Entry Point
+ * Contest App Styles Entry Point
  * 
- * This file loads all mixology styles using modern @use syntax.
- * This is imported by mixology/layout.tsx separately from globals.scss
- * to avoid SASS variable conflicts between dc-calculator and mixology variable definitions.
+ * This file loads all contest styles using modern @use syntax.
+ * This is imported by contest/layout.tsx separately from globals.scss
+ * to avoid SASS variable conflicts between dc-calculator and contest variable definitions.
  * 
  * Each partial uses @use to load the assets it needs.
  */
@@ -12,7 +12,7 @@
 @use '../../../src/features/contest/styles/admin-styles';
 @use '../../../src/features/contest/styles/auth-styles';
 @use '../../../src/features/contest/styles/rounds-styles';
-@use '../../../src/features/contest/styles/drinks-styles';
+@use '../../../src/features/contest/styles/entry-styles';
 @use '../../../src/features/contest/styles/bracket-styles';
 @use '../../../src/features/contest/styles/vote-styles';
 

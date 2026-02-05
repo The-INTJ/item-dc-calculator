@@ -29,14 +29,14 @@ export function EntryCard({
   const name = entry.name ?? 'Unnamed Entry';
 
   return (
-    <div className={`mixology-card mixology-entry-card mixology-entry-card--${variant} ${className ?? ''}`.trim()}>
-      <header className="mixology-entry-card__header">
-        <h3 className="mixology-entry-card__title">{name}</h3>
-        {showCreator && <p className="mixology-entry-card__creator">by {entry.creatorName}</p>}
+    <div className={`contest-card contest-entry-card contest-entry-card--${variant} ${className ?? ''}`.trim()}>
+      <header className="contest-entry-card__header">
+        <h3 className="contest-entry-card__title">{name}</h3>
+        {showCreator && <p className="contest-entry-card__creator">by {entry.creatorName}</p>}
       </header>
 
       {variant === 'vote' && totals.length > 0 && (
-        <ul className="mixology-entry-card__totals">
+        <ul className="contest-entry-card__totals">
           {totals.map((total) => (
             <li key={total.label}>
               <span>{total.label}</span>

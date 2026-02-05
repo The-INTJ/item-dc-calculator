@@ -23,24 +23,24 @@ export function RoundCard({ round, variant = 'compact', onClick, className }: Ro
   return (
     <Container
       type={onClick ? 'button' : undefined}
-      className={`mixology-card mixology-round-card mixology-round-card--${variant} ${className ?? ''}`.trim()}
+      className={`contest-card contest-round-card contest-round-card--${variant} ${className ?? ''}`.trim()}
       onClick={onClick}
     >
-      <header className="mixology-round-card__header">
+      <header className="contest-round-card__header">
         <div>
-          <p className="mixology-round-card__eyebrow">Round</p>
-          <h3 className="mixology-round-card__title">{round.name}</h3>
+          <p className="contest-round-card__eyebrow">Round</p>
+          <h3 className="contest-round-card__title">{round.name}</h3>
         </div>
-        <span className="mixology-round-card__status">{label}</span>
+        <span className="contest-round-card__status">{label}</span>
       </header>
 
       {variant === 'detailed' && (
-        <p className="mixology-round-card__meta">Matchups: {round.matchupCount}</p>
+        <p className="contest-round-card__meta">Matchups: {round.matchupCount}</p>
       )}
 
-      <ul className="mixology-round-card__contestants">
+      <ul className="contest-round-card__contestants">
         {round.contestantNames.length === 0 ? (
-          <li className="mixology-round-card__empty">No contestants yet</li>
+          <li className="contest-round-card__empty">No contestants yet</li>
         ) : (
           round.contestantNames.map((name) => <li key={name}>{name}</li>)
         )}

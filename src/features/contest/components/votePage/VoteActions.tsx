@@ -16,7 +16,7 @@ export function VoteActions({
   onSubmit,
 }: VoteActionsProps) {
   return (
-    <div className="mixology-vote-actions">
+    <div className="contest-vote-actions">
       <button
         type="button"
         className="button-primary"
@@ -26,7 +26,7 @@ export function VoteActions({
         {isSubmitting ? 'Submitting...' : 'Submit scores'}
       </button>
       {message && (
-        <p className={`mixology-vote-actions__message mixology-vote-actions__message--${status}`}>
+        <p className={`contest-vote-actions__message contest-vote-actions__message--${status}`}>
           {message}
         </p>
       )}

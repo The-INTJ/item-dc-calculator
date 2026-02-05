@@ -3,7 +3,7 @@
  */
 
 import type { ContestConfig, ScoreBreakdown } from '../../contexts/contest/contestTypes';
-import { MIXOLOGY_CONFIG } from './contestTemplates';
+import { DEFAULT_CONFIG } from './contestTemplates';
 
 /**
  * Get attribute IDs from a config.
@@ -91,5 +91,5 @@ export function validateBreakdown(
  * Get the effective config for a contest, falling back to Mixology default.
  */
 export function getEffectiveConfig(contest: { config?: ContestConfig }): ContestConfig {
-  return contest.config ?? MIXOLOGY_CONFIG;
+  return contest.config ?? DEFAULT_CONFIG;
 }

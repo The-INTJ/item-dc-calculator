@@ -160,7 +160,7 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
           className="admin-rounds-input"
           value={slug}
           onChange={handleSlugChange}
-          placeholder="e.g. summer-mixology-2026"
+          placeholder="e.g. summer-contest-2026"
           required
         />
         <span className="admin-detail-meta">Auto-generated from name. Edit to customize.</span>

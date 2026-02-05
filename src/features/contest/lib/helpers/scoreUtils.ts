@@ -1,8 +1,8 @@
 import type { ScoreBreakdown, ScoreEntry, ContestConfig, Vote } from '../../contexts/contest/contestTypes';
-import { MIXOLOGY_CONFIG } from './contestTemplates';
+import { DEFAULT_CONFIG } from './contestTemplates';
 import { getAttributeIds } from './validation';
 
-export const breakdownKeys: string[] = getAttributeIds(MIXOLOGY_CONFIG);
+export const breakdownKeys: string[] = getAttributeIds(DEFAULT_CONFIG);
 
 export function isBreakdownKey(value: string, config?: ContestConfig): boolean {
   const validKeys = config ? getAttributeIds(config) : breakdownKeys;

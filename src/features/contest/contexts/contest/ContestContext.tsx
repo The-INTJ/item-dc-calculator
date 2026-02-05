@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useState } from 'react';
 import { useRoundState } from '../RoundStateContext';
 import { useAuth } from '../auth/AuthContext';
 import { useFetchContestsOnMount } from './hooks/useFetchContestsOnMount';
@@ -37,7 +37,7 @@ export function ContestProvider({ children }: { children: React.ReactNode }) {
   const actions = useContestActions(state, updateState);
   const voting = useVoting(session?.firebaseUid ?? null);
 
-  const value = useMemo<ContestContextValue>(() => {
+  const value: ContestContextValue = (() => {
     const activeContest =
       state.contests.find((c) => c.id === state.activeContestId) ??
       state.contests.find((c) => c.defaultContest);
@@ -50,7 +50,7 @@ export function ContestProvider({ children }: { children: React.ReactNode }) {
       ...actions,
       ...voting,
     };
-  }, [state, refresh, actions, voting]);
+  })();
 
   return <ContestContext.Provider value={value}>{children}</ContestContext.Provider>;
 }

@@ -58,76 +58,33 @@ Renamed Firestore collection constants to generic names (`contests`, `guests`, `
 
 Updated nav/header routing and contest-facing links from `/mixology` to `/contest`, and kept layout/auth imports aligned with renamed contest auth provider paths.
 
-## Phase 9: Update OpenAPI Spec
+## Phase 9: Update OpenAPI Spec ✅ Completed
 
-### 9.1 — `openapi.json`
-
-- Update all `/api/mixology/...` paths → `/api/contest/...`
-- Rename `/drinks` paths → `/entries`, `{drinkId}` → `{entryId}`
-- Remove deprecated `drinkId` params/fields
-- Remove `categories` endpoints entirely
-- Update title/description to be generic
-- Remove `x-mixology-role` header references → `x-contest-role`
+Updated OpenAPI server URL/header to contest naming, renamed entries paths and `{entryId}` params, and removed deprecated `drinkId` references.
 
 ---
 
-## Phase 10: Rename SCSS Files & Clean Up Styles
+## Phase 10: Rename SCSS Files & Clean Up Styles ✅ Completed
 
-### 10.1 — SCSS file renames
-
-| Old | New |
-|-----|-----|
-| `_drinks-styles.scss` | `_entry-styles.scss` |
-| `mixology.scss` | `contest.scss` |
-
-### 10.2 — CSS class mass rename
-
-Global find-and-replace in all `.scss` and `.tsx` files:
-- `mixology-` → `contest-`
-- `-drink-` → `-entry-`
-- `admin-mixologist-` → `admin-contestant-`
-
-### 10.3 — Delete `MIXOLOGY_QUICKSTART.md`
-
-This is mixology-specific documentation. Delete it.
+Renamed `_drinks-styles.scss` → `_entry-styles.scss`, `mixology.scss` → `contest.scss`, and migrated `mixology-`/`-drink-` class prefixes under contest-facing app and feature files.
 
 ---
 
-## Phase 11: Clean Up Contest Templates
+## Phase 11: Clean Up Contest Templates ✅ Completed
 
-### 11.1 — `contestTemplates.ts`
-
-- Rename `MIXOLOGY_CONFIG` → `DEFAULT_CONFIG` (keep it as one of several templates)
-- `getDefaultConfig()` returns a truly generic template or the first available template
-- Keep all templates (mixology, chili, cosplay, dance) — they are already generic configs, just named data
+Renamed `MIXOLOGY_CONFIG` to `DEFAULT_CONFIG` and made `getDefaultConfig()` return the first available template with a safe fallback.
 
 ---
 
-## Phase 12: Remove `useMemo` (DEV_STANDARDS compliance)
+## Phase 12: Remove `useMemo` (DEV_STANDARDS compliance) ✅ Completed
 
-As noted in exploration, `MixologyDataContext.tsx` (now `ContestDataContext.tsx`) uses `useMemo`. Per DEV_STANDARDS (React 19 + React Compiler), remove `useMemo` and use plain object construction.
-
-Files to update:
-- `ContestDataContext.tsx` (formerly `MixologyDataContext.tsx`)
-- `ContestContext.tsx` — also uses `useMemo`
+Removed `useMemo` from `ContestDataContext.tsx` and `ContestContext.tsx` in favor of plain object construction.
 
 ---
 
-## Phase 13: Simplify the `uiMappings.ts` Scoring
+## Phase 13: Simplify the `uiMappings.ts` Scoring ✅ Completed
 
-### 13.1 — Remove hardcoded breakdown key logic
-
-The hardcoded `breakdownKeys = ['aroma', 'balance', 'presentation', 'creativity', 'overall']` and related `isBreakdownKey()` function must go. Scoring attributes are dynamic per-contest via `contest.config.attributes`.
-
-### 13.2 — Rewrite `buildVoteTotalsFromScores`
-
-Accept `AttributeConfig[]` (from `contest.config.attributes`) instead of `VoteCategory[]`. Since `VoteCategory` is being deleted, this function must adapt or be deleted.
-
-If the function is only used in `buildRoundDetail` and `buildVoteTotals`, and those are only consumed by `MixologyDataContext` (now `ContestDataContext`), consider whether this layer is even needed or if it should be inlined.
-
-### 13.3 — Delete `buildVoteTotals` wrapper
-
-It's a one-liner that just delegates. Inline its logic or delete.
+No action required in current code: hardcoded breakdown-key logic and vote-total wrappers were already removed; `buildRoundDetail` already returns an empty `voteSummary` and entry summaries only.
 
 ---
 
