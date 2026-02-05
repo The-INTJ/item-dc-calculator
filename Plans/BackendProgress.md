@@ -104,6 +104,23 @@ Only 2 of 6 admin components use the API; the rest bypass it.
 
 ---
 
+## Status Update (Where We Are)
+
+- ✅ `AdminContestContext` now treats the API as the source of truth for contest creation (no more local-only contest creation).
+- ✅ Contest normalization stays centralized in `normalizeContest`, keeping round/phase sync consistent.
+- ✅ `adminApi` remains the single entry point for admin mutations, allowing cleaner rollbacks and error handling.
+
+---
+
+## Cleanliness & Conciseness Notes (Based on Work Done)
+
+- **Centralize contest shape guarantees**: `normalizeContest` is already the best place to keep contest invariants (round state → phase, active round). Consider promoting this to a small “model layer” that returns a `ContestModel` object so callers can rely on invariants and avoid defensive checks.
+- **Prefer minimal payloads to APIs**: Contest creation now only sends the required fields (name/slug/phase). The server fills in defaults, reducing client verbosity and duplicated “seed” fields.
+- **Consolidate entry updates**: Entry add/update/remove all re-map entries arrays; a tiny helper (e.g., `withContestEntries`) would shorten these mutations and reduce repeated boilerplate in the context.
+- **Future service layer**: a shared service (e.g., `contestService`, `userService`) could own slugging, default config resolution, and normalization so UI components stay thin.
+
+---
+
 ## Implementation Plan
 
 ### Phase 1: Unify Admin Operations Through API (Priority: HIGH)
