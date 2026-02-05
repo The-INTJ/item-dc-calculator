@@ -10,28 +10,28 @@ export const navItems: NavItem[] = [
   {
     key: 'mixology-home',
     label: 'Mixology home',
-    href: '/mixology',
+    href: '/contest',
   },
   {
     key: 'mixology-current-round',
     label: 'Current Round',
-    href: '/mixology/vote',
+    href: '/contest/vote',
   },
   {
     key: 'mixology-bracket',
     label: 'Bracket',
-    href: '/mixology/bracket',
+    href: '/contest/bracket',
   },
   {
     key: 'mixology-account',
     label: 'Account',
-    href: '/mixology/account',
+    href: '/contest/account',
     variant: 'secondary',
   },
   {
     key: 'mixology-admin',
     label: 'Admin',
-    href: '/mixology/admin',
+    href: '/contest/admin',
     variant: 'secondary',
     requiresAdmin: true,
   },

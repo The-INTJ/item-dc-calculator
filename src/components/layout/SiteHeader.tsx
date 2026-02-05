@@ -8,10 +8,10 @@ import { NavBar } from './NavBar';
 import styles from '@/contest/styles/components/Header.module.scss';
 
 const authRequiredPrefixes = [
-  '/mixology/admin',
-  '/mixology/vote',
-  '/mixology/bracket',
-  '/mixology/account',
+  '/contest/admin',
+  '/contest/vote',
+  '/contest/bracket',
+  '/contest/account',
 ];
 
 function needsAuthBanner(pathname: string) {
@@ -23,14 +23,14 @@ export function SiteHeader() {
   const { isAuthenticated, loading } = useAuth();
   const { data: contest } = useCurrentContest();
 
-  const showHeader = pathname === '/' || pathname.startsWith('/mixology');
+  const showHeader = pathname === '/' || pathname.startsWith('/contest');
 
   if (!showHeader) {
     return null;
   }
 
   const showAuthBanner =
-    pathname.startsWith('/mixology') && !loading && !isAuthenticated && needsAuthBanner(pathname);
+    pathname.startsWith('/contest') && !loading && !isAuthenticated && needsAuthBanner(pathname);
 
   return (
     <header className="site-header">
@@ -42,7 +42,7 @@ export function SiteHeader() {
         <div className="auth-banner" role="status" aria-live="polite">
           <div className="auth-banner__content">
             <span>Sign in to unlock this experience.</span>
-            <Link href="/mixology/onboard" className="button-secondary auth-banner__action">
+            <Link href="/contest/onboard" className="button-secondary auth-banner__action">
               Log in
             </Link>
           </div>

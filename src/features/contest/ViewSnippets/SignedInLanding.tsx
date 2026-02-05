@@ -20,14 +20,14 @@ export default function SignedInLanding({ user }: SignedInLandingProps) {
           or explore ongoing contests.
         </p>
         <div className="mixology-actions">
-          <Link href="/mixology/vote" className="button-primary">
+          <Link href="/contest/vote" className="button-primary">
             Start voting
           </Link>
-          <Link href="/mixology/account" className="button-secondary">
+          <Link href="/contest/account" className="button-secondary">
             View profile
           </Link>
           <AdminOnlyLink
-            href="/mixology/admin"
+            href="/contest/admin"
             className="button-secondary"
             dataTestId="mixology-admin-link"
           >

@@ -15,7 +15,7 @@ const JUDGE_ROLES: JudgeRole[] = ['admin', 'judge', 'viewer'];
 function resolveRoleFromClaims(claims: Record<string, unknown>): JudgeRole {
   const rawRole =
     (typeof claims.role === 'string' && claims.role) ||
-    (typeof claims.mixologyRole === 'string' && claims.mixologyRole) ||
+    (typeof claims.contestRole === 'string' && claims.contestRole) ||
     (claims.admin === true && 'admin') ||
     'viewer';
 

@@ -16,12 +16,12 @@ export default function SignedOutLanding() {
         <div className="mixology-actions">
           <AuthPrimaryAction
             signedOutLabel="Sign in or create an account"
-            signedOutHref="/mixology/onboard"
+            signedOutHref="/contest/onboard"
             className="button-primary"
             dataTestId="mixology-auth-primary-action"
           />
           <AdminOnlyLink
-            href="/mixology/admin"
+            href="/contest/admin"
             className="button-secondary"
             dataTestId="mixology-admin-link"
           >

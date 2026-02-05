@@ -24,8 +24,8 @@ export default function AccountPage() {
       <section className="account-section">
         <h2>Current Status</h2>
         <UserMenu
-          onLogin={() => router.push('/mixology/onboard')}
-          onRegister={() => router.push('/mixology/onboard')}
+          onLogin={() => router.push('/contest/onboard')}
+          onRegister={() => router.push('/contest/onboard')}
         />
       </section>
 
@@ -33,7 +33,7 @@ export default function AccountPage() {
         <section className="account-section">
           <h2>Get Started</h2>
           <div className="account-actions">
-            <Link href="/mixology/onboard" className="button-primary">
+            <Link href="/contest/onboard" className="button-primary">
               Open onboarding flow
             </Link>
           </div>

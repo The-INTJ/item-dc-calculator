@@ -39,49 +39,49 @@ async function apiRequest<T>(
 export const contestApi = {
   // Contest Operations
   async listContests(): Promise<{ contests: Contest[]; currentContest: Contest | null } | null> {
-    return apiRequest('/api/mixology/contests', { method: 'GET' });
+    return apiRequest('/api/contest/contests', { method: 'GET' });
   },
 
   async getContest(id: string): Promise<Contest | null> {
-    return apiRequest(`/api/mixology/contests/${id}`, { method: 'GET' });
+    return apiRequest(`/api/contest/contests/${id}`, { method: 'GET' });
   },
 
   async createContest(data: Partial<Contest>): Promise<Contest | null> {
-    return apiRequest('/api/mixology/contests', {
+    return apiRequest('/api/contest/contests', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   },
 
   async updateContest(id: string, updates: Partial<Contest>): Promise<Contest | null> {
-    return apiRequest(`/api/mixology/contests/${id}`, {
+    return apiRequest(`/api/contest/contests/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(updates),
     });
   },
 
   async deleteContest(id: string): Promise<boolean> {
-    const result = await apiRequest<void>(`/api/mixology/contests/${id}`, { method: 'DELETE' });
+    const result = await apiRequest<void>(`/api/contest/contests/${id}`, { method: 'DELETE' });
     return result !== null;
   },
 
   // Entry Operations
   async createEntry(contestId: string, entry: Omit<Entry, 'id'>): Promise<Entry | null> {
-    return apiRequest(`/api/mixology/contests/${contestId}/drinks`, {
+    return apiRequest(`/api/contest/contests/${contestId}/entries`, {
       method: 'POST',
       body: JSON.stringify(entry),
     });
   },
 
   async updateEntry(contestId: string, entryId: string, updates: Partial<Entry>): Promise<Entry | null> {
-    return apiRequest(`/api/mixology/contests/${contestId}/drinks/${entryId}`, {
+    return apiRequest(`/api/contest/contests/${contestId}/entries/${entryId}`, {
       method: 'PATCH',
       body: JSON.stringify(updates),
     });
   },
 
   async deleteEntry(contestId: string, entryId: string): Promise<boolean> {
-    const result = await apiRequest<void>(`/api/mixology/contests/${contestId}/drinks/${entryId}`, { method: 'DELETE' });
+    const result = await apiRequest<void>(`/api/contest/contests/${contestId}/entries/${entryId}`, { method: 'DELETE' });
     return result !== null;
   },
 };

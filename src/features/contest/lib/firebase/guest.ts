@@ -8,7 +8,7 @@
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { initializeFirebase, isFirebaseConfigured } from './config';
 
-const GUESTS_COLLECTION = 'mixology_guests';
+const GUESTS_COLLECTION = 'guests';
 
 /**
  * Result of guest registration attempt

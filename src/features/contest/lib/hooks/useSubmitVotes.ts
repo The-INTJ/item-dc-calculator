@@ -79,7 +79,7 @@ export function useSubmitVotes(): UseSubmitVotesResult {
     try {
       const responses = await Promise.all(
         entries?.map(({ entryId, breakdown }) =>
-          fetch(`/api/mixology/contests/${contest.id}/scores`, {
+          fetch(`/api/contest/contests/${contest.id}/scores`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

@@ -49,7 +49,7 @@ export function AdminDashboard() {
     return (
       <div className="admin-error">
         <p>Sign in to access the admin dashboard.</p>
-        <Link href="/mixology/onboard" className="button-secondary">
+        <Link href="/contest/onboard" className="button-secondary">
           Log in
         </Link>
       </div>
@@ -60,7 +60,7 @@ export function AdminDashboard() {
     return (
       <div className="admin-error">
         <p>Admin access required.</p>
-        <Link href="/mixology" className="button-secondary">
+        <Link href="/contest" className="button-secondary">
           Return to Mixology
         </Link>
       </div>
@@ -123,7 +123,7 @@ export function AdminDashboard() {
             </div>
           )}
           <div className="admin-add-contest">
-            <Link href="/mixology/admin/contest-setup" className="button-primary">
+            <Link href="/contest/admin/contest-setup" className="button-primary">
               Create New Contest
             </Link>
           </div>

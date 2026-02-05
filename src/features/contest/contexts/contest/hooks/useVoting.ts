@@ -15,7 +15,7 @@ import {
 import { initializeFirebase, isFirebaseConfigured } from '../../../lib/firebase/config';
 import type { Vote, VoteInput, VotingActions } from '../contestTypes';
 
-const VOTES_COLLECTION = 'mixology_votes';
+const VOTES_COLLECTION = 'votes';
 
 export function useVoting(userId: string | null): VotingActions {
   async function recordVote(input: VoteInput): Promise<void> {
