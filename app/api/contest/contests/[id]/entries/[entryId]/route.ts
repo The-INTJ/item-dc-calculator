@@ -3,7 +3,7 @@ import { getBackendProvider } from '@/contest/lib/helpers/backendProvider';
 import { requireAdmin } from '../../../../_lib/requireAdmin';
 
 interface RouteParams {
-  params: Promise<{ id: string; drinkId: string }>;
+  params: Promise<{ id: string; entryId: string }>;
 }
 
 export async function GET(request: Request, { params }: RouteParams) {
@@ -11,12 +11,12 @@ export async function GET(request: Request, { params }: RouteParams) {
   if (adminError) {
     return adminError;
   }
-  const { id: contestId, drinkId } = await params;
+  const { id: contestId, entryId } = await params;
   const provider = await getBackendProvider();
 
-  const result = await provider?.entries?.getById(contestId, drinkId);
+  const result = await provider?.entries?.getById(contestId, entryId);
   if (!result.success || !result.data) {
-    return NextResponse.json({ message: result.error ?? 'Drink not found' }, { status: 404 });
+    return NextResponse.json({ message: result.error ?? 'Entry not found' }, { status: 404 });
   }
 
   return NextResponse.json(result.data);
@@ -27,12 +27,12 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   if (adminError) {
     return adminError;
   }
-  const { id: contestId, drinkId } = await params;
+  const { id: contestId, entryId } = await params;
   const provider = await getBackendProvider();
 
   try {
     const body = await request.json();
-    const result = await provider?.entries?.update(contestId, drinkId, body);
+    const result = await provider?.entries?.update(contestId, entryId, body);
 
     if (!result.success) {
       return NextResponse.json({ message: result.error }, { status: 404 });
@@ -49,10 +49,10 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   if (adminError) {
     return adminError;
   }
-  const { id: contestId, drinkId } = await params;
+  const { id: contestId, entryId } = await params;
   const provider = await getBackendProvider();
 
-  const result = await provider?.entries?.delete(contestId, drinkId);
+  const result = await provider?.entries?.delete(contestId, entryId);
   if (!result.success) {
     return NextResponse.json({ message: result.error }, { status: 404 });
   }

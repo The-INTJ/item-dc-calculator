@@ -30,48 +30,9 @@ Deleted deprecated types (`Drink`, `MixologyScoreBreakdown`, `MixologyData`, `Vo
 
 Renamed `src/features/mixology/` to `src/features/contest/`, replaced all `@/mixology*` and `@/src/features/mixology*` imports, and simplified `tsconfig.json` aliases to only `@/contest` and `@/contest/*`.
 
-## Phase 3: Rename App Router Paths
+## Phase 3: Rename App Router Paths ✅ Completed
 
-### 3.1 — Rename route group and page directory
-
-```
-app/(mixology)/             → app/(contest)/
-app/(mixology)/mixology/    → app/(contest)/contest/
-```
-
-This changes the public URL from `/mixology/...` to `/contest/...`.
-
-All sub-routes move automatically:
-- `/mixology/vote` → `/contest/vote`
-- `/mixology/bracket` → `/contest/bracket`
-- `/mixology/account` → `/contest/account`
-- `/mixology/admin` → `/contest/admin`
-- `/mixology/onboard` → `/contest/onboard`
-
-### 3.2 — Rename API routes
-
-```
-app/api/mixology/           → app/api/contest/
-```
-
-All sub-routes:
-- `/api/mixology/current` → `/api/contest/current`
-- `/api/mixology/contests` → `/api/contest/contests`
-- `/api/mixology/contests/[id]` → `/api/contest/contests/[id]`
-- `/api/mixology/docs` → `/api/contest/docs`
-
-### 3.3 — Rename API entry sub-routes (remove "drinks" naming)
-
-```
-app/api/contest/contests/[id]/drinks/          → app/api/contest/contests/[id]/entries/
-app/api/contest/contests/[id]/drinks/[drinkId] → app/api/contest/contests/[id]/entries/[entryId]
-```
-
-### 3.4 — Delete `app/api/contest/contests/[id]/categories/` entirely ✅ Done
-
-(Already deleted in Phase 1 since it depended on the removed `VoteCategory` type.)
-
----
+Renamed `(mixology)/mixology` routes to `(contest)/contest`, renamed `app/api/mixology` to `app/api/contest`, and moved `drinks/[drinkId]` API routes to `entries/[entryId]`.
 
 ## Phase 4: Rename Contexts & Providers
 
