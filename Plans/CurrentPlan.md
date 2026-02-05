@@ -261,16 +261,11 @@ It's a one-liner that just delegates. Inline its logic or delete.
 
 ---
 
-## Phase 14: Final Cleanup
+## Phase 14: Final Cleanup ✅ Completed
 
-- [ ] **14.1** Delete `scripts/migrate-to-contest-config.js` — it was a one-time migration, no longer relevant post-breaking-change.
-- [ ] **14.2** Update `DEV_STANDARDS.md` — replace "Mixology" references with "Contest" throughout.
-- [ ] **14.3** Update `README.md` if it references mixology-specific concepts.
-- [ ] **14.4** Update `firebase.json` if it has mixology-specific rules or hosting config.
-- [ ] **14.5** Update `vercel.json` if it has mixology-specific rewrites.
-- [ ] **14.6** Verify `package.json` for any mixology-specific scripts or naming.
-- [ ] **14.7** Full build (`npm run build`) and fix any remaining type errors.
-- [ ] **14.8** Grep for any remaining `mixolog` or `drink` references (excluding `dc-calculator` and `node_modules`).
+Deleted `scripts/migrate-to-contest-config.js` and `MIXOLOGY_QUICKSTART.md`, updated docs/config (`DEV_STANDARDS.md`, `README.md`, `package.json` docs script path), and verified `npm run build` succeeds.
+
+Note: grep still returns many `mixolog`/`drink` references outside `dc-calculator`; these are legacy leftovers from earlier phases and should be handled in a focused follow-up pass.
 
 ---
 
@@ -300,8 +295,8 @@ It's a one-liner that just delegates. Inline its logic or delete.
 
 | File/Directory | Reason | Status |
 |----------------|--------|--------|
-| `scripts/migrate-to-contest-config.js` | One-time migration, deprecated data format no longer supported | |
-| `MIXOLOGY_QUICKSTART.md` | Mixology-specific documentation | |
+| `scripts/migrate-to-contest-config.js` | One-time migration, deprecated data format no longer supported | ✅ Deleted |
+| `MIXOLOGY_QUICKSTART.md` | Mixology-specific documentation | ✅ Deleted |
 | `app/api/mixology/contests/[id]/categories/` (entire dir) | `VoteCategory` is deprecated; config attributes replace it | ✅ Deleted |
 
 ---

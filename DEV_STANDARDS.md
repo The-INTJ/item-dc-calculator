@@ -1,7 +1,7 @@
 # Dev Standards
 
 This document defines the development standards for this codebase.  
-It applies to both the new Mixology Rating app and the existing dc-calculator app.  
+It applies to both the new Contest Rating app and the existing dc-calculator app.  
 When instructed to “refactor according to the Dev Standards,” follow these rules.
 
 ---
@@ -46,18 +46,18 @@ When instructed to “refactor according to the Dev Standards,” follow these r
 
 ---
 
-## 3. Theming and Dual-App Design (Mixology vs DC Calculator)
+## 3. Theming and Dual-App Design (Contest vs DC Calculator)
 
 - The app must support:
-  - A **Mixology theme** for the contest experience.
+  - A **Contest theme** for the contest experience.
   - A distinct **DC-calculator theme** for the item DC experience.
 - Requirements:
   - Components and pages must be **theme-aware**, not hardcoded to one visual style.
   - No theme-specific colors, typography, or spacing values should be hardcoded in components.
     - Use MUI theme tokens and/or SCSS variables instead.
 - Implementation guidance:
-  - Maintain separate theme definitions (e.g., `theme.mixology.ts`, `theme.dc-calculator.ts`, or equivalent).
-  - Use theme providers or layout wrappers to scope the Mixology theme and the DC-calculator theme to the appropriate parts of the tree.
+  - Maintain separate theme definitions (e.g., `theme.contest.ts`, `theme.dc-calculator.ts`, or equivalent).
+  - Use theme providers or layout wrappers to scope the Contest theme and the DC-calculator theme to the appropriate parts of the tree.
 - When building or refactoring components:
   - Design them so they look correct under both themes, driven by theme values instead of fixed constants.
 
@@ -128,7 +128,7 @@ When instructed to “refactor according to the Dev Standards,” follow these r
   - Refactoring existing code at our direction (e.g., “refactor this feature according to the Dev Standards”).
 - When making tradeoffs (e.g., performance vs. purity), document them in:
   - The relevant component/file, and/or
-  - The appropriate project documentation (e.g., the Mixology or Dev Standards READMEs).
+  - The appropriate project documentation (e.g., the Contest or Dev Standards READMEs).
 
 ---
 
