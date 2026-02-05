@@ -6,8 +6,8 @@
  */
 
 import { useState, useCallback } from 'react';
-import type { Contest, ContestConfig, AttributeConfig } from '../../types';
-import { getEffectiveConfig } from '../../types/validation';
+import type { Contest, ContestConfig, AttributeConfig } from '../../lib/globals';
+import { getEffectiveConfig } from '../../lib/globals/validation';
 import { AttributeEditor } from './AttributeEditor';
 
 interface ContestConfigEditorProps {

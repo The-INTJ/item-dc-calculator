@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { DrinkCard } from '../DrinkCard';
-import type { DrinkSummary } from '../../../types/uiTypes';
+import type { DrinkSummary } from '../../../lib/globals/uiTypes';
 
 describe('DrinkCard', () => {
   // Assumption: unnamed drinks must display a placeholder so users can still vote.

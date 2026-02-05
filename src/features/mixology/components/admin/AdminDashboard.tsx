@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 import { useContestData } from '../../contexts/contest';
-import type { Contest } from '../../types';
+import type { Contest } from '../../lib/globals';
 import { ContestCard } from './ContestCard';
 import { ContestDetails } from './ContestDetails';
 

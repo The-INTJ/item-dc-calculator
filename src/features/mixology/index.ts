@@ -8,7 +8,7 @@
 export * from './contexts';
 
 // Types
-export * from './types';
+export * from './lib/globals';
 
 // Hooks
 export * from './hooks';

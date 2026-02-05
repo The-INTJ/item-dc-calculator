@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { Contest, Entry } from '../../types';
+import type { Contest, Entry } from '../../lib/globals';
 import { useContestData } from '../../contexts/contest';
-import { getRoundLabel } from '../../lib/contestHelpers';
+import { getRoundLabel } from '../../lib/helpers/contestGetters';
 
 interface AdminMixologistsProps {
   contest: Contest;

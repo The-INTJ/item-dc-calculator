@@ -1,5 +1,5 @@
 import { Slider } from '@mui/material';
-import type { DrinkSummary, VoteCategory, VoteTotals } from '../../types/uiTypes';
+import type { DrinkSummary, VoteCategory, VoteTotals } from '../../lib/globals/uiTypes';
 import { DrinkCard } from './DrinkCard';
 
 interface VoteScorePanelProps {

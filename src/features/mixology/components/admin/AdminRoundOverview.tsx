@@ -1,6 +1,6 @@
 'use client';
 
-import type { Contest } from '../../types';
+import type { Contest } from '../../lib/globals';
 import { buildRoundSummary } from '../../lib/uiMappings';
 import { RoundCard } from '../ui';
 

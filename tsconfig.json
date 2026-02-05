@@ -57,7 +57,7 @@
         "./src/features/mixology/server/*"
       ],
       "@/mixology/types/*": [
-        "./src/features/mixology/types/*"
+        "src/features/mixology/lib/globals/*"
       ],
       "@/mixology/styles/*": [
         "./src/features/mixology/styles/*"

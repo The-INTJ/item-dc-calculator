@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 import { buildRoundDetail, buildRoundSummary } from '../lib/uiMappings';
-import type { RoundDetail, RoundSummary, EntrySummary } from '../types/uiTypes';
-import type { Contest } from '../types';
+import type { RoundDetail, RoundSummary, EntrySummary } from '../lib/globals/uiTypes';
+import type { Contest } from '../lib/globals';
 import { useContestData } from './contest';
 
 interface MixologyDataState {

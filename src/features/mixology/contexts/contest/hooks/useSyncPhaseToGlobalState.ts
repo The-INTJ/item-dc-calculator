@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type { Contest, ContestPhase } from '../../../types';
+import type { Contest, ContestPhase } from '../../../lib/globals';
 
 /**
  * useSyncPhaseToGlobalState

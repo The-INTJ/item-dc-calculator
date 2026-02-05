@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { RoundCard } from '../RoundCard';
-import type { RoundSummary } from '../../../types/uiTypes';
+import type { RoundSummary } from '../../../lib/globals/uiTypes';
 
 describe('RoundCard', () => {
   // Assumption: round cards must always display the round name and status label.

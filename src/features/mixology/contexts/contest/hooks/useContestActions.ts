@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import type { Contest, ContestPhase, ContestRound, Entry } from '../../../types';
-import { contestApi } from '../../../services/contestApi';
+import type { Contest, ContestPhase, ContestRound, Entry } from '../../../lib/globals';
+import { contestApi } from '../../../lib/api/contestApi';
 import type { ContestState, ContestStateUpdater, ContestActions } from '../types';
 
 function generateId(prefix: string): string {
