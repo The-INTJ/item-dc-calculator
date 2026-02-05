@@ -7,14 +7,14 @@ import { useFetchContestsOnMount } from './hooks/useFetchContestsOnMount';
 import { useSyncPhaseToGlobalState } from './hooks/useSyncPhaseToGlobalState';
 import { useContestActions } from './hooks/useContestActions';
 import { useVoting } from './hooks/useVoting';
-import type { ContestState, ContestActions, VotingActions } from './types';
+import type { ContestContextState, ContestActions, VotingActions } from './contestTypes';
 
-type ContestContextValue = ContestState & ContestActions & VotingActions & { refresh: () => void };
+type ContestContextValue = ContestContextState & ContestActions & VotingActions & { refresh: () => void };
 
 const ContestContext = createContext<ContestContextValue | undefined>(undefined);
 
 export function ContestProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<ContestState>({
+  const [state, setState] = useState<ContestContextState>({
     contests: [],
     activeContestId: null,
     lastUpdatedAt: null,
@@ -23,7 +23,7 @@ export function ContestProvider({ children }: { children: React.ReactNode }) {
   const { setState: setGlobalPhase } = useRoundState();
   const { session } = useAuth();
 
-  const updateState = useCallback((updater: (prev: ContestState) => ContestState) => {
+  const updateState = useCallback((updater: (prev: ContestContextState) => ContestContextState) => {
     setState((prev) => ({ ...updater(prev), lastUpdatedAt: Date.now() }));
   }, []);
 
@@ -64,4 +64,4 @@ export function useContestData() {
 }
 
 // Re-export types
-export type { ContestState, ContestActions } from './types';
+export type { ContestContextState, ContestActions } from './contestTypes';

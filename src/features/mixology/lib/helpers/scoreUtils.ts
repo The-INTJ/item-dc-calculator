@@ -1,5 +1,4 @@
-import type { ScoreBreakdown, ScoreEntry, ContestConfig } from '../../contexts/contest/contestTypes';
-import type { Vote } from '../../contexts/contest/types';
+import type { ScoreBreakdown, ScoreEntry, ContestConfig, Vote } from '../../contexts/contest/contestTypes';
 import { MIXOLOGY_CONFIG } from './contestTemplates';
 import { getAttributeIds } from './validation';
 

@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
-import type { Contest, ContestPhase, ContestRound, Entry } from '../contestTypes';
+import type { Contest, ContestPhase, ContestRound, Entry, ContestContextState, ContestContextStateUpdater, ContestActions } from '../contestTypes';
 import { contestApi } from '../../../lib/api/contestApi';
-import type { ContestState, ContestStateUpdater, ContestActions } from '../types';
 
 function generateId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -14,8 +13,8 @@ function generateId(prefix: string): string {
  * and update local state optimistically or on success.
  */
 export function useContestActions(
-  state: ContestState,
-  updateState: (updater: ContestStateUpdater) => void
+  state: ContestContextState,
+  updateState: (updater: ContestContextStateUpdater) => void
 ): ContestActions {
   const getContestById = useCallback(
     (id: string) => state.contests.find((c) => c.id === id),

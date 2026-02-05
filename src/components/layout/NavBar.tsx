@@ -3,10 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/src/features/mixology/contexts/auth/AuthContext";
-import {
-  useRoundState,
-  contestStateLabels,
-} from "@/src/features/mixology/contexts/RoundStateContext";
+import { useRoundState } from "@/src/features/mixology/contexts/RoundStateContext";
 import { navItems } from "./navItems";
 
 function isActiveLink(pathname: string, href: string) {

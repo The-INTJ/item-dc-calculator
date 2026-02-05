@@ -1,7 +1,7 @@
 'use client';
 
 import type { Contest } from '../../contexts/contest/contestTypes';
-import { useRoundState, contestStateLabels } from '../../contexts/RoundStateContext';
+import { useRoundState, phaseLabels } from '../../contexts/RoundStateContext';
 
 interface ContestPhaseControlsProps {
   contest: Contest;
@@ -22,7 +22,7 @@ export function ContestPhaseControls({ contest }: ContestPhaseControlsProps) {
           <p className="admin-detail-meta">
             Current: <strong>{label}</strong>
             {activeRound && (
-              <> (from Round {activeRoundIndex + 1}: {contestStateLabels[activeRound.state]})</>
+              <> (from Round {activeRoundIndex + 1}: {phaseLabels[activeRound.state]})</>
             )}
           </p>
         </div>

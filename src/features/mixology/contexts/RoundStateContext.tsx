@@ -1,70 +1,59 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useState } from 'react';
+import type { ContestPhase } from './contest/contestTypes';
 
-export type ContestState = 'set' | 'shake' | 'scored';
+export const PHASE_VALUES: ContestPhase[] = ['set', 'shake', 'scored'];
 
-export const CONTEST_STATES: ContestState[] = ['set', 'shake', 'scored'];
-
-export const contestStateLabels: Record<ContestState, string> = {
+export const phaseLabels: Record<ContestPhase, string> = {
   set: 'Set',
   shake: 'Shake',
   scored: 'Scored',
 };
 
-export const contestStateDescriptions: Record<ContestState, string> = {
+export const phaseDescriptions: Record<ContestPhase, string> = {
   set: 'Guests arriving and choosing roles. Happens once at competition start; admin can return here if needed.',
   shake: 'Drinks are being made, timer running, voting is OPEN.',
   scored: 'Voting CLOSED. Tallying scores, preparing next round. Admin triggers next Shake when ready.',
 };
 
-interface ContestStateContextValue {
-  state: ContestState;
-  setState: (state: ContestState) => void;
+interface RoundStateContextValue {
+  state: ContestPhase;
+  setState: (state: ContestPhase) => void;
   label: string;
   description: string;
 }
 
-const ContestStateContext = createContext<ContestStateContextValue | undefined>(undefined);
-
-interface ContestStateProviderProps {
-  children: React.ReactNode;
-}
+const RoundStateContext = createContext<RoundStateContextValue | undefined>(undefined);
 
 /**
- * Contest state provider - cloud-only.
- * State is fetched from Firestore and updates are synced back.
- * No local persistence - if cloud is unavailable, we show error states.
+ * Round state provider - tracks the current phase of the active round.
+ * State is synced from the active contest's round data.
  */
-export function ContestStateProvider({ children }: ContestStateProviderProps) {
-  // Default to 'set' - will be populated from cloud contest data
-  const [state, setStateInternal] = useState<ContestState>('set');
+export function RoundStateProvider({ children }: { children: React.ReactNode }) {
+  const [state, setStateInternal] = useState<ContestPhase>('set');
 
-  const setState = useCallback((newState: ContestState) => {
+  const setState = useCallback((newState: ContestPhase) => {
     setStateInternal(newState);
-    // Emit event for potential listeners
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('mixology:state-changed'));
     }
   }, []);
 
-  const value = useMemo<ContestStateContextValue>(
-    () => ({
-      state,
-      setState,
-      label: contestStateLabels[state],
-      description: contestStateDescriptions[state],
-    }),
-    [state, setState]
-  );
+  const value: RoundStateContextValue = {
+    state,
+    setState,
+    label: phaseLabels[state],
+    description: phaseDescriptions[state],
+  };
 
-  return <ContestStateContext.Provider value={value}>{children}</ContestStateContext.Provider>;
+  return <RoundStateContext.Provider value={value}>{children}</RoundStateContext.Provider>;
 }
 
 export function useRoundState() {
-  const context = useContext(ContestStateContext);
+  const context = useContext(RoundStateContext);
   if (!context) {
-    throw new Error('useRoundState must be used within ContestStateProvider');
+    throw new Error('useRoundState must be used within RoundStateProvider');
   }
   return context;
 }

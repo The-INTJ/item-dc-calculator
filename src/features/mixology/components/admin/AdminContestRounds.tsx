@@ -4,9 +4,9 @@ import type { Contest, ContestPhase } from '../../contexts/contest/contestTypes'
 import { useContestData } from '../../contexts/contest/ContestContext';
 import { getRoundById } from '../../lib/helpers/contestGetters';
 import {
-  CONTEST_STATES,
-  contestStateLabels,
-  contestStateDescriptions,
+  PHASE_VALUES,
+  phaseLabels,
+  phaseDescriptions,
 } from '../../contexts/RoundStateContext';
 
 interface AdminContestRoundsProps {
@@ -64,7 +64,7 @@ export function AdminContestRounds({ contest }: AdminContestRoundsProps) {
                   </span>
                 </div>
                 <span className={`admin-round-badge admin-round-badge--${round.state}`}>
-                  {contestStateLabels[round.state]}
+                  {phaseLabels[round.state]}
                 </span>
               </button>
 
@@ -72,7 +72,7 @@ export function AdminContestRounds({ contest }: AdminContestRoundsProps) {
                 <div className="admin-round-state-controls">
                   <p className="admin-detail-meta">Set state for this active round:</p>
                   <div className="admin-phase-controls__grid admin-phase-controls__grid--compact">
-                    {CONTEST_STATES.map((stateOption) => {
+                    {PHASE_VALUES.map((stateOption) => {
                       const isCurrentState = stateOption === round.state;
                       return (
                         <button
@@ -83,10 +83,10 @@ export function AdminContestRounds({ contest }: AdminContestRoundsProps) {
                           aria-pressed={isCurrentState}
                         >
                           <span className="admin-phase-button__label">
-                            {contestStateLabels[stateOption]}
+                            {phaseLabels[stateOption]}
                           </span>
                           <span className="admin-phase-button__desc">
-                            {contestStateDescriptions[stateOption]}
+                            {phaseDescriptions[stateOption]}
                           </span>
                         </button>
                       );

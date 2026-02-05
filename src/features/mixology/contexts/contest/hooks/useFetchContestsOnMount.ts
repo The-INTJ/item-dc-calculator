@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { contestApi } from '../../../lib/api/contestApi';
-import type { ContestStateUpdater } from '../types';
-import type { Contest } from '../contestTypes';
+import type { ContestContextStateUpdater, Contest } from '../contestTypes';
 
 /**
  * useFetchContestsOnMount
@@ -10,7 +9,7 @@ import type { Contest } from '../contestTypes';
  * Sets the active contest to the current/default contest.
  */
 export function useFetchContestsOnMount(
-  updateState: (updater: ContestStateUpdater) => void,
+  updateState: (updater: ContestContextStateUpdater) => void,
   onComplete?: () => void
 ): void {
   const hasFetched = useRef(false);

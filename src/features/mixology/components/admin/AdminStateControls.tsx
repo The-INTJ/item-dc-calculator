@@ -1,17 +1,17 @@
 'use client';
 
+import type { ContestPhase } from '../../contexts/contest/contestTypes';
 import {
   useRoundState,
-  CONTEST_STATES,
-  contestStateLabels,
-  contestStateDescriptions,
-  type ContestState,
+  PHASE_VALUES,
+  phaseLabels,
+  phaseDescriptions,
 } from '../../contexts/RoundStateContext';
 
 export function AdminStateControls() {
   const { state, setState, label } = useRoundState();
 
-  const handleStateChange = (newState: ContestState) => {
+  const handleStateChange = (newState: ContestPhase) => {
     if (newState !== state) {
       setState(newState);
     }
@@ -27,7 +27,7 @@ export function AdminStateControls() {
       </div>
 
       <div className="admin-phase-controls__grid">
-        {CONTEST_STATES.map((stateOption) => {
+        {PHASE_VALUES.map((stateOption) => {
           const isActive = stateOption === state;
 
           return (
@@ -38,8 +38,8 @@ export function AdminStateControls() {
               onClick={() => handleStateChange(stateOption)}
               aria-pressed={isActive}
             >
-              <span className="admin-phase-button__label">{contestStateLabels[stateOption]}</span>
-              <span className="admin-phase-button__desc">{contestStateDescriptions[stateOption]}</span>
+              <span className="admin-phase-button__label">{phaseLabels[stateOption]}</span>
+              <span className="admin-phase-button__desc">{phaseDescriptions[stateOption]}</span>
             </button>
           );
         })}
