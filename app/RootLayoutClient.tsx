@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { MixologyAuthProvider } from '@/src/features/contest/contexts/auth/AuthContext';
+import { AuthProvider } from '@/src/features/contest/contexts/auth/AuthContext';
 import { RoundStateProvider } from '@/src/features/contest/contexts/RoundStateContext';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 
@@ -11,11 +11,11 @@ interface RootLayoutClientProps {
 
 export function RootLayoutClient({ children }: RootLayoutClientProps) {
   return (
-    <MixologyAuthProvider>
+    <AuthProvider>
       <RoundStateProvider>
         <SiteHeader />
         <main className="site-main">{children}</main>
       </RoundStateProvider>
-    </MixologyAuthProvider>
+    </AuthProvider>
   );
 }

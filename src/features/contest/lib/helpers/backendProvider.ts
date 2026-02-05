@@ -3,15 +3,15 @@
  */
 
 import { createFirebaseBackendProvider } from '../firebase/firebaseBackendProvider';
-import type { MixologyBackendProvider } from './types';
+import type { BackendProvider } from './types';
 
-let _provider: MixologyBackendProvider | null = null;
+let _provider: BackendProvider | null = null;
 let _initPromise: Promise<void> | null = null;
 
 /**
  * Gets the singleton backend provider instance.
  */
-export async function getBackendProvider(): Promise<MixologyBackendProvider> {
+export async function getBackendProvider(): Promise<BackendProvider> {
   if (!_provider) {
     _provider = createFirebaseBackendProvider();
   }

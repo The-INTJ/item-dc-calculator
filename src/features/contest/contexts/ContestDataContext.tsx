@@ -5,7 +5,7 @@ import { buildRoundDetail, buildRoundSummary, type RoundDetail, type RoundSummar
 import type { Contest } from './contest/contestTypes';
 import { useContestData } from './contest/ContestContext';
 
-interface MixologyDataState {
+interface ContestDataState {
   contest: Contest | null;
   roundSummary: RoundSummary | null;
   roundDetail: RoundDetail | null;
@@ -17,17 +17,17 @@ interface MixologyDataState {
   lastUpdatedAt: number | null;
 }
 
-const MixologyDataContext = createContext<MixologyDataState | undefined>(undefined);
+const ContestDataContext = createContext<ContestDataState | undefined>(undefined);
 
-interface MixologyDataProviderProps {
+interface ContestDataProviderProps {
   children: React.ReactNode;
 }
 
-export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
+export function ContestDataProvider({ children }: ContestDataProviderProps) {
   const { contests, activeContestId, lastUpdatedAt, refresh } = useContestData();
   const contest = contests.find((item) => item.id === activeContestId) ?? null;
   const lastUpdatedAtRef = useRef<number | null>(null);
-  const contestUpdatedEvent = 'mixology:contest-updated';
+  const contestUpdatedEvent = 'contest:data-updated';
 
   // Update timestamp when contest data changes
   useEffect(() => {
@@ -61,7 +61,7 @@ export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
     return () => window.removeEventListener(contestUpdatedEvent, handleContestUpdated);
   }, [refresh]);
 
-  const value = useMemo<MixologyDataState>(() => {
+  const value = useMemo<ContestDataState>(() => {
     if (!contest) {
       return {
         contest: null,
@@ -91,13 +91,13 @@ export function MixologyDataProvider({ children }: MixologyDataProviderProps) {
     };
   }, [contest, contests.length, refresh, lastUpdatedAt]);
 
-  return <MixologyDataContext.Provider value={value}>{children}</MixologyDataContext.Provider>;
+  return <ContestDataContext.Provider value={value}>{children}</ContestDataContext.Provider>;
 }
 
-export function useMixologyData() {
-  const context = useContext(MixologyDataContext);
+export function useContestDetails() {
+  const context = useContext(ContestDataContext);
   if (!context) {
-    throw new Error('useMixologyData must be used within MixologyDataProvider');
+    throw new Error('useContestDetails must be used within ContestDataProvider');
   }
   return context;
 }

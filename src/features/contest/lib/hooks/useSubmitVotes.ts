@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/auth/AuthContext';
 import { useContestData } from '../../contexts/contest/ContestContext';
-import { useMixologyData } from '../../contexts/MixologyDataContext';
+import { useContestDetails } from '../../contexts/ContestDataContext';
 import {
   buildFullBreakdown,
   calculateScore,
@@ -33,7 +33,7 @@ export interface UseSubmitVotesResult {
 export function useSubmitVotes(): UseSubmitVotesResult {
   const { session, role } = useAuth();
   const { recordVote } = useContestData();
-  const { contest, refreshAll } = useMixologyData();
+  const { contest, refreshAll } = useContestDetails();
 
   const [status, setStatus] = useState<SubmitStatus>('idle');
   const [message, setMessage] = useState<string | null>(null);

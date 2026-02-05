@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../contexts/auth/AuthContext';
-import { useMixologyData } from '../../contexts/MixologyDataContext';
+import { useContestDetails } from '../../contexts/ContestDataContext';
 import {
   buildScoreDefaults,
   buildScoresFromEntries,
@@ -33,7 +33,7 @@ export interface UseVoteScoresResult {
  */
 export function useVoteScores(): UseVoteScoresResult {
   const { session } = useAuth();
-  const { contest, drinks } = useMixologyData();
+  const { contest, drinks } = useContestDetails();
 
   const [draftScores, setDraftScores] = useState<ScoreByDrinkId>({});
   const [isLoadingRemote, setIsLoadingRemote] = useState(false);

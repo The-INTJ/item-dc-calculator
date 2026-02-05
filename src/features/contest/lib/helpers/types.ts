@@ -89,7 +89,7 @@ export interface ScoresProvider {
 /**
  * Combined backend provider - aggregates all sub-providers
  */
-export interface MixologyBackendProvider {
+export interface BackendProvider {
   readonly name: string;
   contests: ContestsProvider;
   entries: EntriesProvider;
