@@ -2,7 +2,6 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Contest, ContestPhase, ContestRound, Entry } from '../types';
-import { buildDefaultVoteCategories } from '../components/ui/voteUtils';
 import { getActiveRoundId, getRoundById, getRoundLabel } from '../lib/contestHelpers';
 import { useContestState } from './ContestStateContext';
 import { adminApi } from '../services/adminApi';
@@ -17,7 +16,7 @@ interface AdminContestContextValue extends AdminContestState {
   setActiveContest: (contestId: string) => void;
   updateContest: (contestId: string, updates: Partial<Contest>) => void;
   upsertContest: (contest: Contest) => void;
-  addContest: (name: string) => void;
+  addContest: (name: string) => Promise<{ success: boolean; data?: Contest; error?: string }>;
   deleteContest: (contestId: string) => Promise<{ success: boolean; error?: string }>;
   addRound: (contestId: string) => Promise<{ success: boolean; error?: string }>;
   updateRound: (contestId: string, roundId: string, updates: Partial<ContestRound>) => Promise<{ success: boolean; error?: string }>;
@@ -315,29 +314,24 @@ export function AdminContestProvider({ children }: { children: React.ReactNode }
     );
   }, [commitContestUpdate, getContestById]);
 
-  const addContest = useCallback((name: string) => {
-    updateState((prev) => {
-      const now = new Date().toISOString();
-      const newContest = normalizeContest({
-        id: generateId('contest'),
-        name,
-        slug: name.toLowerCase().replace(/\s+/g, '-'),
-        phase: 'set',
-        location: '',
-        startTime: now,
-        bracketRound: 'Round 1',
-        defaultContest: false,
-        rounds: [],
-        activeRoundId: null,
-        futureRoundId: null,
-        categories: buildDefaultVoteCategories(),
-        entries: [],
-        judges: [],
-        scores: [],
-      });
-      return { ...prev, contests: [...prev.contests, newContest] };
+  const addContest = useCallback(async (name: string) => {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      return { success: false, error: 'Contest name is required' };
+    }
+
+    const result = await adminApi.createContest({
+      name: trimmedName,
+      slug: trimmedName.toLowerCase().replace(/\s+/g, '-'),
+      phase: 'set',
     });
-  }, [updateState]);
+
+    if (result.success && result.data) {
+      replaceContestInState(result.data);
+    }
+
+    return result;
+  }, [replaceContestInState]);
 
   const deleteContest = useCallback(async (contestId: string) => {
     const result = await adminApi.deleteContest(contestId);
