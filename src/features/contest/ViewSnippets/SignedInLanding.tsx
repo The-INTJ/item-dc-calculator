@@ -16,7 +16,7 @@ export default function SignedInLanding({ user }: SignedInLandingProps) {
       <section className="contest-hero">
         <h1>Welcome back, {user.displayName}!</h1>
         <p>
-          Jump back into the action. Continue rating drinks, check your progress,
+          Jump back into the action. Continue rating entries, check your progress,
           or explore ongoing contests.
         </p>
         <div className="contest-actions">

@@ -96,6 +96,11 @@ Note: grep still returns many `mixolog`/`drink` references outside `dc-calculato
 
 ---
 
+
+## Phase 15: Additional Sub-100 Delta Cleanup ✅ Completed
+
+Applied a focused copy-only cleanup pass for remaining contestant-facing mixology/drinks wording in landing, onboarding, vote, and bracket screens.
+
 ## Execution Order Summary
 
 | Phase | Description | Estimated Impact |
@@ -115,6 +120,7 @@ Note: grep still returns many `mixolog`/`drink` references outside `dc-calculato
 | 12 | Remove `useMemo` | Net delete ~10 lines |
 | 13 | Simplify scoring/uiMappings | Net delete ~30 lines |
 | 14 | Final cleanup + build verification | Net delete (migration script, etc.) |
+| 15 | Additional sub-100-delta copy cleanup | Net delete/rename (small) |
 
 ---
 

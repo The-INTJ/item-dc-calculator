@@ -73,8 +73,8 @@ export default function MixologyOnboardPage() {
   return (
     <div className="account-page">
       <div className="guest-prompt">
-        <h1>Welcome to Mixology</h1>
-        <p>Join the tasting and rate your favorite drinks!</p>
+        <h1>Welcome to the Contest App</h1>
+        <p>Join in and rate your favorite entries!</p>
 
         {error && <div className="auth-error">{error}</div>}
         {syncWarning && <div className="auth-warning">{syncWarning}</div>}

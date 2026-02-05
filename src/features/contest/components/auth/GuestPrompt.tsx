@@ -47,8 +47,8 @@ export function GuestPrompt({ onContinue, onSwitchToLogin, onSwitchToRegister }:
 
   return (
     <div className="guest-prompt">
-      <h2>Welcome to Mixology</h2>
-      <p>Join the tasting and rate your favorite drinks!</p>
+      <h2>Welcome to the Contest App</h2>
+      <p>Join in and rate your favorite entries.</p>
 
       {error && <div className="auth-error">{error}</div>}
 
