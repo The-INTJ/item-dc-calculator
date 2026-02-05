@@ -11,7 +11,7 @@ import type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown } from '../globa
 // Re-export core types for convenience
 export type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown };
 /** @deprecated Use Entry instead */
-export type { Drink } from '../globals';
+export type { Drink } from '../globals/types';
 
 /**
  * Result wrapper for async operations

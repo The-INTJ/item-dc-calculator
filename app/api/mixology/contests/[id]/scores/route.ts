@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getBackendProvider } from '@/src/features/mixology/lib/helpers';
-import type { Entry, Judge, JudgeRole, ScoreBreakdown, Contest } from '@/src/features/mixology/lib/globals';
+import { getBackendProvider } from '@/mixology/lib/helpers/backendProvider';
+import type { Entry, Judge, JudgeRole, ScoreBreakdown, Contest } from '@/mixology/lib/globals/types';
 
 interface RouteParams {
   params: Promise<{ id: string }>;

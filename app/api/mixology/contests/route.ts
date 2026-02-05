@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getBackendProvider } from '@/src/features/mixology/lib/helpers';
+import { getBackendProvider } from '@/mixology/lib/helpers/backendProvider';
 import { requireAdmin } from '../_lib/requireAdmin';
 
 export async function GET(request: Request) {

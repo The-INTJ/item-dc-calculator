@@ -1,4 +1,4 @@
-import App from '@/src/features/dc-calculator/App';
+import App from '@/features/dc-calculator/App';
 
 export const metadata = {
   title: 'DC Calculator',
