@@ -1,5 +1,5 @@
 // Auth utilities
-export * from './auth';
+export * from '../contexts/auth';
 
 // Score utilities
 export * from './scoreUtils';

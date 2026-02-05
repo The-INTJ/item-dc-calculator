@@ -6,7 +6,7 @@
  */
 
 import { cookies } from 'next/headers';
-import type { UserProfile } from '../lib/auth/types';
+import type { UserProfile } from '../contexts/auth/types';
 import type { JudgeRole } from '../types';
 import { getFirebaseAdminAuth } from './firebase/admin';
 

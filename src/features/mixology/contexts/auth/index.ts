@@ -18,7 +18,7 @@ export type {
 } from './types';
 
 // Context and hooks - re-export from contexts folder
-export { MixologyAuthProvider, useAuth } from '../../contexts/AuthContext';
+export { MixologyAuthProvider, useAuth } from '../AuthContext';
 
 // Minimal storage utilities (cloud-first)
 export { createGuestSession, createCloudSession } from './storage';

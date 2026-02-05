@@ -17,9 +17,9 @@ import type {
   UserProfile,
   UserVote,
   GuestSessionResult,
-} from '../lib/auth/types';
-import type { AuthProvider } from '../lib/auth/provider';
-import { createGuestSession, createCloudSession } from '../lib/auth/storage';
+} from './auth/types';
+import type { AuthProvider } from './auth/provider';
+import { createGuestSession, createCloudSession } from './auth/storage';
 import { createFirebaseAuthProvider } from '../server/firebase/firebaseAuthProvider';
 import { isFirebaseConfigured } from '../server/firebase/config';
 
@@ -39,6 +39,7 @@ function getAuthProvider(): AuthProvider {
   return authProvider;
 }
 
+// WTD - This is a useless wrapper; remove
 /**
  * Get the current user's ID token for API authorization.
  * Returns null if not authenticated.
@@ -48,16 +49,49 @@ export async function getAuthToken(): Promise<string | null> {
   return authProvider.getIdToken();
 }
 
+// WTD - do not initialize any types outside type files or in the middle of files
 interface AuthProviderProps {
   children: ReactNode;
 }
 
 export function MixologyAuthProvider({ children }: AuthProviderProps) {
+
+  /* WTD Replace all the useState with useReducer for better state management
+  I want types defined in the type file
+  type AuthState =
+  | { status: 'loading' }
+  | { status: 'authenticated'; session: LocalSession }
+  | { status: 'error'; message: string }
+  | { status: 'guest' };
+
+type AuthAction =
+  | { type: 'LOADING' }
+  | { type: 'SUCCESS'; session: LocalSession }
+  | { type: 'ERROR'; message: string }
+  | { type: 'LOGOUT' };
+
+function authReducer(state: AuthState, action: AuthAction): AuthState {
+  switch (action.type) {
+    case 'LOADING':
+      return { status: 'loading' };
+
+    case 'SUCCESS':
+      return { status: 'authenticated', session: action.session };
+
+    case 'ERROR':
+      return { status: 'error', message: action.message };
+
+    case 'LOGOUT':
+      return { status: 'guest' };
+  }
+}
+  */
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<LocalSession | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Initialize - fetch from cloud only
+  // WTD - extract into custom hook in one of the sub files in the new folder
   useEffect(() => {
     const init = async () => {
       try {
@@ -98,6 +132,12 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   // Start guest session with Firebase anonymous auth
+  // WTD - we must flatten + abstract + extract
+  // 1. Don't use a callback unless you can give me a good reason to. recall, react 19 automatically memoizes functions in many cases
+  // 2. early return if the name is wrong is good
+  // 3. IMPORTANT -- we do a "create session in firestore". This is something that should be abstracted into a util method. For example, I'm pretty certain we call this for the normal, non-guest session as well. So we should have a "createSession" method that handles this logic
+  // Of note: the create session method should do the error handeling; that's the main abstraction. Our intent is for someone reading the code
+  // to be able to read "create session" and understand what it does without getting bogged down in the details of error handeling
   const startGuestSession = useCallback(
     async (options?: {
       displayName?: string;
@@ -155,6 +195,7 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
   );
 
   // Register new account
+  // WTD - ok just like above, this logic and the ending logic of the last function should be abstracted into a "createSession" method
   const register = useCallback(
     async (data: RegistrationData): Promise<{ success: boolean; error?: string }> => {
       const provider = getAuthProvider();
@@ -188,6 +229,7 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
   );
 
   // Login
+  // WTD - use the session creation if valid
   const login = useCallback(
     async (credentials: LoginCredentials): Promise<{ success: boolean; error?: string }> => {
       const provider = getAuthProvider();
@@ -220,6 +262,8 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
     []
   );
 
+  // WTD - the create session logic will need solid, robust typing. I want enums, etc, so our flows are crystal clear
+  // we should only need guest and google in the method I think
   const loginWithGoogle = useCallback(
     async (): Promise<{ success: boolean; error?: string }> => {
       const provider = getAuthProvider();
@@ -291,6 +335,7 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
         const provider = getAuthProvider();
         await provider.updateProfile(session.firebaseUid, updates);
 
+        // WTD - pretty sure we got rid of local session like this; our context holds the session
         // Update local session state
         setSession({
           ...session,
@@ -306,6 +351,7 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
     [session]
   );
 
+  // WTD - no callback unless you see a solid reason
   // Record vote - saves to Firestore only
   const recordVote = useCallback(
     async (vote: Omit<UserVote, 'timestamp'>) => {
@@ -334,6 +380,7 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
     [session]
   );
 
+  // WTD -- why are we saving the last visited page? Browser history should handle this
   // Update last path - in-memory only, not persisted
   const updateLastPath = useCallback((path: string) => {
     if (session) {
@@ -341,11 +388,15 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
     }
   }, [session]);
 
+  // Remove this method and anything that uses it, this is useless
   // No pending sync in cloud-only mode
   const syncPendingData = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     return { success: true }; // No-op in cloud-only mode
   }, []);
 
+  // WTD -- don't think "synced" is valid anymore? check this
+  // Our only roles should be user and admin
+  // role is only part of contest state, not auth
   // Derived state
   const isAuthenticated = session?.status === 'registered' || session?.status === 'synced';
   const isGuest = session?.status === 'guest';

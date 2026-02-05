@@ -1,5 +1,5 @@
 import type { ScoreBreakdown, ScoreEntry, ContestConfig } from '../types';
-import type { UserVote } from './auth/types';
+import type { UserVote } from '../contexts/auth/types';
 import { MIXOLOGY_CONFIG, getAttributeIds } from '../types';
 
 export const breakdownKeys: string[] = getAttributeIds(MIXOLOGY_CONFIG);

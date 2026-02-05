@@ -28,14 +28,14 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 
-import type { AuthProvider, AuthResult } from '../../lib/auth/provider';
+import type { AuthProvider, AuthResult } from '../../contexts/auth/provider';
 import type {
   RegistrationData,
   LoginCredentials,
   UserProfile,
   UserVote,
   LocalSession,
-} from '../../lib/auth/types';
+} from '../../contexts/auth/types';
 import { initializeFirebase, isFirebaseConfigured } from './config';
 
 // Firestore collection names
