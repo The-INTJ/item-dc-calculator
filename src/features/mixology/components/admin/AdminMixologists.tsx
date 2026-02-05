@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { Contest, Entry } from '../../lib/globals/types';
+import type { Contest, Entry } from '../../contexts/contest/contestTypes';
 import { useContestData } from '../../contexts/contest/ContestContext';
 import { getRoundLabel } from '../../lib/helpers/contestGetters';
 

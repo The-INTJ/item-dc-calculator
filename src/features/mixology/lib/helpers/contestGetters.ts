@@ -1,4 +1,4 @@
-import type { Contest, ContestRound, Entry, ScoreEntry } from '../globals/types';
+import type { Contest, ContestRound, Entry, ScoreEntry } from '../../contexts/contest/contestTypes';
 import { calculateScore } from './scoreUtils';
 
 export function getContestRounds(contest: Contest): ContestRound[] {

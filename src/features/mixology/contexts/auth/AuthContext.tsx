@@ -9,13 +9,13 @@ import type {
   UserProfile,
   GuestSessionResult,
   AuthResult,
-} from './auth/types';
-import type { AuthProvider } from './auth/provider';
-import { createSession } from './auth/storage';
-import { useAuthReducer } from './auth/useAuthReducer';
-import { useAuthInit } from './auth/useAuthInit';
-import { createFirebaseAuthProvider } from '../lib/firebase/firebaseAuthProvider';
-import { isFirebaseConfigured } from '../lib/firebase/config';
+} from './types';
+import type { AuthProvider } from './provider';
+import { createSession } from './storage';
+import { useAuthReducer } from './useAuthReducer';
+import { useAuthInit } from './useAuthInit';
+import { createFirebaseAuthProvider } from '../../lib/firebase/firebaseAuthProvider';
+import { isFirebaseConfigured } from '../../lib/firebase/config';
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 

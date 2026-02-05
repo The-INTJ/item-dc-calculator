@@ -2,12 +2,6 @@
 
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
-/**
- * Contest lifecycle states as defined in the Master Plan:
- * - Set: Guests arriving, choosing roles
- * - Shake: Mixing in progress, voting OPEN
- * - Scored: Voting CLOSED, scores being tallied
- */
 export type ContestState = 'set' | 'shake' | 'scored';
 
 export const CONTEST_STATES: ContestState[] = ['set', 'shake', 'scored'];
@@ -67,10 +61,10 @@ export function ContestStateProvider({ children }: ContestStateProviderProps) {
   return <ContestStateContext.Provider value={value}>{children}</ContestStateContext.Provider>;
 }
 
-export function useContestState() {
+export function useRoundState() {
   const context = useContext(ContestStateContext);
   if (!context) {
-    throw new Error('useContestState must be used within ContestStateProvider');
+    throw new Error('useRoundState must be used within ContestStateProvider');
   }
   return context;
 }

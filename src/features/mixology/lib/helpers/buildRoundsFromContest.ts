@@ -1,5 +1,5 @@
 import type { BracketRound } from '../../components/ui/BracketView';
-import type { Contest } from '../globals/types';
+import type { Contest } from '../../contexts/contest/contestTypes';
 import { buildMatchupsFromEntries } from './uiMappings';
 import { getContestRounds, getEntriesForRound, getEntryScore, getRoundStatus } from './contestGetters';
 

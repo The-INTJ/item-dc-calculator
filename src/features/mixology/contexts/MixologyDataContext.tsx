@@ -1,9 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useMemo, useRef } from 'react';
-import { buildRoundDetail, buildRoundSummary } from '../lib/helpers/uiMappings';
-import type { RoundDetail, RoundSummary, EntrySummary } from '../lib/globals/uiTypes';
-import type { Contest } from '../lib/globals/types';
+import { buildRoundDetail, buildRoundSummary, type RoundDetail, type RoundSummary, type EntrySummary } from '../lib/helpers/uiMappings';
+import type { Contest } from './contest/contestTypes';
 import { useContestData } from './contest/ContestContext';
 
 interface MixologyDataState {

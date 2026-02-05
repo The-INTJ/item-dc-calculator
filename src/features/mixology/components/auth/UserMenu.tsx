@@ -4,7 +4,7 @@
  * User menu - shows current user status and actions
  */
 
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/auth/AuthContext';
 
 interface UserMenuProps {
   onLogin?: () => void;

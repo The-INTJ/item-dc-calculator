@@ -1,7 +1,7 @@
 'use client';
 
 import { useMixologyData } from '@/mixology/contexts/MixologyDataContext';
-import { useContestState } from '@/mixology/contexts/ContestStateContext';
+import { useRoundState } from '@/src/features/mixology/contexts/RoundStateContext';
 import { VoteScorePanel } from '@/mixology/components/ui/VoteScorePanel';
 import { buildTotalsFromScores } from '@/mixology/components/ui/voteUtils';
 import { useVoteScores } from '@/mixology/lib/hooks/useVoteScores';
@@ -11,7 +11,7 @@ import { VoteActions } from '@/mixology/components/votePage/VoteActions';
 
 export function VotePage() {
   const { contest, drinks, loading, error } = useMixologyData();
-  const { state: contestState } = useContestState();
+  const { state: contestState } = useRoundState();
 
   const categories = (contest?.categories ?? [])
     .slice()

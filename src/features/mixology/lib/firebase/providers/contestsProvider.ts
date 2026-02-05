@@ -7,7 +7,7 @@
 import type { ContestsProvider, Contest, ProviderResult } from '../../helpers/types';
 import { generateId, withDb } from '../../helpers/providerUtils';
 import type { FirestoreAdapter } from '../firestoreAdapter';
-import { getTemplate, getDefaultConfig } from '../../globals/contestTemplates';
+import { getTemplate, getDefaultConfig } from '../../helpers/contestTemplates';
 
 /** Input shape from the API when creating a contest */
 interface ContestCreateInput {

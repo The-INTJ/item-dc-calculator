@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/mixology/contexts/AuthContext";
+import { useAuth } from "@/src/features/mixology/contexts/auth/AuthContext";
 import {
-  useContestState,
+  useRoundState,
   contestStateLabels,
-} from "@/mixology/contexts/ContestStateContext";
+} from "@/src/features/mixology/contexts/RoundStateContext";
 import { navItems } from "./navItems";
 
 function isActiveLink(pathname: string, href: string) {
@@ -21,7 +21,7 @@ export function NavBar() {
   const pathname = usePathname();
   const { role, loading } = useAuth();
   const isAdmin = role === "admin";
-  const { state, label } = useContestState();
+  const { state, label } = useRoundState();
 
   return (
     <nav className="site-nav">

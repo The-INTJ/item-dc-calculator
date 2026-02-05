@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { VoteCategory } from '../../lib/globals/types';
+import type { VoteCategory } from '../../contexts/contest/contestTypes';
 import { buildDefaultVoteCategories } from '../ui/voteUtils';
 
 interface ContestCategoriesProps {

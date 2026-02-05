@@ -4,7 +4,7 @@
  * These are intentionally framework-agnostic and can be tested in isolation.
  */
 
-import type { ScoreBreakdown } from '../../globals/types';
+import type { ScoreBreakdown } from '../../../contexts/contest/contestTypes';
 
 /**
  * Creates an empty breakdown with all scores set to 0.

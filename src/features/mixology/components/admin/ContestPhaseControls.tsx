@@ -1,7 +1,7 @@
 'use client';
 
-import type { Contest } from '../../lib/globals/types';
-import { useContestState, contestStateLabels } from '../../contexts/ContestStateContext';
+import type { Contest } from '../../contexts/contest/contestTypes';
+import { useRoundState, contestStateLabels } from '../../contexts/RoundStateContext';
 
 interface ContestPhaseControlsProps {
   contest: Contest;
@@ -9,7 +9,7 @@ interface ContestPhaseControlsProps {
 }
 
 export function ContestPhaseControls({ contest }: ContestPhaseControlsProps) {
-  const { state, label } = useContestState();
+  const { state, label } = useRoundState();
   const rounds = contest.rounds ?? [];
   const activeRoundIndex = rounds.findIndex((r) => r.id === contest.activeRoundId);
   const activeRound = activeRoundIndex !== -1 ? rounds[activeRoundIndex] : null;

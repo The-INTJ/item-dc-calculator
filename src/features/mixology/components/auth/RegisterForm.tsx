@@ -5,7 +5,7 @@
  */
 
 import { useState, type FormEvent } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/auth/AuthContext';
 
 interface RegisterFormProps {
   onSuccess?: () => void;

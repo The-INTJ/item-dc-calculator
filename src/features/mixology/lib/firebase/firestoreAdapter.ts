@@ -19,7 +19,7 @@ import {
   type Firestore,
   type Transaction,
 } from 'firebase/firestore';
-import type { Contest } from '../globals/types';
+import type { Contest } from '../../contexts/contest/contestTypes';
 import { CONTESTS_COLLECTION } from './scoring/scoreLock';
 
 /**

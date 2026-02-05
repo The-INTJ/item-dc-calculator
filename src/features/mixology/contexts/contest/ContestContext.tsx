@@ -1,8 +1,8 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
-import { useContestState } from '../ContestStateContext';
-import { useAuth } from '../AuthContext';
+import { useRoundState } from '../RoundStateContext';
+import { useAuth } from '../auth/AuthContext';
 import { useFetchContestsOnMount } from './hooks/useFetchContestsOnMount';
 import { useSyncPhaseToGlobalState } from './hooks/useSyncPhaseToGlobalState';
 import { useContestActions } from './hooks/useContestActions';
@@ -20,7 +20,7 @@ export function ContestProvider({ children }: { children: React.ReactNode }) {
     lastUpdatedAt: null,
   });
   const [, setLoadCount] = useState(0);
-  const { setState: setGlobalPhase } = useContestState();
+  const { setState: setGlobalPhase } = useRoundState();
   const { session } = useAuth();
 
   const updateState = useCallback((updater: (prev: ContestState) => ContestState) => {

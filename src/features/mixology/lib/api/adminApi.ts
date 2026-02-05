@@ -5,7 +5,7 @@
  * Uses Firebase ID tokens for authentication.
  */
 
-import type { Contest, Entry, ContestConfig } from '../globals/types';
+import type { Contest, Entry, ContestConfig } from '../../contexts/contest/contestTypes';
 import { getAuthToken } from '../../contexts/auth/getAuthToken';
 
 interface ProviderResult<T> {

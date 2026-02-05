@@ -6,7 +6,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/mixology/contexts/AuthContext';
+import { useAuth } from '@/src/features/mixology/contexts/auth/AuthContext';
 import { UserMenu } from '@/mixology/components/auth/UserMenu';
 
 export default function AccountPage() {

@@ -1,13 +1,13 @@
 'use client';
 
-import type { Contest, ContestPhase } from '../../lib/globals/types';
+import type { Contest, ContestPhase } from '../../contexts/contest/contestTypes';
 import { useContestData } from '../../contexts/contest/ContestContext';
 import { getRoundById } from '../../lib/helpers/contestGetters';
 import {
   CONTEST_STATES,
   contestStateLabels,
   contestStateDescriptions,
-} from '../../contexts/ContestStateContext';
+} from '../../contexts/RoundStateContext';
 
 interface AdminContestRoundsProps {
   contest: Contest;

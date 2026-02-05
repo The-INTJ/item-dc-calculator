@@ -2,7 +2,7 @@
  * Default contest configuration templates.
  */
 
-import type { ContestConfig } from './types';
+import type { ContestConfig } from '../../contexts/contest/contestTypes';
 
 export const MIXOLOGY_CONFIG: ContestConfig = {
   topic: 'Mixology',

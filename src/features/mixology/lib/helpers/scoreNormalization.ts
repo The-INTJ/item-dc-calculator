@@ -1,5 +1,5 @@
-import type { Contest, ScoreBreakdown } from '../globals/types';
-import { createEmptyBreakdown, getEffectiveConfig, isValidAttributeId, validateBreakdown } from '../globals/validation';
+import type { Contest, ScoreBreakdown } from '../../contexts/contest/contestTypes';
+import { createEmptyBreakdown, getEffectiveConfig, isValidAttributeId, validateBreakdown } from './validation';
 
 export interface NormalizedScorePayload {
   breakdown: ScoreBreakdown;

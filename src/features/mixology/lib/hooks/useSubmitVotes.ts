@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/auth/AuthContext';
 import { useContestData } from '../../contexts/contest/ContestContext';
 import { useMixologyData } from '../../contexts/MixologyDataContext';
 import {
@@ -9,8 +9,8 @@ import {
   calculateScore,
   isBreakdownKey,
 } from '../helpers/scoreUtils';
-import type { ScoreBreakdown } from '../globals/types';
-import { getEffectiveConfig } from '../globals/validation';
+import type { ScoreBreakdown } from '../../contexts/contest/contestTypes';
+import { getEffectiveConfig } from '../helpers/validation';
 import type { ScoreByDrinkId } from './useVoteScores';
 
 export type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error';

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { contestApi } from '../../../lib/api/contestApi';
 import type { ContestStateUpdater } from '../types';
-import type { Contest } from '../../../lib/globals/types';
+import type { Contest } from '../contestTypes';
 
 /**
  * useFetchContestsOnMount

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/mixology/contexts/AuthContext';
+import { useAuth } from '@/src/features/mixology/contexts/auth/AuthContext';
 import { ConfirmDialog } from './ConfirmDialog';
 
 interface AuthPrimaryActionProps {

@@ -5,7 +5,7 @@
  * Conforms to dev standards: < 80 lines, uses theme variables.
  */
 
-import type { Contest } from '../../lib/globals/types';
+import type { Contest } from '../../contexts/contest/contestTypes';
 
 interface ContestCardProps {
   contest: Contest;

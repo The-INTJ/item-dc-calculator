@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/mixology/contexts/AuthContext';
+import { useAuth } from '@/src/features/mixology/contexts/auth/AuthContext';
 
 interface AdminOnlyLinkProps {
   href: string;

@@ -1,7 +1,7 @@
-import type { ScoreBreakdown, ScoreEntry, ContestConfig } from '../globals/types';
+import type { ScoreBreakdown, ScoreEntry, ContestConfig } from '../../contexts/contest/contestTypes';
 import type { Vote } from '../../contexts/contest/types';
-import { MIXOLOGY_CONFIG } from '../globals/contestTemplates';
-import { getAttributeIds } from '../globals/validation';
+import { MIXOLOGY_CONFIG } from './contestTemplates';
+import { getAttributeIds } from './validation';
 
 export const breakdownKeys: string[] = getAttributeIds(MIXOLOGY_CONFIG);
 

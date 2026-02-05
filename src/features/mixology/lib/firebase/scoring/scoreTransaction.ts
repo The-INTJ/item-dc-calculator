@@ -6,7 +6,7 @@
  */
 
 import { doc, runTransaction, serverTimestamp, type Firestore } from 'firebase/firestore';
-import type { Contest, Entry, ScoreBreakdown, ScoreEntry } from '../../globals/types';
+import type { Contest, Entry, ScoreBreakdown, ScoreEntry } from '../../../contexts/contest/contestTypes';
 import { createEmptyBreakdown, addBreakdowns, diffBreakdowns } from './breakdownUtils';
 import {
   CONTESTS_COLLECTION,

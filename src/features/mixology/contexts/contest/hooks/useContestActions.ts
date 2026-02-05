@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { Contest, ContestPhase, ContestRound, Entry } from '../../../lib/globals/types';
+import type { Contest, ContestPhase, ContestRound, Entry } from '../contestTypes';
 import { contestApi } from '../../../lib/api/contestApi';
 import type { ContestState, ContestStateUpdater, ContestActions } from '../types';
 

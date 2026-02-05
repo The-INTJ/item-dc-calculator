@@ -1,4 +1,8 @@
 /**
+ * Core contest domain types.
+ */
+
+/**
  * Contest lifecycle states as defined in the Master Plan:
  * - set: Guests arriving and choosing roles
  * - shake: Entries being judged, timer running, voting OPEN

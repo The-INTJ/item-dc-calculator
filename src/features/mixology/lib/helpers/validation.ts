@@ -2,7 +2,7 @@
  * Validation helpers for ContestConfig and dynamic ScoreBreakdown.
  */
 
-import type { ContestConfig, ScoreBreakdown } from './types';
+import type { ContestConfig, ScoreBreakdown } from '../../contexts/contest/contestTypes';
 import { MIXOLOGY_CONFIG } from './contestTemplates';
 
 /**

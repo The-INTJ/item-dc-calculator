@@ -6,12 +6,12 @@
  * without changing frontend code.
  */
 
-import type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown } from '../globals/types';
+import type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown } from '../../contexts/contest/contestTypes';
 
 // Re-export core types for convenience
 export type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown };
 /** @deprecated Use Entry instead */
-export type { Drink } from '../globals/types';
+export type { Drink } from '../../contexts/contest/contestTypes';
 
 /**
  * Result wrapper for async operations

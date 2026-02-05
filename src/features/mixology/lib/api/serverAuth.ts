@@ -7,7 +7,7 @@
 
 import { cookies } from 'next/headers';
 import type { UserProfile } from '../../contexts/auth/types';
-import type { JudgeRole } from '../globals/types';
+import type { JudgeRole } from '../../contexts/contest/contestTypes';
 import { getFirebaseAdminAuth } from '../firebase/admin';
 
 const JUDGE_ROLES: JudgeRole[] = ['admin', 'judge', 'viewer'];

@@ -1,15 +1,15 @@
 'use client';
 
 import {
-  useContestState,
+  useRoundState,
   CONTEST_STATES,
   contestStateLabels,
   contestStateDescriptions,
   type ContestState,
-} from '../../contexts/ContestStateContext';
+} from '../../contexts/RoundStateContext';
 
 export function AdminStateControls() {
-  const { state, setState, label } = useContestState();
+  const { state, setState, label } = useRoundState();
 
   const handleStateChange = (newState: ContestState) => {
     if (newState !== state) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { DrinkSummary } from '../../lib/globals/uiTypes';
+import type { DrinkSummary } from '../../lib/helpers/uiMappings';
 import type { ReactNode } from 'react';
 
 type DrinkCardVariant = 'compact' | 'vote';

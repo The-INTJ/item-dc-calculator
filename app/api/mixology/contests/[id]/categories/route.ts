@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getBackendProvider } from '@/mixology/lib/helpers/backendProvider';
 import { requireAdmin } from '../../../_lib/requireAdmin';
-import type { VoteCategory } from '@/mixology/lib/globals/types';
+import type { VoteCategory } from '@/src/features/mixology/contexts/contest/contestTypes';
 
 interface RouteParams {
   params: Promise<{ id: string }>;

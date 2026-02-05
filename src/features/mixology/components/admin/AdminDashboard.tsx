@@ -7,9 +7,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/auth/AuthContext';
 import { useContestData } from '../../contexts/contest/ContestContext';
-import type { Contest } from '../../lib/globals/types';
+import type { Contest } from '../../contexts/contest/contestTypes';
 import { ContestCard } from './ContestCard';
 import { ContestDetails } from './ContestDetails';
 

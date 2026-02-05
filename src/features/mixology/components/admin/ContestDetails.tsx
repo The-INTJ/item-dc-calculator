@@ -1,9 +1,9 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Contest, ContestConfig, Entry, Judge, ScoreEntry } from '../../lib/globals/types';
-import { buildEntrySummary } from '../../lib/globals/uiTypes';
-import { getEffectiveConfig } from '../../lib/globals/validation';
+import type { Contest, ContestConfig, Entry, Judge, ScoreEntry } from '../../contexts/contest/contestTypes';
+import { buildEntrySummary } from '../../lib/helpers/uiMappings';
+import { getEffectiveConfig } from '../../lib/helpers/validation';
 import { getRoundLabel } from '../../lib/helpers/contestGetters';
 import { DrinkCard } from '../ui/DrinkCard';
 import { useContestData } from '../../contexts/contest/ContestContext';

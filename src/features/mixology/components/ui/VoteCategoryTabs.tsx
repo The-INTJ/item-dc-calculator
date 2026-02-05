@@ -1,4 +1,4 @@
-import type { VoteCategory } from '../../lib/globals/uiTypes';
+import type { VoteCategory } from '../../contexts/contest/contestTypes';
 
 interface VoteCategoryTabsProps {
   categories: VoteCategory[];
