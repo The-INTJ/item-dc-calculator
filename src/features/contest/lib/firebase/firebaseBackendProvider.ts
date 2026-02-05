@@ -1,13 +1,13 @@
 /**
  * Firebase backend provider implementation.
  *
- * This is the entry point that assembles the full MixologyBackendProvider
+ * This is the entry point that assembles the full BackendProvider
  * from individual sub-providers. Each provider is implemented in a separate
  * file under the `providers/` directory.
  */
 
 import type { Firestore } from 'firebase/firestore';
-import type { MixologyBackendProvider } from '../helpers/types';
+import type { BackendProvider } from '../helpers/types';
 import { success } from '../helpers/providerUtils';
 import { initializeFirebase, isFirebaseConfigured } from './config';
 import { createFirestoreAdapter } from './firestoreAdapter';
@@ -19,7 +19,7 @@ import { createFirebaseScoresProvider } from './providers/scoresProvider';
 /**
  * Creates the full Firebase backend provider.
  */
-export function createFirebaseBackendProvider(): MixologyBackendProvider {
+export function createFirebaseBackendProvider(): BackendProvider {
   let db: Firestore | null = null;
 
   const getDb = () => db;

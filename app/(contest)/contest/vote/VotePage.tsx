@@ -1,6 +1,6 @@
 'use client';
 
-import { useMixologyData } from '@/contest/contexts/MixologyDataContext';
+import { useContestDetails } from '@/contest/contexts/ContestDataContext';
 import { useRoundState } from '@/src/features/contest/contexts/RoundStateContext';
 import { VoteScorePanel } from '@/contest/components/ui/VoteScorePanel';
 import { buildTotalsFromScores } from '@/contest/components/ui/voteUtils';
@@ -10,7 +10,7 @@ import { VotePageHeader } from '@/contest/components/votePage/VotePageHeader';
 import { VoteActions } from '@/contest/components/votePage/VoteActions';
 
 export function VotePage() {
-  const { contest, drinks, loading, error } = useMixologyData();
+  const { contest, drinks, loading, error } = useContestDetails();
   const { state: contestState } = useRoundState();
 
   const categories = contest?.config?.attributes ?? [];

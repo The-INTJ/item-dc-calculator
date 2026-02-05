@@ -34,41 +34,9 @@ Renamed `src/features/mixology/` to `src/features/contest/`, replaced all `@/mix
 
 Renamed `(mixology)/mixology` routes to `(contest)/contest`, renamed `app/api/mixology` to `app/api/contest`, and moved `drinks/[drinkId]` API routes to `entries/[entryId]`.
 
-## Phase 4: Rename Contexts & Providers
+## Phase 4: Rename Contexts & Providers ✅ Completed
 
-### 4.1 — Rename `MixologyDataContext.tsx` → `ContestDataContext.tsx`
-
-| Old Name | New Name |
-|----------|----------|
-| `MixologyDataState` | `ContestDataState` |
-| `MixologyDataContext` | `ContestDataContext` |
-| `MixologyDataProvider` | `ContestDataProvider` |
-| `useMixologyData()` | `useContestDetails()` |
-| `drinks` field | `entries` field |
-| Event: `'mixology:contest-updated'` | `'contest:data-updated'` |
-
-### 4.2 — Rename `RoundStateContext.tsx` events
-
-| Old Name | New Name |
-|----------|----------|
-| Event: `'mixology:state-changed'` | `'contest:phase-changed'` |
-
-Remove mixology-specific phase descriptions (e.g., "Drinks are being made"). Use generic wording:
-- `set` → "Preparation phase. Participants joining."
-- `shake` → "Active phase. Judging is OPEN."
-- `scored` → "Scoring CLOSED. Tallying results."
-
-### 4.3 — Rename `MixologyAuthProvider` → `AuthProvider`
-
-In `src/features/contest/contexts/auth/AuthContext.tsx`:
-- `MixologyAuthProvider` → `AuthProvider`
-- Update the import in `RootLayoutClient.tsx`
-
-### 4.4 — Rename `MixologyBackendProvider` → `BackendProvider`
-
-In `src/features/contest/lib/helpers/types.ts`:
-- `MixologyBackendProvider` → `BackendProvider`
-- Update all references (in `backendProvider.ts`, `firebaseBackendProvider.ts`, etc.)
+Renamed `MixologyDataContext.tsx` to `ContestDataContext.tsx`, updated exports/consumers (`ContestDataProvider`, `useContestDetails`), switched events to `contest:data-updated` and `contest:phase-changed`, renamed `MixologyAuthProvider` to `AuthProvider`, renamed `MixologyBackendProvider` to `BackendProvider`, and updated RoundState phase descriptions to generic wording.
 
 ---
 

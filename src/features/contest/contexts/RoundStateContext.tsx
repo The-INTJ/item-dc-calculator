@@ -12,9 +12,9 @@ export const phaseLabels: Record<ContestPhase, string> = {
 };
 
 export const phaseDescriptions: Record<ContestPhase, string> = {
-  set: 'Guests arriving and choosing roles. Happens once at competition start; admin can return here if needed.',
-  shake: 'Drinks are being made, timer running, voting is OPEN.',
-  scored: 'Voting CLOSED. Tallying scores, preparing next round. Admin triggers next Shake when ready.',
+  set: 'Preparation phase. Participants joining.',
+  shake: 'Active phase. Judging is OPEN.',
+  scored: 'Scoring CLOSED. Tallying results.',
 };
 
 interface RoundStateContextValue {
@@ -36,7 +36,7 @@ export function RoundStateProvider({ children }: { children: React.ReactNode }) 
   const setState = useCallback((newState: ContestPhase) => {
     setStateInternal(newState);
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new Event('mixology:state-changed'));
+      window.dispatchEvent(new Event('contest:phase-changed'));
     }
   }, []);
 

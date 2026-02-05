@@ -31,7 +31,7 @@ function getAuthProvider(): AuthProvider {
   return authProvider;
 }
 
-export function MixologyAuthProvider({ children }: AuthProviderProps) {
+export function AuthProvider({ children }: AuthProviderProps) {
   const [state, dispatch] = useAuthReducer();
   const provider = getAuthProvider();
 
@@ -163,7 +163,7 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within MixologyAuthProvider');
+    throw new Error('useAuth must be used within AuthProvider');
   }
   return context;
 }
