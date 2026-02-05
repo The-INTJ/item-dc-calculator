@@ -5,12 +5,12 @@
  * Scores are stored as arrays in contest documents.
  */
 
-import type { ScoresProvider, ScoreEntry, ProviderResult } from '../../backend/types';
-import { generateId, success, error, withDb } from '../../backend/providerUtils';
-import { normalizeScorePayload } from '../../backend/scoreNormalization';
+import type { ScoresProvider, ScoreEntry, ProviderResult } from '../../helpers/types';
+import { generateId, success, error, withDb } from '../../helpers/providerUtils';
+import { normalizeScorePayload } from '../../helpers/scoreNormalization';
 import { createArrayEntityOperations } from '../arrayEntityAdapter';
 import type { FirestoreAdapter } from '../firestoreAdapter';
-import { applyEntryScoreUpdate, updateEntryScoresWithLock } from '../scoring';
+import { applyEntryScoreUpdate, updateEntryScoresWithLock } from '../scoring/scoreTransaction';
 
 /**
  * Creates the Firebase scores provider.

@@ -1,7 +1,7 @@
 'use client';
 
-import type { Contest, ContestPhase } from '../../lib/globals';
-import { useContestData } from '../../contexts/contest';
+import type { Contest, ContestPhase } from '../../lib/globals/types';
+import { useContestData } from '../../contexts/contest/ContestContext';
 import { getRoundById } from '../../lib/helpers/contestGetters';
 import {
   CONTEST_STATES,

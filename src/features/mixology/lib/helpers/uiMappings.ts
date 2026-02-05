@@ -1,4 +1,4 @@
-import type { Contest, Entry } from './globals';
+import type { Contest, Entry } from '../globals/types';
 import {
   buildEntrySummary,
   buildRoundSummaryFromContest,
@@ -8,8 +8,8 @@ import {
   type RoundSummary,
   type EntrySummary,
   type VoteTotals,
-} from './globals/uiTypes';
-import { getActiveRoundId, getEntriesForRound } from './helpers/contestGetters';
+} from '../globals/uiTypes';
+import { getActiveRoundId, getEntriesForRound } from './contestGetters';
 
 export function buildRoundSummary(contest: Contest): RoundSummary {
   return buildRoundSummaryFromContest(contest);

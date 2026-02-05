@@ -4,7 +4,7 @@
  * Handles CRUD operations for judges stored as arrays in contest documents.
  */
 
-import type { JudgesProvider, Judge } from '../../backend/types';
+import type { JudgesProvider, Judge } from '../../helpers/types';
 import { createArrayEntityOperations } from '../arrayEntityAdapter';
 import type { FirestoreAdapter } from '../firestoreAdapter';
 

@@ -6,9 +6,9 @@
  */
 
 import { cookies } from 'next/headers';
-import type { UserProfile } from '../contexts/auth/types';
-import type { JudgeRole } from './globals';
-import { getFirebaseAdminAuth } from './firebase/admin';
+import type { UserProfile } from '../../contexts/auth/types';
+import type { JudgeRole } from '../globals/types';
+import { getFirebaseAdminAuth } from '../firebase/admin';
 
 const JUDGE_ROLES: JudgeRole[] = ['admin', 'judge', 'viewer'];
 
@@ -45,23 +45,16 @@ async function buildUserProfile(uid: string, claims: Record<string, unknown>): P
 
 /**
  * Get the current user from the server side.
- * 
+ *
  * This checks for Firebase auth tokens in cookies and validates them.
  * Returns null if the user is not authenticated.
- * 
- * Note: This is a simplified implementation. In production, you would:
- * - Use Firebase Admin SDK to verify the session cookie
- * - Validate the token with Firebase
- * - Fetch user data from Firestore
  */
 export async function getCurrentUser(): Promise<UserProfile | null> {
   try {
     const cookieStore = await cookies();
-    
-    // Check for Firebase session cookie or auth token
-    // Firebase typically uses __session cookie for server-side auth
+
     const sessionCookie = cookieStore.get('__session')?.value;
-    
+
     if (!sessionCookie) {
       return null;
     }

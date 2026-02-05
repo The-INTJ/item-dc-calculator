@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useMixologyData } from '../contexts/MixologyDataContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useMixologyData } from '../../contexts/MixologyDataContext';
 import {
   buildScoreDefaults,
   buildScoresFromEntries,
   mergeScoreMaps,
-} from '../lib/scoreUtils';
-import type { ScoreEntry } from '../globals';
+} from '../helpers/scoreUtils';
+import type { ScoreEntry } from '../globals/types';
 
 export type ScoreByDrinkId = Record<string, Record<string, number>>;
 

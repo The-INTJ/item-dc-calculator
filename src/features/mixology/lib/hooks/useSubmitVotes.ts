@@ -1,16 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useContestData } from '../contexts/contest';
-import { useMixologyData } from '../contexts/MixologyDataContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useContestData } from '../../contexts/contest/ContestContext';
+import { useMixologyData } from '../../contexts/MixologyDataContext';
 import {
   buildFullBreakdown,
   calculateScore,
   isBreakdownKey,
-} from '../lib/scoreUtils';
-import type { ScoreBreakdown } from '../globals';
-import { getEffectiveConfig } from '../globals';
+} from '../helpers/scoreUtils';
+import type { ScoreBreakdown } from '../globals/types';
+import { getEffectiveConfig } from '../globals/validation';
 import type { ScoreByDrinkId } from './useVoteScores';
 
 export type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error';

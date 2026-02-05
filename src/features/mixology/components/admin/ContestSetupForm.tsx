@@ -9,8 +9,8 @@ import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getTemplateKeys, DEFAULT_TEMPLATES } from '../../lib/globals/contestTemplates';
 import { AttributeEditor } from './AttributeEditor';
-import type { AttributeConfig, ContestConfig } from '../../lib/globals';
-import { useContestData } from '../../contexts/contest';
+import type { AttributeConfig, ContestConfig } from '../../lib/globals/types';
+import { useContestData } from '../../contexts/contest/ContestContext';
 
 type ConfigMode = 'template' | 'custom';
 

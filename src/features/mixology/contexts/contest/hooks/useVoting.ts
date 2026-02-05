@@ -12,7 +12,7 @@ import {
   updateDoc,
   serverTimestamp,
 } from 'firebase/firestore';
-import { initializeFirebase, isFirebaseConfigured } from '../../../server/firebase/config';
+import { initializeFirebase, isFirebaseConfigured } from '../../../lib/firebase/config';
 import type { Vote, VoteInput, VotingActions } from '../types';
 
 const VOTES_COLLECTION = 'mixology_votes';

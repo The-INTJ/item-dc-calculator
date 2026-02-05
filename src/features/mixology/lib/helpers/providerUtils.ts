@@ -2,7 +2,7 @@
  * Shared utilities for backend providers.
  */
 
-import type { ProviderResult } from '../../server/backend/types';
+import type { ProviderResult } from './types';
 
 export function generateId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;

@@ -6,7 +6,7 @@
  * without changing frontend code.
  */
 
-import type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown } from '../globals';
+import type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown } from '../globals/types';
 
 // Re-export core types for convenience
 export type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown };

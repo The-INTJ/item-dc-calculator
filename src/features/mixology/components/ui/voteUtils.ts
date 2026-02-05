@@ -1,4 +1,4 @@
-import type { ScoreEntry, ScoreBreakdown } from '../../lib/globals';
+import type { ScoreEntry, ScoreBreakdown } from '../../lib/globals/types';
 import type { VoteCategory, VoteTotals } from '../../lib/globals/uiTypes';
 
 const breakdownOrder: Array<keyof ScoreBreakdown> = [

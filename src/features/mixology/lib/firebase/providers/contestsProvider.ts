@@ -4,8 +4,8 @@
  * Handles CRUD operations for contest documents in Firestore.
  */
 
-import type { ContestsProvider, Contest, ProviderResult } from '../../backend/types';
-import { generateId, withDb } from '../../backend/providerUtils';
+import type { ContestsProvider, Contest, ProviderResult } from '../../helpers/types';
+import { generateId, withDb } from '../../helpers/providerUtils';
 import type { FirestoreAdapter } from '../firestoreAdapter';
 import { getTemplate, getDefaultConfig } from '../../globals/contestTemplates';
 

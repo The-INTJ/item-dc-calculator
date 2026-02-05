@@ -4,7 +4,7 @@
  * Handles CRUD operations for entries stored as arrays in contest documents.
  */
 
-import type { EntriesProvider, Entry } from '../../backend/types';
+import type { EntriesProvider, Entry } from '../../helpers/types';
 import { createArrayEntityOperations } from '../arrayEntityAdapter';
 import type { FirestoreAdapter } from '../firestoreAdapter';
 

@@ -3,7 +3,7 @@
  */
 
 import type { ReactNode } from 'react';
-import type { JudgeRole } from '../../lib/globals';
+import type { JudgeRole } from '../../lib/globals/types';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Core Types

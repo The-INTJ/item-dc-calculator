@@ -14,8 +14,8 @@ import type { AuthProvider } from './auth/provider';
 import { createSession } from './auth/storage';
 import { useAuthReducer } from './auth/useAuthReducer';
 import { useAuthInit } from './auth/useAuthInit';
-import { createFirebaseAuthProvider } from '../server/firebase/firebaseAuthProvider';
-import { isFirebaseConfigured } from '../server/firebase/config';
+import { createFirebaseAuthProvider } from '../lib/firebase/firebaseAuthProvider';
+import { isFirebaseConfigured } from '../lib/firebase/config';
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 

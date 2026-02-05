@@ -19,8 +19,8 @@ import {
   type Firestore,
   type Transaction,
 } from 'firebase/firestore';
-import type { Contest } from '../globals';
-import { CONTESTS_COLLECTION } from './scoring';
+import type { Contest } from '../globals/types';
+import { CONTESTS_COLLECTION } from './scoring/scoreLock';
 
 /**
  * Firestore adapter interface for contest operations.

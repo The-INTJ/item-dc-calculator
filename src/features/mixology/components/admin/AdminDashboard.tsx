@@ -8,8 +8,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
-import { useContestData } from '../../contexts/contest';
-import type { Contest } from '../../lib/globals';
+import { useContestData } from '../../contexts/contest/ContestContext';
+import type { Contest } from '../../lib/globals/types';
 import { ContestCard } from './ContestCard';
 import { ContestDetails } from './ContestDetails';
 

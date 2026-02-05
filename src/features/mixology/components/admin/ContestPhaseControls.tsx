@@ -1,6 +1,6 @@
 'use client';
 
-import type { Contest } from '../../lib/globals';
+import type { Contest } from '../../lib/globals/types';
 import { useContestState, contestStateLabels } from '../../contexts/ContestStateContext';
 
 interface ContestPhaseControlsProps {

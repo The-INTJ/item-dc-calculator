@@ -6,7 +6,7 @@
  */
 
 import { useCallback } from 'react';
-import type { AttributeConfig } from '../../lib/globals';
+import type { AttributeConfig } from '../../lib/globals/types';
 
 interface AttributeEditorProps {
   attributes: AttributeConfig[];

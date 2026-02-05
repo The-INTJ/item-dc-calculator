@@ -3,7 +3,7 @@
  */
 
 import { createFirebaseBackendProvider } from '../firebase/firebaseBackendProvider';
-import type { MixologyBackendProvider } from '../../server/backend/types';
+import type { MixologyBackendProvider } from './types';
 
 let _provider: MixologyBackendProvider | null = null;
 let _initPromise: Promise<void> | null = null;

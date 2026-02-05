@@ -3,7 +3,10 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { useContestState } from '../ContestStateContext';
 import { useAuth } from '../AuthContext';
-import { useFetchContestsOnMount, useSyncPhaseToGlobalState, useContestActions, useVoting } from './hooks';
+import { useFetchContestsOnMount } from './hooks/useFetchContestsOnMount';
+import { useSyncPhaseToGlobalState } from './hooks/useSyncPhaseToGlobalState';
+import { useContestActions } from './hooks/useContestActions';
+import { useVoting } from './hooks/useVoting';
 import type { ContestState, ContestActions, VotingActions } from './types';
 
 type ContestContextValue = ContestState & ContestActions & VotingActions & { refresh: () => void };

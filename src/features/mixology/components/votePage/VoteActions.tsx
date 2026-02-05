@@ -1,4 +1,4 @@
-import type { SubmitStatus } from '../../hooks';
+import type { SubmitStatus } from '../../lib/hooks/useSubmitVotes';
 
 interface VoteActionsProps {
   canSubmit: boolean;

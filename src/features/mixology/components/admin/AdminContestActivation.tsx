@@ -1,6 +1,6 @@
 'use client';
 
-import type { Contest } from '../../lib/globals';
+import type { Contest } from '../../lib/globals/types';
 
 interface AdminContestActivationProps {
   contest: Contest;

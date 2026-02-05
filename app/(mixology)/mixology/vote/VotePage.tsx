@@ -2,10 +2,12 @@
 
 import { useMixologyData } from '@/mixology/contexts/MixologyDataContext';
 import { useContestState } from '@/mixology/contexts/ContestStateContext';
-import { VoteScorePanel } from '@/mixology/components/ui';
+import { VoteScorePanel } from '@/mixology/components/ui/VoteScorePanel';
 import { buildTotalsFromScores } from '@/mixology/components/ui/voteUtils';
-import { useVoteScores, useSubmitVotes } from '@/mixology/hooks';
-import { VotePageHeader, VoteActions } from '@/mixology/components/votePage';
+import { useVoteScores } from '@/mixology/lib/hooks/useVoteScores';
+import { useSubmitVotes } from '@/mixology/lib/hooks/useSubmitVotes';
+import { VotePageHeader } from '@/mixology/components/votePage/VotePageHeader';
+import { VoteActions } from '@/mixology/components/votePage/VoteActions';
 
 export function VotePage() {
   const { contest, drinks, loading, error } = useMixologyData();

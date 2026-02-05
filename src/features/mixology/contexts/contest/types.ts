@@ -1,4 +1,4 @@
-import type { Contest, ContestPhase, ContestRound, Entry, ScoreBreakdown } from '../../lib/globals';
+import type { Contest, ContestPhase, ContestRound, Entry, ScoreBreakdown } from '../../lib/globals/types';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Vote Types

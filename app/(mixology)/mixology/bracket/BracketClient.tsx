@@ -2,8 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BracketView } from '@/mixology/components/ui';
-import type { BracketRound } from '@/mixology/components/ui/BracketView';
+import { BracketView, type BracketRound } from '@/mixology/components/ui/BracketView';
 import { useMixologyData } from '@/mixology/contexts/MixologyDataContext';
 import { buildBracketRoundsFromContest } from '@/src/features/mixology/lib/helpers/buildRoundsFromContest';
 

@@ -7,16 +7,14 @@
  */
 
 import type { Firestore } from 'firebase/firestore';
-import type { MixologyBackendProvider } from '../backend/types';
-import { success } from '../backend/providerUtils';
+import type { MixologyBackendProvider } from '../helpers/types';
+import { success } from '../helpers/providerUtils';
 import { initializeFirebase, isFirebaseConfigured } from './config';
 import { createFirestoreAdapter } from './firestoreAdapter';
-import {
-  createFirebaseContestsProvider,
-  createFirebaseEntriesProvider,
-  createFirebaseJudgesProvider,
-  createFirebaseScoresProvider,
-} from './providers';
+import { createFirebaseContestsProvider } from './providers/contestsProvider';
+import { createFirebaseEntriesProvider } from './providers/entriesProvider';
+import { createFirebaseJudgesProvider } from './providers/judgesProvider';
+import { createFirebaseScoresProvider } from './providers/scoresProvider';
 
 /**
  * Creates the full Firebase backend provider.

@@ -5,7 +5,7 @@
  */
 
 import { doc, runTransaction, serverTimestamp, type Firestore } from 'firebase/firestore';
-import type { Contest, Entry } from '../../globals';
+import type { Contest, Entry } from '../../globals/types';
 
 // Constants for score locking
 export const SCORE_LOCK_TTL_MS = 2500;

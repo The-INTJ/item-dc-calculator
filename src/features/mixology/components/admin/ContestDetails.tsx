@@ -1,13 +1,13 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Contest, ContestConfig, Entry, Judge, ScoreEntry } from '../../lib/globals';
+import type { Contest, ContestConfig, Entry, Judge, ScoreEntry } from '../../lib/globals/types';
 import { buildEntrySummary } from '../../lib/globals/uiTypes';
-import { getEffectiveConfig } from '../../lib/globals';
+import { getEffectiveConfig } from '../../lib/globals/validation';
 import { getRoundLabel } from '../../lib/helpers/contestGetters';
-import { DrinkCard } from '../ui';
-import { useContestData } from '../../contexts/contest';
-import { adminApi } from '../../services/adminApi';
+import { DrinkCard } from '../ui/DrinkCard';
+import { useContestData } from '../../contexts/contest/ContestContext';
+import { adminApi } from '../../lib/api/adminApi';
 import { AdminContestActivation } from './AdminContestActivation';
 import { AdminContestRounds } from './AdminContestRounds';
 import { AdminMixologists } from './AdminMixologists';

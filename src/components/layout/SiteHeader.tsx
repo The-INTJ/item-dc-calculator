@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/mixology/contexts/AuthContext';
-import { useCurrentContest } from '@/mixology/hooks';
+import { useCurrentContest } from '@/mixology/lib/hooks/useCurrentContest';
 import { NavBar } from './NavBar';
-import styles from '@/components/styles/Header.module.scss';
+import styles from '@/mixology/styles/components/Header.module.scss';
 
 const authRequiredPrefixes = [
   '/mixology/admin',

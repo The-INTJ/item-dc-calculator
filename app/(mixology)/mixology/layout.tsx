@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { MixologyDataProvider } from '@/mixology/contexts/MixologyDataContext';
-import { ContestProvider } from '@/mixology/contexts/contest';
+import { ContestProvider } from '@/mixology/contexts/contest/ContestContext';
 import './mixology.scss';
 
 export default function MixologyLayout({ children }: { children: ReactNode }) {

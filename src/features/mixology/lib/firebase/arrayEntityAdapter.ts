@@ -5,8 +5,8 @@
  * This adapter provides reusable CRUD operations for any such entity type.
  */
 
-import type { Contest, ProviderResult } from '../backend/types';
-import { generateId, success, error } from '../backend/providerUtils';
+import type { Contest, ProviderResult } from '../helpers/types';
+import { generateId, success, error } from '../helpers/providerUtils';
 import type { FirestoreAdapter } from './firestoreAdapter';
 
 /**

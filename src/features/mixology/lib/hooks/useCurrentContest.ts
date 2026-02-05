@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Contest } from '../globals';
+import type { Contest } from '../globals/types';
 
 /**
  * Generic async state shape
