@@ -40,29 +40,9 @@ Renamed `MixologyDataContext.tsx` to `ContestDataContext.tsx`, updated exports/c
 
 ---
 
-## Phase 5: Rename "Mixologist" → "Contestant" in Actions & Components
+## Phase 5: Rename "Mixologist" → "Contestant" in Actions & Components ✅ Completed
 
-### 5.1 — Contest actions (in `contestTypes.ts`)
-
-| Old Name | New Name |
-|----------|----------|
-| `addMixologist(contestId, { name, drinkName, roundId })` | `addContestant(contestId, { name, entryName, roundId })` |
-| `updateMixologist(contestId, drinkId, updates)` | `updateContestant(contestId, entryId, updates)` |
-| `removeMixologist(contestId, drinkId)` | `removeContestant(contestId, entryId)` |
-
-### 5.2 — Admin components
-
-| Old File | Action |
-|----------|--------|
-| `AdminMixologists.tsx` | Rename → `AdminContestants.tsx`. Replace all "mixologist"/"drink" language with "contestant"/"entry". |
-| `DrinkCard.tsx` | Rename → `EntryCard.tsx`. Replace `DrinkCardProps` → `EntryCardProps`, etc. |
-| `DrinkCard` references everywhere | Update to `EntryCard` |
-
-### 5.3 — CSS class renames
-
-All `mixology-*` CSS classes → `contest-*`. All `*-drink-*` classes → `*-entry-*`. Mass find-and-replace in:
-- `src/features/contest/styles/*.scss`
-- All component files referencing these classes
+Renamed contest actions (`addContestant`, `updateContestant`, `removeContestant`), renamed admin/component files (`AdminContestants.tsx`, `EntryCard.tsx`), updated references, and migrated admin-specific CSS hooks from `admin-mixologist-*` to `admin-contestant-*` plus entry card class names.
 
 ---
 

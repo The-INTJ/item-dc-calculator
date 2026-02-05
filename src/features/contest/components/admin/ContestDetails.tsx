@@ -5,12 +5,12 @@ import type { Contest, ContestConfig, Entry, Judge, ScoreEntry } from '../../con
 import { buildEntrySummary } from '../../lib/helpers/uiMappings';
 import { getEffectiveConfig } from '../../lib/helpers/validation';
 import { getRoundLabel } from '../../lib/helpers/contestGetters';
-import { DrinkCard } from '../ui/DrinkCard';
+import { EntryCard } from '../ui/EntryCard';
 import { useContestData } from '../../contexts/contest/ContestContext';
 import { adminApi } from '../../lib/api/adminApi';
 import { AdminContestActivation } from './AdminContestActivation';
 import { AdminContestRounds } from './AdminContestRounds';
-import { AdminMixologists } from './AdminMixologists';
+import { AdminContestants } from './AdminContestants';
 import { AdminRoundOverview } from './AdminRoundOverview';
 import { ContestConfigEditor } from './ContestConfigEditor';
 import { ContestPhaseControls } from './ContestPhaseControls';
@@ -20,12 +20,13 @@ interface ContestDetailsProps {
   onContestUpdated: (contest: Contest) => void;
   onSetActiveContest: (contestId: string) => void;
 }
-function DrinkItem({ drink, roundLabel }: { drink: Entry; roundLabel: string }) {
-  const summary = buildEntrySummary(drink);
+
+function EntryItem({ entry, roundLabel }: { entry: Entry; roundLabel: string }) {
+  const summary = buildEntrySummary(entry);
 
   return (
     <li className="admin-detail-item">
-      <DrinkCard drink={summary} variant="compact" showCreator />
+      <EntryCard entry={summary} variant="compact" showCreator />
       <span className="admin-detail-meta">Round: {roundLabel}</span>
     </li>
   );
@@ -35,6 +36,7 @@ function getRoleLabel(role: Judge['role']) {
   if (role === 'judge') return 'voter';
   return role;
 }
+
 function VoterItem({ judge }: { judge: Judge }) {
   return (
     <li className="admin-detail-item">
@@ -46,11 +48,9 @@ function VoterItem({ judge }: { judge: Judge }) {
   );
 }
 
-function ScoreItem(
-  { score, drinks, judges, config }: { score: ScoreEntry; drinks: Entry[]; judges: Judge[]; config: ContestConfig }
-) {
-  const drink = drinks.find((d) => d.id === score.entryId);
-  const judge = judges.find((j) => j.id === score.judgeId);
+function ScoreItem({ score, entries, judges, config }: { score: ScoreEntry; entries: Entry[]; judges: Judge[]; config: ContestConfig }) {
+  const entry = entries.find((candidate) => candidate.id === score.entryId);
+  const judge = judges.find((candidate) => candidate.id === score.judgeId);
   const total = config.attributes.reduce((sum, attr) => {
     const value = score.breakdown[attr.id];
     if (typeof value !== 'number' || !Number.isFinite(value)) return sum;
@@ -63,7 +63,7 @@ function ScoreItem(
   return (
     <li className="admin-detail-item admin-score-item">
       <div className="admin-score-item__header">
-        <strong>{drink?.name ?? 'Unknown'}</strong>
+        <strong>{entry?.name ?? 'Unknown'}</strong>
         <span className="admin-detail-meta">by {judge?.displayName ?? 'Unknown'}</span>
       </div>
       <div className="admin-score-item__breakdown">
@@ -82,12 +82,12 @@ export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }
   const { deleteContest } = useContestData();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  
+
   const activeRoundLabel = getRoundLabel(contest, contest.activeRoundId);
   const config = getEffectiveConfig(contest);
-  
-  const handleSaveConfig = async (config: ContestConfig) => {
-    const result = await adminApi.updateContestConfig(contest.id, config);
+
+  const handleSaveConfig = async (nextConfig: ContestConfig) => {
+    const result = await adminApi.updateContestConfig(contest.id, nextConfig);
     if (!result.success || !result.data) {
       throw new Error(result.error ?? 'Failed to update config');
     }
@@ -95,25 +95,24 @@ export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }
   };
 
   const handleDeleteContest = async () => {
-    const contestName = contest.name;
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${contestName}"?\n\nThis will permanently delete:\n• All rounds\n• All entries/drinks\n• All scores\n\nThis action cannot be undone.`
+      `Are you sure you want to delete "${contest.name}"?\n\nThis will permanently delete:\n• All rounds\n• All entries\n• All scores\n\nThis action cannot be undone.`
     );
-    
+
     if (!confirmed) return;
-    
+
     setIsDeleting(true);
     setDeleteError(null);
-    
+
     const success = await deleteContest(contest.id);
-    
+
     if (success) {
-      // Navigate back to admin dashboard
-      router.push('/mixology/admin');
-    } else {
-      setDeleteError('Failed to delete contest');
-      setIsDeleting(false);
+      router.push('/contest/admin');
+      return;
     }
+
+    setDeleteError('Failed to delete contest');
+    setIsDeleting(false);
   };
 
   return (
@@ -149,26 +148,25 @@ export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }
       <ContestPhaseControls contest={contest} onContestUpdated={onContestUpdated} />
       <ContestConfigEditor contest={contest} onSave={handleSaveConfig} />
       <AdminContestRounds contest={contest} />
-      <AdminMixologists contest={contest} />
+      <AdminContestants contest={contest} />
       <AdminRoundOverview contest={contest} />
+
       <section className="admin-details-section">
         <h3>Vote categories</h3>
-        <p className="admin-detail-meta">
-          Server-managed categories are disabled for local testing.
-        </p>
+        <p className="admin-detail-meta">Server-managed categories are disabled for local testing.</p>
       </section>
 
       <section className="admin-details-section">
-        <h3>Drinks ({contest.entries?.length})</h3>
-        {contest.entries?.length === 0 ? (
-          <p className="admin-empty">No drinks registered yet.</p>
+        <h3>Entries ({contest.entries.length})</h3>
+        {contest.entries.length === 0 ? (
+          <p className="admin-empty">No entries registered yet.</p>
         ) : (
           <ul className="admin-detail-list">
-            {contest?.entries?.map((drink) => (
-              <DrinkItem
-                key={drink.id}
-                drink={drink}
-                roundLabel={getRoundLabel(contest, drink.round)}
+            {contest.entries.map((entry) => (
+              <EntryItem
+                key={entry.id}
+                entry={entry}
+                roundLabel={getRoundLabel(contest, entry.round)}
               />
             ))}
           </ul>
@@ -198,7 +196,7 @@ export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }
               <ScoreItem
                 key={score.id}
                 score={score}
-                drinks={contest.entries}
+                entries={contest.entries}
                 judges={contest.judges}
                 config={config}
               />

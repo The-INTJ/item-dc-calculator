@@ -139,16 +139,16 @@ export function useContestActions(
     return updated !== null;
   }, [getContestById, replaceContest]);
 
-  const addMixologist = useCallback(async (
+  const addContestant = useCallback(async (
     contestId: string,
-    mixologist: { name: string; drinkName: string; roundId: string }
+    contestant: { name: string; entryName: string; roundId: string }
   ): Promise<Entry | null> => {
     const entry = await contestApi.createEntry(contestId, {
-      name: mixologist.drinkName,
-      slug: mixologist.drinkName.toLowerCase().replace(/\s+/g, '-'),
+      name: contestant.entryName,
+      slug: contestant.entryName.toLowerCase().replace(/\s+/g, '-'),
       description: '',
-      round: mixologist.roundId,
-      submittedBy: mixologist.name,
+      round: contestant.roundId,
+      submittedBy: contestant.name,
     });
 
     if (entry) {
@@ -162,14 +162,14 @@ export function useContestActions(
     return entry;
   }, [updateState]);
 
-  const updateMixologist = useCallback(async (contestId: string, drinkId: string, updates: Partial<Entry>): Promise<Entry | null> => {
-    const entry = await contestApi.updateEntry(contestId, drinkId, updates);
+  const updateContestant = useCallback(async (contestId: string, entryId: string, updates: Partial<Entry>): Promise<Entry | null> => {
+    const entry = await contestApi.updateEntry(contestId, entryId, updates);
     if (entry) {
       updateState((prev) => ({
         ...prev,
         contests: prev.contests.map((c) =>
           c.id === contestId
-            ? { ...c, entries: c.entries?.map((e) => e.id === drinkId ? entry : e) }
+            ? { ...c, entries: c.entries?.map((e) => e.id === entryId ? entry : e) }
             : c
         ),
       }));
@@ -177,13 +177,13 @@ export function useContestActions(
     return entry;
   }, [updateState]);
 
-  const removeMixologist = useCallback(async (contestId: string, drinkId: string): Promise<boolean> => {
-    const success = await contestApi.deleteEntry(contestId, drinkId);
+  const removeContestant = useCallback(async (contestId: string, entryId: string): Promise<boolean> => {
+    const success = await contestApi.deleteEntry(contestId, entryId);
     if (success) {
       updateState((prev) => ({
         ...prev,
         contests: prev.contests.map((c) =>
-          c.id === contestId ? { ...c, entries: c.entries?.filter((e) => e.id !== drinkId) } : c
+          c.id === contestId ? { ...c, entries: c.entries?.filter((e) => e.id !== entryId) } : c
         ),
       }));
     }
@@ -201,8 +201,8 @@ export function useContestActions(
     removeRound,
     setActiveRound,
     setRoundState,
-    addMixologist,
-    updateMixologist,
-    removeMixologist,
+    addContestant,
+    updateContestant,
+    removeContestant,
   };
 }
