@@ -2,13 +2,13 @@
 
 import { AuthPrimaryAction, AdminOnlyLink } from '@/components/ui';
 
-export default function MixologyPage() {
+export default function ContestPage() {
   return (
     <div className="contest-landing">
       <section className="contest-hero">
-        <h1>Mixology Contest!</h1>
+        <h1>Contest App</h1>
         <p>
-          Sign in or create a profile to start rating drinks -- and even register as a Mixologist!
+          Sign in or create a profile to start rating entries and track the competition!
         </p>
         <div className="contest-actions">
           <AuthPrimaryAction

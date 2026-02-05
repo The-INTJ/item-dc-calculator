@@ -33,7 +33,7 @@ export function VotePage() {
     return (
       <div className="contest-vote-page">
         <VotePageHeader />
-        <div className="contest-card">Loading drinks...</div>
+        <div className="contest-card">Loading entries...</div>
       </div>
     );
   }
@@ -70,7 +70,7 @@ export function VotePage() {
       <div className="contest-vote-page">
         <VotePageHeader />
         <div className="contest-card">
-          <p>No drinks available for voting in this round. Please check back soon.</p>
+          <p>No entries available for voting in this round. Please check back soon.</p>
         </div>
       </div>
     );

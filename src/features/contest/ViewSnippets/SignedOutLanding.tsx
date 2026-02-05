@@ -8,10 +8,10 @@ export default function SignedOutLanding() {
   return (
     <div className="contest-landing">
       <section className="contest-hero">
-        <h1>Mixology Rating App</h1>
+        <h1>Contest App</h1>
         <p>
-          A contest-first experience for voting, scoring, and tracking craft cocktail matchups.
-          Sign in or create a profile to start rating drinks right away.
+          A contest-first experience for voting, scoring, and tracking contest matchups.
+          Sign in or create a profile to start rating entries right away.
         </p>
         <div className="contest-actions">
           <AuthPrimaryAction

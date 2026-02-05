@@ -14,8 +14,8 @@ function formatUpdatedAt(timestamp: number | null) {
 function BracketHeader({ onRefresh, onVote, updatedAt }: { onRefresh: () => void; onVote: () => void; updatedAt: number | null }) {
   return (
     <section className="contest-hero">
-      <h1>Mixology Bracket</h1>
-      <p>Track the current round and see which drinks are advancing.</p>
+      <h1>Contest Bracket</h1>
+      <p>Track the current round and see which entries are advancing.</p>
       <p>{formatUpdatedAt(updatedAt)}</p>
       <div className="contest-actions">
         <button type="button" className="button-secondary" onClick={onRefresh}>
