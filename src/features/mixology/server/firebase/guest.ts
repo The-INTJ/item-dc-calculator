@@ -7,7 +7,6 @@
 
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { initializeFirebase, isFirebaseConfigured } from './config';
-import type { InviteContext } from '../../lib/auth/types';
 
 const GUESTS_COLLECTION = 'mixology_guests';
 
@@ -39,7 +38,6 @@ async function hashGuestId(guestId: string): Promise<string> {
  */
 export async function registerGuestIdentity(
   guestId: string,
-  inviteContext?: InviteContext,
   displayName?: string
 ): Promise<GuestRegistrationResult> {
   // If Firebase isn't configured, succeed locally
@@ -60,9 +58,6 @@ export async function registerGuestIdentity(
       doc(db, GUESTS_COLLECTION, guestHash),
       {
         guestIdHash: guestHash,
-        inviteId: inviteContext?.inviteId ?? null,
-        contestSlug: inviteContext?.contestSlug ?? null,
-        source: inviteContext?.source ?? null,
         displayName: displayName ?? null,
         createdAt: serverTimestamp(),
         lastSeenAt: serverTimestamp(),

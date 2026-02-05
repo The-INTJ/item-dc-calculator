@@ -48,16 +48,6 @@ export interface UserProfile {
 }
 
 /**
- * Invite metadata captured from onboarding links
- */
-export interface InviteContext {
-  inviteId: string;
-  contestSlug?: string;
-  source?: string;
-  receivedAt: number;
-}
-
-/**
  * Guest identity metadata
  */
 export interface GuestIdentity {
@@ -86,9 +76,6 @@ export interface LocalSession {
 
   /** Last visited page path */
   lastPath?: string;
-
-  /** Invite context captured from URL */
-  inviteContext?: InviteContext;
 
   /** Guest identity used for cookie continuity */
   guestIdentity?: GuestIdentity;
@@ -163,7 +150,6 @@ export interface AuthActions {
   /** Start a guest session (attempts Firestore, falls back to local) */
   startGuestSession: (options?: {
     displayName?: string;
-    inviteContext?: InviteContext;
   }) => Promise<GuestSessionResult>;
 
   /** Register a new account (migrates guest data) */
@@ -178,7 +164,6 @@ export interface AuthActions {
   /** Log in anonymously with Firebase Auth */
   loginAnonymously: (options?: {
     displayName?: string;
-    inviteContext?: InviteContext;
   }) => Promise<{ success: boolean; error?: string }>;
 
   /** Log out (keeps guest data locally) */
@@ -186,9 +171,6 @@ export interface AuthActions {
 
   /** Update profile */
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
-
-  /** Apply invite context to existing session */
-  applyInviteContext: (inviteContext: InviteContext) => void;
 
   /** Record a vote */
   recordVote: (vote: Omit<UserVote, 'timestamp'>) => Promise<void>;

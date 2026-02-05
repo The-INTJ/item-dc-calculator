@@ -6,7 +6,7 @@
  * No local storage of contest data or user state.
  */
 
-import type { LocalSession, UserProfile, InviteContext } from './types';
+import type { LocalSession, UserProfile } from './types';
 
 /**
  * Generate a unique session ID
@@ -22,7 +22,6 @@ function generateSessionId(): string {
 interface CreateSessionOptions {
   firebaseUid: string;
   profile: UserProfile;
-  inviteContext?: InviteContext;
 }
 
 export function createCloudSession(options: CreateSessionOptions): LocalSession {
@@ -32,7 +31,6 @@ export function createCloudSession(options: CreateSessionOptions): LocalSession 
     status: 'synced',
     firebaseUid: options.firebaseUid,
     profile: options.profile,
-    inviteContext: options.inviteContext,
     votes: [], // Will be fetched from Firestore
     createdAt: now,
     updatedAt: now,
@@ -45,7 +43,6 @@ export function createCloudSession(options: CreateSessionOptions): LocalSession 
 interface CreateGuestSessionOptions {
   displayName?: string;
   guestId?: string;
-  inviteContext?: InviteContext;
 }
 
 export function createGuestSession(options: CreateGuestSessionOptions = {}): LocalSession {
@@ -57,7 +54,6 @@ export function createGuestSession(options: CreateGuestSessionOptions = {}): Loc
       displayName: options.displayName ?? `Guest_${Math.random().toString(36).substring(2, 6)}`,
       role: 'viewer',
     },
-    inviteContext: options.inviteContext,
     guestIdentity: options.guestId
       ? { guestId: options.guestId, guestIndex: undefined }
       : undefined,

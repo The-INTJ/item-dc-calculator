@@ -11,7 +11,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import type {
   AuthContextValue,
-  InviteContext,
   LocalSession,
   RegistrationData,
   LoginCredentials,
@@ -21,7 +20,6 @@ import type {
 } from '../lib/auth/types';
 import type { AuthProvider } from '../lib/auth/provider';
 import { createGuestSession, createCloudSession } from '../lib/auth/storage';
-import { getInviteContextCookie, setInviteContextCookie, clearInviteContext } from '../lib/auth/cookies';
 import { createFirebaseAuthProvider } from '../server/firebase/firebaseAuthProvider';
 import { isFirebaseConfigured } from '../server/firebase/config';
 
@@ -72,7 +70,6 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
           // Fetch user data from Firestore
           try {
             const userData = await provider.fetchUserData(currentUid);
-            const inviteContext = getInviteContextCookie() ?? undefined;
             
             const cloudSession = createCloudSession({
               firebaseUid: currentUid,
@@ -80,7 +77,6 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
                 displayName: 'Mixology User',
                 role: 'viewer',
               },
-              inviteContext,
             });
 
             setSession(cloudSession);
@@ -105,7 +101,6 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
   const startGuestSession = useCallback(
     async (options?: {
       displayName?: string;
-      inviteContext?: InviteContext;
     }): Promise<GuestSessionResult> => {
       const trimmedName = options?.displayName?.trim();
       if (!trimmedName) {
@@ -114,10 +109,6 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
           syncedToFirestore: false,
           error: 'Display name is required',
         };
-      }
-
-      if (options?.inviteContext) {
-        setInviteContextCookie(options.inviteContext);
       }
 
       const provider = getAuthProvider();
@@ -141,7 +132,6 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
             displayName: trimmedName,
             role: 'viewer',
           },
-          inviteContext: options?.inviteContext,
         });
 
         setSession(guestSession);
@@ -164,13 +154,6 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
     []
   );
 
-  const applyInviteContext = useCallback((inviteContext: InviteContext) => {
-    setInviteContextCookie(inviteContext);
-    if (session) {
-      setSession({ ...session, inviteContext });
-    }
-  }, [session]);
-
   // Register new account
   const register = useCallback(
     async (data: RegistrationData): Promise<{ success: boolean; error?: string }> => {
@@ -190,7 +173,6 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
             email: data.email,
             role: 'viewer',
           },
-          inviteContext: session?.inviteContext,
         });
 
         setSession(cloudSession);
@@ -202,7 +184,7 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
         return { success: false, error: 'Failed to initialize session' };
       }
     },
-    [session]
+    []
   );
 
   // Login
@@ -224,7 +206,6 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
             email: credentials.email,
             role: 'viewer',
           },
-          inviteContext: getInviteContextCookie() ?? undefined,
         });
 
         setSession(cloudSession);
@@ -256,7 +237,6 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
             displayName: 'Google User',
             role: 'viewer',
           },
-          inviteContext: getInviteContextCookie() ?? undefined,
         });
 
         setSession(cloudSession);
@@ -274,7 +254,6 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
   const loginAnonymously = useCallback(
     async (options?: {
       displayName?: string;
-      inviteContext?: InviteContext;
     }): Promise<{ success: boolean; error?: string }> => {
       return startGuestSession(options);
     },
@@ -286,7 +265,6 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
     const provider = getAuthProvider();
     await provider.logout();
 
-    clearInviteContext();
     setSession(null);
     setError(null);
   }, []);
@@ -297,7 +275,6 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
       await provider.logout();
     }
 
-    clearInviteContext();
     setSession(null);
     setError(null);
   }, []);
@@ -391,7 +368,6 @@ export function MixologyAuthProvider({ children }: AuthProviderProps) {
     recordVote,
     updateLastPath,
     syncPendingData,
-    applyInviteContext,
     resetSessionForNewAccount,
   };
 
