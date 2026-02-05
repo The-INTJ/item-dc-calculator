@@ -27,7 +27,7 @@ import type { AuthProvider, AuthResult } from '../../contexts/auth/provider';
 import type { RegistrationData, LoginCredentials, UserProfile } from '../../contexts/auth/types';
 import { initializeFirebase, isFirebaseConfigured } from './config';
 
-const USERS_COLLECTION = 'mixology_users';
+const USERS_COLLECTION = 'users';
 
 let currentUser: User | null = null;
 

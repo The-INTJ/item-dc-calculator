@@ -7,7 +7,7 @@ import { useRoundState } from "@/src/features/contest/contexts/RoundStateContext
 import { navItems } from "./navItems";
 
 function isActiveLink(pathname: string, href: string) {
-  if (href === "/mixology") {
+  if (href === "/contest") {
     return pathname === href;
   }
 

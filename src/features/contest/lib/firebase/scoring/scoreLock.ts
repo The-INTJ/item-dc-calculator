@@ -14,7 +14,7 @@ export const SCORE_LOCK_BASE_DELAY_MS = 120;
 export const SCORE_LOCK_JITTER_MS = 140;
 
 // Firestore collection name (must match other files)
-export const CONTESTS_COLLECTION = 'mixology_contests';
+export const CONTESTS_COLLECTION = 'contests';
 
 /**
  * Error thrown when a score lock cannot be acquired.

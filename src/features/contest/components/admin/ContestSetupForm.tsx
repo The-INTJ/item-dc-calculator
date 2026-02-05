@@ -110,11 +110,11 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
         payload.entryLabelPlural = entryLabelPlural.trim() || undefined;
       }
 
-      const response = await fetch('/api/mixology/contests', {
+      const response = await fetch('/api/contest/contests', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-mixology-role': 'admin',
+          'x-contest-role': 'admin',
         },
         body: JSON.stringify(payload),
       });
@@ -127,7 +127,7 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
       const createdContest = await response.json();
       upsertContest(createdContest);
       onSuccess?.();
-      router.push('/mixology/admin');
+      router.push('/contest/admin');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create contest.');
     } finally {
@@ -279,7 +279,7 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
         <button
           type="button"
           className="button-secondary"
-          onClick={() => router.push('/mixology/admin')}
+          onClick={() => router.push('/contest/admin')}
           disabled={isSubmitting}
         >
           Cancel

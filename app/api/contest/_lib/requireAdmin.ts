@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { getCurrentUserFromRequest } from '@/contest/lib/api/serverAuth';
 
 function allowLegacyAdminHeader(request: Request): boolean {
-  const role = request.headers.get('x-mixology-role');
+  const role = request.headers.get('x-contest-role');
   const allowLegacy =
-    process.env.MIXOLOGY_ALLOW_ADMIN_HEADER === 'true' || process.env.NODE_ENV !== 'production';
+    process.env.CONTEST_ALLOW_ADMIN_HEADER === 'true' || process.env.NODE_ENV !== 'production';
 
   if (!allowLegacy || role !== 'admin') {
     return false;

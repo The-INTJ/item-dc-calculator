@@ -41,7 +41,7 @@ export function useCurrentContest() {
   const refresh = useCallback(async () => {
     setState((s) => ({ ...s, loading: true, error: null }));
     try {
-      const res = await fetch('/api/mixology/current');
+      const res = await fetch('/api/contest/current');
       const json = await res.json();
       if (!res.ok) {
         setState({ data: null, loading: false, error: json.message ?? 'Failed to load contest' });

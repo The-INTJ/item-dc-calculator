@@ -46,95 +46,17 @@ Renamed contest actions (`addContestant`, `updateContestant`, `removeContestant`
 
 ---
 
-## Phase 6: Rename API Client Functions & URL Strings
+## Phase 6: Rename API Client Functions & URL Strings ✅ Completed
 
-### 6.1 — `contestApi.ts`
+Updated `contestApi.ts`, `adminApi.ts`, and vote hooks to use `/api/contest/...` URLs and `/entries` path segments.
 
-Update all URL strings: `/api/mixology/...` → `/api/contest/...`  
-Update `/drinks` path segments → `/entries`
+## Phase 7: Rename Firebase Collection Constants ✅ Completed
 
-### 6.2 — `adminApi.ts`
+Renamed Firestore collection constants to generic names (`contests`, `guests`, `users`, `votes`), switched claims fallback to `contestRole`, and updated legacy admin header support to use `x-contest-role` plus `CONTEST_ALLOW_ADMIN_HEADER`.
 
-Same URL updates as `contestApi.ts`.
+## Phase 8: Update Navigation & Layout ✅ Completed
 
-### 6.3 — Hooks
-
-Update URL strings in:
-- `useVoteScores.ts` — `/api/mixology/contests/...` → `/api/contest/contests/...`
-- `useSubmitVotes.ts` — same
-- `useCurrentContest.ts` — `/api/mixology/current` → `/api/contest/current`
-
----
-
-## Phase 7: Rename Firebase Collection Constants
-
-### 7.1 — Collection names
-
-These are Firestore collection names. Renaming them will orphan existing data — acceptable for a breaking change.
-
-| Old Name | New Name |
-|----------|----------|
-| `mixology_contests` | `contests` |
-| `mixology_guests` | `guests` |
-| `mixology_users` | `users` |
-| `mixology_votes` | `votes` |
-
-Files affected:
-- `scoreLock.ts`
-- `guest.ts`
-- `firebaseAuthProvider.ts`
-- `useVoting.ts`
-
-### 7.2 — Firebase custom claims
-
-In `serverAuth.ts`:
-- `claims.mixologyRole` → `claims.contestRole` (or just `claims.role` — simplify)
-
-### 7.3 — API header
-
-In `requireAdmin.ts`:
-- `x-mixology-role` → `x-contest-role`
-- `MIXOLOGY_ALLOW_ADMIN_HEADER` env check → just check a generic env var or delete (simplify)
-
----
-
-## Phase 8: Update Navigation & Layout
-
-### 8.1 — `navItems.ts`
-
-```typescript
-// New nav items with generic naming
-export const navItems: NavItem[] = [
-  { key: 'contest-home',    label: 'Home',          href: '/contest' },
-  { key: 'contest-vote',    label: 'Current Round',  href: '/contest/vote' },
-  { key: 'contest-bracket', label: 'Bracket',        href: '/contest/bracket' },
-  { key: 'contest-account', label: 'Account',        href: '/contest/account', variant: 'secondary' },
-  { key: 'contest-admin',   label: 'Admin',          href: '/contest/admin', variant: 'secondary', requiresAdmin: true },
-];
-```
-
-### 8.2 — `NavBar.tsx`
-
-Update `/mixology` prefix checks → `/contest`.
-
-### 8.3 — `SiteHeader.tsx`
-
-Update auth-required path prefixes from `/mixology/admin`, `/mixology/vote` → `/contest/admin`, `/contest/vote`.
-
-### 8.4 — `app/layout.tsx` metadata
-
-```typescript
-export const metadata = {
-  title: 'Contest App | Shard DC Calculator',
-  description: 'A generic contest judging and scoring platform.',
-};
-```
-
-### 8.5 — `app/RootLayoutClient.tsx`
-
-Update import: `MixologyAuthProvider` → `AuthProvider` (from new path `@/contest/contexts/auth/AuthContext`).
-
----
+Updated nav/header routing and contest-facing links from `/mixology` to `/contest`, and kept layout/auth imports aligned with renamed contest auth provider paths.
 
 ## Phase 9: Update OpenAPI Spec
 

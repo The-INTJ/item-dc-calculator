@@ -56,7 +56,7 @@ export function BracketClient() {
     <div className="mixology-landing">
       <BracketHeader
         onRefresh={() => setUpdatedAt(Date.now())}
-        onVote={() => router.push('/mixology/vote')}
+        onVote={() => router.push('/contest/vote')}
         updatedAt={updatedAt}
       />
 

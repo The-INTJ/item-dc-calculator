@@ -13,10 +13,10 @@ export default function MixologyPage() {
         <div className="mixology-actions">
           <AuthPrimaryAction
             signedOutLabel="Sign in or create an account"
-            signedOutHref="/mixology/onboard"
+            signedOutHref="/contest/onboard"
             className="button-primary"
           />
-          <AdminOnlyLink href="/mixology/admin" className="button-secondary">
+          <AdminOnlyLink href="/contest/admin" className="button-secondary">
             Admin dashboard
           </AdminOnlyLink>
         </div>

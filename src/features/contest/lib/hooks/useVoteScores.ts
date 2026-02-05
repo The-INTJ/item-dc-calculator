@@ -78,7 +78,7 @@ export function useVoteScores(): UseVoteScoresResult {
       setIsLoadingRemote(true);
       try {
         const response = await fetch(
-          `/api/mixology/contests/${contestId}/scores?judgeId=${encodeURIComponent(judgeId)}`
+          `/api/contest/contests/${contestId}/scores?judgeId=${encodeURIComponent(judgeId)}`
         );
         if (!response.ok) return;
         const payload = (await response.json()) as { scores?: ScoreEntry[] };

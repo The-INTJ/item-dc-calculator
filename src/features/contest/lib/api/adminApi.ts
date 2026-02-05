@@ -61,21 +61,21 @@ export const adminApi = {
    * Fetch all contests
    */
   async listContests(): Promise<ProviderResult<{ contests: Contest[]; currentContest: Contest | null }>> {
-    return apiRequest('/api/mixology/contests', { method: 'GET' });
+    return apiRequest('/api/contest/contests', { method: 'GET' });
   },
 
   /**
    * Fetch a single contest by ID
    */
   async getContest(id: string): Promise<ProviderResult<Contest>> {
-    return apiRequest(`/api/mixology/contests/${id}`, { method: 'GET' });
+    return apiRequest(`/api/contest/contests/${id}`, { method: 'GET' });
   },
 
   /**
    * Create a new contest
    */
   async createContest(data: Omit<Contest, 'id' | 'entries' | 'judges' | 'scores'>): Promise<ProviderResult<Contest>> {
-    return apiRequest('/api/mixology/contests', {
+    return apiRequest('/api/contest/contests', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -85,7 +85,7 @@ export const adminApi = {
    * Update an existing contest (partial update)
    */
   async updateContest(id: string, updates: Partial<Contest>): Promise<ProviderResult<Contest>> {
-    return apiRequest(`/api/mixology/contests/${id}`, {
+    return apiRequest(`/api/contest/contests/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(updates),
     });
@@ -95,14 +95,14 @@ export const adminApi = {
    * Delete a contest
    */
   async deleteContest(id: string): Promise<ProviderResult<void>> {
-    return apiRequest(`/api/mixology/contests/${id}`, { method: 'DELETE' });
+    return apiRequest(`/api/contest/contests/${id}`, { method: 'DELETE' });
   },
 
   /**
    * Update contest config
    */
   async updateContestConfig(id: string, config: ContestConfig): Promise<ProviderResult<Contest>> {
-    return apiRequest(`/api/mixology/contests/${id}`, {
+    return apiRequest(`/api/contest/contests/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ config }),
     });
@@ -116,21 +116,21 @@ export const adminApi = {
    * List all entries for a contest
    */
   async listEntries(contestId: string): Promise<ProviderResult<Entry[]>> {
-    return apiRequest(`/api/mixology/contests/${contestId}/drinks`, { method: 'GET' });
+    return apiRequest(`/api/contest/contests/${contestId}/entries`, { method: 'GET' });
   },
 
   /**
    * Get a single entry by ID
    */
   async getEntry(contestId: string, entryId: string): Promise<ProviderResult<Entry>> {
-    return apiRequest(`/api/mixology/contests/${contestId}/drinks/${entryId}`, { method: 'GET' });
+    return apiRequest(`/api/contest/contests/${contestId}/entries/${entryId}`, { method: 'GET' });
   },
 
   /**
    * Create a new entry
    */
   async createEntry(contestId: string, entry: Omit<Entry, 'id'>): Promise<ProviderResult<Entry>> {
-    return apiRequest(`/api/mixology/contests/${contestId}/drinks`, {
+    return apiRequest(`/api/contest/contests/${contestId}/entries`, {
       method: 'POST',
       body: JSON.stringify(entry),
     });
@@ -140,7 +140,7 @@ export const adminApi = {
    * Update an existing entry
    */
   async updateEntry(contestId: string, entryId: string, updates: Partial<Entry>): Promise<ProviderResult<Entry>> {
-    return apiRequest(`/api/mixology/contests/${contestId}/drinks/${entryId}`, {
+    return apiRequest(`/api/contest/contests/${contestId}/entries/${entryId}`, {
       method: 'PATCH',
       body: JSON.stringify(updates),
     });
@@ -150,6 +150,6 @@ export const adminApi = {
    * Delete an entry
    */
   async deleteEntry(contestId: string, entryId: string): Promise<ProviderResult<void>> {
-    return apiRequest(`/api/mixology/contests/${contestId}/drinks/${entryId}`, { method: 'DELETE' });
+    return apiRequest(`/api/contest/contests/${contestId}/entries/${entryId}`, { method: 'DELETE' });
   },
 };
