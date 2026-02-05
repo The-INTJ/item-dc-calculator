@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getBackendProvider } from '@/mixology/lib/helpers/backendProvider';
+import { getBackendProvider } from '@/contest/lib/helpers/backendProvider';
 
 export async function GET() {
   const provider = await getBackendProvider();

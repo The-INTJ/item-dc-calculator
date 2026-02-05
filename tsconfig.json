@@ -32,38 +32,11 @@
       "@/lib/*": [
         "./src/lib/*"
       ],
-      "@/mixology": [
-        "./src/features/mixology"
+      "@/contest": [
+        "./src/features/contest"
       ],
-      "@/mixology/*": [
-        "./src/features/mixology/*"
-      ],
-      "@/mixology/components/*": [
-        "./src/features/mixology/components/*"
-      ],
-      "@/mixology/contexts/*": [
-        "./src/features/mixology/contexts/*"
-      ],
-      "@/mixology/hooks/*": [
-        "./src/features/mixology/hooks/*"
-      ],
-      "@/mixology/lib/*": [
-        "./src/features/mixology/lib/*"
-      ],
-      "@/mixology/services/*": [
-        "./src/features/mixology/services/*"
-      ],
-      "@/mixology/server/*": [
-        "./src/features/mixology/server/*"
-      ],
-      "@/mixology/types/*": [
-        "src/features/mixology/lib/globals/*"
-      ],
-      "@/mixology/styles/*": [
-        "./src/features/mixology/styles/*"
-      ],
-      "@/components/styles/*": [
-        "./src/features/mixology/styles/components/*"
+      "@/contest/*": [
+        "./src/features/contest/*"
       ]
     },
     "plugins": [

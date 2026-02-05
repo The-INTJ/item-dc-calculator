@@ -9,7 +9,7 @@
 
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/src/features/mixology/contexts/auth/AuthContext';
+import { useAuth } from '@/src/features/contest/contexts/auth/AuthContext';
 
 export default function MixologyOnboardPage() {
   const router = useRouter();

@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BracketView, type BracketRound } from '@/mixology/components/ui/BracketView';
-import { useMixologyData } from '@/mixology/contexts/MixologyDataContext';
-import { buildBracketRoundsFromContest } from '@/mixology/lib/helpers/buildRoundsFromContest';
+import { BracketView, type BracketRound } from '@/contest/components/ui/BracketView';
+import { useMixologyData } from '@/contest/contexts/MixologyDataContext';
+import { buildBracketRoundsFromContest } from '@/contest/lib/helpers/buildRoundsFromContest';
 
 function formatUpdatedAt(timestamp: number | null) {
   if (!timestamp) return 'Not refreshed yet.';

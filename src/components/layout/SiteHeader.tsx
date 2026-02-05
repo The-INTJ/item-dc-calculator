@@ -2,10 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@/src/features/mixology/contexts/auth/AuthContext';
-import { useCurrentContest } from '@/mixology/lib/hooks/useCurrentContest';
+import { useAuth } from '@/src/features/contest/contexts/auth/AuthContext';
+import { useCurrentContest } from '@/contest/lib/hooks/useCurrentContest';
 import { NavBar } from './NavBar';
-import styles from '@/mixology/styles/components/Header.module.scss';
+import styles from '@/contest/styles/components/Header.module.scss';
 
 const authRequiredPrefixes = [
   '/mixology/admin',
