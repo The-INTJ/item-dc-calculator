@@ -157,9 +157,9 @@ export interface ContestActions {
   removeRound: (contestId: string, roundId: string) => Promise<boolean>;
   setActiveRound: (contestId: string, roundId: string) => Promise<boolean>;
   setRoundState: (contestId: string, roundId: string, state: ContestPhase) => Promise<boolean>;
-  addMixologist: (contestId: string, mixologist: { name: string; drinkName: string; roundId: string }) => Promise<Entry | null>;
-  updateMixologist: (contestId: string, drinkId: string, updates: Partial<Entry>) => Promise<Entry | null>;
-  removeMixologist: (contestId: string, drinkId: string) => Promise<boolean>;
+  addContestant: (contestId: string, contestant: { name: string; entryName: string; roundId: string }) => Promise<Entry | null>;
+  updateContestant: (contestId: string, entryId: string, updates: Partial<Entry>) => Promise<Entry | null>;
+  removeContestant: (contestId: string, entryId: string) => Promise<boolean>;
 }
 
 export interface VotingActions {

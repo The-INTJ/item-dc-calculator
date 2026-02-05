@@ -1,7 +1,7 @@
 import { Slider } from '@mui/material';
 import type { AttributeConfig } from '../../contexts/contest/contestTypes';
 import type { EntrySummary, VoteTotals } from '../../lib/helpers/uiMappings';
-import { DrinkCard } from './DrinkCard';
+import { EntryCard } from './EntryCard';
 
 interface VoteScorePanelProps {
   drinks: EntrySummary[];
@@ -48,9 +48,9 @@ export function VoteScorePanel({
           };
         });
         return (
-          <DrinkCard
+          <EntryCard
             key={drink.id}
-            drink={drink}
+            entry={drink}
             variant="vote"
             showCreator={showCreator}
             totals={drinkTotals}
@@ -85,7 +85,7 @@ export function VoteScorePanel({
                 })}
               </div>
             )}
-          </DrinkCard>
+          </EntryCard>
         );
       })}
     </div>

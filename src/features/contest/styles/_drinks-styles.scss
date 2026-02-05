@@ -1,29 +1,29 @@
 @use './index' as *;
 
-.mixology-drink-card {
+.mixology-entry-card {
   display: flex;
   flex-direction: column;
   gap: $space-lg;
   text-align: left;
 }
 
-.mixology-drink-card__header {
+.mixology-entry-card__header {
   display: grid;
   gap: 0.25rem;
 }
 
-.mixology-drink-card__title {
+.mixology-entry-card__title {
   @include type-lg;
   margin: 0;
 }
 
-.mixology-drink-card__creator {
+.mixology-entry-card__creator {
   @include type-base;
   margin: 0;
   opacity: 0.8;
 }
 
-.mixology-drink-card__totals {
+.mixology-entry-card__totals {
   display: grid;
   gap: $space-md;
   list-style: none;
@@ -31,13 +31,13 @@
   padding: 0;
 }
 
-.mixology-drink-card__totals li {
+.mixology-entry-card__totals li {
   display: flex;
   justify-content: space-between;
   @include type-base;
 }
 
-.mixology-drink-grid {
+.mixology-entry-grid {
   display: grid;
   gap: $space-gap-normal;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
