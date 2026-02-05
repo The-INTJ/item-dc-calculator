@@ -40,7 +40,7 @@ export function buildScoresFromEntries(
   config?: ContestConfig
 ): Record<string, Record<string, number>> {
   return entries?.reduce<Record<string, Record<string, number>>>((acc, entry) => {
-    const entryId = entry.entryId ?? entry.drinkId;
+    const entryId = entry.entryId;
     if (!entryId) return acc;
     categoryIds.forEach((categoryId) => {
       if (!isBreakdownKey(categoryId, config)) return;
@@ -63,8 +63,8 @@ export function buildScoresFromVotes(
       if (!isBreakdownKey(categoryId, config)) return;
       const value = vote.breakdown?.[categoryId];
       if (typeof value !== 'number' || !Number.isFinite(value)) return;
-      acc[vote.drinkId] = acc[vote.drinkId] ?? {};
-      acc[vote.drinkId][categoryId] = value;
+      acc[vote.entryId] = acc[vote.entryId] ?? {};
+      acc[vote.entryId][categoryId] = value;
     });
     return acc;
   }, {});

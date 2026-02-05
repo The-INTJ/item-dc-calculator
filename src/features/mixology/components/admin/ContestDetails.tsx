@@ -49,7 +49,7 @@ function VoterItem({ judge }: { judge: Judge }) {
 function ScoreItem(
   { score, drinks, judges, config }: { score: ScoreEntry; drinks: Entry[]; judges: Judge[]; config: ContestConfig }
 ) {
-  const drink = drinks.find((d) => d.id === (score.entryId ?? score.drinkId));
+  const drink = drinks.find((d) => d.id === score.entryId);
   const judge = judges.find((j) => j.id === score.judgeId);
   const total = config.attributes.reduce((sum, attr) => {
     const value = score.breakdown[attr.id];

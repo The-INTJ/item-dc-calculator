@@ -40,14 +40,11 @@ export function useSubmitVotes(): UseSubmitVotesResult {
 
   const judgeId = session?.firebaseUid ?? session?.sessionId;
 
-  // Get config-based category IDs, falling back to dc-calculator-era categories
+  // Get config-based category IDs
   const config = contest ? getEffectiveConfig(contest) : undefined;
   const categoryIds = config
     ? config.attributes.map((attr) => attr.id)
-    : (contest?.categories ?? [])
-        .slice()
-        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-        .map((cat) => cat.id);
+    : [];
 
   const submitScores = async (scores: ScoreByDrinkId) => {
     if (!contest?.id || !judgeId) {
@@ -58,15 +55,15 @@ export function useSubmitVotes(): UseSubmitVotesResult {
 
     // Build entries from the score map
     const entries = Object.entries(scores)
-      .map(([drinkId, drinkScores]) => {
+      .map(([entryId, entryScores]) => {
         const breakdown = categoryIds.reduce<Partial<ScoreBreakdown>>((acc, categoryId) => {
           if (!isBreakdownKey(categoryId, config)) return acc;
-          const value = drinkScores?.[categoryId];
+          const value = entryScores?.[categoryId];
           if (!Number.isFinite(value)) return acc;
           acc[categoryId] = value;
           return acc;
         }, {});
-        return { drinkId, breakdown };
+        return { entryId, breakdown };
       })
       .filter((entry) => Object.keys(entry.breakdown).length > 0);
 
@@ -81,12 +78,12 @@ export function useSubmitVotes(): UseSubmitVotesResult {
 
     try {
       const responses = await Promise.all(
-        entries?.map(({ drinkId, breakdown }) =>
+        entries?.map(({ entryId, breakdown }) =>
           fetch(`/api/mixology/contests/${contest.id}/scores`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              drinkId,
+              entryId,
               judgeId,
               judgeName: session?.profile.displayName ?? 'Guest',
               judgeRole: role ?? 'judge',
@@ -107,7 +104,7 @@ export function useSubmitVotes(): UseSubmitVotesResult {
         const fullBreakdown = buildFullBreakdown(entry.breakdown, config);
         await recordVote({
           contestId: contest.id,
-          drinkId: entry.drinkId,
+          entryId: entry.entryId,
           breakdown: fullBreakdown,
           score: calculateScore(fullBreakdown, config),
         });

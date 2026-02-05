@@ -10,8 +10,6 @@ import type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown } from '../../co
 
 // Re-export core types for convenience
 export type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown };
-/** @deprecated Use Entry instead */
-export type { Drink } from '../../contexts/contest/contestTypes';
 
 /**
  * Result wrapper for async operations

@@ -13,9 +13,7 @@ export function VotePage() {
   const { contest, drinks, loading, error } = useMixologyData();
   const { state: contestState } = useRoundState();
 
-  const categories = (contest?.categories ?? [])
-    .slice()
-    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  const categories = contest?.config?.attributes ?? [];
 
   const totals = buildTotalsFromScores(contest?.scores ?? [], categories);
 

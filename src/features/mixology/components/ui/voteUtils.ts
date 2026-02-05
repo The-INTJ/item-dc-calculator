@@ -1,4 +1,4 @@
-import type { ScoreEntry, ScoreBreakdown, VoteCategory } from '../../contexts/contest/contestTypes';
+import type { ScoreEntry, ScoreBreakdown, AttributeConfig } from '../../contexts/contest/contestTypes';
 import type { VoteTotals } from '../../lib/helpers/uiMappings';
 
 const breakdownOrder: Array<keyof ScoreBreakdown> = [
@@ -20,15 +20,14 @@ function formatLabel(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-export function buildDefaultVoteCategories(): VoteCategory[] {
-  return breakdownOrder.map((key, index) => ({
+export function buildDefaultVoteCategories(): AttributeConfig[] {
+  return breakdownOrder.map((key) => ({
     id: key,
     label: formatLabel(key),
-    sortOrder: index,
   }));
 }
 
-export function buildTotalsFromScores(scores: ScoreEntry[], categories: VoteCategory[]): VoteTotals[] {
+export function buildTotalsFromScores(scores: ScoreEntry[], categories: AttributeConfig[]): VoteTotals[] {
   const totalsMap = new Map<string, number>();
 
   scores.forEach((score) => {
@@ -36,7 +35,7 @@ export function buildTotalsFromScores(scores: ScoreEntry[], categories: VoteCate
       if (!isBreakdownKey(category.id)) return;
       const value = score.breakdown[category.id];
       if (typeof value !== 'number') return;
-      const entryId = score.entryId ?? score.drinkId;
+      const entryId = score.entryId;
       const key = `${entryId}:${category.id}`;
       totalsMap.set(key, (totalsMap.get(key) ?? 0) + value);
     });

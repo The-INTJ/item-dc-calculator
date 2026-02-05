@@ -74,36 +74,12 @@ export interface Entry {
 }
 
 /**
- * @deprecated Use Entry instead. Kept for backward compatibility.
- */
-export type Drink = Entry;
-
-/**
  * Dynamic score breakdown - keys are attribute IDs from the contest config.
  * For Mixology: { aroma, balance, presentation, creativity, overall }
  * For Chili: { heat, flavor, texture, appearance, overall }
  * etc.
  */
 export type ScoreBreakdown = Record<string, number | null>;
-
-/**
- * DC-calculator-era fixed breakdown for backward compatibility.
- * Use ScoreBreakdown (dynamic) for new code.
- */
-export interface MixologyScoreBreakdown {
-  aroma: number;
-  balance: number;
-  presentation: number;
-  creativity: number;
-  overall: number;
-}
-
-export interface VoteCategory {
-  id: string;
-  label: string;
-  description?: string;
-  sortOrder: number;
-}
 
 export interface ScoreEntry {
   id: string;
@@ -112,8 +88,6 @@ export interface ScoreEntry {
   breakdown: ScoreBreakdown;
   notes?: string;
   naSections?: string[];
-  /** @deprecated Use entryId instead */
-  drinkId?: string;
 }
 
 export interface ContestRound {
@@ -139,17 +113,9 @@ export interface Contest {
   rounds?: ContestRound[];
   activeRoundId?: string | null;
   futureRoundId?: string | null;
-  /** @deprecated Use config.attributes instead */
-  categories?: VoteCategory[];
   entries: Entry[];
   judges: Judge[];
   scores: ScoreEntry[];
-  /** @deprecated Use currentEntryId instead */
-  currentDrinkId?: string;
-}
-
-export interface MixologyData {
-  contests: Contest[];
 }
 
 // ============================================================================
@@ -158,7 +124,7 @@ export interface MixologyData {
 
 export interface Vote {
   contestId: string;
-  drinkId: string;
+  entryId: string;
   score: number;
   breakdown?: ScoreBreakdown;
   naSections?: string[];

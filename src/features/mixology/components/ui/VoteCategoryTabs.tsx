@@ -1,7 +1,7 @@
-import type { VoteCategory } from '../../contexts/contest/contestTypes';
+import type { AttributeConfig } from '../../contexts/contest/contestTypes';
 
 interface VoteCategoryTabsProps {
-  categories: VoteCategory[];
+  categories: AttributeConfig[];
   activeCategoryId: string | null;
   onChange: (categoryId: string) => void;
   className?: string;

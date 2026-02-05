@@ -1,4 +1,4 @@
-import type { Contest, Entry, ScoreEntry, VoteCategory } from '../../contexts/contest/contestTypes';
+import type { Contest, Entry, ScoreEntry } from '../../contexts/contest/contestTypes';
 import { getActiveRoundId, getEntriesForRound, getRoundLabel, getRoundStatus } from './contestGetters';
 
 export type RoundStatus = 'upcoming' | 'active' | 'closed';
@@ -35,28 +35,11 @@ export interface EntrySummary {
   imageUrl?: string;
 }
 
-/** @deprecated Use EntrySummary instead */
-export type DrinkSummary = EntrySummary;
-
 export interface VoteTotals {
   entryId: string;
   categoryId: string;
   total: number;
   userHasVoted: boolean;
-}
-
-const breakdownKeys: string[] = [
-  'aroma',
-  'balance',
-  'presentation',
-  'creativity',
-  'overall',
-];
-
-const breakdownKeySet = new Set<string>(breakdownKeys);
-
-function isBreakdownKey(value: string): boolean {
-  return breakdownKeySet.has(value);
 }
 
 function uniqueNames(values: Array<string | undefined | null>): string[] {
@@ -89,34 +72,6 @@ export function buildEntrySummary(entry: Entry): EntrySummary {
   };
 }
 
-/** @deprecated Use buildEntrySummary instead */
-export const buildDrinkSummary = buildEntrySummary;
-
-export function buildVoteTotalsFromScores(scores: ScoreEntry[], categories: VoteCategory[]): VoteTotals[] {
-  const totalsMap = new Map<string, number>();
-
-  scores.forEach((score) => {
-    const scoreEntryId = score.entryId ?? score.drinkId ?? '';
-    categories.forEach((category) => {
-      if (!isBreakdownKey(category.id)) return;
-      const value = score.breakdown[category.id];
-      if (typeof value !== 'number') return;
-      const key = `${scoreEntryId}:${category.id}`;
-      totalsMap.set(key, (totalsMap.get(key) ?? 0) + value);
-    });
-  });
-
-  return Array.from(totalsMap.entries()).map(([key, total]) => {
-    const [entryId, categoryId] = key.split(':');
-    return {
-      entryId,
-      categoryId,
-      total,
-      userHasVoted: true,
-    };
-  });
-}
-
 export function buildRoundSummary(contest: Contest): RoundSummary {
   return buildRoundSummaryFromContest(contest);
 }
@@ -140,10 +95,6 @@ export function buildMatchupsFromEntries(entries: Entry[]): MatchupSummary[] {
   return matchups;
 }
 
-export function buildVoteTotals(contest: Contest): VoteTotals[] {
-  return buildVoteTotalsFromScores(contest.scores, contest.categories ?? []);
-}
-
 export function buildRoundDetail(contest: Contest): RoundDetail {
   const roundSummary = buildRoundSummaryFromContest(contest);
   const activeRoundId = getActiveRoundId(contest);
@@ -156,6 +107,6 @@ export function buildRoundDetail(contest: Contest): RoundDetail {
     contestId: contest.id,
     matchups: buildMatchupsFromEntries(activeEntries),
     entries: buildEntrySummaries(activeEntries),
-    voteSummary: buildVoteTotalsFromScores(contest.scores, contest.categories ?? []),
+    voteSummary: [],
   };
 }

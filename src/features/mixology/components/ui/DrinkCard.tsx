@@ -1,5 +1,5 @@
 import React from 'react';
-import type { DrinkSummary } from '../../lib/helpers/uiMappings';
+import type { EntrySummary } from '../../lib/helpers/uiMappings';
 import type { ReactNode } from 'react';
 
 type DrinkCardVariant = 'compact' | 'vote';
@@ -10,7 +10,7 @@ interface DrinkTotal {
 }
 
 interface DrinkCardProps {
-  drink: DrinkSummary;
+  drink: EntrySummary;
   variant?: DrinkCardVariant;
   showCreator?: boolean;
   totals?: DrinkTotal[];

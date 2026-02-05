@@ -1,11 +1,11 @@
 import { Slider } from '@mui/material';
-import type { VoteCategory } from '../../contexts/contest/contestTypes';
-import type { DrinkSummary, VoteTotals } from '../../lib/helpers/uiMappings';
+import type { AttributeConfig } from '../../contexts/contest/contestTypes';
+import type { EntrySummary, VoteTotals } from '../../lib/helpers/uiMappings';
 import { DrinkCard } from './DrinkCard';
 
 interface VoteScorePanelProps {
-  drinks: DrinkSummary[];
-  categories: VoteCategory[];
+  drinks: EntrySummary[];
+  categories: AttributeConfig[];
   totals: VoteTotals[];
   scoreByDrinkId?: Record<string, Record<string, number>>;
   onScoreChange?: (drinkId: string, categoryId: string, value: number) => void;

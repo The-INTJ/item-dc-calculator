@@ -64,7 +64,7 @@ export function getRoundStatus(contest: Contest, roundId: string): 'upcoming' | 
  */
 export function getEntryScore(scoreEntries: ScoreEntry[], entryId: string): number | null {
   const scores = scoreEntries
-    .filter((entry) => (entry.entryId ?? entry.drinkId) === entryId)
+    .filter((entry) => entry.entryId === entryId)
     .map((entry) => calculateScore(entry.breakdown))
     .filter((score) => Number.isFinite(score));
 

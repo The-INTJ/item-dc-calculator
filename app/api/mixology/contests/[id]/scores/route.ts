@@ -8,7 +8,6 @@ interface RouteParams {
 
 interface ScoreSubmitBody {
   entryId?: string;
-  drinkId?: string; // Deprecated, use entryId
   judgeId: string;
   judgeName?: string;
   judgeRole?: JudgeRole;
@@ -38,7 +37,7 @@ export async function GET(request: Request, { params }: RouteParams) {
   }
 
   const url = new URL(request.url);
-  const entryId = url.searchParams.get('entryId') ?? url.searchParams.get('drinkId');
+  const entryId = url.searchParams.get('entryId');
   const judgeId = url.searchParams.get('judgeId');
 
   if (entryId) {
@@ -72,7 +71,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 
   try {
     const body = (await request.json()) as ScoreSubmitBody;
-    const entryId = (body.entryId ?? body.drinkId)?.trim();
+    const entryId = body.entryId?.trim();
     const judgeId = body.judgeId?.trim();
 
     if (!entryId || !judgeId) {

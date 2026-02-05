@@ -44,12 +44,8 @@ export function useVoteScores(): UseVoteScoresResult {
 
   // Memoize derived arrays to prevent infinite re-renders
   const categoryIds = useMemo(
-    () =>
-      (contest?.categories ?? [])
-        .slice()
-        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-        .map((cat) => cat.id),
-    [contest?.categories]
+    () => (contest?.config?.attributes ?? []).map((attr) => attr.id),
+    [contest?.config?.attributes]
   );
 
   const drinkIds = useMemo(() => drinks.map((d) => d.id), [drinks]);

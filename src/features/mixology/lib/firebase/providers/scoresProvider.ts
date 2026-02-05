@@ -28,9 +28,7 @@ export function createFirebaseScoresProvider(adapter: FirestoreAdapter): ScoresP
     async listByEntry(contestId, entryId): Promise<ProviderResult<ScoreEntry[]>> {
       const contest = await adapter.getContest(contestId);
       if (!contest) return error('Contest not found');
-      const scores = contest.scores.filter(
-        (s) => s.entryId === entryId || s.drinkId === entryId
-      );
+      const scores = contest.scores.filter((s) => s.entryId === entryId);
       return success(scores);
     },
 
@@ -44,7 +42,7 @@ export function createFirebaseScoresProvider(adapter: FirestoreAdapter): ScoresP
     getById: baseOperations.getById,
 
     submit(contestId, input): Promise<ProviderResult<ScoreEntry>> {
-      const inputEntryId = input.entryId ?? input.drinkId ?? '';
+      const inputEntryId = input.entryId ?? '';
       const lockToken = generateId('score-lock');
 
       return withDb(adapter, () =>
@@ -56,7 +54,7 @@ export function createFirebaseScoresProvider(adapter: FirestoreAdapter): ScoresP
           onUpdate: (contest, entryIndex, now) => {
             const existingIndex = contest.scores.findIndex(
               (score: ScoreEntry) =>
-                (score.entryId === inputEntryId || score.drinkId === inputEntryId) &&
+                score.entryId === inputEntryId &&
                 score.judgeId === input.judgeId
             );
 
@@ -112,7 +110,7 @@ export function createFirebaseScoresProvider(adapter: FirestoreAdapter): ScoresP
       const scoreIdx = contest.scores.findIndex((s) => s.id === scoreId);
       if (scoreIdx === -1) return error('Score not found');
 
-      const scoreEntryId = contest.scores[scoreIdx].entryId ?? contest.scores[scoreIdx].drinkId ?? '';
+      const scoreEntryId = contest.scores[scoreIdx].entryId ?? '';
       const lockToken = generateId('score-lock');
 
       return withDb(adapter, () =>

@@ -16,60 +16,13 @@
 
 ---
 
-## Phase 0: Preparation
-
-- [ ] **0.1** Verify clean build before starting (`npm run build`)
+## Phase 0: Preparation ✅ Completed
 
 ---
 
-## Phase 1: Remove All Deprecated Code
+## Phase 1: Remove All Deprecated Code ✅ Completed
 
-Every `@deprecated` item is deleted outright — no aliases, no backward-compat fallbacks.
-
-### 1.1 — `contestTypes.ts`: Remove deprecated types & fields
-
-| Item | Action |
-|------|--------|
-| `type Drink = Entry` | Delete the type alias and its export |
-| `MixologyScoreBreakdown` interface | Delete entirely |
-| `MixologyData` interface | Delete entirely |
-| `ScoreEntry.drinkId` field | Delete the field |
-| `Contest.currentDrinkId` field | Delete the field |
-| `Contest.categories` field (`VoteCategory[]`) | Delete the field |
-| `VoteCategory` interface | Delete entirely |
-| `Vote.drinkId` field | Rename to `entryId` (this is the canonical field) |
-
-### 1.2 — `uiMappings.ts`: Remove deprecated aliases
-
-| Item | Action |
-|------|--------|
-| `type DrinkSummary = EntrySummary` | Delete |
-| `buildDrinkSummary` alias | Delete |
-| Hardcoded `breakdownKeys` array (`['aroma','balance',...]`) | Delete — scoring attributes come from `contest.config.attributes` |
-| `isBreakdownKey()` function | Delete |
-| `buildVoteTotalsFromScores` using `VoteCategory` | Rewrite to use `config.attributes` or delete entirely |
-| `buildVoteTotals` (uses `contest.categories`) | Delete |
-
-### 1.3 — `types.ts` (helpers): Remove deprecated re-export
-
-| Item | Action |
-|------|--------|
-| `export type { Drink }` | Delete |
-
-### 1.4 — Remove all `drinkId` fallback patterns
-
-Every instance of `score.entryId ?? score.drinkId` becomes just `score.entryId`. Files affected:
-- `contestGetters.ts`
-- `uiMappings.ts`
-- `scoresProvider.ts`
-- `scoreUtils.ts`
-- `voteUtils.ts`
-- `ContestDetails.tsx`
-- `scores/route.ts` (API)
-
-### 1.5 — API: Remove deprecated `drinkId` query param support
-
-- `app/api/mixology/contests/[id]/scores/route.ts`: Remove `drinkId` from `ScoreSubmitBody`, remove `drinkId` query param handling. Only `entryId` remains.
+Deleted deprecated types (`Drink`, `MixologyScoreBreakdown`, `MixologyData`, `VoteCategory`), fields (`drinkId`, `currentDrinkId`, `categories`), functions (`buildVoteTotalsFromScores`, `buildVoteTotals`, `buildDrinkSummary`, `isBreakdownKey` in uiMappings), and the `/categories/` API routes. Updated all consumers to use `entryId` and `config.attributes` instead.
 
 ---
 
@@ -147,11 +100,9 @@ app/api/contest/contests/[id]/drinks/          → app/api/contest/contests/[id]
 app/api/contest/contests/[id]/drinks/[drinkId] → app/api/contest/contests/[id]/entries/[entryId]
 ```
 
-### 3.4 — Delete `app/api/contest/contests/[id]/categories/` entirely
+### 3.4 — Delete `app/api/contest/contests/[id]/categories/` entirely ✅ Done
 
-Categories are deprecated (`VoteCategory`). Config attributes replace them. Delete the entire directory:
-- `app/api/mixology/contests/[id]/categories/route.ts`
-- `app/api/mixology/contests/[id]/categories/[categoryId]/route.ts`
+(Already deleted in Phase 1 since it depended on the removed `VoteCategory` type.)
 
 ---
 
@@ -419,12 +370,11 @@ It's a one-liner that just delegates. Inline its logic or delete.
 
 ## Files to DELETE (complete list)
 
-| File/Directory | Reason |
-|----------------|--------|
-| `scripts/migrate-to-contest-config.js` | One-time migration, deprecated data format no longer supported |
-| `MIXOLOGY_QUICKSTART.md` | Mixology-specific documentation |
-| `app/api/mixology/contests/[id]/categories/` (entire dir) | `VoteCategory` is deprecated; config attributes replace it |
-| `app/api/mixology/contests/[id]/categories/[categoryId]/` | Same |
+| File/Directory | Reason | Status |
+|----------------|--------|--------|
+| `scripts/migrate-to-contest-config.js` | One-time migration, deprecated data format no longer supported | |
+| `MIXOLOGY_QUICKSTART.md` | Mixology-specific documentation | |
+| `app/api/mixology/contests/[id]/categories/` (entire dir) | `VoteCategory` is deprecated; config attributes replace it | ✅ Deleted |
 
 ---
 

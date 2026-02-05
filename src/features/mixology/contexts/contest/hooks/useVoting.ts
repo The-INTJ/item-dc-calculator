@@ -31,7 +31,7 @@ export function useVoting(userId: string | null): VotingActions {
       collection(db, VOTES_COLLECTION),
       where('userId', '==', userId),
       where('contestId', '==', vote.contestId),
-      where('drinkId', '==', vote.drinkId)
+      where('entryId', '==', vote.entryId)
     );
     const existing = await getDocs(votesQuery);
 
