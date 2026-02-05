@@ -1,17 +1,12 @@
 'use client';
 
 /**
- * React hooks for accessing mixology backend data.
- *
- * These hooks provide a clean interface for components to fetch and
- * mutate data without knowing about the underlying backend provider.
+ * React hook for fetching current contest data.
+ * Provides a simple interface without backend provider coupling.
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import type { Contest, Judge, ScoreEntry } from '../types';
-import type { ProviderResult } from '../server/backend';
-import { extractCurrentContest } from '../services/api';
+import type { Contest } from '../types';
 
 /**
  * Generic async state shape
@@ -23,103 +18,20 @@ export interface AsyncState<T> {
 }
 
 /**
- * Hook for fetching contests list
+ * Extract current contest from API response
  */
-export function useContests() {
-  const { role, loading: authLoading } = useAuth();
-  const isAdmin = role === 'admin';
-  const [state, setState] = useState<AsyncState<Contest[]>>({
-    data: null,
-    loading: true,
-    error: null,
-  });
-
-  const refresh = useCallback(async () => {
-    if (authLoading) {
-      return;
-    }
-    if (!isAdmin) {
-      setState({ data: null, loading: false, error: 'Admin access required' });
-      return;
-    }
-    setState((s) => ({ ...s, loading: true, error: null }));
-    try {
-      const res = await fetch('/api/mixology/contests', {
-        headers: { 'x-mixology-role': role ?? 'viewer' },
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        setState({ data: null, loading: false, error: json.message ?? 'Failed to load contests' });
-        return;
-      }
-      setState({ data: json.contests ?? [], loading: false, error: null });
-    } catch (err) {
-      setState({ data: null, loading: false, error: String(err) });
-    }
-  }, [authLoading, isAdmin, role]);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  return { ...state, refresh };
+function extractCurrentContest(response: unknown): Contest | null {
+  if (!response || typeof response !== 'object') {
+    return null;
+  }
+  const payload = response as { currentContest?: Contest | null };
+  return payload.currentContest ?? null;
 }
 
 /**
- * Hook for fetching a single contest by slug
- */
-export function useContest(slug: string | null) {
-  const { role, loading: authLoading } = useAuth();
-  const isAdmin = role === 'admin';
-  const [state, setState] = useState<AsyncState<Contest>>({
-    data: null,
-    loading: true,
-    error: null,
-  });
-
-  const refresh = useCallback(async () => {
-    if (!slug) {
-      setState({ data: null, loading: false, error: null });
-      return;
-    }
-
-    if (authLoading) {
-      return;
-    }
-
-    if (!isAdmin) {
-      setState({ data: null, loading: false, error: 'Admin access required' });
-      return;
-    }
-
-    setState((s) => ({ ...s, loading: true, error: null }));
-    try {
-      const res = await fetch(`/api/mixology/contests?slug=${encodeURIComponent(slug)}`, {
-        headers: { 'x-mixology-role': role ?? 'viewer' },
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        setState({ data: null, loading: false, error: json.message ?? 'Contest not found' });
-        return;
-      }
-      setState({ data: json, loading: false, error: null });
-    } catch (err) {
-      setState({ data: null, loading: false, error: String(err) });
-    }
-  }, [authLoading, isAdmin, role, slug]);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  return { ...state, refresh };
-}
-
-/**
- * Hook for fetching the default/current contest
+ * Hook for fetching the default/current contest (public endpoint)
  */
 export function useCurrentContest() {
-  const { loading: authLoading } = useAuth();
   const [state, setState] = useState<AsyncState<Contest>>({
     data: null,
     loading: true,
@@ -127,122 +39,23 @@ export function useCurrentContest() {
   });
 
   const refresh = useCallback(async () => {
-    if (authLoading) {
-      return;
-    }
     setState((s) => ({ ...s, loading: true, error: null }));
     try {
       const res = await fetch('/api/mixology/current');
       const json = await res.json();
       if (!res.ok) {
-        setState({ data: null, loading: false, error: json.message ?? 'Failed to load contests' });
+        setState({ data: null, loading: false, error: json.message ?? 'Failed to load contest' });
         return;
       }
       setState({ data: extractCurrentContest(json), loading: false, error: null });
     } catch (err) {
       setState({ data: null, loading: false, error: String(err) });
     }
-  }, [authLoading]);
+  }, []);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
   return { ...state, refresh };
-}
-
-/**
- * Helper type for mutation functions
- */
-export interface MutationState {
-  loading: boolean;
-  error: string | null;
-}
-
-/**
- * Hook for contest mutations (create, update, delete)
- */
-export function useContestMutations() {
-  const { role, loading: authLoading } = useAuth();
-  const isAdmin = role === 'admin';
-  const [state, setState] = useState<MutationState>({ loading: false, error: null });
-
-  const createContest = useCallback(
-    async (data: Omit<Contest, 'id' | 'entries' | 'judges' | 'scores'>): Promise<ProviderResult<Contest>> => {
-      if (authLoading || !isAdmin) {
-        const error = 'Admin access required';
-        setState({ loading: false, error });
-        return { success: false, error };
-      }
-      setState({ loading: true, error: null });
-      try {
-        const res = await fetch('/api/mixology/contests', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-mixology-role': role ?? 'viewer' },
-          body: JSON.stringify(data),
-        });
-        const json = await res.json();
-        setState({ loading: false, error: null });
-        return { success: res.ok, data: json, error: res.ok ? undefined : json.message };
-      } catch (err) {
-        const errMsg = String(err);
-        setState({ loading: false, error: errMsg });
-        return { success: false, error: errMsg };
-      }
-    },
-    [authLoading, isAdmin, role]
-  );
-
-  const updateContest = useCallback(
-    async (id: string, updates: Partial<Contest>): Promise<ProviderResult<Contest>> => {
-      if (authLoading || !isAdmin) {
-        const error = 'Admin access required';
-        setState({ loading: false, error });
-        return { success: false, error };
-      }
-      setState({ loading: true, error: null });
-      try {
-        const res = await fetch(`/api/mixology/contests/${id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'x-mixology-role': role ?? 'viewer' },
-          body: JSON.stringify(updates),
-        });
-        const json = await res.json();
-        setState({ loading: false, error: null });
-        return { success: res.ok, data: json, error: res.ok ? undefined : json.message };
-      } catch (err) {
-        const errMsg = String(err);
-        setState({ loading: false, error: errMsg });
-        return { success: false, error: errMsg };
-      }
-    },
-    [authLoading, isAdmin, role]
-  );
-
-  const deleteContest = useCallback(async (id: string): Promise<ProviderResult<void>> => {
-    if (authLoading || !isAdmin) {
-      const error = 'Admin access required';
-      setState({ loading: false, error });
-      return { success: false, error };
-    }
-    setState({ loading: true, error: null });
-    try {
-      const res = await fetch(`/api/mixology/contests/${id}`, {
-        method: 'DELETE',
-        headers: { 'x-mixology-role': role ?? 'viewer' },
-      });
-      setState({ loading: false, error: null });
-      if (!res.ok) {
-        const json = await res.json();
-        return { success: false, error: json.message };
-      }
-      return { success: true };
-    } catch (err) {
-      const errMsg = String(err);
-      setState({ loading: false, error: errMsg });
-      return { success: false, error: errMsg };
-    }
-  }, [authLoading, isAdmin, role]);
-
-  return { ...state, createContest, updateContest, deleteContest };
 }

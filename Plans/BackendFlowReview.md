@@ -91,3 +91,21 @@ Provide a high-level map of the current backend flow, highlight non-standard Nex
   - This is the most meaningful addition because it enables correct server-side auth and data access.
 
 No additional client libraries are recommended at this time; fetching and state management are already handled and extra layers would add complexity without clear payoff.
+
+---
+
+## Completed Refactors
+
+### 2026-02-04: Removed dead code from client data layer
+
+**Problem:** The `useBackend.ts` hooks (`useContests`, `useContest`, `useContestMutations`) duplicated functionality already in `AdminContestContext` + `adminApi`, and were never actually imported/used anywhere in the codebase.
+
+**Changes:**
+- Removed unused hooks: `useContests`, `useContest`, `useContestMutations`
+- Removed `MutationState` type export
+- Simplified `useCurrentContest` - removed `useAuth` dependency (public endpoint doesn't need auth checking)
+- Deleted `services/api.ts` (inlined `extractCurrentContest` into the hook)
+- Deleted `services/__tests__/api.test.ts`
+- Updated `hooks/index.ts` exports
+
+**Result:** ~190 lines deleted, single responsibility for `useBackend.ts` (just fetches current contest), cleaner separation between admin operations (`adminApi`) and public data access (`useCurrentContest`).
