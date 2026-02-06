@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BracketView, type BracketRound } from '@/contest/components/ui/BracketView';
-import { useContestDetails } from '@/contest/contexts/ContestDataContext';
+import { useActiveContest } from '@/contest/contexts/ActiveContestContext';
 import { buildBracketRoundsFromContest } from '@/contest/lib/helpers/buildRoundsFromContest';
 
 function formatUpdatedAt(timestamp: number | null) {
@@ -45,7 +45,7 @@ function BracketOverview({ hasRound }: { hasRound: boolean }) {
 export function BracketClient() {
   const router = useRouter();
   const [updatedAt, setUpdatedAt] = useState<number | null>(null);
-  const { contest, loading, error } = useContestDetails();
+  const { contest, loading, error } = useActiveContest();
 
   const rounds: BracketRound[] = useMemo(() => {
     if (!contest) return [];

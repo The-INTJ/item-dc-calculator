@@ -1,7 +1,7 @@
 'use client';
 
 import type { Contest, ContestPhase } from '../../contexts/contest/contestTypes';
-import { useContestData } from '../../contexts/contest/ContestContext';
+import { useContestStore } from '../../contexts/contest/ContestContext';
 import { getRoundById } from '../../lib/helpers/contestGetters';
 import {
   PHASE_VALUES,
@@ -14,7 +14,7 @@ interface AdminContestRoundsProps {
 }
 
 export function AdminContestRounds({ contest }: AdminContestRoundsProps) {
-  const { addRound, removeRound, setActiveRound, setRoundState } = useContestData();
+  const { addRound, removeRound, setActiveRound, setRoundState } = useContestStore();
 
   const rounds = contest.rounds ?? [];
   const activeRound = getRoundById(contest, contest.activeRoundId);

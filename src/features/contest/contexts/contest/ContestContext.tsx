@@ -7,9 +7,12 @@ import { useFetchContestsOnMount } from './hooks/useFetchContestsOnMount';
 import { useSyncPhaseToGlobalState } from './hooks/useSyncPhaseToGlobalState';
 import { useContestActions } from './hooks/useContestActions';
 import { useVoting } from './hooks/useVoting';
-import type { ContestContextState, ContestActions, VotingActions } from './contestTypes';
+import type { Contest, ContestContextState, ContestActions, VotingActions } from './contestTypes';
 
-type ContestContextValue = ContestContextState & ContestActions & VotingActions & { refresh: () => void };
+type ContestContextValue = ContestContextState & ContestActions & VotingActions & {
+  activeContest: Contest | null;
+  refresh: () => void;
+};
 
 const ContestContext = createContext<ContestContextValue | undefined>(undefined);
 
@@ -40,11 +43,13 @@ export function ContestProvider({ children }: { children: React.ReactNode }) {
   const value: ContestContextValue = (() => {
     const activeContest =
       state.contests.find((c) => c.id === state.activeContestId) ??
-      state.contests.find((c) => c.defaultContest);
+      state.contests.find((c) => c.defaultContest) ??
+      null;
 
     return {
       contests: state.contests,
       activeContestId: activeContest?.id ?? state.activeContestId,
+      activeContest,
       lastUpdatedAt: state.lastUpdatedAt,
       refresh,
       ...actions,
@@ -55,13 +60,13 @@ export function ContestProvider({ children }: { children: React.ReactNode }) {
   return <ContestContext.Provider value={value}>{children}</ContestContext.Provider>;
 }
 
-export function useContestData() {
+export function useContestStore() {
   const context = useContext(ContestContext);
   if (!context) {
-    throw new Error('useContestData must be used within ContestProvider');
+    throw new Error('useContestStore must be used within ContestProvider');
   }
   return context;
 }
 
 // Re-export types
-export type { ContestContextState, ContestActions } from './contestTypes';
+export type { Contest, ContestContextState, ContestActions } from './contestTypes';

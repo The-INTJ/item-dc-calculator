@@ -6,7 +6,7 @@ import { buildEntrySummary } from '../../lib/helpers/uiMappings';
 import { getEffectiveConfig } from '../../lib/helpers/validation';
 import { getRoundLabel } from '../../lib/helpers/contestGetters';
 import { EntryCard } from '../ui/EntryCard';
-import { useContestData } from '../../contexts/contest/ContestContext';
+import { useContestStore } from '../../contexts/contest/ContestContext';
 import { adminApi } from '../../lib/api/adminApi';
 import { AdminContestActivation } from './AdminContestActivation';
 import { AdminContestRounds } from './AdminContestRounds';
@@ -79,7 +79,7 @@ function ScoreItem({ score, entries, judges, config }: { score: ScoreEntry; entr
 
 export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }: ContestDetailsProps) {
   const router = useRouter();
-  const { deleteContest } = useContestData();
+  const { deleteContest } = useContestStore();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 

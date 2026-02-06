@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/src/features/contest/contexts/auth/AuthContext';
-import { useCurrentContest } from '@/contest/lib/hooks/useCurrentContest';
+import { useContestStore } from '@/contest/contexts/contest/ContestContext';
 import { NavBar } from './NavBar';
 import styles from '@/contest/styles/components/Header.module.scss';
 
@@ -21,7 +21,7 @@ function needsAuthBanner(pathname: string) {
 export function SiteHeader() {
   const pathname = usePathname();
   const { isAuthenticated, loading } = useAuth();
-  const { data: contest } = useCurrentContest();
+  const { activeContest } = useContestStore();
 
   const showHeader = pathname === '/' || pathname.startsWith('/contest');
 
@@ -35,7 +35,7 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <Link href="/" className={styles.homeLink}>
-        {contest?.name ?? 'Home'}
+        {activeContest?.name ?? 'Home'}
       </Link>
       <NavBar />
       {showAuthBanner ? (

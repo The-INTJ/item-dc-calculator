@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../contexts/auth/AuthContext';
-import { useContestDetails } from '../../contexts/ContestDataContext';
+import { useActiveContest } from '../../contexts/ActiveContestContext';
 import {
   buildScoreDefaults,
   buildScoresFromEntries,
@@ -33,7 +33,7 @@ export interface UseVoteScoresResult {
  */
 export function useVoteScores(): UseVoteScoresResult {
   const { session } = useAuth();
-  const { contest, drinks } = useContestDetails();
+  const { contest, drinks } = useActiveContest();
 
   const [draftScores, setDraftScores] = useState<ScoreByDrinkId>({});
   const [isLoadingRemote, setIsLoadingRemote] = useState(false);

@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { getTemplateKeys, DEFAULT_TEMPLATES } from '../../lib/helpers/contestTemplates';
 import { AttributeEditor } from './AttributeEditor';
 import type { AttributeConfig, ContestConfig } from '../../contexts/contest/contestTypes';
-import { useContestData } from '../../contexts/contest/ContestContext';
+import { useContestStore } from '../../contexts/contest/ContestContext';
 
 type ConfigMode = 'template' | 'custom';
 
@@ -29,7 +29,7 @@ function slugify(text: string): string {
 
 export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
   const router = useRouter();
-  const { upsertContest } = useContestData();
+  const { upsertContest } = useContestStore();
   const templateKeys = getTemplateKeys();
 
   const [name, setName] = useState('');
