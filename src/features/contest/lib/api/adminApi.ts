@@ -6,7 +6,7 @@
  */
 
 import type { Contest, Entry, ContestConfig } from '../../contexts/contest/contestTypes';
-import { getAuthToken } from '../../contexts/auth/getAuthToken';
+import { getAuthToken } from '@/contest/lib/firebase/firebaseAuthProvider';
 
 interface ProviderResult<T> {
   success: boolean;

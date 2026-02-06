@@ -7,7 +7,7 @@
  */
 
 import type { Contest, Entry } from '../../contexts/contest/contestTypes';
-import { getAuthToken } from '../../contexts/auth/getAuthToken';
+import { getAuthToken } from '@/contest/lib/firebase/firebaseAuthProvider';
 
 async function apiRequest<T>(
   url: string,

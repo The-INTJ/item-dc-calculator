@@ -31,6 +31,20 @@ const USERS_COLLECTION = 'users';
 
 let currentUser: User | null = null;
 
+/**
+ * Standalone token accessor for the API layer.
+ * Uses the same currentUser managed by the auth provider.
+ * Returns null if not authenticated — never throws.
+ */
+export async function getAuthToken(): Promise<string | null> {
+  if (!currentUser) return null;
+  try {
+    return await currentUser.getIdToken();
+  } catch {
+    return null;
+  }
+}
+
 export function createFirebaseAuthProvider(): AuthProvider {
   let auth: ReturnType<typeof initializeFirebase>['auth'];
   let db: ReturnType<typeof initializeFirebase>['db'];
