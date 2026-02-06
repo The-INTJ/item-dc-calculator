@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { Contest, Entry } from '../../contexts/contest/contestTypes';
-import { useContestData } from '../../contexts/contest/ContestContext';
+import { useContestStore } from '../../contexts/contest/ContestContext';
 import { getRoundLabel } from '../../lib/helpers/contestGetters';
 
 interface AdminContestantsProps {
@@ -72,7 +72,7 @@ function ContestantRow({
 }
 
 export function AdminContestants({ contest }: AdminContestantsProps) {
-  const { addContestant, updateContestant, removeContestant } = useContestData();
+  const { addContestant, updateContestant, removeContestant } = useContestStore();
   const [contestantName, setContestantName] = useState('');
   const [entryName, setEntryName] = useState('');
   const [roundId, setRoundId] = useState(contest.futureRoundId ?? contest.activeRoundId ?? '');

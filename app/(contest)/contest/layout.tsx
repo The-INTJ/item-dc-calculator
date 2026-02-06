@@ -1,14 +1,11 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { ContestDataProvider } from '@/contest/contexts/ContestDataContext';
-import { ContestProvider } from '@/contest/contexts/contest/ContestContext';
+import { ActiveContestProvider } from '@/contest/contexts/ActiveContestContext';
 import './contest.scss';
 
 export default function ContestLayout({ children }: { children: ReactNode }) {
   return (
-    <ContestProvider>
-      <ContestDataProvider>{children}</ContestDataProvider>
-    </ContestProvider>
+    <ActiveContestProvider>{children}</ActiveContestProvider>
   );
 }

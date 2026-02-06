@@ -3,9 +3,9 @@
 import React, { createContext, useContext, useEffect, useRef } from 'react';
 import { buildRoundDetail, buildRoundSummary, type RoundDetail, type RoundSummary, type EntrySummary } from '../lib/helpers/uiMappings';
 import type { Contest } from './contest/contestTypes';
-import { useContestData } from './contest/ContestContext';
+import { useContestStore } from './contest/ContestContext';
 
-interface ContestDataState {
+interface ActiveContestState {
   contest: Contest | null;
   roundSummary: RoundSummary | null;
   roundDetail: RoundDetail | null;
@@ -17,14 +17,19 @@ interface ContestDataState {
   lastUpdatedAt: number | null;
 }
 
-const ContestDataContext = createContext<ContestDataState | undefined>(undefined);
+const ActiveContestContext = createContext<ActiveContestState | undefined>(undefined);
 
-interface ContestDataProviderProps {
+interface ActiveContestProviderProps {
   children: React.ReactNode;
 }
 
-export function ContestDataProvider({ children }: ContestDataProviderProps) {
-  const { contests, activeContestId, lastUpdatedAt, refresh } = useContestData();
+/**
+ * ActiveContestProvider — derives UI-ready data from the active contest
+ * in the contest store. Handles auto-refresh on visibility change and
+ * periodic polling.
+ */
+export function ActiveContestProvider({ children }: ActiveContestProviderProps) {
+  const { contests, activeContestId, lastUpdatedAt, refresh } = useContestStore();
   const contest = contests.find((item) => item.id === activeContestId) ?? null;
   const lastUpdatedAtRef = useRef<number | null>(null);
   const contestUpdatedEvent = 'contest:data-updated';
@@ -61,7 +66,7 @@ export function ContestDataProvider({ children }: ContestDataProviderProps) {
     return () => window.removeEventListener(contestUpdatedEvent, handleContestUpdated);
   }, [refresh]);
 
-  const value: ContestDataState = (() => {
+  const value: ActiveContestState = (() => {
     if (!contest) {
       return {
         contest: null,
@@ -91,13 +96,17 @@ export function ContestDataProvider({ children }: ContestDataProviderProps) {
     };
   })();
 
-  return <ContestDataContext.Provider value={value}>{children}</ContestDataContext.Provider>;
+  return <ActiveContestContext.Provider value={value}>{children}</ActiveContestContext.Provider>;
 }
 
-export function useContestDetails() {
-  const context = useContext(ContestDataContext);
+/**
+ * Hook to access the active contest's derived UI data
+ * (contest object, round summary, drinks, loading state, etc.)
+ */
+export function useActiveContest() {
+  const context = useContext(ActiveContestContext);
   if (!context) {
-    throw new Error('useContestDetails must be used within ContestDataProvider');
+    throw new Error('useActiveContest must be used within ActiveContestProvider');
   }
   return context;
 }

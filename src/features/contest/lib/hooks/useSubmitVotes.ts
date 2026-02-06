@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useAuth } from '../../contexts/auth/AuthContext';
-import { useContestData } from '../../contexts/contest/ContestContext';
-import { useContestDetails } from '../../contexts/ContestDataContext';
+import { useContestStore } from '../../contexts/contest/ContestContext';
+import { useActiveContest } from '../../contexts/ActiveContestContext';
 import {
   buildFullBreakdown,
   calculateScore,
@@ -32,8 +32,8 @@ export interface UseSubmitVotesResult {
  */
 export function useSubmitVotes(): UseSubmitVotesResult {
   const { session, role } = useAuth();
-  const { recordVote } = useContestData();
-  const { contest, refreshAll } = useContestDetails();
+  const { recordVote } = useContestStore();
+  const { contest, refreshAll } = useActiveContest();
 
   const [status, setStatus] = useState<SubmitStatus>('idle');
   const [message, setMessage] = useState<string | null>(null);
