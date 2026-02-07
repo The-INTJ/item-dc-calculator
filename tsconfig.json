@@ -32,9 +32,6 @@
       "@/lib/*": [
         "./src/lib/*"
       ],
-      "@/contest": [
-        "./src/features/contest"
-      ],
       "@/contest/*": [
         "./src/features/contest/*"
       ]

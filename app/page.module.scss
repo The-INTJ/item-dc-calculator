@@ -1,0 +1,7 @@
+@use '@/contest/styles/mixins/tokens' as *;
+
+.landingPage {
+    display: flex;
+    flex-direction: column;
+    gap: $space-gap-normal;
+}

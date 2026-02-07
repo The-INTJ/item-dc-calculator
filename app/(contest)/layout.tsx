@@ -1,10 +1,11 @@
+'use client';
+
 import type { ReactNode } from 'react';
+import { ActiveContestProvider } from '@/contest/contexts/ActiveContestContext';
+import './contest.scss';
 
-export const metadata = {
-  title: 'Mixology Rating App',
-  description: 'Mixology contest rating experience for judging and scoring cocktail matchups.',
-};
-
-export default function MixologyGroupLayout({ children }: { children: ReactNode }) {
-  return <>{children}</>;
+export default function ContestLayout({ children }: { children: ReactNode }) {
+  return (
+    <ActiveContestProvider>{children}</ActiveContestProvider>
+  );
 }

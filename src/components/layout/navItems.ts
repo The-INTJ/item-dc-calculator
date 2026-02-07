@@ -8,30 +8,25 @@ export type NavItem = {
 
 export const navItems: NavItem[] = [
   {
-    key: 'contest-home',
-    label: 'Contest home',
-    href: '/contest',
-  },
-  {
     key: 'contest-current-round',
     label: 'Current Round',
-    href: '/contest/vote',
+    href: '/vote',
   },
   {
     key: 'contest-bracket',
     label: 'Bracket',
-    href: '/contest/bracket',
+    href: '/bracket',
   },
   {
     key: 'contest-account',
     label: 'Account',
-    href: '/contest/account',
+    href: '/account',
     variant: 'secondary',
   },
   {
     key: 'contest-admin',
     label: 'Admin',
-    href: '/contest/admin',
+    href: '/admin',
     variant: 'secondary',
     requiresAdmin: true,
   },

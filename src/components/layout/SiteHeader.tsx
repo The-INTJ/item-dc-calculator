@@ -7,30 +7,17 @@ import { useContestStore } from '@/contest/contexts/contest/ContestContext';
 import { NavBar } from './NavBar';
 import styles from '@/contest/styles/components/Header.module.scss';
 
-const authRequiredPrefixes = [
-  '/contest/admin',
-  '/contest/vote',
-  '/contest/bracket',
-  '/contest/account',
-];
-
-function needsAuthBanner(pathname: string) {
-  return authRequiredPrefixes.some((prefix) => pathname.startsWith(prefix));
-}
-
 export function SiteHeader() {
   const pathname = usePathname();
-  const { isAuthenticated, loading } = useAuth();
-  const { activeContest } = useContestStore();
-
-  const showHeader = pathname === '/' || pathname.startsWith('/contest');
-
-  if (!showHeader) {
+  const showContestHeader = !pathname.startsWith('/dc-calculator');
+  if (!showContestHeader) {
     return null;
   }
-
+  const { isAuthenticated, loading } = useAuth();
+  const { activeContest } = useContestStore();
   const showAuthBanner =
-    pathname.startsWith('/contest') && !loading && !isAuthenticated && needsAuthBanner(pathname);
+    pathname.startsWith('/contest') && !loading && !isAuthenticated;
+
 
   return (
     <header className="site-header">

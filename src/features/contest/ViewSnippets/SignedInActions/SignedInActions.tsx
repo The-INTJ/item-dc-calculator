@@ -4,7 +4,7 @@
 
 import Link from 'next/link';
 import { AdminOnlyLink } from '@/components/ui';
-import type { UserProfile } from '../contexts/auth/types';
+import type { UserProfile } from '@/contest/contexts/auth/types';
 
 interface SignedInLandingProps {
   user: UserProfile;

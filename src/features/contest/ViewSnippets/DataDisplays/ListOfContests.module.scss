@@ -1,0 +1,70 @@
+@use '@/contest/styles/mixins/surface' as *;
+@use '@/contest/styles/mixins/typography' as *;
+@use '@/contest/styles/mixins/interactive' as *;
+@use '@/contest/styles/mixins/tokens' as *;
+
+.container {
+  @include card-surface;
+  display: flex;
+  flex-direction: column;
+  gap: $space-padding-md;
+}
+
+.header {
+  @include type-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin: 0;
+  padding-bottom: $space-padding-sm;
+  border-bottom: 1px solid $color-border;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-padding-sm;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  @include surface-secondary;
+  @include interactive-button; // Makes it feel clickable if we wrap in a link later
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: $space-padding-md;
+  transition: all $transition-base;
+
+  &:hover {
+    background: $color-surface-hover;
+    transform: translateX(4px);
+  }
+}
+
+.contestName {
+  @include type-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.phaseBadge {
+  @include status-badge;
+  
+  // Phase specific colors
+  &[data-phase='set'] {
+    background: $color-gray-200;
+    color: $color-gray-600;
+  }
+
+  &[data-phase='shake'] {
+    @include warning-surface; // Or a specific active color
+    border: none; // Override warning border if cleaner
+  }
+
+  &[data-phase='scored'] {
+    background: $color-success-50;
+    color: $color-success-600;
+  }
+}

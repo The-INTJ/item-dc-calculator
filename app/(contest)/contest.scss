@@ -9,12 +9,12 @@
  */
 
 // Feature styles (from src/features/contest/styles/)
-@use '../../../src/features/contest/styles/admin-styles';
-@use '../../../src/features/contest/styles/auth-styles';
-@use '../../../src/features/contest/styles/rounds-styles';
-@use '../../../src/features/contest/styles/entry-styles';
-@use '../../../src/features/contest/styles/bracket-styles';
-@use '../../../src/features/contest/styles/vote-styles';
+@use '../../src/features/contest/styles/admin-styles';
+@use '../../src/features/contest/styles/auth-styles';
+@use '../../src/features/contest/styles/rounds-styles';
+@use '../../src/features/contest/styles/entry-styles';
+@use '../../src/features/contest/styles/bracket-styles';
+@use '../../src/features/contest/styles/vote-styles';
 
 // Page-specific styles (still in app folder)
 @use './account/account-styles';

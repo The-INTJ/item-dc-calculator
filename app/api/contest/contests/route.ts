@@ -3,10 +3,6 @@ import { getBackendProvider } from '@/contest/lib/helpers/backendProvider';
 import { requireAdmin } from '../_lib/requireAdmin';
 
 export async function GET(request: Request) {
-  const adminError = await requireAdmin(request);
-  if (adminError) {
-    return adminError;
-  }
   const provider = await getBackendProvider();
   const url = new URL(request.url);
   const slug = url.searchParams.get('slug');

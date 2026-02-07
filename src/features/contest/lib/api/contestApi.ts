@@ -9,6 +9,8 @@
 import type { Contest, Entry } from '../../contexts/contest/contestTypes';
 import { getAuthToken } from '@/contest/lib/firebase/firebaseAuthProvider';
 
+// seems like a wrapper that enforces auth fetch for every call
+// but we need a default, "don't need to be authed" state
 async function apiRequest<T>(
   url: string,
   options: Parameters<typeof fetch>[1] = {}
