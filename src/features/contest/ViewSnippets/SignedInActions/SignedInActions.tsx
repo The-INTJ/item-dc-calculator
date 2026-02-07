@@ -20,8 +20,8 @@ export default function SignedInLanding({ user }: SignedInLandingProps) {
           or explore ongoing contests.
         </p>
         <div className="contest-actions">
-          <Link href="/contest/vote" className="button-primary">
-            Start voting
+          <Link href="/" className="button-primary">
+            Browse contests
           </Link>
           <Link href="/contest/account" className="button-secondary">
             View profile

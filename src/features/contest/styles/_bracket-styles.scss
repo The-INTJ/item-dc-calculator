@@ -101,6 +101,18 @@
   @include type-label;
 }
 
+.contest-bracket__round-card--clickable {
+  cursor: pointer;
+  transition: transform $transition-fast, box-shadow $transition-base;
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-2px);
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+}
+
 // Container queries for responsive behavior
 @include container('sm') {
   .contest-bracket__round {

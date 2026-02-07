@@ -46,7 +46,7 @@ export default function MixologyOnboardPage() {
       return;
     }
 
-    router.push('/contest/vote');
+    router.push('/');
   };
 
   const handleGoogle = async () => {
@@ -56,7 +56,7 @@ export default function MixologyOnboardPage() {
     const result = await loginWithGoogle();
     setBusyAction(null);
     if (result.success) {
-      router.push('/contest/vote');
+      router.push('/');
     } else {
       setError(result.error ?? 'Google sign-in failed');
     }

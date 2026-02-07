@@ -24,6 +24,7 @@ export type BracketRound = {
 
 interface BracketViewProps {
   rounds: BracketRound[];
+  onRoundClick?: (roundId: string) => void;
 }
 
 function formatRoundStatus(status: BracketRoundStatus) {
@@ -56,9 +57,17 @@ function MatchupCard({ matchup }: { matchup: BracketMatchup }) {
   );
 }
 
-function BracketRoundColumn({ round }: { round: BracketRound }) {
+function BracketRoundColumn({ round, onClick }: { round: BracketRound; onClick?: () => void }) {
+  const clickableClass = onClick ? 'contest-bracket__round-card--clickable' : '';
+
   return (
-    <div className="contest-card contest-bracket__round-card">
+    <div
+      className={`contest-card contest-bracket__round-card ${clickableClass}`.trim()}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); } : undefined}
+    >
       <header className="contest-bracket__round-header">
         <h3 className="contest-bracket__round-title">{round.name}</h3>
         <span className="contest-bracket__round-status">{formatRoundStatus(round.status)}</span>
@@ -72,7 +81,7 @@ function BracketRoundColumn({ round }: { round: BracketRound }) {
   );
 }
 
-export function BracketView({ rounds }: BracketViewProps) {
+export function BracketView({ rounds, onRoundClick }: BracketViewProps) {
   return (
     <section className="contest-bracket">
       <div className="contest-bracket__mobile">
@@ -80,7 +89,7 @@ export function BracketView({ rounds }: BracketViewProps) {
         <div className="contest-bracket__round-strip" role="list">
           {rounds.map((round) => (
             <div key={round.id} className="contest-bracket__round" role="listitem">
-              <BracketRoundColumn round={round} />
+              <BracketRoundColumn round={round} onClick={onRoundClick ? () => onRoundClick(round.id) : undefined} />
             </div>
           ))}
         </div>
@@ -90,7 +99,7 @@ export function BracketView({ rounds }: BracketViewProps) {
         <div className="contest-bracket__grid" role="list">
           {rounds.map((round) => (
             <div key={round.id} className="contest-bracket__column" role="listitem">
-              <BracketRoundColumn round={round} />
+              <BracketRoundColumn round={round} onClick={onRoundClick ? () => onRoundClick(round.id) : undefined} />
             </div>
           ))}
         </div>

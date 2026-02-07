@@ -8,16 +8,6 @@ export type NavItem = {
 
 export const navItems: NavItem[] = [
   {
-    key: 'contest-current-round',
-    label: 'Current Round',
-    href: '/vote',
-  },
-  {
-    key: 'contest-bracket',
-    label: 'Bracket',
-    href: '/bracket',
-  },
-  {
     key: 'contest-account',
     label: 'Account',
     href: '/account',
