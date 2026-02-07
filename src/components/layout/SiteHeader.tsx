@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/src/features/contest/contexts/auth/AuthContext';
-import { useContestStore } from '@/contest/contexts/contest/ContestContext';
 import { NavBar } from './NavBar';
 import styles from '@/contest/styles/components/Header.module.scss';
 
@@ -14,7 +13,6 @@ export function SiteHeader() {
     return null;
   }
   const { isAuthenticated, loading } = useAuth();
-  const { activeContest } = useContestStore();
   const showAuthBanner =
     pathname.startsWith('/contest') && !loading && !isAuthenticated;
 
@@ -22,7 +20,7 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <Link href="/" className={styles.homeLink}>
-        {activeContest?.name ?? 'Home'}
+        Home
       </Link>
       <NavBar />
       {showAuthBanner ? (

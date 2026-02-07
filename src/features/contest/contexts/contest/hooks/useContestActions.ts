@@ -24,17 +24,8 @@ export function useContestActions(
   const replaceContest = useCallback((contest: Contest) => {
     updateState((prev) => {
       const contests = prev.contests.map((c) => c.id === contest.id ? contest : c);
-      const activeContestId = contest.defaultContest ? contest.id : prev.activeContestId;
-      return { ...prev, contests, activeContestId };
+      return { ...prev, contests };
     });
-  }, [updateState]);
-
-  const setActiveContest = useCallback((contestId: string) => {
-    updateState((prev) => ({
-      ...prev,
-      activeContestId: contestId,
-      contests: prev.contests.map((c) => ({ ...c, defaultContest: c.id === contestId })),
-    }));
   }, [updateState]);
 
   const updateContest = useCallback((contestId: string, updates: Partial<Contest>) => {
@@ -50,7 +41,7 @@ export function useContestActions(
       const contests = exists
         ? prev.contests.map((c) => c.id === contest.id ? contest : c)
         : [...prev.contests, contest];
-      return { ...prev, contests, activeContestId: contest.defaultContest ? contest.id : prev.activeContestId };
+      return { ...prev, contests };
     });
   }, [updateState]);
 
@@ -73,10 +64,7 @@ export function useContestActions(
     if (success) {
       updateState((prev) => {
         const contests = prev.contests.filter((c) => c.id !== contestId);
-        const activeContestId = prev.activeContestId === contestId
-          ? contests.find((c) => c.defaultContest)?.id ?? contests[0]?.id ?? null
-          : prev.activeContestId;
-        return { ...prev, contests, activeContestId };
+        return { ...prev, contests };
       });
     }
     return success;
@@ -191,7 +179,6 @@ export function useContestActions(
   }, [updateState]);
 
   return {
-    setActiveContest,
     updateContest,
     upsertContest,
     addContest,

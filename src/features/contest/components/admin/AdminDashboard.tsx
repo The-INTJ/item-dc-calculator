@@ -17,9 +17,7 @@ export function AdminDashboard() {
   const { role, loading: authLoading, isAuthenticated } = useAuth();
   const {
     contests,
-    activeContestId,
     refresh,
-    setActiveContest,
     updateContest,
   } = useContestStore();
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
@@ -28,10 +26,10 @@ export function AdminDashboard() {
 
   useEffect(() => {
     if (!selectedContest && contests.length > 0) {
-      const fallback = contests.find((contest) => contest.id === activeContestId) ?? contests[0];
+      const fallback = contests[0];
       setSelectedContest(fallback);
     }
-  }, [contests, activeContestId, selectedContest]);
+  }, [contests, selectedContest]);
 
   useEffect(() => {
     if (!selectedContest) return;
@@ -134,7 +132,6 @@ export function AdminDashboard() {
             <ContestDetails
               contest={selectedContest}
               onContestUpdated={handleContestUpdated}
-              onSetActiveContest={setActiveContest}
             />
           ) : (
             <div className="admin-placeholder">

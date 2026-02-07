@@ -30,11 +30,13 @@
 
 .item {
   @include surface-secondary;
-  @include interactive-button; // Makes it feel clickable if we wrap in a link later
+  @include interactive-button;
   align-items: center;
   display: flex;
   justify-content: space-between;
   padding: $space-padding-md;
+  text-decoration: none;
+  color: inherit;
   transition: all $transition-base;
 
   &:hover {

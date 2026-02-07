@@ -1,12 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { contestApi } from '../../../lib/api/contestApi';
-import type { ContestContextStateUpdater, Contest } from '../contestTypes';
+import type { ContestContextStateUpdater } from '../contestTypes';
 
 /**
  * useFetchContestsOnMount
  * 
  * Fetches all contests from the API when the component mounts.
- * Sets the active contest to the current/default contest.
  */
 export function useFetchContestsOnMount(
   updateState: (updater: ContestContextStateUpdater) => void,
@@ -21,11 +20,10 @@ export function useFetchContestsOnMount(
     async function load() {
       const result = await contestApi.listContests();
       if (result) {
-        const { contests, currentContest } = result;
+        const { contests } = result;
         updateState((prev) => ({
           ...prev,
           contests,
-          activeContestId: currentContest?.id ?? contests.find((c: Contest) => c.defaultContest)?.id ?? contests[0]?.id ?? null,
           lastUpdatedAt: Date.now(),
         }));
       }

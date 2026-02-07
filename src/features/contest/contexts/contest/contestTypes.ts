@@ -140,14 +140,12 @@ export type VoteInput = Omit<Vote, 'timestamp'>;
 
 export interface ContestContextState {
   contests: Contest[];
-  activeContestId: string | null;
   lastUpdatedAt: number | null;
 }
 
 export type ContestContextStateUpdater = (prev: ContestContextState) => ContestContextState;
 
 export interface ContestActions {
-  setActiveContest: (contestId: string) => void;
   updateContest: (contestId: string, updates: Partial<Contest>) => void;
   upsertContest: (contest: Contest) => void;
   addContest: (name: string) => Promise<Contest | null>;

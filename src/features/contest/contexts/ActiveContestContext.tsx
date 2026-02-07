@@ -24,84 +24,32 @@ interface ActiveContestProviderProps {
 }
 
 /**
- * ActiveContestProvider — derives UI-ready data from the active contest
- * in the contest store. Handles auto-refresh on visibility change and
- * periodic polling.
+ * ActiveContestProvider — placeholder provider now that global "active contest"
+ * selection has been removed. Contest selection is driven by URL params.
+ * Sub-pages will be migrated to use URL-based contest lookup.
  */
 export function ActiveContestProvider({ children }: ActiveContestProviderProps) {
-  const { contests, activeContestId, lastUpdatedAt, refresh } = useContestStore();
-  const contest = contests.find((item) => item.id === activeContestId) ?? null;
-  const lastUpdatedAtRef = useRef<number | null>(null);
-  const contestUpdatedEvent = 'contest:data-updated';
+  const { contests, lastUpdatedAt, refresh } = useContestStore();
 
-  // Update timestamp when contest data changes
-  useEffect(() => {
-    if (contest) {
-      lastUpdatedAtRef.current = Date.now();
-    }
-  }, [contest]);
-
-  // Auto-refresh on tab visibility change
-  useEffect(() => {
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        refresh();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, [refresh]);
-
-  // Auto-refresh on interval (every 2 minutes)
-  useEffect(() => {
-    const interval = window.setInterval(() => refresh(), 2 * 60 * 1000);
-    return () => window.clearInterval(interval);
-  }, [refresh]);
-
-  // Listen for external contest update events
-  useEffect(() => {
-    const handleContestUpdated = () => refresh();
-    window.addEventListener(contestUpdatedEvent, handleContestUpdated);
-    return () => window.removeEventListener(contestUpdatedEvent, handleContestUpdated);
-  }, [refresh]);
-
-  const value: ActiveContestState = (() => {
-    if (!contest) {
-      return {
-        contest: null,
-        roundSummary: null,
-        roundDetail: null,
-        drinks: [],
-        loading: contests.length === 0,
-        error: null,
-        refreshAll: async () => refresh(),
-        refreshRound: async () => refresh(),
-        lastUpdatedAt: lastUpdatedAtRef.current ?? lastUpdatedAt,
-      };
-    }
-
-    const roundDetail = buildRoundDetail(contest);
-
-    return {
-      contest,
-      roundSummary: buildRoundSummary(contest),
-      roundDetail,
-      drinks: roundDetail.entries,
-      loading: false,
-      error: null,
-      refreshAll: async () => refresh(),
-      refreshRound: async () => refresh(),
-      lastUpdatedAt: lastUpdatedAtRef.current ?? lastUpdatedAt,
-    };
-  })();
+  const value: ActiveContestState = {
+    contest: null,
+    roundSummary: null,
+    roundDetail: null,
+    drinks: [],
+    loading: contests.length === 0,
+    error: null,
+    refreshAll: async () => refresh(),
+    refreshRound: async () => refresh(),
+    lastUpdatedAt,
+  };
 
   return <ActiveContestContext.Provider value={value}>{children}</ActiveContestContext.Provider>;
 }
 
 /**
- * Hook to access the active contest's derived UI data
- * (contest object, round summary, drinks, loading state, etc.)
+ * Hook to access the active contest's derived UI data.
+ * Currently returns null contest since global selection was deprecated.
+ * Pages should migrate to URL-param-based contest lookup.
  */
 export function useActiveContest() {
   const context = useContext(ActiveContestContext);

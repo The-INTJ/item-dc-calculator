@@ -8,7 +8,6 @@ import { getRoundLabel } from '../../lib/helpers/contestGetters';
 import { EntryCard } from '../ui/EntryCard';
 import { useContestStore } from '../../contexts/contest/ContestContext';
 import { adminApi } from '../../lib/api/adminApi';
-import { AdminContestActivation } from './AdminContestActivation';
 import { AdminContestRounds } from './AdminContestRounds';
 import { AdminContestants } from './AdminContestants';
 import { AdminRoundOverview } from './AdminRoundOverview';
@@ -18,7 +17,6 @@ import { ContestPhaseControls } from './ContestPhaseControls';
 interface ContestDetailsProps {
   contest: Contest;
   onContestUpdated: (contest: Contest) => void;
-  onSetActiveContest: (contestId: string) => void;
 }
 
 function EntryItem({ entry, roundLabel }: { entry: Entry; roundLabel: string }) {
@@ -77,7 +75,7 @@ function ScoreItem({ score, entries, judges, config }: { score: ScoreEntry; entr
   );
 }
 
-export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }: ContestDetailsProps) {
+export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProps) {
   const router = useRouter();
   const { deleteContest } = useContestStore();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -140,11 +138,6 @@ export function ContestDetails({ contest, onContestUpdated, onSetActiveContest }
         </div>
       )}
 
-      <AdminContestActivation
-        contest={contest}
-        isActive={Boolean(contest.defaultContest)}
-        onSetActive={() => onSetActiveContest(contest.id)}
-      />
       <ContestPhaseControls contest={contest} onContestUpdated={onContestUpdated} />
       <ContestConfigEditor contest={contest} onSave={handleSaveConfig} />
       <AdminContestRounds contest={contest} />
