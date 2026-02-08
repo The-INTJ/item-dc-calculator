@@ -354,9 +354,8 @@
       ],
       "get": {
         "summary": "Get a contest",
-        "description": "Returns a single contest by ID or slug",
+        "description": "Returns a single contest by ID or slug. Currently no admin requirement.",
         "tags": ["Contests"],
-        "security": [{ "AdminRole": [] }],
         "responses": {
           "200": {
             "description": "Contest details",
@@ -386,9 +385,8 @@
       },
       "patch": {
         "summary": "Update a contest",
-        "description": "Updates an existing contest",
+        "description": "Updates an existing contest. Currently no admin requirement.",
         "tags": ["Contests"],
-        "security": [{ "AdminRole": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -450,9 +448,8 @@
       },
       "delete": {
         "summary": "Delete a contest",
-        "description": "Deletes a contest by ID",
+        "description": "Deletes a contest by ID. Currently no admin requirement.",
         "tags": ["Contests"],
-        "security": [{ "AdminRole": [] }],
         "responses": {
           "200": {
             "description": "Contest deleted",
@@ -493,9 +490,8 @@
       ],
       "get": {
         "summary": "List entries in a contest",
-        "description": "Returns all entries for a contest.",
+        "description": "Returns all entries for a contest. Currently no admin requirement.",
         "tags": ["Entries"],
-        "security": [{ "AdminRole": [] }],
         "responses": {
           "200": {
             "description": "List of entries",
@@ -528,9 +524,8 @@
       },
       "post": {
         "summary": "Add an entry to a contest",
-        "description": "Creates a new entry in the contest",
+        "description": "Creates a new entry in the contest. Currently no admin requirement.",
         "tags": ["Entries"],
-        "security": [{ "AdminRole": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -603,9 +598,8 @@
       ],
       "get": {
         "summary": "Get an entry",
-        "description": "Returns a single entry by ID",
+        "description": "Returns a single entry by ID. Currently no admin requirement.",
         "tags": ["Entries"],
-        "security": [{ "AdminRole": [] }],
         "responses": {
           "200": {
             "description": "Entry details",
@@ -635,9 +629,8 @@
       },
       "patch": {
         "summary": "Update an entry",
-        "description": "Updates an existing entry",
+        "description": "Updates an existing entry. Currently no admin requirement.",
         "tags": ["Entries"],
-        "security": [{ "AdminRole": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -695,9 +688,8 @@
       },
       "delete": {
         "summary": "Delete an entry",
-        "description": "Removes an entry from the contest",
+        "description": "Removes an entry from the contest. Currently no admin requirement.",
         "tags": ["Entries"],
-        "security": [{ "AdminRole": [] }],
         "responses": {
           "200": {
             "description": "Entry deleted",
@@ -746,14 +738,6 @@
             "in": "query",
             "description": "Filter by entry ID",
             "required": false,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "entryId",
-            "in": "query",
-            "description": "Filter by entry ID (deprecated, use entryId)",
-            "required": false,
-            "deprecated": true,
             "schema": { "type": "string" }
           },
           {
@@ -809,7 +793,7 @@
       },
       "post": {
         "summary": "Submit or update a score",
-        "description": "Submits a new score or updates an existing one. Can submit full breakdown or a single category score. Score categories are validated against the contest's config.attributes.",
+        "description": "Submits a new score or updates an existing one. Can submit full breakdown or a single category score. Score categories are validated against the contest's config.attributes. Currently no admin requirement.",
         "tags": ["Scores"],
         "requestBody": {
           "required": true,
@@ -818,7 +802,6 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "entryId": { "type": "string", "description": "Entry being scored" },
                   "entryId": { "type": "string", "description": "Entry being scored" },
                   "judgeId": { "type": "string" },
                   "judgeName": { "type": "string", "description": "Name for auto-created judge" },
