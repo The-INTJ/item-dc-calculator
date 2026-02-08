@@ -12,10 +12,7 @@ import type { FirestoreAdapter } from '../firestoreAdapter';
 interface ContestCreateInput {
   name: string;
   slug: string;
-  configId: string;
-  config?: Contest['config'];
-  entryLabel?: string;
-  entryLabelPlural?: string;
+  config: Contest['config'];
 }
 
 /**
@@ -40,34 +37,12 @@ export function createFirebaseContestsProvider(adapter: FirestoreAdapter): Conte
         const id = generateId('contest');
         const typedInput = input as ContestCreateInput;
 
-        // Fetch config from API
-        const configItem = await adapter.getConfig(typedInput.configId);
-        if (!configItem) {
-          throw new Error(`Config not found: ${typedInput.configId}`);
-        }
-
-        let resolvedConfig: Contest['config'] = {
-          topic: configItem.topic,
-          attributes: configItem.attributes,
-          entryLabel: configItem.entryLabel,
-          entryLabelPlural: configItem.entryLabelPlural,
-        };
-
-        // Apply entry label overrides if provided
-        if (typedInput.entryLabel || typedInput.entryLabelPlural) {
-          resolvedConfig = {
-            ...resolvedConfig,
-            entryLabel: typedInput.entryLabel || resolvedConfig.entryLabel,
-            entryLabelPlural: typedInput.entryLabelPlural || resolvedConfig.entryLabelPlural,
-          };
-        }
-
         const newContest: Contest = {
           id,
           name: typedInput.name,
           slug: typedInput.slug,
           phase: 'set', // Default phase for new contests
-          config: resolvedConfig,
+          config: typedInput.config,
           entries: [],
           judges: [],
           scores: [],
