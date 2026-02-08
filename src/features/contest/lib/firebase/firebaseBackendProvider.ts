@@ -15,6 +15,7 @@ import { createFirebaseContestsProvider } from './providers/contestsProvider';
 import { createFirebaseEntriesProvider } from './providers/entriesProvider';
 import { createFirebaseJudgesProvider } from './providers/judgesProvider';
 import { createFirebaseScoresProvider } from './providers/scoresProvider';
+import { createFirebaseConfigsProvider } from './providers/configsProvider';
 
 /**
  * Creates the full Firebase backend provider.
@@ -33,6 +34,7 @@ export function createFirebaseBackendProvider(): BackendProvider {
     entries: entriesProvider,
     judges: createFirebaseJudgesProvider(adapter),
     scores: createFirebaseScoresProvider(adapter),
+    configs: createFirebaseConfigsProvider(adapter),
 
     async initialize() {
       const firebase = initializeFirebase();

@@ -46,6 +46,15 @@ export interface ContestConfig {
   entryLabelPlural?: string;
 }
 
+/**
+ * Stored contest configuration with unique ID.
+ * Used for the /api/contest/configs endpoints.
+ */
+export interface ContestConfigItem extends ContestConfig {
+  /** Unique identifier for this configuration */
+  id: string;
+}
+
 export interface Judge {
   id: string;
   displayName: string;

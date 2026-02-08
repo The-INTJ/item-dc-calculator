@@ -59,6 +59,22 @@
         },
         "required": ["topic", "attributes"]
       },
+      "ContestConfigItem": {
+        "type": "object",
+        "description": "Stored contest configuration with unique ID",
+        "properties": {
+          "id": { "type": "string", "description": "Unique identifier", "example": "mixology" },
+          "topic": { "type": "string", "description": "Contest type", "example": "Mixology" },
+          "entryLabel": { "type": "string", "description": "Singular label for entries", "example": "Drink" },
+          "entryLabelPlural": { "type": "string", "description": "Plural label for entries", "example": "Drinks" },
+          "attributes": {
+            "type": "array",
+            "description": "Scoring dimensions",
+            "items": { "$ref": "#/components/schemas/AttributeConfig" }
+          }
+        },
+        "required": ["id", "topic", "attributes"]
+      },
       "ScoreBreakdown": {
         "type": "object",
         "description": "Dynamic score breakdown - keys are attribute IDs from the contest config",
@@ -897,11 +913,206 @@
           }
         }
       }
+    },
+    "/configs": {
+      "get": {
+        "summary": "List all configurations",
+        "description": "Returns all contest configurations from the datastore.",
+        "tags": ["ContestConfigs"],
+        "responses": {
+          "200": {
+            "description": "List of configurations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ContestConfigItem" }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a configuration",
+        "description": "Creates a new contest configuration.",
+        "tags": ["ContestConfigs"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "string", "description": "Optional custom ID" },
+                  "topic": { "type": "string" },
+                  "entryLabel": { "type": "string" },
+                  "entryLabelPlural": { "type": "string" },
+                  "attributes": {
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/AttributeConfig" }
+                  }
+                },
+                "required": ["topic", "attributes"]
+              },
+              "example": {
+                "topic": "Beer Tasting",
+                "entryLabel": "Beer",
+                "entryLabelPlural": "Beers",
+                "attributes": [
+                  { "id": "appearance", "label": "Appearance", "min": 0, "max": 10 },
+                  { "id": "aroma", "label": "Aroma", "min": 0, "max": 10 },
+                  { "id": "taste", "label": "Taste", "min": 0, "max": 10 },
+                  { "id": "overall", "label": "Overall", "min": 0, "max": 10 }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Configuration created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ContestConfigItem" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/configs/{configId}": {
+      "parameters": [
+        {
+          "name": "configId",
+          "in": "path",
+          "required": true,
+          "description": "Configuration ID",
+          "schema": { "type": "string" }
+        }
+      ],
+      "get": {
+        "summary": "Get a configuration",
+        "description": "Returns a single configuration by ID.",
+        "tags": ["ContestConfigs"],
+        "responses": {
+          "200": {
+            "description": "Configuration details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ContestConfigItem" }
+              }
+            }
+          },
+          "404": {
+            "description": "Configuration not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update a configuration",
+        "description": "Updates an existing configuration.",
+        "tags": ["ContestConfigs"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "topic": { "type": "string" },
+                  "entryLabel": { "type": "string" },
+                  "entryLabelPlural": { "type": "string" },
+                  "attributes": {
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/AttributeConfig" }
+                  }
+                }
+              },
+              "example": {
+                "entryLabel": "Brew",
+                "entryLabelPlural": "Brews"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Configuration updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ContestConfigItem" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Configuration not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a configuration",
+        "description": "Removes a configuration from the datastore.",
+        "tags": ["ContestConfigs"],
+        "responses": {
+          "200": {
+            "description": "Configuration deleted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Configuration not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "tags": [
     { "name": "Contests", "description": "Manage contests of any type" },
     { "name": "Entries", "description": "Manage entries within contests (drinks, chilies, cosplays, etc.)" },
-    { "name": "Scores", "description": "Submit and retrieve scores" }
+    { "name": "Scores", "description": "Submit and retrieve scores" },
+    { "name": "ContestConfigs", "description": "Manage contest configuration templates and scoring attributes" }
   ]
 }

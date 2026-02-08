@@ -1,5 +1,9 @@
 /**
  * Default contest configuration templates.
+ *
+ * @deprecated This file is deprecated. Contest configurations should be
+ * stored in the datastore and managed via the /api/contest/configs endpoints.
+ * See the JSON payloads below to recreate these configs via POST /api/contest/configs.
  */
 
 import type { ContestConfig } from '../../contexts/contest/contestTypes';
