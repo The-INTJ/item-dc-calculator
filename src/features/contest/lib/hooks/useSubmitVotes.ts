@@ -47,7 +47,7 @@ export function useSubmitVotes(): UseSubmitVotesResult {
     : [];
 
   const submitScores = async (scores: ScoreByDrinkId) => {
-    if (!contest?.id || !judgeId) {
+    if (!contest?.id || !judgeId || !config) {
       setStatus('error');
       setMessage('No active contest or session.');
       return;

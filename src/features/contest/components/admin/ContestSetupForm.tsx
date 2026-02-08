@@ -5,11 +5,10 @@
  * MVP: name, slug (auto-generated), and template dropdown.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getTemplateKeys, DEFAULT_TEMPLATES } from '../../lib/helpers/contestTemplates';
 import { AttributeEditor } from './AttributeEditor';
-import type { AttributeConfig, ContestConfig } from '../../contexts/contest/contestTypes';
+import type { AttributeConfig, ContestConfig, ContestConfigItem } from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
 
 type ConfigMode = 'template' | 'custom';
@@ -30,13 +29,15 @@ function slugify(text: string): string {
 export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
   const router = useRouter();
   const { upsertContest } = useContestStore();
-  const templateKeys = getTemplateKeys();
 
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [configMode, setConfigMode] = useState<ConfigMode>('template');
-  const [selectedTemplate, setSelectedTemplate] = useState(templateKeys[0] ?? 'mixology');
+  const [configs, setConfigs] = useState<ContestConfigItem[]>([]);
+  const [configsLoading, setConfigsLoading] = useState(true);
+  const [configsError, setConfigsError] = useState<string | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState('');
   const [customTopic, setCustomTopic] = useState('');
   const [customAttributes, setCustomAttributes] = useState<AttributeConfig[]>([
     { id: 'overall', label: 'Overall', description: 'Overall impression', min: 0, max: 10 },
@@ -60,6 +61,30 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
   const handleSlugChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSlug(slugify(e.target.value));
     setSlugManuallyEdited(true);
+  }, []);
+
+  // Fetch configs from API on mount
+  useEffect(() => {
+    async function fetchConfigs() {
+      try {
+        const response = await fetch('/api/contest/configs');
+        if (!response.ok) {
+          throw new Error('Failed to load configs');
+        }
+        const data = await response.json();
+        setConfigs(data);
+        if (data.length > 0) {
+          setSelectedTemplate(data[0].id); // Select first config by default
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to load configs';
+        setConfigsError(message);
+      } finally {
+        setConfigsLoading(false);
+      }
+    }
+
+    fetchConfigs();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,7 +120,7 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
       };
 
       if (configMode === 'template') {
-        payload.configTemplate = selectedTemplate;
+        payload.configId = selectedTemplate;
       } else {
         payload.config = {
           topic: customTopic.trim(),
@@ -135,7 +160,7 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
     }
   };
 
-  const selectedConfig: ContestConfig | undefined = DEFAULT_TEMPLATES[selectedTemplate];
+  const selectedConfig: ContestConfig | undefined = configs.find(c => c.id === selectedTemplate);
 
   return (
     <form className="admin-contest-setup-form" onSubmit={handleSubmit}>
@@ -194,13 +219,16 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
             className="admin-rounds-select"
             value={selectedTemplate}
             onChange={(e) => setSelectedTemplate(e.target.value)}
+            disabled={configsLoading}
           >
-            {templateKeys.map((key) => (
-              <option key={key} value={key}>
-                {DEFAULT_TEMPLATES[key]?.topic ?? key}
+            {configs.map((config) => (
+              <option key={config.id} value={config.id}>
+                {config.topic}
               </option>
             ))}
           </select>
+          {configsLoading && <span className="admin-detail-meta">Loading configs...</span>}
+          {configsError && <p className="error-message">{configsError}</p>}
         </div>
       )}
 

@@ -7,13 +7,12 @@
 import type { ContestsProvider, Contest, ProviderResult } from '../../helpers/types';
 import { generateId, withDb } from '../../helpers/providerUtils';
 import type { FirestoreAdapter } from '../firestoreAdapter';
-import { getTemplate, getDefaultConfig } from '../../helpers/contestTemplates';
 
 /** Input shape from the API when creating a contest */
 interface ContestCreateInput {
   name: string;
   slug: string;
-  configTemplate?: string;
+  configId: string;
   config?: Contest['config'];
   entryLabel?: string;
   entryLabelPlural?: string;
@@ -41,14 +40,18 @@ export function createFirebaseContestsProvider(adapter: FirestoreAdapter): Conte
         const id = generateId('contest');
         const typedInput = input as ContestCreateInput;
 
-        // Resolve config from template or use provided config
-        let resolvedConfig = typedInput.config;
-        if (!resolvedConfig && typedInput.configTemplate) {
-          resolvedConfig = getTemplate(typedInput.configTemplate);
+        // Fetch config from API
+        const configItem = await adapter.getConfig(typedInput.configId);
+        if (!configItem) {
+          throw new Error(`Config not found: ${typedInput.configId}`);
         }
-        if (!resolvedConfig) {
-          resolvedConfig = getDefaultConfig();
-        }
+
+        let resolvedConfig: Contest['config'] = {
+          topic: configItem.topic,
+          attributes: configItem.attributes,
+          entryLabel: configItem.entryLabel,
+          entryLabelPlural: configItem.entryLabelPlural,
+        };
 
         // Apply entry label overrides if provided
         if (typedInput.entryLabel || typedInput.entryLabelPlural) {
@@ -69,7 +72,7 @@ export function createFirebaseContestsProvider(adapter: FirestoreAdapter): Conte
           judges: [],
           scores: [],
         };
-        
+
         await adapter.createContest(id, newContest);
         return newContest;
       });

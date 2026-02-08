@@ -1,11 +1,8 @@
 import type { ScoreBreakdown, ScoreEntry, ContestConfig, Vote } from '../../contexts/contest/contestTypes';
-import { DEFAULT_CONFIG } from './contestTemplates';
 import { getAttributeIds } from './validation';
 
-export const breakdownKeys: string[] = getAttributeIds(DEFAULT_CONFIG);
-
-export function isBreakdownKey(value: string, config?: ContestConfig): boolean {
-  const validKeys = config ? getAttributeIds(config) : breakdownKeys;
+export function isBreakdownKey(value: string, config: ContestConfig): boolean {
+  const validKeys = getAttributeIds(config);
   return validKeys.includes(value);
 }
 
@@ -72,9 +69,9 @@ export function buildScoresFromVotes(
 
 export function buildFullBreakdown(
   values: Partial<ScoreBreakdown>,
-  config?: ContestConfig
+  config: ContestConfig
 ): ScoreBreakdown {
-  const keys = config ? getAttributeIds(config) : breakdownKeys;
+  const keys = getAttributeIds(config);
   return keys.reduce<ScoreBreakdown>((acc, key) => {
     const value = values[key];
     acc[key] = value === null ? null : value ?? 0;
