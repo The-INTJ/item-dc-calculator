@@ -1,0 +1,105 @@
+{
+  "story": "As a user, I want to edit a contest entry",
+  "description": "Retrieve and update entry details",
+  "baseUrl": "http://localhost:3000/api/contest",
+  "setup": {
+    "actions": [
+      {
+        "id": "setup-contest",
+        "method": "POST",
+        "endpoint": "/contests",
+        "input": {
+          "name": "Edit Entry Test",
+          "slug": "test-edit-entry",
+          "configTemplate": "mixology"
+        },
+        "storeAs": "contest"
+      },
+      {
+        "id": "setup-entry",
+        "method": "POST",
+        "endpoint": "/contests/{{contest.slug}}/entries",
+        "input": {
+          "name": "Original Name",
+          "slug": "original-entry",
+          "description": "Original description",
+          "round": "semifinals",
+          "submittedBy": "Test User"
+        },
+        "storeAs": "entry"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "id": "get-entry-before",
+      "description": "Retrieve entry details before editing",
+      "method": "GET",
+      "endpoint": "/contests/{{contest.slug}}/entries/{{entry.id}}",
+      "output": {
+        "status": 200,
+        "body": {
+          "name": "Original Name",
+          "description": "Original description"
+        }
+      }
+    },
+    {
+      "id": "update-entry-multiple-fields",
+      "description": "Update name, description, and round",
+      "method": "PATCH",
+      "endpoint": "/contests/{{contest.slug}}/entries/{{entry.id}}",
+      "input": {
+        "name": "Updated Name Premium",
+        "description": "Updated description with more detail",
+        "round": "finals"
+      },
+      "output": {
+        "status": 200,
+        "body": {
+          "name": "Updated Name Premium",
+          "round": "finals"
+        }
+      }
+    },
+    {
+      "id": "update-entry-single-field",
+      "description": "Update just the description",
+      "method": "PATCH",
+      "endpoint": "/contests/{{contest.slug}}/entries/{{entry.id}}",
+      "input": {
+        "description": "Final description after multiple edits"
+      },
+      "output": {
+        "status": 200
+      }
+    }
+  ],
+  "validate": {
+    "checks": [
+      {
+        "id": "verify-final-state",
+        "method": "GET",
+        "endpoint": "/contests/{{contest.slug}}/entries/{{entry.id}}",
+        "output": {
+          "status": 200,
+          "body": {
+            "name": "Updated Name Premium",
+            "description": "Final description after multiple edits",
+            "round": "finals"
+          }
+        }
+      }
+    ]
+  },
+  "teardown": {
+    "actions": [
+      {
+        "id": "cleanup",
+        "method": "DELETE",
+        "endpoint": "/contests/{{contest.id}}",
+        "continueOnError": true
+      }
+    ]
+  }
+}

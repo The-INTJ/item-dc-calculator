@@ -1,0 +1,107 @@
+{
+  "story": "As a user, I want to delete a Contest Entry",
+  "description": "Delete an entry and verify it no longer exists",
+  "baseUrl": "http://localhost:3000/api/contest",
+  "setup": {
+    "actions": [
+      {
+        "id": "setup-contest",
+        "method": "POST",
+        "endpoint": "/contests",
+        "input": {
+          "name": "Delete Entry Test",
+          "slug": "test-delete-entry",
+          "configTemplate": "mixology"
+        },
+        "storeAs": "contest"
+      },
+      {
+        "id": "setup-entry-to-delete",
+        "method": "POST",
+        "endpoint": "/contests/{{contest.slug}}/entries",
+        "input": {
+          "name": "Entry To Delete",
+          "slug": "entry-to-delete",
+          "description": "This entry will be deleted",
+          "round": "finals",
+          "submittedBy": "Test User"
+        },
+        "storeAs": "entryToDelete"
+      },
+      {
+        "id": "setup-entry-to-keep",
+        "method": "POST",
+        "endpoint": "/contests/{{contest.slug}}/entries",
+        "input": {
+          "name": "Entry To Keep",
+          "slug": "entry-to-keep",
+          "description": "This entry will remain",
+          "round": "finals",
+          "submittedBy": "Test User 2"
+        },
+        "storeAs": "entryToKeep"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "id": "verify-entry-exists-before",
+      "description": "Confirm the entry exists before deletion",
+      "method": "GET",
+      "endpoint": "/contests/{{contest.slug}}/entries/{{entryToDelete.id}}",
+      "output": {
+        "status": 200,
+        "body": {
+          "name": "Entry To Delete"
+        }
+      }
+    },
+    {
+      "id": "delete-entry",
+      "description": "Delete the entry",
+      "method": "DELETE",
+      "endpoint": "/contests/{{contest.slug}}/entries/{{entryToDelete.id}}",
+      "output": {
+        "status": 200,
+        "body": {
+          "success": true
+        }
+      }
+    }
+  ],
+  "validate": {
+    "checks": [
+      {
+        "id": "verify-entry-deleted",
+        "description": "Confirm deleted entry returns 404",
+        "method": "GET",
+        "endpoint": "/contests/{{contest.slug}}/entries/{{entryToDelete.id}}",
+        "output": {
+          "status": 404
+        }
+      },
+      {
+        "id": "verify-other-entry-still-exists",
+        "description": "Confirm other entry was not affected",
+        "method": "GET",
+        "endpoint": "/contests/{{contest.slug}}/entries/{{entryToKeep.id}}",
+        "output": {
+          "status": 200,
+          "body": {
+            "name": "Entry To Keep"
+          }
+        }
+      }
+    ]
+  },
+  "teardown": {
+    "actions": [
+      {
+        "id": "cleanup",
+        "method": "DELETE",
+        "endpoint": "/contests/{{contest.id}}",
+        "continueOnError": true
+      }
+    ]
+  }
+}

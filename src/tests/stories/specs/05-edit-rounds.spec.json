@@ -1,0 +1,139 @@
+{
+  "story": "As a user, I want to edit a contest's number of scoring rounds",
+  "description": "Change entries between rounds (rounds are implicit via entry assignments)",
+  "baseUrl": "http://localhost:3000/api/contest",
+  "setup": {
+    "actions": [
+      {
+        "id": "setup-contest",
+        "method": "POST",
+        "endpoint": "/contests",
+        "input": {
+          "name": "Round Edit Test",
+          "slug": "test-round-edit",
+          "configTemplate": "mixology"
+        },
+        "storeAs": "contest"
+      },
+      {
+        "id": "setup-entry-1",
+        "method": "POST",
+        "endpoint": "/contests/{{contest.slug}}/entries",
+        "input": {
+          "name": "Entry One",
+          "slug": "entry-one",
+          "description": "First entry",
+          "round": "quarterfinals",
+          "submittedBy": "User 1"
+        },
+        "storeAs": "entry1"
+      },
+      {
+        "id": "setup-entry-2",
+        "method": "POST",
+        "endpoint": "/contests/{{contest.slug}}/entries",
+        "input": {
+          "name": "Entry Two",
+          "slug": "entry-two",
+          "description": "Second entry",
+          "round": "quarterfinals",
+          "submittedBy": "User 2"
+        },
+        "storeAs": "entry2"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "id": "view-contest-initial",
+      "description": "View initial contest structure",
+      "method": "GET",
+      "endpoint": "/contests/{{contest.slug}}",
+      "output": {
+        "status": 200
+      }
+    },
+    {
+      "id": "advance-entry-1-to-semifinals",
+      "description": "Move entry 1 to semifinals round",
+      "method": "PATCH",
+      "endpoint": "/contests/{{contest.slug}}/entries/{{entry1.id}}",
+      "input": {
+        "round": "semifinals"
+      },
+      "output": {
+        "status": 200,
+        "body": {
+          "round": "semifinals"
+        }
+      }
+    },
+    {
+      "id": "advance-entry-2-to-semifinals",
+      "description": "Move entry 2 to semifinals round",
+      "method": "PATCH",
+      "endpoint": "/contests/{{contest.slug}}/entries/{{entry2.id}}",
+      "input": {
+        "round": "semifinals"
+      },
+      "output": {
+        "status": 200,
+        "body": {
+          "round": "semifinals"
+        }
+      }
+    },
+    {
+      "id": "advance-entry-1-to-finals",
+      "description": "Move entry 1 to finals round",
+      "method": "PATCH",
+      "endpoint": "/contests/{{contest.slug}}/entries/{{entry1.id}}",
+      "input": {
+        "round": "finals"
+      },
+      "output": {
+        "status": 200,
+        "body": {
+          "round": "finals"
+        }
+      }
+    }
+  ],
+  "validate": {
+    "description": "Note: Rounds are managed through entries, not as a separate resource",
+    "checks": [
+      {
+        "id": "verify-entry-1-in-finals",
+        "method": "GET",
+        "endpoint": "/contests/{{contest.slug}}/entries/{{entry1.id}}",
+        "output": {
+          "status": 200,
+          "body": {
+            "round": "finals"
+          }
+        }
+      },
+      {
+        "id": "verify-entry-2-in-semifinals",
+        "method": "GET",
+        "endpoint": "/contests/{{contest.slug}}/entries/{{entry2.id}}",
+        "output": {
+          "status": 200,
+          "body": {
+            "round": "semifinals"
+          }
+        }
+      }
+    ]
+  },
+  "teardown": {
+    "actions": [
+      {
+        "id": "cleanup",
+        "method": "DELETE",
+        "endpoint": "/contests/{{contest.id}}",
+        "continueOnError": true
+      }
+    ]
+  }
+}

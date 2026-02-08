@@ -1,0 +1,77 @@
+{
+  "story": "As a user, I want to delete a Contest",
+  "description": "Delete a contest and verify it no longer exists",
+  "baseUrl": "http://localhost:3000/api/contest",
+  "actions": [
+    {
+      "id": "create-contest-to-delete",
+      "description": "Create a contest that will be deleted",
+      "method": "POST",
+      "endpoint": "/contests",
+      "input": {
+        "name": "Contest To Delete",
+        "slug": "test-contest-to-delete",
+        "configTemplate": "mixology",
+        "location": "Test Location"
+      },
+      "output": {
+        "status": 201
+      },
+      "storeAs": "contest"
+    },
+    {
+      "id": "add-entry-to-contest",
+      "description": "Add an entry to verify cascade delete",
+      "method": "POST",
+      "endpoint": "/contests/{{contest.slug}}/entries",
+      "input": {
+        "name": "Entry In Contest",
+        "slug": "entry-in-contest",
+        "description": "Should be deleted with contest",
+        "round": "finals",
+        "submittedBy": "Test User"
+      },
+      "output": {
+        "status": 201
+      },
+      "storeAs": "entry"
+    },
+    {
+      "id": "verify-contest-exists",
+      "description": "Confirm contest exists before deletion",
+      "method": "GET",
+      "endpoint": "/contests/{{contest.slug}}",
+      "output": {
+        "status": 200,
+        "body": {
+          "name": "Contest To Delete"
+        }
+      }
+    },
+    {
+      "id": "delete-contest",
+      "description": "Delete the contest",
+      "method": "DELETE",
+      "endpoint": "/contests/{{contest.id}}",
+      "output": {
+        "status": 200,
+        "body": {
+          "success": true
+        }
+      }
+    }
+  ],
+  "validate": {
+    "checks": [
+      {
+        "id": "verify-contest-deleted",
+        "description": "Confirm contest returns 404",
+        "method": "GET",
+        "endpoint": "/contests/{{contest.slug}}",
+        "output": {
+          "status": 404
+        }
+      }
+    ]
+  }
+}

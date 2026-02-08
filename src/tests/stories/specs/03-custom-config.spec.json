@@ -1,0 +1,120 @@
+{
+  "story": "As a user, I want to create a custom contest type to run",
+  "description": "Create a custom ContestConfig and use it to create a contest",
+  "baseUrl": "http://localhost:3000/api/contest",
+  "actions": [
+    {
+      "id": "create-custom-config",
+      "description": "Create a new custom contest configuration",
+      "method": "POST",
+      "endpoint": "/configs",
+      "input": {
+        "id": "test-craft-coffee",
+        "topic": "Craft Coffee",
+        "entryLabel": "Coffee",
+        "entryLabelPlural": "Coffees",
+        "attributes": [
+          { "id": "aroma", "label": "Aroma", "description": "Smell and fragrance", "min": 0, "max": 10 },
+          { "id": "flavor", "label": "Flavor", "description": "Taste profile", "min": 0, "max": 10 },
+          { "id": "acidity", "label": "Acidity", "description": "Brightness", "min": 0, "max": 10 },
+          { "id": "body", "label": "Body", "description": "Weight and texture", "min": 0, "max": 10 },
+          { "id": "finish", "label": "Finish", "description": "Aftertaste", "min": 0, "max": 10 },
+          { "id": "overall", "label": "Overall", "description": "Overall impression", "min": 0, "max": 10 }
+        ]
+      },
+      "output": {
+        "status": 201,
+        "body": {
+          "topic": "Craft Coffee",
+          "entryLabel": "Coffee"
+        }
+      },
+      "storeAs": "config"
+    },
+    {
+      "id": "verify-config-in-list",
+      "description": "Verify config appears in the list",
+      "method": "GET",
+      "endpoint": "/configs",
+      "output": {
+        "status": 200
+      }
+    },
+    {
+      "id": "create-contest-with-custom-config",
+      "description": "Create a contest using the custom config",
+      "method": "POST",
+      "endpoint": "/contests",
+      "input": {
+        "name": "Annual Coffee Tasting 2024",
+        "slug": "test-annual-coffee-2024",
+        "location": "Community Coffee House",
+        "config": {
+          "id": "test-craft-coffee",
+          "topic": "Craft Coffee",
+          "entryLabel": "Coffee",
+          "entryLabelPlural": "Coffees",
+          "attributes": [
+            { "id": "aroma", "label": "Aroma", "description": "Smell and fragrance", "min": 0, "max": 10 },
+            { "id": "flavor", "label": "Flavor", "description": "Taste profile", "min": 0, "max": 10 },
+            { "id": "acidity", "label": "Acidity", "description": "Brightness", "min": 0, "max": 10 },
+            { "id": "body", "label": "Body", "description": "Weight and texture", "min": 0, "max": 10 },
+            { "id": "finish", "label": "Finish", "description": "Aftertaste", "min": 0, "max": 10 },
+            { "id": "overall", "label": "Overall", "description": "Overall impression", "min": 0, "max": 10 }
+          ]
+        }
+      },
+      "output": {
+        "status": 201,
+        "body": {
+          "name": "Annual Coffee Tasting 2024"
+        }
+      },
+      "storeAs": "contest"
+    }
+  ],
+  "validate": {
+    "checks": [
+      {
+        "id": "verify-contest-has-custom-config",
+        "method": "GET",
+        "endpoint": "/contests/{{contest.slug}}",
+        "output": {
+          "status": 200,
+          "bodyContains": {
+            "path": "config.topic",
+            "value": "Craft Coffee"
+          }
+        }
+      },
+      {
+        "id": "verify-config-attributes",
+        "method": "GET",
+        "endpoint": "/contests/{{contest.slug}}",
+        "output": {
+          "status": 200,
+          "bodyLength": {
+            "path": "config.attributes",
+            "exact": 6
+          }
+        }
+      }
+    ]
+  },
+  "teardown": {
+    "actions": [
+      {
+        "id": "delete-contest",
+        "method": "DELETE",
+        "endpoint": "/contests/{{contest.id}}",
+        "continueOnError": true
+      },
+      {
+        "id": "delete-config",
+        "method": "DELETE",
+        "endpoint": "/configs/{{config.id}}",
+        "continueOnError": true
+      }
+    ]
+  }
+}

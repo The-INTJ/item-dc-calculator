@@ -12,6 +12,8 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:stories": "vitest run src/tests/stories/",
+    "test:stories:watch": "vitest src/tests/stories/",
     "docs:validate": "npx swagger-cli validate app/api/contest/openapi.json"
   },
   "dependencies": {

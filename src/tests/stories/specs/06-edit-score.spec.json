@@ -1,0 +1,136 @@
+{
+  "story": "As a user, I want to edit my score for an entry of a round",
+  "description": "Submit initial score, then update it",
+  "baseUrl": "http://localhost:3000/api/contest",
+  "setup": {
+    "actions": [
+      {
+        "id": "setup-contest",
+        "method": "POST",
+        "endpoint": "/contests",
+        "input": {
+          "name": "Score Edit Test",
+          "slug": "test-score-edit",
+          "configTemplate": "mixology"
+        },
+        "storeAs": "contest"
+      },
+      {
+        "id": "setup-entry",
+        "method": "POST",
+        "endpoint": "/contests/{{contest.slug}}/entries",
+        "input": {
+          "name": "Entry to Score",
+          "slug": "entry-to-score",
+          "description": "An entry for scoring tests",
+          "round": "finals",
+          "submittedBy": "Entry Owner"
+        },
+        "storeAs": "entry"
+      }
+    ]
+  },
+  "variables": {
+    "judgeId": "test-judge-score-edit"
+  },
+  "actions": [
+    {
+      "id": "submit-initial-score",
+      "description": "Submit initial score with full breakdown",
+      "method": "POST",
+      "endpoint": "/contests/{{contest.slug}}/scores",
+      "input": {
+        "entryId": "{{entry.id}}",
+        "judgeId": "{{judgeId}}",
+        "judgeName": "Test Judge",
+        "breakdown": {
+          "aroma": 6,
+          "taste": 6,
+          "presentation": 6,
+          "xfactor": 6,
+          "overall": 6
+        },
+        "notes": "Initial assessment"
+      },
+      "output": {
+        "status": 201
+      },
+      "storeAs": "initialScore"
+    },
+    {
+      "id": "verify-initial-score",
+      "description": "Verify the initial score was saved",
+      "method": "GET",
+      "endpoint": "/contests/{{contest.slug}}/scores",
+      "queryParams": {
+        "judgeId": "{{judgeId}}"
+      },
+      "output": {
+        "status": 200
+      }
+    },
+    {
+      "id": "update-score-full-breakdown",
+      "description": "Update the score with improved ratings",
+      "method": "POST",
+      "endpoint": "/contests/{{contest.slug}}/scores",
+      "input": {
+        "entryId": "{{entry.id}}",
+        "judgeId": "{{judgeId}}",
+        "breakdown": {
+          "aroma": 9,
+          "taste": 9,
+          "presentation": 8,
+          "xfactor": 8,
+          "overall": 9
+        },
+        "notes": "Reconsidered - excellent innovation and execution"
+      },
+      "output": {
+        "status": 200
+      }
+    },
+    {
+      "id": "update-single-category",
+      "description": "Update just one category",
+      "method": "POST",
+      "endpoint": "/contests/{{contest.slug}}/scores",
+      "input": {
+        "entryId": "{{entry.id}}",
+        "judgeId": "{{judgeId}}",
+        "categoryId": "presentation",
+        "value": 10,
+        "notes": "Perfect presentation on second look"
+      },
+      "output": {
+        "status": 200
+      }
+    }
+  ],
+  "validate": {
+    "checks": [
+      {
+        "id": "verify-updated-score",
+        "method": "GET",
+        "endpoint": "/contests/{{contest.slug}}/scores",
+        "queryParams": {
+          "judgeId": "{{judgeId}}",
+          "entryId": "{{entry.id}}"
+        },
+        "output": {
+          "status": 200
+        }
+      }
+    ]
+  },
+  "teardown": {
+    "actions": [
+      {
+        "id": "cleanup",
+        "method": "DELETE",
+        "endpoint": "/contests/{{contest.id}}",
+        "continueOnError": true
+      }
+    ]
+  }
+}

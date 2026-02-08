@@ -1,0 +1,146 @@
+{
+  "story": "As a user, I want to participate in a contest",
+  "description": "Join a contest by adding an entry and submitting scores",
+  "baseUrl": "http://localhost:3000/api/contest",
+  "setup": {
+    "description": "Create a contest to participate in",
+    "actions": [
+      {
+        "id": "setup-contest",
+        "method": "POST",
+        "endpoint": "/contests",
+        "input": {
+          "name": "Participation Test Contest",
+          "slug": "test-participate-contest",
+          "configTemplate": "mixology"
+        },
+        "storeAs": "contest"
+      },
+      {
+        "id": "setup-entry",
+        "method": "POST",
+        "endpoint": "/contests/{{contest.slug}}/entries",
+        "input": {
+          "name": "Existing Entry",
+          "slug": "existing-entry",
+          "description": "An entry to score",
+          "round": "semifinals",
+          "submittedBy": "Contest Host"
+        },
+        "storeAs": "existingEntry"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "id": "view-contest",
+      "description": "View contest details to understand structure",
+      "method": "GET",
+      "endpoint": "/contests/{{contest.slug}}",
+      "output": {
+        "status": 200
+      }
+    },
+    {
+      "id": "add-my-entry",
+      "description": "Submit my own entry to the contest",
+      "method": "POST",
+      "endpoint": "/contests/{{contest.slug}}/entries",
+      "input": {
+        "name": "Ocean Breeze",
+        "slug": "ocean-breeze",
+        "description": "Tropical drink with coconut rum and pineapple juice",
+        "round": "semifinals",
+        "submittedBy": "Alice Johnson"
+      },
+      "output": {
+        "status": 201,
+        "body": {
+          "name": "Ocean Breeze",
+          "submittedBy": "Alice Johnson"
+        }
+      },
+      "storeAs": "myEntry"
+    },
+    {
+      "id": "submit-score-full-breakdown",
+      "description": "Score another entry with full breakdown",
+      "method": "POST",
+      "endpoint": "/contests/{{contest.slug}}/scores",
+      "input": {
+        "entryId": "{{existingEntry.id}}",
+        "judgeId": "judge-alice-001",
+        "judgeName": "Alice Johnson",
+        "breakdown": {
+          "aroma": 8,
+          "taste": 9,
+          "presentation": 8,
+          "xfactor": 7,
+          "overall": 8
+        },
+        "notes": "Excellent flavor balance and presentation"
+      },
+      "output": {
+        "status": 201
+      },
+      "storeAs": "score"
+    },
+    {
+      "id": "submit-score-single-category",
+      "description": "Submit a single category score",
+      "method": "POST",
+      "endpoint": "/contests/{{contest.slug}}/scores",
+      "input": {
+        "entryId": "{{myEntry.id}}",
+        "judgeId": "judge-bob-002",
+        "judgeName": "Bob Smith",
+        "categoryId": "overall",
+        "value": 7
+      },
+      "output": {
+        "status": 201
+      }
+    }
+  ],
+  "validate": {
+    "description": "Verify participation was successful",
+    "checks": [
+      {
+        "id": "verify-my-entry-exists",
+        "method": "GET",
+        "endpoint": "/contests/{{contest.slug}}/entries/{{myEntry.id}}",
+        "output": {
+          "status": 200,
+          "body": {
+            "name": "Ocean Breeze"
+          }
+        }
+      },
+      {
+        "id": "verify-scores-exist",
+        "method": "GET",
+        "endpoint": "/contests/{{contest.slug}}/scores",
+        "queryParams": {
+          "judgeId": "judge-alice-001"
+        },
+        "output": {
+          "status": 200,
+          "bodyLength": {
+            "path": "scores",
+            "min": 1
+          }
+        }
+      }
+    ]
+  },
+  "teardown": {
+    "actions": [
+      {
+        "id": "cleanup",
+        "method": "DELETE",
+        "endpoint": "/contests/{{contest.id}}",
+        "continueOnError": true
+      }
+    ]
+  }
+}

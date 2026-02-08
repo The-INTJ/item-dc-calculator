@@ -1,0 +1,106 @@
+{
+  "story": "As a user, I want to facilitate contest creation",
+  "description": "Create a contest with config template, add entries, and verify end state",
+  "baseUrl": "http://localhost:3000/api/contest",
+  "actions": [
+    {
+      "id": "create-contest-with-template",
+      "description": "Create a new contest using the mixology config template",
+      "method": "POST",
+      "endpoint": "/contests",
+      "input": {
+        "name": "Summer Mixology Championship 2024",
+        "slug": "test-summer-mix-2024",
+        "configTemplate": "mixology",
+        "location": "Downtown Convention Center",
+        "startTime": "2024-07-15T10:00:00Z"
+      },
+      "output": {
+        "status": 201,
+        "body": {
+          "name": "Summer Mixology Championship 2024",
+          "slug": "test-summer-mix-2024"
+        }
+      },
+      "storeAs": "contest"
+    },
+    {
+      "id": "add-entry-1",
+      "description": "Add Midnight Mojito entry",
+      "method": "POST",
+      "endpoint": "/contests/{{contest.slug}}/entries",
+      "input": {
+        "name": "Midnight Mojito",
+        "slug": "midnight-mojito",
+        "description": "A dark twist on the classic mojito with aged rum",
+        "round": "semifinals",
+        "submittedBy": "Jane Smith"
+      },
+      "output": {
+        "status": 201,
+        "body": {
+          "name": "Midnight Mojito",
+          "slug": "midnight-mojito"
+        }
+      },
+      "storeAs": "entry1"
+    },
+    {
+      "id": "add-entry-2",
+      "description": "Add Sunset Sangria entry",
+      "method": "POST",
+      "endpoint": "/contests/{{contest.slug}}/entries",
+      "input": {
+        "name": "Sunset Sangria",
+        "slug": "sunset-sangria",
+        "description": "Refreshing wine-based cocktail with fresh fruit",
+        "round": "semifinals",
+        "submittedBy": "John Doe"
+      },
+      "output": {
+        "status": 201
+      },
+      "storeAs": "entry2"
+    }
+  ],
+  "validate": {
+    "description": "Verify contest was created with correct config and entries",
+    "checks": [
+      {
+        "id": "verify-contest-exists",
+        "method": "GET",
+        "endpoint": "/contests/{{contest.slug}}",
+        "output": {
+          "status": 200,
+          "body": {
+            "name": "Summer Mixology Championship 2024",
+            "location": "Downtown Convention Center"
+          }
+        }
+      },
+      {
+        "id": "verify-entries-exist",
+        "method": "GET",
+        "endpoint": "/contests/{{contest.slug}}/entries",
+        "output": {
+          "status": 200,
+          "bodyLength": {
+            "path": "",
+            "exact": 2
+          }
+        }
+      }
+    ]
+  },
+  "teardown": {
+    "description": "Clean up test contest",
+    "actions": [
+      {
+        "id": "delete-contest",
+        "method": "DELETE",
+        "endpoint": "/contests/{{contest.id}}",
+        "continueOnError": true
+      }
+    ]
+  }
+}
