@@ -50,7 +50,7 @@ export function useRoundVoting(contest: Contest | null, roundId: string | null) 
   };
 
   const submit = async () => {
-    if (!contest?.id || !judgeId) {
+    if (!contest?.id || !judgeId || !config) {
       setStatus('error');
       setMessage('No active contest or session.');
       return;

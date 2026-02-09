@@ -5,11 +5,10 @@
  * MVP: name, slug (auto-generated), and template dropdown.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getTemplateKeys, DEFAULT_TEMPLATES } from '../../lib/helpers/contestTemplates';
-import { AttributeEditor } from './AttributeEditor';
-import type { AttributeConfig, ContestConfig } from '../../contexts/contest/contestTypes';
+import { ContestConfigSetupForm } from './ContestConfigSetupForm';
+import type { AttributeConfig, ContestConfigItem } from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
 
 type ConfigMode = 'template' | 'custom';
@@ -30,19 +29,22 @@ function slugify(text: string): string {
 export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
   const router = useRouter();
   const { upsertContest } = useContestStore();
-  const templateKeys = getTemplateKeys();
 
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [configMode, setConfigMode] = useState<ConfigMode>('template');
-  const [selectedTemplate, setSelectedTemplate] = useState(templateKeys[0] ?? 'mixology');
+  const [configs, setConfigs] = useState<ContestConfigItem[]>([]);
+  const [configsLoading, setConfigsLoading] = useState(true);
+  const [configsError, setConfigsError] = useState<string | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState('');
   const [customTopic, setCustomTopic] = useState('');
   const [customAttributes, setCustomAttributes] = useState<AttributeConfig[]>([
     { id: 'overall', label: 'Overall', description: 'Overall impression', min: 0, max: 10 },
   ]);
   const [entryLabel, setEntryLabel] = useState('');
   const [entryLabelPlural, setEntryLabelPlural] = useState('');
+  const [saveAsTemplate, setSaveAsTemplate] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,6 +62,30 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
   const handleSlugChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSlug(slugify(e.target.value));
     setSlugManuallyEdited(true);
+  }, []);
+
+  // Fetch configs from API on mount
+  useEffect(() => {
+    async function fetchConfigs() {
+      try {
+        const response = await fetch('/api/contest/configs');
+        if (!response.ok) {
+          throw new Error('Failed to load configs');
+        }
+        const data = await response.json();
+        setConfigs(data);
+        if (data.length > 0) {
+          setSelectedTemplate(data[0].id); // Select first config by default
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to load configs';
+        setConfigsError(message);
+      } finally {
+        setConfigsLoading(false);
+      }
+    }
+
+    fetchConfigs();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -89,15 +115,19 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
     setError(null);
 
     try {
-      const payload: Record<string, unknown> = {
-        name: name.trim(),
-        slug: slug.trim(),
-      };
+      // Build config from template or custom values
+      const selectedConfig = configs.find((c) => c.id === selectedTemplate);
 
-      if (configMode === 'template') {
-        payload.configTemplate = selectedTemplate;
+      let config;
+      if (configMode === 'template' && selectedConfig) {
+        config = {
+          topic: selectedConfig.topic,
+          attributes: selectedConfig.attributes,
+          entryLabel: entryLabel.trim() || selectedConfig.entryLabel,
+          entryLabelPlural: entryLabelPlural.trim() || selectedConfig.entryLabelPlural,
+        };
       } else {
-        payload.config = {
+        config = {
           topic: customTopic.trim(),
           attributes: customAttributes,
           entryLabel: entryLabel.trim() || undefined,
@@ -105,10 +135,35 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
         };
       }
 
-      if (configMode === 'template' && (entryLabel.trim() || entryLabelPlural.trim())) {
-        payload.entryLabel = entryLabel.trim() || undefined;
-        payload.entryLabelPlural = entryLabelPlural.trim() || undefined;
+      // If custom mode and saveAsTemplate is checked, create the config first
+      if (configMode === 'custom' && saveAsTemplate) {
+        const configPayload = {
+          topic: config.topic,
+          attributes: config.attributes,
+          entryLabel: config.entryLabel,
+          entryLabelPlural: config.entryLabelPlural,
+        };
+
+        const configResponse = await fetch('/api/contest/configs', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-contest-role': 'admin',
+          },
+          body: JSON.stringify(configPayload),
+        });
+
+        if (!configResponse.ok) {
+          const data = await configResponse.json().catch(() => ({}));
+          throw new Error(data.error ?? `Failed to save config as template (${configResponse.status})`);
+        }
       }
+
+      const payload = {
+        name: name.trim(),
+        slug: slug.trim(),
+        config,
+      };
 
       const response = await fetch('/api/contest/contests', {
         method: 'POST',
@@ -134,8 +189,6 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
       setIsSubmitting(false);
     }
   };
-
-  const selectedConfig: ContestConfig | undefined = DEFAULT_TEMPLATES[selectedTemplate];
 
   return (
     <form className="admin-contest-setup-form" onSubmit={handleSubmit}>
@@ -166,112 +219,26 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
         <span className="admin-detail-meta">Auto-generated from name. Edit to customize.</span>
       </div>
 
-      <div className="admin-contest-setup-form__field">
-        <label>Configuration Mode</label>
-        <div className="admin-contest-setup-form__mode-toggle">
-          <button
-            type="button"
-            className={`button-secondary ${configMode === 'template' ? 'button-secondary--active' : ''}`}
-            onClick={() => setConfigMode('template')}
-          >
-            Use Template
-          </button>
-          <button
-            type="button"
-            className={`button-secondary ${configMode === 'custom' ? 'button-secondary--active' : ''}`}
-            onClick={() => setConfigMode('custom')}
-          >
-            Custom Config
-          </button>
-        </div>
-      </div>
-
-      {configMode === 'template' && (
-        <div className="admin-contest-setup-form__field">
-          <label htmlFor="contest-template">Contest Template</label>
-          <select
-            id="contest-template"
-            className="admin-rounds-select"
-            value={selectedTemplate}
-            onChange={(e) => setSelectedTemplate(e.target.value)}
-          >
-            {templateKeys.map((key) => (
-              <option key={key} value={key}>
-                {DEFAULT_TEMPLATES[key]?.topic ?? key}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {configMode === 'custom' && (
-        <>
-          <div className="admin-contest-setup-form__field">
-            <label htmlFor="contest-topic">Topic / Contest Type</label>
-            <input
-              id="contest-topic"
-              type="text"
-              className="admin-rounds-input"
-              value={customTopic}
-              onChange={(e) => setCustomTopic(e.target.value)}
-              placeholder="e.g. Chili Cook-Off, Dance Battle"
-              required
-            />
-          </div>
-          <div className="admin-contest-setup-form__field">
-            <label>Scoring Attributes</label>
-            <AttributeEditor
-              attributes={customAttributes}
-              onChange={setCustomAttributes}
-              disabled={isSubmitting}
-            />
-          </div>
-        </>
-      )}
-
-      <div className="admin-contest-setup-form__row">
-        <div className="admin-contest-setup-form__field">
-          <label htmlFor="contest-entry-label">Entry Label (optional)</label>
-          <input
-            id="contest-entry-label"
-            type="text"
-            className="admin-rounds-input"
-            value={entryLabel}
-            onChange={(e) => setEntryLabel(e.target.value)}
-            placeholder={selectedConfig?.entryLabel ?? 'Entry'}
-          />
-        </div>
-        <div className="admin-contest-setup-form__field">
-          <label htmlFor="contest-entry-label-plural">Plural (optional)</label>
-          <input
-            id="contest-entry-label-plural"
-            type="text"
-            className="admin-rounds-input"
-            value={entryLabelPlural}
-            onChange={(e) => setEntryLabelPlural(e.target.value)}
-            placeholder={selectedConfig?.entryLabelPlural ?? 'Entries'}
-          />
-        </div>
-      </div>
-
-      {configMode === 'template' && selectedConfig && (
-        <div className="admin-contest-setup-form__preview">
-          <h4>Scoring Attributes</h4>
-          <ul className="admin-detail-list">
-            {selectedConfig.attributes.map((attr) => (
-              <li key={attr.id} className="admin-detail-item">
-                <strong>{attr.label}</strong>
-                {attr.description && (
-                  <span className="admin-detail-meta"> — {attr.description}</span>
-                )}
-              </li>
-            ))}
-          </ul>
-          <p className="admin-detail-meta">
-            Entry type: {selectedConfig.entryLabel ?? 'Entry'}
-          </p>
-        </div>
-      )}
+      <ContestConfigSetupForm
+        configMode={configMode}
+        onConfigModeChange={setConfigMode}
+        configs={configs}
+        configsLoading={configsLoading}
+        configsError={configsError}
+        selectedTemplate={selectedTemplate}
+        onSelectedTemplateChange={setSelectedTemplate}
+        customTopic={customTopic}
+        onCustomTopicChange={setCustomTopic}
+        customAttributes={customAttributes}
+        onCustomAttributesChange={setCustomAttributes}
+        entryLabel={entryLabel}
+        onEntryLabelChange={setEntryLabel}
+        entryLabelPlural={entryLabelPlural}
+        onEntryLabelPluralChange={setEntryLabelPlural}
+        saveAsTemplate={saveAsTemplate}
+        onSaveAsTemplateChange={setSaveAsTemplate}
+        disabled={isSubmitting}
+      />
 
       {error && <p className="admin-phase-controls__message--error">{error}</p>}
 

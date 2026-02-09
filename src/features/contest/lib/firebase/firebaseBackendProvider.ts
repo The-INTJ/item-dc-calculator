@@ -11,10 +11,12 @@ import type { BackendProvider } from '../helpers/types';
 import { success } from '../helpers/providerUtils';
 import { initializeFirebase, isFirebaseConfigured } from './config';
 import { createFirestoreAdapter } from './firestoreAdapter';
+import { seedDefaultConfigs } from './seedDefaultConfigs';
 import { createFirebaseContestsProvider } from './providers/contestsProvider';
 import { createFirebaseEntriesProvider } from './providers/entriesProvider';
 import { createFirebaseJudgesProvider } from './providers/judgesProvider';
 import { createFirebaseScoresProvider } from './providers/scoresProvider';
+import { createFirebaseConfigsProvider } from './providers/configsProvider';
 
 /**
  * Creates the full Firebase backend provider.
@@ -33,6 +35,7 @@ export function createFirebaseBackendProvider(): BackendProvider {
     entries: entriesProvider,
     judges: createFirebaseJudgesProvider(adapter),
     scores: createFirebaseScoresProvider(adapter),
+    configs: createFirebaseConfigsProvider(adapter),
 
     async initialize() {
       const firebase = initializeFirebase();
@@ -41,6 +44,14 @@ export function createFirebaseBackendProvider(): BackendProvider {
       if (!isFirebaseConfigured() || !db) {
         console.warn('[FirebaseBackend] Firebase not configured or unavailable; using local-only mode.');
         return success(undefined);
+      }
+
+      // Seed default configs if collection is empty
+      try {
+        await seedDefaultConfigs(adapter);
+      } catch (err) {
+        console.error('[FirebaseBackend] Failed to seed default configs:', err);
+        // Don't throw - seeding failure shouldn't block app startup
       }
 
       console.log('[FirebaseBackend] Initialized');

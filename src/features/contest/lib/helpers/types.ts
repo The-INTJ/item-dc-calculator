@@ -6,10 +6,10 @@
  * without changing frontend code.
  */
 
-import type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown } from '../../contexts/contest/contestTypes';
+import type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown, ContestConfigItem } from '../../contexts/contest/contestTypes';
 
 // Re-export core types for convenience
-export type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown };
+export type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown, ContestConfigItem };
 
 /**
  * Result wrapper for async operations
@@ -87,6 +87,17 @@ export interface ScoresProvider {
 }
 
 /**
+ * Configs provider interface - manage contest configurations
+ */
+export interface ConfigsProvider {
+  list(): Promise<ProviderResult<ContestConfigItem[]>>;
+  getById(configId: string): Promise<ProviderResult<ContestConfigItem | null>>;
+  create(config: Omit<ContestConfigItem, 'id'> & { id?: string }): Promise<ProviderResult<ContestConfigItem>>;
+  update(configId: string, updates: Partial<ContestConfigItem>): Promise<ProviderResult<ContestConfigItem>>;
+  delete(configId: string): Promise<ProviderResult<void>>;
+}
+
+/**
  * Combined backend provider - aggregates all sub-providers
  */
 export interface BackendProvider {
@@ -95,6 +106,7 @@ export interface BackendProvider {
   entries: EntriesProvider;
   judges: JudgesProvider;
   scores: ScoresProvider;
+  configs: ConfigsProvider;
 
   /**
    * Initialize the provider (connect to DB, load seed data, etc.)

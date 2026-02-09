@@ -19,7 +19,7 @@ import {
   type Firestore,
   type Transaction,
 } from 'firebase/firestore';
-import type { Contest } from '../../contexts/contest/contestTypes';
+import type { Contest, ContestConfigItem } from '../../contexts/contest/contestTypes';
 import { CONTESTS_COLLECTION } from './scoring/scoreLock';
 
 /**
@@ -55,6 +55,9 @@ export interface FirestoreAdapter {
     contestId: string,
     callback: (contest: Contest, transaction: Transaction, contestRef: ReturnType<typeof doc>) => T | Promise<T>
   ): Promise<T>;
+
+  /** Fetches a config by ID. Returns null if not found. */
+  getConfig(configId: string): Promise<ContestConfigItem | null>;
 }
 
 /**
@@ -155,6 +158,16 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
         const contest = { id: contestSnap.id, ...contestSnap.data() } as Contest;
         return callback(contest, transaction, contestRef);
       });
+    },
+
+    async getConfig(configId: string): Promise<ContestConfigItem | null> {
+      const db = getDb();
+      if (!db) return null;
+
+      const docSnap = await getDoc(doc(db, 'configs', configId));
+      if (!docSnap.exists()) return null;
+
+      return { id: docSnap.id, ...docSnap.data() } as ContestConfigItem;
     },
   };
 }
