@@ -182,7 +182,7 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
       const createdContest = await response.json();
       upsertContest(createdContest);
       onSuccess?.();
-      router.push('/contest/admin');
+      router.push('/admin');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create contest.');
     } finally {
@@ -246,7 +246,7 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
         <button
           type="button"
           className="button-secondary"
-          onClick={() => router.push('/contest/admin')}
+          onClick={() => router.push('/admin')}
           disabled={isSubmitting}
         >
           Cancel

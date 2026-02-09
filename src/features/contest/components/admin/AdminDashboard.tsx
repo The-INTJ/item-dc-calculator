@@ -47,7 +47,7 @@ export function AdminDashboard() {
     return (
       <div className="admin-error">
         <p>Sign in to access the admin dashboard.</p>
-        <Link href="/contest/onboard" className="button-secondary">
+        <Link href="/onboard" className="button-secondary">
           Log in
         </Link>
       </div>
@@ -121,7 +121,7 @@ export function AdminDashboard() {
             </div>
           )}
           <div className="admin-add-contest">
-            <Link href="/contest/admin/contest-setup" className="button-primary">
+            <Link href="/admin/contest-setup" className="button-primary">
               Create New Contest
             </Link>
           </div>

@@ -16,12 +16,12 @@ export default function SignedOutLanding() {
         <div className="contest-actions">
           <AuthPrimaryAction
             signedOutLabel="Sign in or create an account"
-            signedOutHref="/contest/onboard"
+            signedOutHref="/onboard"
             className="button-primary"
             dataTestId="contest-auth-primary-action"
           />
           <AdminOnlyLink
-            href="/contest/admin"
+            href="/admin"
             className="button-secondary"
             dataTestId="contest-admin-link"
           >

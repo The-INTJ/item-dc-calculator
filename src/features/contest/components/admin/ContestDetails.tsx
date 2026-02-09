@@ -105,7 +105,7 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
     const success = await deleteContest(contest.id);
 
     if (success) {
-      router.push('/contest/admin');
+      router.push('/admin');
       return;
     }
 

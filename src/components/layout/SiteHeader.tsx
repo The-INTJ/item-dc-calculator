@@ -27,7 +27,7 @@ export function SiteHeader() {
         <div className="auth-banner" role="status" aria-live="polite">
           <div className="auth-banner__content">
             <span>Sign in to unlock this experience.</span>
-            <Link href="/contest/onboard" className="button-secondary auth-banner__action">
+            <Link href="/onboard" className="button-secondary auth-banner__action">
               Log in
             </Link>
           </div>

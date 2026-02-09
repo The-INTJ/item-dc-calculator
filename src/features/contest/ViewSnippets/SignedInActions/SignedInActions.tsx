@@ -23,11 +23,11 @@ export default function SignedInLanding({ user }: SignedInLandingProps) {
           <Link href="/" className="button-primary">
             Browse contests
           </Link>
-          <Link href="/contest/account" className="button-secondary">
+          <Link href="/account" className="button-secondary">
             View profile
           </Link>
           <AdminOnlyLink
-            href="/contest/admin"
+            href="/admin"
             className="button-secondary"
             dataTestId="contest-admin-link"
           >
