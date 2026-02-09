@@ -1,4 +1,4 @@
 ---
 applyTo: '**'
 ---
-Always review the DEV_STANDARDS.md before writing code.
+Always review the ARCHITECTURE.md and DEV_STANDARDS.md before writing code.
