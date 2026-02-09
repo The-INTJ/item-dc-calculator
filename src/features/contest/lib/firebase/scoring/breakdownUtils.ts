@@ -9,14 +9,11 @@ import type { ScoreBreakdown } from '../../../contexts/contest/contestTypes';
 /**
  * Creates an empty breakdown with all scores set to 0.
  */
-export function createEmptyBreakdown(): ScoreBreakdown {
-  return {
-    aroma: 0,
-    balance: 0,
-    presentation: 0,
-    creativity: 0,
-    overall: 0,
-  };
+export function createEmptyBreakdown(attributeIds: string[]): ScoreBreakdown {
+  return attributeIds.reduce<ScoreBreakdown>((acc, attributeId) => {
+    acc[attributeId] = 0;
+    return acc;
+  }, {});
 }
 
 /**

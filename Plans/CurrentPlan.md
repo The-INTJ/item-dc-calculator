@@ -6,67 +6,13 @@
 
 ## Phase 1 — Dead Code & Dual-Write Removal
 
-Remove unused code and eliminate the write-only `votes` collection path.
-
-### Steps
-
-1. **Delete `useSubmitVotes.ts`** — zero call-site usages. Fix the `SubmitStatus` type import in `VoteActions.tsx` to import from `useRoundVoting` instead.
-   - Delete: `src/features/contest/lib/hooks/useSubmitVotes.ts`
-   - Edit: `src/features/contest/components/votePage/VoteActions.tsx` (update import)
-
-2. **Delete `useVoteScores.ts`** — zero call-site usages.
-   - Delete: `src/features/contest/lib/hooks/useVoteScores.ts`
-
-3. **Delete `useVoting.ts`** — writes to flat `votes` collection which is never read by anything.
-   - Delete: `src/features/contest/contexts/contest/hooks/useVoting.ts`
-
-4. **Remove `useVoting` from ContestContext** — remove import, hook call, and `...voting` spread from the context value.
-   - Edit: `src/features/contest/contexts/contest/ContestContext.tsx`
-   - Edit: `src/features/contest/contexts/contest/contestTypes.ts` (remove `VotingActions`, `Vote`, `VoteInput` types)
-
-5. **Remove `recordVote()` calls from `useRoundVoting`** — eliminates the second write leg of the dual-write. The API `POST /scores` is now the sole write path.
-   - Edit: `src/features/contest/lib/hooks/useRoundVoting.ts` (remove `recordVote` usage, ~L99-L107)
-
-6. **Remove `scoreByUser` and `scoreTotals` from Entry type** — these are written by `applyEntryScoreUpdate` but never read by any UI component.
-   - Edit: `src/features/contest/contexts/contest/contestTypes.ts` (remove fields from `Entry`)
-   - Edit: `src/features/contest/lib/firebase/scoring/scoreTransaction.ts` (remove `applyEntryScoreUpdate` logic that writes these fields)
-
-7. **Remove `buildScoresFromVotes`** — confirmed zero call-site usages.
-   - Edit: `src/features/contest/lib/helpers/scoreUtils.ts`
-
-### Verification
-- `npm run type-check` passes
-- No references to deleted symbols remain
-- VoteModal still submits scores via the single API path
-- Score display in BracketView and ContestDetails unchanged
+✅ Completed
 
 ---
 
 ## Phase 2 — Replace Custom Lock with Firestore Transaction
 
-The custom lock system (`scoreLock` with exponential backoff, TTL, lock tokens) is unnecessary — Firestore transactions already retry automatically on contention.
-
-### Steps
-
-8. **Delete `scoreLock.ts` entirely** — removes `ScoreLockError`, `buildLockBackoff`, `releaseEntryScoreLock`, and all lock constants.
-   - Delete: `src/features/contest/lib/firebase/scoring/scoreLock.ts`
-
-9. **Remove `scoreLock` from Entry type**.
-   - Edit: `src/features/contest/contexts/contest/contestTypes.ts` (remove `scoreLock?` field)
-
-10. **Simplify `updateEntryScoresWithLock()` → rename to `updateEntryScores()`**. Remove: lock token generation, lock checking, backoff-retry loop, lock release call. Keep the `runTransaction` — Firestore handles retries natively.
-    - Edit: `src/features/contest/lib/firebase/scoring/scoreTransaction.ts`
-
-11. **Simplify `submit()` and `update()` in scoresProvider** — remove `lockToken` parameter threading, `generateId('score-lock')` call, and lock-related logic. They call the simplified `updateEntryScores()` directly.
-    - Edit: `src/features/contest/lib/firebase/providers/scoresProvider.ts`
-
-12. **Fix hardcoded mixology attributes in `createEmptyBreakdown()`** — make it config-driven by accepting an attribute list as a parameter.
-    - Edit: `src/features/contest/lib/firebase/scoring/breakdownUtils.ts`
-
-### Verification
-- Score submission works under simulated concurrent writes (two browser tabs voting simultaneously)
-- No `scoreLock` references remain in the codebase
-- `npm run type-check` passes
+✅ Completed
 
 ---
 
@@ -197,22 +143,16 @@ Add Firestore `onSnapshot` listeners for live score updates.
 
 ## Current Codebase Reference
 
-Key files affected across all phases:
+Key files affected across remaining phases:
 
 | File | Phases | Role |
 |---|---|---|
-| `contexts/contest/contestTypes.ts` | 1, 2, 3, 4 | Type definitions (Entry, ScoreEntry, Vote, etc.) |
-| `contexts/contest/ContestContext.tsx` | 1 | Provider — remove useVoting wiring |
-| `contexts/contest/hooks/useVoting.ts` | 1 | **Delete** — dual-write to votes collection |
-| `lib/hooks/useRoundVoting.ts` | 1, 3 | Vote submission hook — simplify, add pre-fill |
-| `lib/hooks/useSubmitVotes.ts` | 1 | **Delete** — dead code |
-| `lib/hooks/useVoteScores.ts` | 1 | **Delete** — dead code |
-| `lib/firebase/scoring/scoreLock.ts` | 2 | **Delete** — custom lock system |
-| `lib/firebase/scoring/scoreTransaction.ts` | 2 | Simplify — remove lock, keep transaction |
-| `lib/firebase/scoring/breakdownUtils.ts` | 2 | Fix hardcoded mixology attributes |
-| `lib/firebase/providers/scoresProvider.ts` | 2, 3, 4 | Core rewrite — subcollection + aggregates |
+| `contexts/contest/contestTypes.ts` | 3, 4 | Type definitions (Entry, ScoreEntry, Vote, etc.) |
+| `lib/hooks/useRoundVoting.ts` | 3 | Vote submission hook — add pre-fill |
+| `lib/firebase/scoring/scoreTransaction.ts` | 3, 4 | Transaction helper for score writes |
+| `lib/firebase/scoring/breakdownUtils.ts` | 3, 4 | Score breakdown helpers |
+| `lib/firebase/providers/scoresProvider.ts` | 3, 4 | Core rewrite — subcollection + aggregates |
 | `app/api/contest/contests/[id]/scores/route.ts` | 3 | Route handler — read/write subcollection |
 | `app/api/contest/contests/[id]/route.ts` | 3 | Populate scores on GET |
 | `lib/helpers/contestGetters.ts` | 3, 4 | `getEntryScore()` — use aggregates |
-| `lib/helpers/scoreUtils.ts` | 1, 3 | Remove dead code, update utilities |
-| `components/votePage/VoteActions.tsx` | 1 | Fix type import |
+| `lib/helpers/scoreUtils.ts` | 3 | Update utilities |

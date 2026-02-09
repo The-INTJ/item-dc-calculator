@@ -10,7 +10,7 @@ import { generateId, success, error, withDb } from '../../helpers/providerUtils'
 import { normalizeScorePayload } from '../../helpers/scoreNormalization';
 import { createArrayEntityOperations } from '../arrayEntityAdapter';
 import type { FirestoreAdapter } from '../firestoreAdapter';
-import { applyEntryScoreUpdate, updateEntryScoresWithLock } from '../scoring/scoreTransaction';
+import { updateEntryScores } from '../scoring/scoreTransaction';
 
 /**
  * Creates the Firebase scores provider.
@@ -43,15 +43,13 @@ export function createFirebaseScoresProvider(adapter: FirestoreAdapter): ScoresP
 
     submit(contestId, input): Promise<ProviderResult<ScoreEntry>> {
       const inputEntryId = input.entryId ?? '';
-      const lockToken = generateId('score-lock');
 
       return withDb(adapter, () =>
-        updateEntryScoresWithLock({
+        updateEntryScores({
           db: adapter.getDb()!,
           contestId,
           entryId: inputEntryId,
-          lockToken,
-          onUpdate: (contest, entryIndex, now) => {
+          onUpdate: (contest) => {
             const existingIndex = contest.scores.findIndex(
               (score: ScoreEntry) =>
                 score.entryId === inputEntryId &&
@@ -87,11 +85,7 @@ export function createFirebaseScoresProvider(adapter: FirestoreAdapter): ScoresP
               updatedScores = [...contest.scores, updatedScore];
             }
 
-            const updatedEntry = applyEntryScoreUpdate(contest.entries[entryIndex], lockToken, now);
-            const updatedEntries = [...contest.entries];
-            updatedEntries[entryIndex] = updatedEntry;
-
-            return { updatedScores, updatedEntries, result: updatedScore };
+            return { updatedScores, result: updatedScore };
           },
         })
       );
@@ -105,15 +99,13 @@ export function createFirebaseScoresProvider(adapter: FirestoreAdapter): ScoresP
       if (scoreIdx === -1) return error('Score not found');
 
       const scoreEntryId = contest.scores[scoreIdx].entryId ?? '';
-      const lockToken = generateId('score-lock');
 
       return withDb(adapter, () =>
-        updateEntryScoresWithLock({
+        updateEntryScores({
           db: adapter.getDb()!,
           contestId,
           entryId: scoreEntryId,
-          lockToken,
-          onUpdate: (currentContest, entryIndex, now) => {
+          onUpdate: (currentContest) => {
             const currentScoreIdx = currentContest.scores.findIndex((s: ScoreEntry) => s.id === scoreId);
             if (currentScoreIdx === -1) {
               throw new Error('Score not found');
@@ -136,11 +128,7 @@ export function createFirebaseScoresProvider(adapter: FirestoreAdapter): ScoresP
             const updatedScores = [...currentContest.scores];
             updatedScores[currentScoreIdx] = updatedScore;
 
-            const updatedEntry = applyEntryScoreUpdate(currentContest.entries[entryIndex], lockToken, now);
-            const updatedEntries = [...currentContest.entries];
-            updatedEntries[entryIndex] = updatedEntry;
-
-            return { updatedScores, updatedEntries, result: updatedScore };
+            return { updatedScores, result: updatedScore };
           },
         })
       );

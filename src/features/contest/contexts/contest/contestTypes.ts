@@ -72,12 +72,6 @@ export interface Entry {
   description: string;
   round: string;
   submittedBy: string;
-  scoreLock?: {
-    locked: boolean;
-    expiresAt?: number;
-    token?: string;
-    updatedAt?: number;
-  };
 }
 
 /**

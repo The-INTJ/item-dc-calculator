@@ -20,7 +20,8 @@ import {
   type Transaction,
 } from 'firebase/firestore';
 import type { Contest, ContestConfigItem } from '../../contexts/contest/contestTypes';
-import { CONTESTS_COLLECTION } from './scoring/scoreLock';
+
+const CONTESTS_COLLECTION = 'contests';
 
 /**
  * Firestore adapter interface for contest operations.
