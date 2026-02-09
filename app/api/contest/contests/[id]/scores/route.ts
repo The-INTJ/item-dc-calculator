@@ -132,10 +132,14 @@ export async function POST(request: Request, { params }: RouteParams) {
     const existing = existingScores.data.find((score) => score.judgeId === judgeId);
 
     if (existing) {
+      const normalizedNotes = body.notes ?? existing.notes ?? '';
+      const normalizedNaSections = naSectionsProvided
+        ? body.naSections ?? []
+        : existing.naSections ?? [];
       const updateResult = await provider.scores.update(contest.id, existing.id, {
         breakdown: normalizedBreakdown ?? undefined,
-        notes: body.notes,
-        naSections: naSectionsProvided ? body.naSections : undefined,
+        notes: normalizedNotes,
+        naSections: normalizedNaSections,
       });
       if (!updateResult.success || !updateResult.data) {
         const message = updateResult.error ?? 'Failed to update score';
@@ -145,12 +149,14 @@ export async function POST(request: Request, { params }: RouteParams) {
       return NextResponse.json(updateResult.data);
     }
 
+    const normalizedNotes = body.notes ?? '';
+    const normalizedNaSections = naSectionsProvided ? body.naSections ?? [] : [];
     const submitResult = await provider.scores.submit(contest.id, {
       entryId,
       judgeId,
       breakdown: (normalizedBreakdown ?? {}) as ScoreBreakdown,
-      notes: body.notes,
-      naSections: naSectionsProvided ? body.naSections : undefined,
+      notes: normalizedNotes,
+      naSections: normalizedNaSections,
     });
 
     if (!submitResult.success || !submitResult.data) {
