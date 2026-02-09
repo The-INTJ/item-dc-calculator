@@ -3,7 +3,7 @@ import { createEmptyBreakdown, getEffectiveConfig, isValidAttributeId, validateB
 
 export interface NormalizedScorePayload {
   breakdown: ScoreBreakdown;
-  naSections?: string[];
+  naSections: string[];
 }
 
 function normalizeNaSections(contest: Contest, naSections?: string[]): string[] {
@@ -53,6 +53,6 @@ export function normalizeScorePayload(options: {
 
   return {
     breakdown,
-    naSections: normalizedNaSections.length > 0 ? normalizedNaSections : undefined,
+    naSections: normalizedNaSections,
   };
 }

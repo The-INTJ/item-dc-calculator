@@ -137,7 +137,7 @@ export async function POST(request: Request, { params }: RouteParams) {
         ? body.naSections ?? []
         : existing.naSections ?? [];
       const updateResult = await provider.scores.update(contest.id, existing.id, {
-        breakdown: normalizedBreakdown ?? undefined,
+        ...(normalizedBreakdown ? { breakdown: normalizedBreakdown } : {}),
         notes: normalizedNotes,
         naSections: normalizedNaSections,
       });
