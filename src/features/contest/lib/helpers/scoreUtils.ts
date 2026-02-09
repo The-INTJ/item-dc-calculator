@@ -1,9 +1,9 @@
 import type { ScoreBreakdown, ScoreEntry, ContestConfig, Vote } from '../../contexts/contest/contestTypes';
 import { getAttributeIds } from './validation';
 
-export function isBreakdownKey(value: string, config: ContestConfig): boolean {
-  const validKeys = getAttributeIds(config);
-  return validKeys.includes(value);
+export function isBreakdownKey(value: string, config?: ContestConfig): boolean {
+  if (!config) return true;
+  return getAttributeIds(config).includes(value);
 }
 
 export function buildScoreDefaults(
