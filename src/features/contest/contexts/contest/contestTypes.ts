@@ -72,8 +72,6 @@ export interface Entry {
   description: string;
   round: string;
   submittedBy: string;
-  scoreByUser?: Record<string, ScoreBreakdown>;
-  scoreTotals?: ScoreBreakdown;
   scoreLock?: {
     locked: boolean;
     expiresAt?: number;
@@ -128,22 +126,6 @@ export interface Contest {
 }
 
 // ============================================================================
-// Vote Types
-// ============================================================================
-
-export interface Vote {
-  contestId: string;
-  entryId: string;
-  score: number;
-  breakdown?: ScoreBreakdown;
-  naSections?: string[];
-  notes?: string;
-  timestamp: number;
-}
-
-export type VoteInput = Omit<Vote, 'timestamp'>;
-
-// ============================================================================
 // Context State (internal to ContestContext)
 // ============================================================================
 
@@ -169,6 +151,3 @@ export interface ContestActions {
   removeContestant: (contestId: string, entryId: string) => Promise<boolean>;
 }
 
-export interface VotingActions {
-  recordVote: (vote: VoteInput) => Promise<void>;
-}

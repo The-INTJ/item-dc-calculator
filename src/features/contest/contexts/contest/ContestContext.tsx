@@ -1,13 +1,11 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useState } from 'react';
-import { useAuth } from '../auth/AuthContext';
 import { useFetchContestsOnMount } from './hooks/useFetchContestsOnMount';
 import { useContestActions } from './hooks/useContestActions';
-import { useVoting } from './hooks/useVoting';
-import type { Contest, ContestContextState, ContestActions, VotingActions } from './contestTypes';
+import type { Contest, ContestContextState, ContestActions } from './contestTypes';
 
-type ContestContextValue = ContestContextState & ContestActions & VotingActions & {
+type ContestContextValue = ContestContextState & ContestActions & {
   refresh: () => void;
 };
 
@@ -19,7 +17,6 @@ export function ContestProvider({ children }: { children: React.ReactNode }) {
     lastUpdatedAt: null,
   });
   const [, setLoadCount] = useState(0);
-  const { session } = useAuth();
 
   const updateState = useCallback((updater: (prev: ContestContextState) => ContestContextState) => {
     setState((prev) => ({ ...updater(prev), lastUpdatedAt: Date.now() }));
@@ -32,14 +29,12 @@ export function ContestProvider({ children }: { children: React.ReactNode }) {
 
   // All mutation actions
   const actions = useContestActions(state, updateState);
-  const voting = useVoting(session?.firebaseUid ?? null);
 
   const value: ContestContextValue = {
     contests: state.contests,
     lastUpdatedAt: state.lastUpdatedAt,
     refresh,
     ...actions,
-    ...voting,
   };
 
   return <ContestContext.Provider value={value}>{children}</ContestContext.Provider>;

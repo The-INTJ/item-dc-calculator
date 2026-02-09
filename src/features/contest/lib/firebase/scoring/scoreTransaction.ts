@@ -1,13 +1,11 @@
 /**
  * Score transaction utilities for atomic score updates with locking.
  *
- * Orchestrates locked updates to entry scores, handling retries and
- * maintaining consistency between scores array and entry.scoreTotals.
+ * Orchestrates locked updates to entry scores, handling retries.
  */
 
 import { doc, runTransaction, serverTimestamp, type Firestore } from 'firebase/firestore';
-import type { Contest, Entry, ScoreBreakdown, ScoreEntry } from '../../../contexts/contest/contestTypes';
-import { createEmptyBreakdown, addBreakdowns, diffBreakdowns } from './breakdownUtils';
+import type { Contest, Entry, ScoreEntry } from '../../../contexts/contest/contestTypes';
 import {
   CONTESTS_COLLECTION,
   SCORE_LOCK_TTL_MS,
@@ -18,28 +16,16 @@ import {
 } from './scoreLock';
 
 /**
- * Applies a score update to an entry, updating scoreByUser and scoreTotals.
- * Returns a new Entry object with the updates applied.
+ * Applies a score lock update to an entry.
+ * Returns a new Entry object with the lock applied.
  */
 export function applyEntryScoreUpdate(
   entry: Entry,
-  judgeId: string,
-  breakdown: ScoreBreakdown,
   lockToken: string,
   now: number
 ): Entry {
-  const scoreByUser = { ...(entry.scoreByUser ?? {}) };
-  const previous = scoreByUser[judgeId] ?? createEmptyBreakdown();
-  scoreByUser[judgeId] = breakdown;
-
-  const baseTotals = entry.scoreTotals ?? createEmptyBreakdown();
-  const delta = diffBreakdowns(breakdown, previous);
-  const scoreTotals = addBreakdowns(baseTotals, delta);
-
   return {
     ...entry,
-    scoreByUser,
-    scoreTotals,
     scoreLock: {
       locked: true,
       token: lockToken,

@@ -2,15 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/auth/AuthContext';
-import { useContestStore } from '../../contexts/contest/ContestContext';
 import { getEntriesForRound } from '../helpers/contestGetters';
 import { getEffectiveConfig } from '../helpers/validation';
-import { buildScoreDefaults, isBreakdownKey, buildFullBreakdown, calculateScore } from '../helpers/scoreUtils';
+import { buildScoreDefaults, isBreakdownKey } from '../helpers/scoreUtils';
 import { buildEntrySummaries } from '../helpers/uiMappings';
 import type { Contest, ScoreBreakdown } from '../../contexts/contest/contestTypes';
 
 type ScoreByDrinkId = Record<string, Record<string, number>>;
-type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error';
+export type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error';
 
 /**
  * Self-contained hook for voting on entries within a specific contest round.
@@ -18,7 +17,6 @@ type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error';
  */
 export function useRoundVoting(contest: Contest | null, roundId: string | null) {
   const { session, role } = useAuth();
-  const { recordVote } = useContestStore();
   const [scores, setScores] = useState<ScoreByDrinkId>({});
   const [status, setStatus] = useState<SubmitStatus>('idle');
   const [message, setMessage] = useState<string | null>(null);
@@ -98,16 +96,6 @@ export function useRoundVoting(contest: Contest | null, roundId: string | null) 
       if (failed) {
         const payload = await failed.json().catch(() => ({}));
         throw new Error(payload.message ?? 'Failed to submit scores.');
-      }
-
-      for (const entry of voteEntries) {
-        const full = buildFullBreakdown(entry.breakdown, config);
-        await recordVote({
-          contestId: contest.id,
-          entryId: entry.entryId,
-          breakdown: full,
-          score: calculateScore(full, config),
-        });
       }
 
       setStatus('success');

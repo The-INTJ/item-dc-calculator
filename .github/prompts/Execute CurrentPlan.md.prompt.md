@@ -5,7 +5,7 @@ description: Execute the next incomplete phase(s) from Plans/Plan.md, then updat
 
 ## Directive
 
-You are executing the plan defined in `Plans/Plan.md`. Read it now. Identify the next incomplete phase(s) and execute them.
+You are executing the plan defined in `Plans/Plan.md/CurrentPlan.md`. Read it now. Identify the next incomplete phase(s) and execute them.
 
 ## Core Rules
 

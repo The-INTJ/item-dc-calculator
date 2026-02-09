@@ -87,13 +87,7 @@ export function createFirebaseScoresProvider(adapter: FirestoreAdapter): ScoresP
               updatedScores = [...contest.scores, updatedScore];
             }
 
-            const updatedEntry = applyEntryScoreUpdate(
-              contest.entries[entryIndex],
-              input.judgeId,
-              updatedScore.breakdown,
-              lockToken,
-              now
-            );
+            const updatedEntry = applyEntryScoreUpdate(contest.entries[entryIndex], lockToken, now);
             const updatedEntries = [...contest.entries];
             updatedEntries[entryIndex] = updatedEntry;
 
@@ -142,13 +136,7 @@ export function createFirebaseScoresProvider(adapter: FirestoreAdapter): ScoresP
             const updatedScores = [...currentContest.scores];
             updatedScores[currentScoreIdx] = updatedScore;
 
-            const updatedEntry = applyEntryScoreUpdate(
-              currentContest.entries[entryIndex],
-              updatedScore.judgeId,
-              updatedScore.breakdown,
-              lockToken,
-              now
-            );
+            const updatedEntry = applyEntryScoreUpdate(currentContest.entries[entryIndex], lockToken, now);
             const updatedEntries = [...currentContest.entries];
             updatedEntries[entryIndex] = updatedEntry;
 

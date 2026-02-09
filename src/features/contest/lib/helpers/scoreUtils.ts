@@ -1,4 +1,4 @@
-import type { ScoreBreakdown, ScoreEntry, ContestConfig, Vote } from '../../contexts/contest/contestTypes';
+import type { ScoreBreakdown, ScoreEntry, ContestConfig } from '../../contexts/contest/contestTypes';
 import { getAttributeIds } from './validation';
 
 export function isBreakdownKey(value: string, config?: ContestConfig): boolean {
@@ -45,23 +45,6 @@ export function buildScoresFromEntries(
       if (typeof value !== 'number' || !Number.isFinite(value)) return;
       acc[entryId] = acc[entryId] ?? {};
       acc[entryId][categoryId] = value;
-    });
-    return acc;
-  }, {});
-}
-
-export function buildScoresFromVotes(
-  votes: Vote[],
-  categoryIds: string[],
-  config?: ContestConfig
-): Record<string, Record<string, number>> {
-  return votes.reduce<Record<string, Record<string, number>>>((acc, vote) => {
-    categoryIds.forEach((categoryId) => {
-      if (!isBreakdownKey(categoryId, config)) return;
-      const value = vote.breakdown?.[categoryId];
-      if (typeof value !== 'number' || !Number.isFinite(value)) return;
-      acc[vote.entryId] = acc[vote.entryId] ?? {};
-      acc[vote.entryId][categoryId] = value;
     });
     return acc;
   }, {});
