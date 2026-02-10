@@ -1,7 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Contest, ContestConfig, Entry, Judge, ScoreEntry } from '../../contexts/contest/contestTypes';
+import type { Contest, ContestConfig, Entry, Voter, ScoreEntry } from '../../contexts/contest/contestTypes';
 import { buildEntrySummary } from '../../lib/helpers/uiMappings';
 import { getEffectiveConfig } from '../../lib/helpers/validation';
 import { getRoundLabel } from '../../lib/helpers/contestGetters';
@@ -30,43 +30,41 @@ function EntryItem({ entry, roundLabel }: { entry: Entry; roundLabel: string }) 
   );
 }
 
-function getRoleLabel(role: Judge['role']) {
-  if (role === 'judge') return 'voter';
+function getRoleLabel(role: Voter['role']) {
+  if (role === 'voter') return 'voter';
   return role;
 }
 
-function VoterItem({ judge }: { judge: Judge }) {
+function VoterItem({ voter }: { voter: Voter }) {
   return (
     <li className="admin-detail-item">
-      <strong>{judge.displayName}</strong>
-      <span className={`admin-role-badge admin-role-badge--${judge.role}`}>
-        {getRoleLabel(judge.role)}
+      <strong>{voter.displayName}</strong>
+      <span className={`admin-role-badge admin-role-badge--${voter.role}`}>
+        {getRoleLabel(voter.role)}
       </span>
     </li>
   );
 }
 
-function ScoreItem({ score, entries, judges, config }: { score: ScoreEntry; entries: Entry[]; judges: Judge[]; config: ContestConfig }) {
+function ScoreItem({ score, entries, voters, config }: { score: ScoreEntry; entries: Entry[]; voters: Voter[]; config: ContestConfig }) {
   const entry = entries.find((candidate) => candidate.id === score.entryId);
-  const judge = judges.find((candidate) => candidate.id === score.judgeId);
+  const voter = voters.find((candidate) => candidate.id === score.userId);
   const total = config.attributes.reduce((sum, attr) => {
     const value = score.breakdown[attr.id];
     if (typeof value !== 'number' || !Number.isFinite(value)) return sum;
     return sum + value;
   }, 0);
   const maxTotal = config.attributes.reduce((sum, attr) => sum + (attr.max ?? 10), 0);
-  const formatValue = (value: number | null | undefined) =>
-    typeof value === 'number' && Number.isFinite(value) ? value : 'N/A';
 
   return (
     <li className="admin-detail-item admin-score-item">
       <div className="admin-score-item__header">
         <strong>{entry?.name ?? 'Unknown'}</strong>
-        <span className="admin-detail-meta">by {judge?.displayName ?? 'Unknown'}</span>
+        <span className="admin-detail-meta">by {voter?.displayName ?? 'Unknown'}</span>
       </div>
       <div className="admin-score-item__breakdown">
         {config.attributes.map((attr) => (
-          <span key={attr.id}>{attr.label}: {formatValue(score.breakdown[attr.id])}</span>
+          <span key={attr.id}>{attr.label}: {score.breakdown[attr.id] ?? 'N/A'}</span>
         ))}
         <strong>Total: {total}/{maxTotal}</strong>
       </div>
@@ -80,9 +78,30 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
   const { deleteContest } = useContestStore();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [contestScores, setContestScores] = useState<ScoreEntry[]>([]);
 
   const activeRoundLabel = getRoundLabel(contest, contest.activeRoundId);
   const config = getEffectiveConfig(contest);
+
+  // Fetch scores from subcollection for admin detail view
+  useEffect(() => {
+    if (!contest.id) return;
+    // Fetch all scores for each entry
+    const fetchScores = async () => {
+      const allScores: ScoreEntry[] = [];
+      for (const entry of contest.entries) {
+        try {
+          const res = await fetch(`/api/contest/contests/${contest.id}/scores?entryId=${entry.id}`);
+          if (res.ok) {
+            const data = await res.json();
+            allScores.push(...(data.scores ?? []));
+          }
+        } catch { /* ignore fetch errors */ }
+      }
+      setContestScores(allScores);
+    };
+    void fetchScores();
+  }, [contest.id, contest.entries.length]);
 
   const handleSaveConfig = async (nextConfig: ContestConfig) => {
     const result = await adminApi.updateContestConfig(contest.id, nextConfig);
@@ -167,30 +186,30 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
       </section>
 
       <section className="admin-details-section">
-        <h3>Voters ({contest.judges.length})</h3>
-        {contest.judges.length === 0 ? (
+        <h3>Voters ({contest.voters?.length ?? 0})</h3>
+        {(contest.voters?.length ?? 0) === 0 ? (
           <p className="admin-empty">No voters assigned yet.</p>
         ) : (
           <ul className="admin-detail-list">
-            {contest.judges.map((judge) => (
-              <VoterItem key={judge.id} judge={judge} />
+            {contest.voters.map((voter) => (
+              <VoterItem key={voter.id} voter={voter} />
             ))}
           </ul>
         )}
       </section>
 
       <section className="admin-details-section">
-        <h3>Scores ({contest.scores.length})</h3>
-        {contest.scores.length === 0 ? (
+        <h3>Scores ({contestScores.length})</h3>
+        {contestScores.length === 0 ? (
           <p className="admin-empty">No scores submitted yet.</p>
         ) : (
           <ul className="admin-detail-list">
-            {contest.scores.map((score) => (
+            {contestScores.map((score) => (
               <ScoreItem
                 key={score.id}
                 score={score}
                 entries={contest.entries}
-                judges={contest.judges}
+                voters={contest.voters}
                 config={config}
               />
             ))}

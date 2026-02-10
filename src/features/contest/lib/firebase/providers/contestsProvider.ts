@@ -44,8 +44,7 @@ export function createFirebaseContestsProvider(adapter: FirestoreAdapter): Conte
           phase: 'set', // Default phase for new contests
           config: typedInput.config,
           entries: [],
-          judges: [],
-          scores: [],
+          voters: [],
         };
 
         await adapter.createContest(id, newContest);

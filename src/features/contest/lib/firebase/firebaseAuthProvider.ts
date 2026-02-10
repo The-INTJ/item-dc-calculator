@@ -85,7 +85,7 @@ export function createFirebaseAuthProvider(): AuthProvider {
         await setDoc(doc(db, USERS_COLLECTION, user.uid), {
           displayName: data.displayName,
           email: data.email,
-          role: 'viewer',
+          role: 'voter',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
@@ -129,7 +129,7 @@ export function createFirebaseAuthProvider(): AuthProvider {
           await setDoc(userRef, {
             displayName: user.displayName ?? user.email?.split('@')[0] ?? 'Mixology User',
             email: user.email ?? undefined,
-            role: 'viewer',
+            role: 'voter',
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
           });
@@ -157,7 +157,7 @@ export function createFirebaseAuthProvider(): AuthProvider {
         if (!existing.exists()) {
           await setDoc(userRef, {
             displayName: 'Anonymous',
-            role: 'viewer',
+            role: 'voter',
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
           });

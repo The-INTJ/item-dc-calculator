@@ -35,8 +35,7 @@ export function createEmptyBreakdown(config: ContestConfig): ScoreBreakdown {
  */
 export function validateBreakdown(
   breakdown: unknown,
-  config: ContestConfig,
-  naSections: string[] = []
+  config: ContestConfig
 ): string[] {
   const errors: string[] = [];
 
@@ -46,20 +45,9 @@ export function validateBreakdown(
 
   const b = breakdown as Record<string, unknown>;
   const validIds = new Set(config.attributes.map((a) => a.id));
-  const naSectionSet = new Set(naSections);
 
   // Check required attributes
   for (const attr of config.attributes) {
-    if (naSectionSet.has(attr.id)) {
-      if (attr.id in b) {
-        const value = b[attr.id];
-        if (value !== null && value !== undefined) {
-          errors.push(`${attr.id}: cannot score a section marked N/A`);
-        }
-      }
-      continue;
-    }
-
     if (!(attr.id in b)) {
       errors.push(`missing attribute: ${attr.id}`);
     } else {

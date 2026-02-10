@@ -61,7 +61,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await provider.updateProfile(result.uid, { displayName: trimmed });
       const guestSession = createSession({
         firebaseUid: result.uid,
-        profile: { displayName: trimmed, role: 'viewer' },
+        profile: { displayName: trimmed, role: 'voter' },
         status: 'guest',
       });
       dispatch({ type: 'GUEST', session: guestSession });
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const newSession = createSession({
       firebaseUid: result.uid,
-      profile: { displayName: data.displayName, email: data.email, role: 'viewer' },
+      profile: { displayName: data.displayName, email: data.email, role: 'voter' },
     });
     dispatch({ type: 'AUTHENTICATED', session: newSession });
     return { success: true };
@@ -98,7 +98,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       profile: userData?.profile ?? {
         displayName: credentials.email.split('@')[0],
         email: credentials.email,
-        role: 'viewer',
+        role: 'voter',
       },
     });
     dispatch({ type: 'AUTHENTICATED', session: newSession });
@@ -114,7 +114,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const userData = await provider.fetchUserData(result.uid);
     const newSession = createSession({
       firebaseUid: result.uid,
-      profile: userData?.profile ?? { displayName: 'Google User', role: 'viewer' },
+      profile: userData?.profile ?? { displayName: 'Google User', role: 'voter' },
     });
     dispatch({ type: 'AUTHENTICATED', session: newSession });
     return { success: true };

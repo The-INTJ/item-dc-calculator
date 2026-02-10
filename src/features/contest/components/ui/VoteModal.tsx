@@ -5,7 +5,6 @@ import { VoteScorePanel } from './VoteScorePanel';
 import { VoteActions } from '../votePage/VoteActions';
 import { useRoundVoting } from '../../lib/hooks/useRoundVoting';
 import { getRoundLabel } from '../../lib/helpers/contestGetters';
-import { buildTotalsFromScores } from './voteUtils';
 import type { Contest } from '../../contexts/contest/contestTypes';
 
 interface VoteModalProps {
@@ -20,7 +19,6 @@ export function VoteModal({ open, onClose, contest, roundId }: VoteModalProps) {
   const { drinks, categories, scores, updateScore, submit, status, message, isSubmitting } =
     useRoundVoting(contest, roundId);
 
-  const totals = buildTotalsFromScores(contest.scores ?? [], categories);
   const canSubmit = drinks.length > 0 && categories.length > 0 && !isSubmitting;
 
   return (
@@ -43,7 +41,7 @@ export function VoteModal({ open, onClose, contest, roundId }: VoteModalProps) {
           <VoteScorePanel
             drinks={drinks}
             categories={categories}
-            totals={totals}
+            totals={[]}
             scoreByDrinkId={scores}
             onScoreChange={updateScore}
             className="vote-modal-scores"

@@ -19,7 +19,19 @@ import {
   type Firestore,
   type Transaction,
 } from 'firebase/firestore';
-import type { Contest, ContestConfigItem } from '../../contexts/contest/contestTypes';
+import type { Contest, ContestConfigItem, Voter } from '../../contexts/contest/contestTypes';
+
+/**
+ * Normalize a Firestore document into a Contest, handling legacy field names.
+ * Old documents may have 'judges' instead of 'voters'.
+ */
+function normalizeContestDoc(id: string, data: Record<string, unknown>): Contest {
+  return {
+    ...data,
+    id,
+    voters: (data.voters ?? data.judges ?? []) as Voter[],
+  } as Contest;
+}
 
 const CONTESTS_COLLECTION = 'contests';
 
@@ -75,7 +87,7 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
       const docSnap = await getDoc(doc(db, CONTESTS_COLLECTION, contestId));
       if (!docSnap.exists()) return null;
 
-      return { id: docSnap.id, ...docSnap.data() } as Contest;
+      return normalizeContestDoc(docSnap.id, docSnap.data());
     },
 
     async getContestBySlug(slug: string): Promise<Contest | null> {
@@ -87,7 +99,7 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
       if (snapshot.empty) return null;
 
       const docSnap = snapshot.docs[0];
-      return { id: docSnap.id, ...docSnap.data() } as Contest;
+      return normalizeContestDoc(docSnap.id, docSnap.data());
     },
 
     async getDefaultContest(): Promise<Contest | null> {
@@ -99,7 +111,7 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
       if (snapshot.empty) return null;
 
       const docSnap = snapshot.docs[0];
-      return { id: docSnap.id, ...docSnap.data() } as Contest;
+      return normalizeContestDoc(docSnap.id, docSnap.data());
     },
 
     async listContests(): Promise<Contest[]> {
@@ -107,10 +119,7 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
       if (!db) return [];
 
       const snapshot = await getDocs(collection(db, CONTESTS_COLLECTION));
-      return snapshot.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...docSnap.data(),
-      })) as Contest[];
+      return snapshot.docs.map((docSnap) => normalizeContestDoc(docSnap.id, docSnap.data()));
     },
 
     async createContest(id: string, data: Omit<Contest, 'id'>): Promise<void> {
@@ -156,7 +165,7 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
           throw new Error('Contest not found');
         }
 
-        const contest = { id: contestSnap.id, ...contestSnap.data() } as Contest;
+        const contest = normalizeContestDoc(contestSnap.id, contestSnap.data());
         return callback(contest, transaction, contestRef);
       });
     },

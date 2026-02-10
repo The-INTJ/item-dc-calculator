@@ -74,7 +74,7 @@ export const adminApi = {
   /**
    * Create a new contest
    */
-  async createContest(data: Omit<Contest, 'id' | 'entries' | 'judges' | 'scores'>): Promise<ProviderResult<Contest>> {
+  async createContest(data: Omit<Contest, 'id' | 'entries' | 'voters'>): Promise<ProviderResult<Contest>> {
     return apiRequest('/api/contest/contests', {
       method: 'POST',
       body: JSON.stringify(data),

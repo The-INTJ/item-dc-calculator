@@ -14,7 +14,7 @@ import { createFirestoreAdapter } from './firestoreAdapter';
 import { seedDefaultConfigs } from './seedDefaultConfigs';
 import { createFirebaseContestsProvider } from './providers/contestsProvider';
 import { createFirebaseEntriesProvider } from './providers/entriesProvider';
-import { createFirebaseJudgesProvider } from './providers/judgesProvider';
+import { createFirebaseVotersProvider } from './providers/votersProvider';
 import { createFirebaseScoresProvider } from './providers/scoresProvider';
 import { createFirebaseConfigsProvider } from './providers/configsProvider';
 
@@ -33,7 +33,7 @@ export function createFirebaseBackendProvider(): BackendProvider {
     name: 'firebase',
     contests: createFirebaseContestsProvider(adapter),
     entries: entriesProvider,
-    judges: createFirebaseJudgesProvider(adapter),
+    voters: createFirebaseVotersProvider(adapter),
     scores: createFirebaseScoresProvider(adapter),
     configs: createFirebaseConfigsProvider(adapter),
 

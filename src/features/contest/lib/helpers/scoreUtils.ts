@@ -56,15 +56,14 @@ export function buildFullBreakdown(
 ): ScoreBreakdown {
   const keys = getAttributeIds(config);
   return keys.reduce<ScoreBreakdown>((acc, key) => {
-    const value = values[key];
-    acc[key] = value === null ? null : value ?? 0;
+    acc[key] = values[key] ?? 0;
     return acc;
   }, {});
 }
 
 /**
  * Calculates a single score from breakdown values.
- * Uses a positive `overall` override; otherwise averages numeric attributes (including when `overall` is null).
+ * Uses a positive `overall` override; otherwise averages numeric attributes.
  */
 export function calculateScore(breakdown: ScoreBreakdown, config?: ContestConfig): number {
   if (typeof breakdown.overall === 'number' && breakdown.overall > 0) return breakdown.overall;
@@ -75,5 +74,5 @@ export function calculateScore(breakdown: ScoreBreakdown, config?: ContestConfig
     .filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
 
   if (scores.length === 0) return 0;
-  return Math.round(scores.reduce((sum, value) => sum + value, 0) / scores.length);
+  return scores.reduce((sum, value) => sum + value, 0) / scores.length;
 }

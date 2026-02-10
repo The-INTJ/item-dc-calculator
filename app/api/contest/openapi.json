@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Contest Judging API",
+    "title": "Contest Rating API",
     "version": "2.0.0",
-    "description": "API for managing contests, entries, judges, and scoring. Supports multiple contest types through configurable ContestConfig."
+    "description": "API for managing contests, entries, voters, and scoring. Supports multiple contest types through configurable ContestConfig."
   },
   "servers": [
     {
@@ -23,14 +23,14 @@
     "schemas": {
       "ContestPhase": {
         "type": "string",
-        "enum": ["debug", "set", "shake", "scored"],
+        "enum": ["set", "shake", "scored"],
         "description": "Contest lifecycle state",
         "example": "shake"
       },
-      "JudgeRole": {
+      "UserRole": {
         "type": "string",
-        "enum": ["admin", "judge", "viewer"],
-        "example": "judge"
+        "enum": ["admin", "voter", "competitor"],
+        "example": "voter"
       },
       "AttributeConfig": {
         "type": "object",
@@ -38,7 +38,7 @@
         "properties": {
           "id": { "type": "string", "description": "Unique identifier (lowercase alphanumeric)", "example": "aroma" },
           "label": { "type": "string", "description": "Display name", "example": "Aroma" },
-          "description": { "type": "string", "description": "Helper text for judges", "example": "How appealing is the scent?" },
+          "description": { "type": "string", "description": "Helper text for voters", "example": "How appealing is the scent?" },
           "min": { "type": "number", "description": "Minimum score value", "default": 0, "example": 0 },
           "max": { "type": "number", "description": "Maximum score value", "default": 10, "example": 10 }
         },
@@ -96,12 +96,12 @@
           "updatedAt": { "type": "number", "example": 1704063600000 }
         }
       },
-      "Judge": {
+      "Voter": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "example": "judge-1" },
+          "id": { "type": "string", "example": "user-1" },
           "displayName": { "type": "string", "example": "Jane Smith" },
-          "role": { "$ref": "#/components/schemas/JudgeRole" },
+          "role": { "$ref": "#/components/schemas/UserRole" },
           "contact": { "type": "string", "example": "jane@example.com" }
         },
         "required": ["id", "displayName", "role"]
@@ -116,25 +116,22 @@
           "description": { "type": "string", "example": "A refreshing citrus cocktail with a hint of lavender" },
           "round": { "type": "string", "example": "finals" },
           "submittedBy": { "type": "string", "example": "John Doe" },
-          "scoreByUser": {
-            "type": "object",
-            "additionalProperties": { "$ref": "#/components/schemas/ScoreBreakdown" }
-          },
-          "scoreTotals": { "$ref": "#/components/schemas/ScoreBreakdown" },
-          "scoreLock": { "$ref": "#/components/schemas/ScoreLock" }
+          "sumScore": { "type": "number", "description": "Aggregate: sum of all vote totals for this entry", "example": 42.5 },
+          "voteCount": { "type": "integer", "description": "Aggregate: number of distinct voters", "example": 5 }
         },
         "required": ["id", "name", "slug", "description", "round", "submittedBy"]
       },
       "ScoreEntry": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "example": "score-1" },
+          "id": { "type": "string", "example": "user1_entry1" },
           "entryId": { "type": "string", "example": "entry-1" },
-          "judgeId": { "type": "string", "example": "judge-1" },
+          "userId": { "type": "string", "example": "user-1" },
+          "round": { "type": "string", "example": "finals" },
           "breakdown": { "$ref": "#/components/schemas/ScoreBreakdown" },
           "notes": { "type": "string", "example": "Excellent balance of flavors" }
         },
-        "required": ["id", "entryId", "judgeId", "breakdown"]
+        "required": ["id", "entryId", "userId", "breakdown"]
       },
       "Contest": {
         "type": "object",
@@ -153,16 +150,12 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/Entry" }
           },
-          "judges": {
+          "voters": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Judge" }
-          },
-          "scores": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/ScoreEntry" }
+            "items": { "$ref": "#/components/schemas/Voter" }
           }
         },
-        "required": ["id", "name", "slug", "phase", "entries", "judges", "scores"]
+        "required": ["id", "name", "slug", "phase", "entries", "voters"]
       },
       "Error": {
         "type": "object",
@@ -746,7 +739,7 @@
       ],
       "get": {
         "summary": "Get scores",
-        "description": "Returns scores for a contest. Optionally filter by entryId and/or judgeId.",
+        "description": "Returns scores for a contest. Filter by entryId and/or userId. Scores are stored in a votes subcollection.",
         "tags": ["Scores"],
         "parameters": [
           {
@@ -757,9 +750,9 @@
             "schema": { "type": "string" }
           },
           {
-            "name": "judgeId",
+            "name": "userId",
             "in": "query",
-            "description": "Filter by judge ID",
+            "description": "Filter by user ID",
             "required": false,
             "schema": { "type": "string" }
           }
@@ -781,9 +774,10 @@
                 "example": {
                   "scores": [
                     {
-                      "id": "score-1",
+                      "id": "user1_entry1",
                       "entryId": "entry-1",
-                      "judgeId": "judge-1",
+                      "userId": "user-1",
+                      "round": "finals",
                       "breakdown": {
                         "aroma": 8,
                         "balance": 7,
@@ -809,7 +803,7 @@
       },
       "post": {
         "summary": "Submit or update a score",
-        "description": "Submits a new score or updates an existing one. Can submit full breakdown or a single category score. Score categories are validated against the contest's config.attributes. Currently no admin requirement.",
+        "description": "Submits a new score or updates an existing one via the votes subcollection. Can submit full breakdown or a single category score. Score categories are validated against the contest's config.attributes. Auto-registers the voter if not already known.",
         "tags": ["Scores"],
         "requestBody": {
           "required": true,
@@ -819,22 +813,23 @@
                 "type": "object",
                 "properties": {
                   "entryId": { "type": "string", "description": "Entry being scored" },
-                  "judgeId": { "type": "string" },
-                  "judgeName": { "type": "string", "description": "Name for auto-created judge" },
-                  "judgeRole": { "$ref": "#/components/schemas/JudgeRole" },
+                  "userId": { "type": "string" },
+                  "userName": { "type": "string", "description": "Display name for auto-registered voter" },
+                  "userRole": { "$ref": "#/components/schemas/UserRole" },
                   "categoryId": { "type": "string", "description": "Single category to update (must match a config attribute ID)" },
                   "value": { "type": "number", "description": "Score value for single category" },
                   "breakdown": { "$ref": "#/components/schemas/ScoreBreakdown" },
+                  "round": { "type": "string", "description": "Round ID (defaults to entry's round)" },
                   "notes": { "type": "string" }
                 },
-                "required": ["judgeId"]
+                "required": ["entryId", "userId"]
               },
               "examples": {
                 "fullBreakdown": {
                   "summary": "Submit full score breakdown",
                   "value": {
                     "entryId": "entry-1",
-                    "judgeId": "judge-1",
+                    "userId": "user-1",
                     "breakdown": {
                       "aroma": 8,
                       "balance": 7,
@@ -849,8 +844,8 @@
                   "summary": "Submit single category score",
                   "value": {
                     "entryId": "entry-1",
-                    "judgeId": "guest-123",
-                    "judgeName": "Guest Voter",
+                    "userId": "guest-123",
+                    "userName": "Guest Voter",
                     "categoryId": "overall",
                     "value": 8
                   }
@@ -883,7 +878,7 @@
                 "schema": { "$ref": "#/components/schemas/Error" },
                 "examples": {
                   "missingFields": {
-                    "value": { "message": "entryId and judgeId are required." }
+                    "value": { "message": "entryId and userId are required." }
                   },
                   "invalidCategory": {
                     "value": { "message": "Invalid categoryId for scoring." }
@@ -1112,7 +1107,7 @@
   "tags": [
     { "name": "Contests", "description": "Manage contests of any type" },
     { "name": "Entries", "description": "Manage entries within contests (drinks, chilies, cosplays, etc.)" },
-    { "name": "Scores", "description": "Submit and retrieve scores" },
+    { "name": "Scores", "description": "Submit and retrieve scores from the votes subcollection" },
     { "name": "ContestConfigs", "description": "Manage contest configuration templates and scoring attributes" }
   ]
 }

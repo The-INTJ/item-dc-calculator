@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/auth/AuthContext';
 import { getEntriesForRound } from '../helpers/contestGetters';
 import { getEffectiveConfig } from '../helpers/validation';
-import { buildScoreDefaults, isBreakdownKey } from '../helpers/scoreUtils';
+import { buildScoreDefaults, mergeScoreMaps, buildScoresFromEntries, isBreakdownKey } from '../helpers/scoreUtils';
 import { buildEntrySummaries } from '../helpers/uiMappings';
-import type { Contest, ScoreBreakdown } from '../../contexts/contest/contestTypes';
+import type { Contest, ScoreBreakdown, ScoreEntry } from '../../contexts/contest/contestTypes';
+import { contestApi } from '../api/contestApi';
 
 type ScoreByDrinkId = Record<string, Record<string, number>>;
 export type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error';
@@ -14,6 +15,7 @@ export type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error';
 /**
  * Self-contained hook for voting on entries within a specific contest round.
  * Manages local score state, submission to the API, and status tracking.
+ * Pre-fills scores from the user's existing votes when available.
  */
 export function useRoundVoting(contest: Contest | null, roundId: string | null) {
   const { session, role } = useAuth();
@@ -26,16 +28,39 @@ export function useRoundVoting(contest: Contest | null, roundId: string | null) 
   const categoryIds = categories.map((a) => a.id);
   const entries = contest && roundId ? getEntriesForRound(contest, roundId) : [];
   const drinks = buildEntrySummaries(entries);
-  const judgeId = session?.firebaseUid ?? session?.sessionId;
+  const userId = session?.firebaseUid ?? session?.sessionId;
 
-  // Reset scores when round changes
+  // Reset scores and pre-fill from existing votes when round changes
   useEffect(() => {
     const drinkIds = entries.map((e) => e.id);
     if (drinkIds.length === 0 || categoryIds.length === 0) {
       setScores({});
       return;
     }
-    setScores(buildScoreDefaults(drinkIds, categoryIds));
+
+    // Start with defaults
+    const defaults = buildScoreDefaults(drinkIds, categoryIds);
+
+    // Fetch existing votes for pre-fill
+    if (contest?.id && userId) {
+      contestApi.getScoresForUser(contest.id, userId)
+        .then((scores: ScoreEntry[]) => {
+          if (!scores.length) {
+            setScores(defaults);
+            return;
+          }
+
+          // Filter to entries in this round and build score map
+          const roundEntryIds = new Set(drinkIds);
+          const roundScores = scores.filter((s) => roundEntryIds.has(s.entryId));
+          const existing = buildScoresFromEntries(roundScores, categoryIds, config);
+          setScores(mergeScoreMaps(defaults, existing));
+        })
+        .catch(() => setScores(defaults));
+    } else {
+      setScores(defaults);
+    }
+
     setStatus('idle');
     setMessage(null);
   }, [roundId]); // Only reset when the selected round changes
@@ -48,7 +73,7 @@ export function useRoundVoting(contest: Contest | null, roundId: string | null) 
   };
 
   const submit = async () => {
-    if (!contest?.id || !judgeId || !config) {
+    if (!contest?.id || !userId || !config) {
       setStatus('error');
       setMessage('No active contest or session.');
       return;
@@ -76,26 +101,20 @@ export function useRoundVoting(contest: Contest | null, roundId: string | null) 
     setMessage(null);
 
     try {
-      const responses = await Promise.all(
+      const results = await Promise.all(
         voteEntries.map(({ entryId, breakdown }) =>
-          fetch(`/api/contest/contests/${contest.id}/scores`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              entryId,
-              judgeId,
-              judgeName: session?.profile.displayName ?? 'Guest',
-              judgeRole: role ?? 'judge',
-              breakdown,
-            }),
+          contestApi.submitScore(contest.id, {
+            entryId,
+            userId,
+            userName: session?.profile.displayName ?? 'Guest',
+            userRole: role ?? 'voter',
+            breakdown,
           }),
         ),
       );
 
-      const failed = responses.find((r) => !r.ok);
-      if (failed) {
-        const payload = await failed.json().catch(() => ({}));
-        throw new Error(payload.message ?? 'Failed to submit scores.');
+      if (results.some((r) => r === null)) {
+        throw new Error('Failed to submit scores.');
       }
 
       setStatus('success');

@@ -5,11 +5,11 @@
 /**
  * Contest lifecycle states as defined in the Master Plan:
  * - set: Guests arriving and choosing roles
- * - shake: Entries being judged, timer running, voting OPEN
+ * - shake: Entries being rated, timer running, voting OPEN
  * - scored: Voting CLOSED, tallying scores
  */
 export type ContestPhase = 'set' | 'shake' | 'scored';
-export type JudgeRole = 'admin' | 'judge' | 'viewer';
+export type UserRole = 'admin' | 'voter' | 'competitor';
 
 // ============================================================================
 // Contest Configuration (for extensible contest types)
@@ -21,7 +21,7 @@ export type JudgeRole = 'admin' | 'judge' | 'viewer';
 export interface AttributeConfig {
   /** Unique identifier (lowercase alphanumeric with underscores) */
   id: string;
-  /** Display name shown to judges */
+  /** Display name shown to users */
   label: string;
   /** Optional helper text explaining what to evaluate */
   description?: string;
@@ -55,10 +55,10 @@ export interface ContestConfigItem extends ContestConfig {
   id: string;
 }
 
-export interface Judge {
+export interface Voter {
   id: string;
   displayName: string;
-  role: JudgeRole;
+  role: UserRole;
   contact?: string;
 }
 
@@ -72,6 +72,10 @@ export interface Entry {
   description: string;
   round: string;
   submittedBy: string;
+  /** Aggregate: sum of per-user average scores */
+  sumScore?: number;
+  /** Aggregate: number of distinct voters */
+  voteCount?: number;
 }
 
 /**
@@ -80,15 +84,15 @@ export interface Entry {
  * For Chili: { heat, flavor, texture, appearance, overall }
  * etc.
  */
-export type ScoreBreakdown = Record<string, number | null>;
+export type ScoreBreakdown = Record<string, number>;
 
 export interface ScoreEntry {
   id: string;
   entryId: string;
-  judgeId: string;
+  userId: string;
+  round: string;
   breakdown: ScoreBreakdown;
   notes?: string;
-  naSections?: string[];
 }
 
 export interface ContestRound {
@@ -115,8 +119,7 @@ export interface Contest {
   activeRoundId?: string | null;
   futureRoundId?: string | null;
   entries: Entry[];
-  judges: Judge[];
-  scores: ScoreEntry[];
+  voters: Voter[];
 }
 
 // ============================================================================

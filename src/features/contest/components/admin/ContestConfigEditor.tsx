@@ -17,7 +17,7 @@ interface ContestConfigEditorProps {
 
 export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProps) {
   const effectiveConfig = getEffectiveConfig(contest);
-  const hasScores = contest.scores.length > 0;
+  const hasScores = contest.entries.some((e) => (e.voteCount ?? 0) > 0);
 
   const [isEditing, setIsEditing] = useState(false);
   const [topic, setTopic] = useState(effectiveConfig.topic);

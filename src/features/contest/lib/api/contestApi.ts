@@ -6,7 +6,7 @@
  * Uses Firebase ID tokens for authentication.
  */
 
-import type { Contest, Entry } from '../../contexts/contest/contestTypes';
+import type { Contest, Entry, ScoreEntry, ScoreBreakdown, UserRole } from '../../contexts/contest/contestTypes';
 import { getAuthToken } from '@/contest/lib/firebase/firebaseAuthProvider';
 
 // seems like a wrapper that enforces auth fetch for every call
@@ -85,5 +85,31 @@ export const contestApi = {
   async deleteEntry(contestId: string, entryId: string): Promise<boolean> {
     const result = await apiRequest<void>(`/api/contest/contests/${contestId}/entries/${entryId}`, { method: 'DELETE' });
     return result !== null;
+  },
+
+  // Score Operations
+  async getScoresForUser(contestId: string, userId: string): Promise<ScoreEntry[]> {
+    const result = await apiRequest<{ scores: ScoreEntry[] }>(`/api/contest/contests/${contestId}/scores?userId=${userId}`);
+    return result?.scores ?? [];
+  },
+
+  async getScoresForEntry(contestId: string, entryId: string): Promise<ScoreEntry[]> {
+    const result = await apiRequest<{ scores: ScoreEntry[] }>(`/api/contest/contests/${contestId}/scores?entryId=${entryId}`);
+    return result?.scores ?? [];
+  },
+
+  async submitScore(contestId: string, data: {
+    entryId: string;
+    userId: string;
+    userName?: string;
+    userRole?: UserRole;
+    breakdown: Partial<ScoreBreakdown>;
+    round?: string;
+    notes?: string;
+  }): Promise<ScoreEntry | null> {
+    return apiRequest(`/api/contest/contests/${contestId}/scores`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   },
 };

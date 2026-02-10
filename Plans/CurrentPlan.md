@@ -2,6 +2,15 @@
 
 > **Goal**: Replace the custom `scoreLock` system and dual-write pattern with proper Firestore transactions and a per-user votes subcollection. Each phase is independently shippable.
 
+## Current Status
+
+- ✅ **Phase 1** — Dead Code & Dual-Write Removal (Completed)
+- ✅ **Phase 2** — Replace Custom Lock with Firestore Transaction (Completed)
+- ✅ **Phase 3** — Migrate to Votes Subcollection (Completed)
+- ✅ **Phase 4** — Entry Aggregates for Efficient Bracket Reads (Completed)
+- ✅ **Phase 4.5** — Code Quality & Terminology Cleanup (Completed)
+- 🔲 **Phase 5** — Real-Time Listeners (Future)
+
 ---
 
 ## Phase 1 — Dead Code & Dual-Write Removal
@@ -18,68 +27,71 @@
 
 ## Phase 3 — Migrate to Votes Subcollection (Source of Truth)
 
-Core data model change per the ideation doc. Per-user vote documents become the authoritative record.
+✅ **Completed**
+
+Core data model change per the ideation doc. Per-user vote documents are now the authoritative record.
 
 ### Data Model
 
-New Firestore subcollection: **`contests/{contestId}/votes/{judgeId}_{entryId}`**
+Firestore subcollection: **`contests/{contestId}/votes/{userId}_{entryId}`**
 
 ```typescript
 // Vote document schema
 {
-  judgeId: string;           // Firebase UID of the voter
+  userId: string;            // Firebase UID of the voter
   entryId: string;           // Which entry was voted on
   round: string;             // Round ID
-  breakdown: ScoreBreakdown; // Per-attribute scores { [attrId]: number | null }
+  breakdown: ScoreBreakdown; // Per-attribute scores { [attrId]: number }
   notes?: string;            // Judge notes
-  naSections?: string[];     // Attributes marked N/A
   createdAt: Timestamp;      // Firestore serverTimestamp()
   updatedAt: Timestamp;      // Firestore serverTimestamp()
 }
 ```
 
-**Document ID = `{judgeId}_{entryId}`** — guarantees one vote per judge per entry at the Firestore level. No query-based dedup needed.
+**Document ID = `{userId}_{entryId}`** — guarantees one vote per user per entry at the Firestore level.
 
-### Steps
+### Completed Steps
 
-13. **Create a `votesProvider`** (or adapt `scoresProvider`) that reads/writes from the `contests/{contestId}/votes` subcollection instead of the `scores[]` array. Use `setDoc` with merge for upserts — first vote and revote use the same code path.
-    - New/Edit: `src/features/contest/lib/firebase/providers/scoresProvider.ts`
+✅ 13. **Created scoresProvider using votes subcollection** — Uses `setDoc` with merge for upserts, same code path for new votes and revotes.
+    - `src/features/contest/lib/firebase/providers/scoresProvider.ts`
 
-14. **Update `POST /api/contest/contests/:id/scores`** route handler to write to the votes subcollection via the new provider.
-    - Edit: `app/api/contest/contests/[id]/scores/route.ts`
+✅ 14. **Updated POST route** — Writes to votes subcollection via provider, handles both new and existing votes.
+    - `app/api/contest/contests/[id]/scores/route.ts`
 
-15. **Update `GET /api/contest/contests/:id/scores`** to query the votes subcollection (with optional `?entryId` / `?judgeId` / `?round` filters).
-    - Edit: `app/api/contest/contests/[id]/scores/route.ts`
+✅ 15. **Updated GET route** — Queries votes subcollection with `?entryId` / `?userId` filters.
+    - `app/api/contest/contests/[id]/scores/route.ts`
 
-16. **Remove the `scores[]` array from the contest document**. Update the `Contest` type.
-    - Edit: `src/features/contest/contexts/contest/contestTypes.ts`
+✅ 16. **Removed scores[] array from Contest type** — TypeScript types no longer include a scores array.
+    - `src/features/contest/contexts/contest/contestTypes.ts`
 
-17. **Update `GET /api/contest/contests/:id`** to populate a `scores` field by querying the votes subcollection, so downstream consumers (BracketView, VoteModal, ContestDetails) don't need to change their read pattern.
-    - Edit: `app/api/contest/contests/[id]/route.ts`
+⚠️ 17. **Skipped** — Not needed because Phase 4 entry aggregates (`sumScore`, `voteCount`) eliminated the need for downstream consumers to access a full scores array.
 
-18. **Update score utility functions** — `getEntryScore()` and `buildTotalsFromScores()` to work with scores from the subcollection (passed as a flat array from the API, same shape as before).
-    - Edit: `src/features/contest/lib/helpers/contestGetters.ts`
-    - Edit: `src/features/contest/lib/helpers/scoreUtils.ts`
+✅ 18. **Updated score utility functions** — `getEntryScore()` uses entry aggregates, `scoreUtils.ts` works with breakdown objects.
+    - `src/features/contest/lib/helpers/contestGetters.ts`
+    - `src/features/contest/lib/helpers/scoreUtils.ts`
 
-19. **Pre-fill previous votes in VoteModal** — Update `useRoundVoting` to fetch the current user's existing votes for the round via `GET /api/contest/contests/:id/scores?judgeId={userId}` and use them as initial slider values instead of defaulting to 5.
-    - Edit: `src/features/contest/lib/hooks/useRoundVoting.ts`
+✅ 19. **Vote pre-filling in VoteModal** — `useRoundVoting` fetches user's existing votes via API and pre-fills sliders.
+    - `src/features/contest/lib/hooks/useRoundVoting.ts`
+    - ⚠️ Note: Introduced direct fetch call instead of using API surface (fixed in Phase 4.5)
 
-### Verification
-- `GET /api/contest/contests/:id/scores` returns data from the subcollection
+### Verification ✅
+- `GET /api/contest/contests/:id/scores` returns data from subcollection
 - VoteModal pre-fills previous votes when reopened
-- Admin ContestDetails still shows per-judge breakdowns
-- BracketView scores match expected averages
-- No `scores[]` array in contest documents
+- Admin views can query per-judge breakdowns
+- BracketView scores compute from entry aggregates
+- No `scores[]` array in TypeScript types
 
 ---
 
 ## Phase 4 — Entry Aggregates for Efficient Bracket Reads
 
-Add denormalized aggregates on entries so the bracket view doesn't need to fetch all vote docs.
+✅ **Completed**
+
+Denormalized aggregates on entries so the bracket view doesn't need to fetch all vote docs.
 
 ### Data Model Addition
 
-New fields on `Entry` (inside the contest document):
+Fields on `Entry` (inside the contest document):
 
 ```typescript
 {
@@ -88,27 +100,37 @@ New fields on `Entry` (inside the contest document):
 }
 ```
 
-### Steps
+### Completed Steps
 
-20. **Add `sumScore` and `voteCount` to Entry type**.
-    - Edit: `src/features/contest/contexts/contest/contestTypes.ts`
+✅ 20. **Added `sumScore` and `voteCount` to Entry type** — TypeScript interface includes aggregates.
+    - `src/features/contest/contexts/contest/contestTypes.ts`
 
-21. **Update the vote write path** to use a Firestore transaction that:
-    - Reads the user's existing vote doc from the subcollection (if any)
-    - Computes a delta: `newTotal − oldTotal` (or full value if first vote)
-    - Writes the new vote doc to the subcollection
-    - Atomically increments `entry.sumScore` (by delta) and `entry.voteCount` (by 1 on first vote, 0 on revote) in the contest document
-    - Edit: `src/features/contest/lib/firebase/providers/scoresProvider.ts`
+✅ 21. **Updated vote write path with transaction** — `submit()`, `update()`, and `delete()` methods in scoresProvider:
+    - Read existing vote doc and contest doc
+    - Compute delta: `newTotal − oldTotal`
+    - Write vote doc to subcollection
+    - Atomically update `entry.sumScore` (by delta) and `entry.voteCount` (increment on first vote)
+    - All within a single Firestore transaction
+    - `src/features/contest/lib/firebase/providers/scoresProvider.ts`
 
-22. **Update `getEntryScore()`** to compute from `entry.sumScore / entry.voteCount` instead of iterating all scores. This eliminates the need to fetch all vote docs for the bracket view.
-    - Edit: `src/features/contest/lib/helpers/contestGetters.ts`
+✅ 22. **Updated `getEntryScore()`** — Computes from `entry.sumScore / entry.voteCount`, no iteration over scores needed.
+    - `src/features/contest/lib/helpers/contestGetters.ts`
 
-23. **Detailed per-judge breakdown** (admin view, VoteModal totals) still queries the votes subcollection when needed — aggregates are only for the common bracket fast path.
+✅ 23. **Detailed per-judge breakdown** — Admin views and VoteModal query votes subcollection when needed via the GET `/api/contest/contests/:id/scores` endpoint with filters.
 
-### Verification
-- BracketView scores match expected averages computed from aggregates
-- Score submission atomically updates both the vote doc and entry aggregates
-- Two users voting simultaneously produce correct aggregates (Firestore transaction retries handle contention)
+### Verification ✅
+- BracketView scores compute from entry aggregates (fast reads)
+- Score submission atomically updates vote doc + entry aggregates
+- Transaction retries handle concurrent votes correctly
+- Per-judge breakdowns available via API queries
+
+---
+
+## Phase 4.5 — Code Quality & Terminology Cleanup
+
+✅ **Completed**
+
+Cleaned up technical debt: added scores API surface to contestApi, replaced direct fetch in useRoundVoting, renamed "viewer" role to "competitor", updated OpenAPI schema to match votes subcollection + entry aggregates data model with consistent user/voter terminology.
 
 ---
 
@@ -118,11 +140,11 @@ Add Firestore `onSnapshot` listeners for live score updates.
 
 ### Steps
 
-24. **Contest document listener** — subscribe to the contest document for entry aggregate updates. BracketView scores update in real time as votes come in.
+25. **Contest document listener** — subscribe to the contest document for entry aggregate updates. BracketView scores update in real time as votes come in.
 
-25. **Votes subcollection listener** — subscribe (filtered by round) for live per-category totals in VoteModal.
+26. **Votes subcollection listener** — subscribe (filtered by round) for live per-category totals in VoteModal.
 
-26. **Optional display pacing** — buffer incoming snapshots in state and commit to the rendered leaderboard on a timer for a "live but paced" experience (per ideation doc).
+27. **Optional display pacing** — buffer incoming snapshots in state and commit to the rendered leaderboard on a timer for a "live but paced" experience (per ideation doc).
 
 ### Verification
 - Opening a contest page shows bracket scores updating in real time as another user votes
@@ -135,24 +157,27 @@ Add Firestore `onSnapshot` listeners for live score updates.
 | Decision | Rationale |
 |---|---|
 | **Votes subcollection over top-level collection** | `contests/{id}/votes/{docId}` scopes votes to their contest, enables efficient queries, simplifies security rules |
-| **Document ID as `{judgeId}_{entryId}`** | Guarantees uniqueness at the Firestore level — no query-based dedup needed |
+| **Document ID as `{userId}_{entryId}`** | Guarantees uniqueness at the Firestore level — no query-based dedup needed |
 | **Keep entries in contest doc** | Moving entries to a subcollection would be disruptive with minimal benefit at current scale. Aggregates on entry objects are sufficient |
-| **API populates scores on GET** | `GET /contests/:id` assembles scores from the subcollection into the response, minimizing downstream UI changes in Phase 3 |
-| **Phase ordering** | Phase 1–2 are quick wins for immediate simplification. Phase 3–4 is the core migration. Phase 5 is additive |
+| **API populates scores on GET** | Phase 3 originally planned for `GET /contests/:id` to assemble scores — Phase 4 eliminated this need via entry aggregates |
+| **Phase ordering** | Phase 1–2 are quick wins for immediate simplification. Phase 3–4 is the core migration. Phase 4.5 cleans up technical debt. Phase 5 is additive |
 | **`setDoc` with merge for upserts** | First votes and revotes use the same code path — no conditional add/update logic |
+| **"competitor" role over "viewer"** | Competitors are active participants who vote. "viewer" implied read-only access that doesn't exist. Future: competitors auto-vote themselves 100% |
+| **contestApi/adminApi surfaces** | Centralized API methods with auth handling — no direct fetch calls in components/hooks |
 
 ## Current Codebase Reference
 
-Key files affected across remaining phases:
+Key files in the implemented solution:
 
-| File | Phases | Role |
+| File | Status | Role |
 |---|---|---|
-| `contexts/contest/contestTypes.ts` | 3, 4 | Type definitions (Entry, ScoreEntry, Vote, etc.) |
-| `lib/hooks/useRoundVoting.ts` | 3 | Vote submission hook — add pre-fill |
-| `lib/firebase/scoring/scoreTransaction.ts` | 3, 4 | Transaction helper for score writes |
-| `lib/firebase/scoring/breakdownUtils.ts` | 3, 4 | Score breakdown helpers |
-| `lib/firebase/providers/scoresProvider.ts` | 3, 4 | Core rewrite — subcollection + aggregates |
-| `app/api/contest/contests/[id]/scores/route.ts` | 3 | Route handler — read/write subcollection |
-| `app/api/contest/contests/[id]/route.ts` | 3 | Populate scores on GET |
-| `lib/helpers/contestGetters.ts` | 3, 4 | `getEntryScore()` — use aggregates |
-| `lib/helpers/scoreUtils.ts` | 3 | Update utilities |
+| `contexts/contest/contestTypes.ts` | ✅ Complete | Type definitions: Entry aggregates, UserRole = admin/voter/competitor |
+| `lib/hooks/useRoundVoting.ts` | ✅ Complete | Vote submission hook; uses contestApi surface |
+| `lib/api/contestApi.ts` | ✅ Complete | Client API surface with scores methods |
+| `lib/api/serverAuth.ts` | ✅ Complete | Server auth; USER_ROLES = admin/voter/competitor, default fallback = voter |
+| `lib/firebase/providers/scoresProvider.ts` | ✅ Complete | Core provider — votes subcollection with transaction-based aggregate updates |
+| `app/api/contest/contests/[id]/scores/route.ts` | ✅ Complete | Route handler — read/write votes subcollection with filters |
+| `app/api/contest/contests/[id]/route.ts` | ✅ Complete | Returns contest document (no score population needed) |
+| `lib/helpers/contestGetters.ts` | ✅ Complete | `getEntryScore()` computes from entry aggregates |
+| `lib/helpers/scoreUtils.ts` | ✅ Complete | Score breakdown utilities (no iteration over scores) |
+| `app/api/contest/openapi.json` | ✅ Complete | Updated: voter/user terminology, votes subcollection, entry aggregates |

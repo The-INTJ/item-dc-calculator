@@ -7,23 +7,23 @@
 
 import { cookies } from 'next/headers';
 import type { UserProfile } from '../../contexts/auth/types';
-import type { JudgeRole } from '../../contexts/contest/contestTypes';
+import type { UserRole } from '../../contexts/contest/contestTypes';
 import { getFirebaseAdminAuth } from '../firebase/admin';
 
-const JUDGE_ROLES: JudgeRole[] = ['admin', 'judge', 'viewer'];
+const USER_ROLES: UserRole[] = ['admin', 'voter', 'competitor'];
 
-function resolveRoleFromClaims(claims: Record<string, unknown>): JudgeRole {
+function resolveRoleFromClaims(claims: Record<string, unknown>): UserRole {
   const rawRole =
     (typeof claims.role === 'string' && claims.role) ||
     (typeof claims.contestRole === 'string' && claims.contestRole) ||
     (claims.admin === true && 'admin') ||
-    'viewer';
+    'voter';
 
-  if (JUDGE_ROLES.includes(rawRole as JudgeRole)) {
-    return rawRole as JudgeRole;
+  if (USER_ROLES.includes(rawRole as UserRole)) {
+    return rawRole as UserRole;
   }
 
-  return 'viewer';
+  return 'voter';
 }
 
 async function buildUserProfile(uid: string, claims: Record<string, unknown>): Promise<UserProfile | null> {

@@ -27,7 +27,7 @@ export function useAuthInit({ provider, dispatch }: UseAuthInitOptions) {
         const userData = await provider.fetchUserData(uid);
         const session = createSession({
           firebaseUid: uid,
-          profile: userData?.profile ?? { displayName: 'Mixology User', role: 'viewer' },
+          profile: userData?.profile ?? { displayName: 'Mixology User', role: 'voter' },
         });
 
         dispatch({ type: 'AUTHENTICATED', session });

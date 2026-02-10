@@ -1,5 +1,4 @@
-import type { Contest, ContestRound, Entry, ScoreEntry } from '../../contexts/contest/contestTypes';
-import { calculateScore } from './scoreUtils';
+import type { Contest, ContestRound, Entry } from '../../contexts/contest/contestTypes';
 
 export function getContestRounds(contest: Contest): ContestRound[] {
   return contest.rounds ?? [];
@@ -60,15 +59,10 @@ export function getRoundStatus(contest: Contest, roundId: string): 'upcoming' | 
 }
 
 /**
- * Get the average score for an entry from all judges.
+ * Get the average score for an entry from its aggregates.
+ * Uses sumScore / voteCount stored directly on the entry — no need to query all votes.
  */
-export function getEntryScore(scoreEntries: ScoreEntry[], entryId: string): number | null {
-  const scores = scoreEntries
-    .filter((entry) => entry.entryId === entryId)
-    .map((entry) => calculateScore(entry.breakdown))
-    .filter((score) => Number.isFinite(score));
-
-  if (scores.length === 0) return null;
-  const total = scores.reduce((sum, score) => sum + score, 0);
-  return Math.round(total / scores.length);
+export function getEntryScore(entry: Entry): number | null {
+  if (!entry.voteCount || entry.voteCount === 0) return null;
+  return Math.round((entry.sumScore ?? 0) / entry.voteCount);
 }

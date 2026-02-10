@@ -3,7 +3,7 @@
  */
 
 import type { ReactNode } from 'react';
-import type { JudgeRole } from '../contest/contestTypes';
+import type { UserRole } from '../contest/contestTypes';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Core Types
@@ -14,7 +14,7 @@ export type UserStatus = 'guest' | 'authenticated';
 export interface UserProfile {
   displayName: string;
   email?: string;
-  role: JudgeRole;
+  role: UserRole;
   avatarUrl?: string;
 }
 
@@ -82,7 +82,7 @@ export interface AuthContextValue {
   session: Session | null;
   isAuthenticated: boolean;
   isGuest: boolean;
-  role: JudgeRole | null;
+  role: UserRole | null;
   error: string | null;
 
   // Actions

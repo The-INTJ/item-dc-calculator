@@ -93,9 +93,9 @@ export function AdminDashboard() {
   return (
     <div className="admin-dashboard">
       <header className="admin-dashboard__header">
-        <h1>Mixology Admin Dashboard</h1>
+        <h1>Admin Dashboard</h1>
         <p>
-          Manage contests, rounds, entries, and judges.
+          Manage contests, rounds, entries, and voters.
           Select a contest to view its details.
         </p>
         <button onClick={refresh} className="button-secondary">

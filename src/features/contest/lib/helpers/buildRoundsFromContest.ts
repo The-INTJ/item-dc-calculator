@@ -10,18 +10,20 @@ export function buildBracketRoundsFromContest(contest: Contest): BracketRound[] 
     const entries = getEntriesForRound(contest, round.id);
     const matchups = buildMatchupsFromEntries(entries).map((matchup) => {
       const [firstId, secondId] = matchup.entryIds ?? [];
-      const contestantA = firstId
+      const firstEntry = firstId ? entries?.find((entry) => entry.id === firstId) : null;
+      const secondEntry = secondId ? entries?.find((entry) => entry.id === secondId) : null;
+      const contestantA = firstEntry
         ? {
-            id: firstId,
-            name: entries?.find((entry) => entry.id === firstId)?.name ?? 'TBD',
-            score: getEntryScore(contest.scores, firstId),
+            id: firstEntry.id,
+            name: firstEntry.name ?? 'TBD',
+            score: getEntryScore(firstEntry),
           }
         : { id: 'tbd-a', name: 'TBD', score: null };
-      const contestantB = secondId
+      const contestantB = secondEntry
         ? {
-            id: secondId,
-            name: entries?.find((entry) => entry.id === secondId)?.name ?? 'TBD',
-            score: getEntryScore(contest.scores, secondId),
+            id: secondEntry.id,
+            name: secondEntry.name ?? 'TBD',
+            score: getEntryScore(secondEntry),
           }
         : { id: 'tbd-b', name: 'TBD', score: null };
 

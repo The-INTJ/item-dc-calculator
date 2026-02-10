@@ -6,10 +6,10 @@
  * without changing frontend code.
  */
 
-import type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown, ContestConfigItem } from '../../contexts/contest/contestTypes';
+import type { Contest, Entry, Voter, ScoreEntry, ScoreBreakdown, ContestConfigItem } from '../../contexts/contest/contestTypes';
 
 // Re-export core types for convenience
-export type { Contest, Entry, Judge, ScoreEntry, ScoreBreakdown, ContestConfigItem };
+export type { Contest, Entry, Voter, ScoreEntry, ScoreBreakdown, ContestConfigItem };
 
 /**
  * Result wrapper for async operations
@@ -30,7 +30,7 @@ export interface ContestsProvider {
   getDefault(): Promise<ProviderResult<Contest | null>>;
 
   // Write operations
-  create(contest: Omit<Contest, 'id' | 'entries' | 'judges' | 'scores'>): Promise<ProviderResult<Contest>>;
+  create(contest: Omit<Contest, 'id' | 'entries' | 'voters'>): Promise<ProviderResult<Contest>>;
   update(id: string, updates: Partial<Contest>): Promise<ProviderResult<Contest>>;
   delete(id: string): Promise<ProviderResult<void>>;
   setDefault(id: string): Promise<ProviderResult<Contest>>;
@@ -48,14 +48,14 @@ export interface EntriesProvider {
 }
 
 /**
- * Judges provider interface - manage judges within contests
+ * Voters provider interface - manage voters within contests
  */
-export interface JudgesProvider {
-  listByContest(contestId: string): Promise<ProviderResult<Judge[]>>;
-  getById(contestId: string, judgeId: string): Promise<ProviderResult<Judge | null>>;
-  create(contestId: string, judge: Omit<Judge, 'id'> & { id?: string }): Promise<ProviderResult<Judge>>;
-  update(contestId: string, judgeId: string, updates: Partial<Judge>): Promise<ProviderResult<Judge>>;
-  delete(contestId: string, judgeId: string): Promise<ProviderResult<void>>;
+export interface VotersProvider {
+  listByContest(contestId: string): Promise<ProviderResult<Voter[]>>;
+  getById(contestId: string, odId: string): Promise<ProviderResult<Voter | null>>;
+  create(contestId: string, voter: Omit<Voter, 'id'> & { id?: string }): Promise<ProviderResult<Voter>>;
+  update(contestId: string, voterId: string, updates: Partial<Voter>): Promise<ProviderResult<Voter>>;
+  delete(contestId: string, voterId: string): Promise<ProviderResult<void>>;
 }
 
 /**
@@ -64,7 +64,6 @@ export interface JudgesProvider {
 export interface ScoreUpdatePayload {
   breakdown?: Partial<ScoreBreakdown>;
   notes?: string;
-  naSections?: string[];
 }
 
 /**
@@ -72,7 +71,7 @@ export interface ScoreUpdatePayload {
  */
 export interface ScoresProvider {
   listByEntry(contestId: string, entryId: string): Promise<ProviderResult<ScoreEntry[]>>;
-  listByJudge(contestId: string, judgeId: string): Promise<ProviderResult<ScoreEntry[]>>;
+  listByUser(contestId: string, userId: string): Promise<ProviderResult<ScoreEntry[]>>;
   getById(contestId: string, scoreId: string): Promise<ProviderResult<ScoreEntry | null>>;
   submit(
     contestId: string,
@@ -104,7 +103,7 @@ export interface BackendProvider {
   readonly name: string;
   contests: ContestsProvider;
   entries: EntriesProvider;
-  judges: JudgesProvider;
+  voters: VotersProvider;
   scores: ScoresProvider;
   configs: ConfigsProvider;
 

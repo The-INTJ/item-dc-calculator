@@ -1,7 +1,7 @@
 /**
  * Generic adapter for array-backed entities stored within contest documents.
  *
- * Entries, Judges, and Scores are stored as arrays within the contest document.
+ * Entries and Voters are stored as arrays within the contest document.
  * This adapter provides reusable CRUD operations for any such entity type.
  */
 
@@ -25,7 +25,7 @@ export interface ArrayEntityConfig<T extends { id: string }> {
   /** Human-readable entity name for error messages. */
   entityName: string;
 
-  /** ID prefix for new entities (e.g., 'entry', 'judge'). */
+  /** ID prefix for new entities (e.g., 'entry', 'voter'). */
   idPrefix: string;
 }
 

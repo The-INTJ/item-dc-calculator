@@ -1,38 +1,15 @@
-import type { ScoreEntry, ScoreBreakdown, AttributeConfig } from '../../contexts/contest/contestTypes';
+import type { ScoreEntry, AttributeConfig } from '../../contexts/contest/contestTypes';
 import type { VoteTotals } from '../../lib/helpers/uiMappings';
 
-const breakdownOrder: Array<keyof ScoreBreakdown> = [
-  'aroma',
-  'balance',
-  'presentation',
-  'creativity',
-  'overall',
-];
-
-const breakdownKeySet = new Set<string>(breakdownOrder);
-
-function isBreakdownKey(value: string): value is keyof ScoreBreakdown {
-  return breakdownKeySet.has(value);
-}
-
-function formatLabel(value: string): string {
-  if (!value) return '';
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-export function buildDefaultVoteCategories(): AttributeConfig[] {
-  return breakdownOrder.map((key) => ({
-    id: key,
-    label: formatLabel(key),
-  }));
-}
-
+/**
+ * Build per-entry, per-category totals from an array of score entries.
+ * Used in admin views that need detailed breakdowns queried from the votes subcollection.
+ */
 export function buildTotalsFromScores(scores: ScoreEntry[], categories: AttributeConfig[]): VoteTotals[] {
   const totalsMap = new Map<string, number>();
 
   scores.forEach((score) => {
     categories.forEach((category) => {
-      if (!isBreakdownKey(category.id)) return;
       const value = score.breakdown[category.id];
       if (typeof value !== 'number') return;
       const entryId = score.entryId;

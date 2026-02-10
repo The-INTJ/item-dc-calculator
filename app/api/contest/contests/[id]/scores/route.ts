@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getBackendProvider } from '@/contest/lib/helpers/backendProvider';
-import type { Entry, Judge, JudgeRole, ScoreBreakdown, Contest } from '@/src/features/contest/contexts/contest/contestTypes';
+import type { Entry, UserRole, ScoreBreakdown } from '@/src/features/contest/contexts/contest/contestTypes';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -8,13 +8,13 @@ interface RouteParams {
 
 interface ScoreSubmitBody {
   entryId?: string;
-  judgeId: string;
-  judgeName?: string;
-  judgeRole?: JudgeRole;
+  userId: string;
+  userName?: string;
+  userRole?: UserRole;
   categoryId?: string;
   value?: number;
   breakdown?: Partial<ScoreBreakdown>;
-  naSections?: string[];
+  round?: string;
   notes?: string;
 }
 
@@ -38,7 +38,7 @@ export async function GET(request: Request, { params }: RouteParams) {
 
   const url = new URL(request.url);
   const entryId = url.searchParams.get('entryId');
-  const judgeId = url.searchParams.get('judgeId');
+  const userId = url.searchParams.get('userId');
 
   if (entryId) {
     const result = await provider.scores.listByEntry(contest.id, entryId);
@@ -46,12 +46,12 @@ export async function GET(request: Request, { params }: RouteParams) {
       return NextResponse.json({ message: result.error ?? 'Scores not found' }, { status: 404 });
     }
 
-    const filtered = judgeId ? result.data.filter((score) => score.judgeId === judgeId) : result.data;
+    const filtered = userId ? result.data.filter((score) => score.userId === userId) : result.data;
     return NextResponse.json({ scores: filtered });
   }
 
-  if (judgeId) {
-    const result = await provider.scores.listByJudge(contest.id, judgeId);
+  if (userId) {
+    const result = await provider.scores.listByUser(contest.id, userId);
     if (!result.success || !result.data) {
       return NextResponse.json({ message: result.error ?? 'Scores not found' }, { status: 404 });
     }
@@ -59,7 +59,8 @@ export async function GET(request: Request, { params }: RouteParams) {
     return NextResponse.json({ scores: result.data });
   }
 
-  return NextResponse.json({ scores: contest.scores ?? [] });
+  // No filters — return empty. Use entryId or userId params to query scores.
+  return NextResponse.json({ scores: [] });
 }
 
 export async function POST(request: Request, { params }: RouteParams) {
@@ -72,40 +73,29 @@ export async function POST(request: Request, { params }: RouteParams) {
   try {
     const body = (await request.json()) as ScoreSubmitBody;
     const entryId = body.entryId?.trim();
-    const judgeId = body.judgeId?.trim();
+    const userId = body.userId?.trim();
 
-    if (!entryId || !judgeId) {
-      return NextResponse.json({ message: 'entryId and judgeId are required.' }, { status: 400 });
+    if (!entryId || !userId) {
+      return NextResponse.json({ message: 'entryId and userId are required.' }, { status: 400 });
     }
 
     const entries: Entry[] = contest.entries;
-    const entryExists = entries?.some((entry) => entry.id === entryId);
-    if (!entryExists) {
+    const entry = entries?.find((e) => e.id === entryId);
+    if (!entry) {
       return NextResponse.json({ message: 'Entry not found.' }, { status: 404 });
     }
 
-    const judges: Judge[] = contest.judges ?? [];
-    if (!judges.some((judge) => judge.id === judgeId)) {
-      await provider.judges.create(contest.id, {
-        id: judgeId,
-        displayName: body.judgeName ?? 'Guest Judge',
-        role: body.judgeRole ?? 'judge',
+    // Auto-register voter if not already known
+    const voters = contest.voters ?? [];
+    if (!voters.some((voter) => voter.id === userId)) {
+      await provider.voters.create(contest.id, {
+        id: userId,
+        displayName: body.userName ?? 'Guest',
+        role: body.userRole ?? 'voter',
       });
     }
 
-    const naSectionsProvided = body.naSections !== undefined;
-
-    if (naSectionsProvided && !Array.isArray(body.naSections)) {
-      return NextResponse.json({ message: 'naSections must be an array of attribute IDs.' }, { status: 400 });
-    }
-
-    const sanitizeBreakdown = (
-      updates: Partial<ScoreBreakdown>
-    ): Partial<ScoreBreakdown> =>
-      Object.fromEntries(
-        Object.entries(updates).filter(([, value]) => value !== undefined)
-      ) as Partial<ScoreBreakdown>;
-
+    // Build breakdown from body
     let breakdownUpdates: Partial<ScoreBreakdown> | null = null;
 
     if (body.breakdown && Object.keys(body.breakdown).length > 0) {
@@ -118,45 +108,19 @@ export async function POST(request: Request, { params }: RouteParams) {
       breakdownUpdates = { [body.categoryId]: numericValue };
     }
 
-    const normalizedBreakdown = breakdownUpdates ? sanitizeBreakdown(breakdownUpdates) : null;
-
-    if (!normalizedBreakdown && !naSectionsProvided) {
+    if (!breakdownUpdates) {
       return NextResponse.json({ message: 'Score breakdown or categoryId + value is required.' }, { status: 400 });
     }
 
-    const existingScores = await provider.scores.listByEntry(contest.id, entryId);
-    if (!existingScores.success || !existingScores.data) {
-      return NextResponse.json({ message: existingScores.error ?? 'Failed to load scores' }, { status: 500 });
-    }
+    const round = body.round ?? entry.round ?? '';
 
-    const existing = existingScores.data.find((score) => score.judgeId === judgeId);
-
-    if (existing) {
-      const normalizedNotes = body.notes ?? existing.notes ?? '';
-      const normalizedNaSections = naSectionsProvided
-        ? body.naSections ?? []
-        : existing.naSections ?? [];
-      const updateResult = await provider.scores.update(contest.id, existing.id, {
-        ...(normalizedBreakdown ? { breakdown: normalizedBreakdown } : {}),
-        notes: normalizedNotes,
-        naSections: normalizedNaSections,
-      });
-      if (!updateResult.success || !updateResult.data) {
-        const message = updateResult.error ?? 'Failed to update score';
-        const status = message.startsWith('Validation:') ? 400 : 500;
-        return NextResponse.json({ message }, { status });
-      }
-      return NextResponse.json(updateResult.data);
-    }
-
-    const normalizedNotes = body.notes ?? '';
-    const normalizedNaSections = naSectionsProvided ? body.naSections ?? [] : [];
+    // Submit (upsert) — provider handles both new and existing votes transactionally
     const submitResult = await provider.scores.submit(contest.id, {
       entryId,
-      judgeId,
-      breakdown: (normalizedBreakdown ?? {}) as ScoreBreakdown,
-      notes: normalizedNotes,
-      naSections: normalizedNaSections,
+      userId,
+      round,
+      breakdown: breakdownUpdates as ScoreBreakdown,
+      ...(body.notes ? { notes: body.notes } : {}),
     });
 
     if (!submitResult.success || !submitResult.data) {
@@ -165,7 +129,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       return NextResponse.json({ message }, { status });
     }
 
-    return NextResponse.json(submitResult.data, { status: 201 });
+    return NextResponse.json(submitResult.data);
   } catch {
     return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
   }
