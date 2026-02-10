@@ -6,12 +6,14 @@ import { useContestStore } from '@/src/features/contest/contexts/contest/Contest
 import { BracketView } from '@/contest/components/ui/BracketView';
 import { VoteModal } from '@/contest/components/ui/VoteModal';
 import { buildBracketRoundsFromContest } from '@/contest/lib/helpers/buildRoundsFromContest';
+import { useContestSubscription } from '@/contest/lib/hooks/useContestSubscription';
 
 export default function ContestPage() {
   const { id } = useParams<{ id: string }>();
   const { contests } = useContestStore();
   const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null);
 
+  useContestSubscription(id);
   const contest = contests.find((c) => c.id === id) ?? null;
   const rounds = contest ? buildBracketRoundsFromContest(contest) : [];
 
