@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useContestStore } from '@/src/features/contest/contexts/contest/ContestContext';
@@ -30,6 +31,11 @@ export default function ContestPage() {
       <section className="contest-hero">
         <h1>{contest.name}</h1>
         <p>Click a round to vote.</p>
+        <div className="contest-actions">
+          <Link href={`/contest/${id}/display`} className="button-secondary">
+            Open display mode
+          </Link>
+        </div>
       </section>
 
       <BracketView rounds={rounds} onRoundClick={setSelectedRoundId} />

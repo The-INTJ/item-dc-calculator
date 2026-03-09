@@ -8,14 +8,14 @@ import styles from '@/contest/styles/components/Header.module.scss';
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const showContestHeader = !pathname.startsWith('/dc-calculator');
+  const isDisplayMode = pathname.startsWith('/contest/') && pathname.endsWith('/display');
+  const showContestHeader = !pathname.startsWith('/dc-calculator') && !isDisplayMode;
   if (!showContestHeader) {
     return null;
   }
-  const { isAuthenticated, loading } = useAuth();
-  const showAuthBanner =
-    pathname.startsWith('/contest') && !loading && !isAuthenticated;
 
+  const { isAuthenticated, loading } = useAuth();
+  const showAuthBanner = pathname.startsWith('/contest') && !loading && !isAuthenticated;
 
   return (
     <header className="site-header">
