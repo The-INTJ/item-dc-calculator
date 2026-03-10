@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ReactNode } from 'react';
-import type { EntrySummary } from '../../lib/helpers/uiMappings';
+import type { EntrySummary } from '../../lib/presentation/uiMappings';
 
 type EntryCardVariant = 'compact' | 'vote';
 

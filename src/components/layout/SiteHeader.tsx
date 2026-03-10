@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@/src/features/contest/contexts/auth/AuthContext';
+import { useAuth } from '@/contest/contexts/auth/AuthContext';
 import { NavBar } from './NavBar';
 import styles from '@/contest/styles/components/Header.module.scss';
 

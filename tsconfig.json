@@ -29,9 +29,6 @@
       "@/features/*": [
         "./src/features/*"
       ],
-      "@/lib/*": [
-        "./src/lib/*"
-      ],
       "@/contest/*": [
         "./src/features/contest/*"
       ]

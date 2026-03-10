@@ -2,10 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/auth/AuthContext';
-import { getEntriesForRound } from '../helpers/contestGetters';
-import { getEffectiveConfig } from '../helpers/validation';
-import { buildScoreDefaults, mergeScoreMaps, buildScoresFromEntries, isBreakdownKey } from '../helpers/scoreUtils';
-import { buildEntrySummaries } from '../helpers/uiMappings';
+import { getEntriesForRound } from '../domain/contestGetters';
+import { getEffectiveConfig } from '../domain/validation';
+import {
+  buildScoreDefaults,
+  mergeScoreMaps,
+  buildScoresFromEntries,
+  isBreakdownKey,
+} from '../domain/scoreUtils';
+import { buildEntrySummaries } from '../presentation/uiMappings';
 import type { Contest, ScoreBreakdown, ScoreEntry } from '../../contexts/contest/contestTypes';
 import { contestApi } from '../api/contestApi';
 

@@ -3,8 +3,8 @@ import './globals.scss';
 import { RootLayoutClient } from './RootLayoutClient';
 
 export const metadata = {
-  title: 'Mixology Rating App | Shard DC Calculator',
-  description: 'Mixology contest rating experience for judging and scoring cocktail matchups.',
+  title: 'Contest App | Item DC Calculator',
+  description: 'Contest judging, scoring, and display mode alongside the legacy item DC calculator.',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

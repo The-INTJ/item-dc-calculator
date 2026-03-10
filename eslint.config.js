@@ -7,6 +7,16 @@ import globals from 'globals';
 export default [
   js.configs.recommended,
   {
+    ignores: [
+      '.next/**',
+      'node_modules/**',
+      'dist/**',
+      'coverage/**',
+      'AI_Assistance/archive/**',
+      '*.tsbuildinfo',
+    ],
+  },
+  {
     files: ['**/*.{ts,tsx,js,jsx}'],
     languageOptions: {
       parser: tsParser,
@@ -24,6 +34,13 @@ export default [
     rules: {
       ...tsPlugin.configs.recommended.rules,
       ...nextPlugin.configs['core-web-vitals'].rules,
+      'no-undef': 'off',
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: ['@/src/*'],
+        },
+      ],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': 'off',
     },

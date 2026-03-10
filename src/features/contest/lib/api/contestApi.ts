@@ -1,118 +1,112 @@
-import type { Contest, Entry, ScoreEntry, ScoreBreakdown, UserRole } from '../../contexts/contest/contestTypes';
-import { getClientBackendProvider } from '../firebase/clientBackendProvider';
-
-async function runProviderCall<T>(
-  operation: (provider: Awaited<ReturnType<typeof getClientBackendProvider>>) => Promise<T>,
-): Promise<T | null> {
-  try {
-    const provider = await getClientBackendProvider();
-    return await operation(provider);
-  } catch (err) {
-    console.error('Contest data operation failed:', err);
-    return null;
-  }
-}
+import type { Contest, Entry, ScoreBreakdown, ScoreEntry, UserRole } from '../../contexts/contest/contestTypes';
+import { apiRequest } from './request';
 
 export const contestApi = {
   async listContests(): Promise<{ contests: Contest[]; currentContest: Contest | null } | null> {
-    return runProviderCall(async (provider) => {
-      const [contestsResult, currentContestResult] = await Promise.all([
-        provider.contests.list(),
-        provider.contests.getDefault(),
-      ]);
-
-      if (!contestsResult.success || !currentContestResult.success) {
-        return null;
-      }
-
-      return {
-        contests: contestsResult.data ?? [],
-        currentContest: currentContestResult.data ?? null,
-      };
-    });
+    try {
+      return await apiRequest<{ contests: Contest[]; currentContest: Contest | null }>(
+        '/api/contest/contests',
+      );
+    } catch (error) {
+      console.error('Contest data operation failed:', error);
+      return null;
+    }
   },
 
   async getContest(id: string): Promise<Contest | null> {
-    return runProviderCall(async (provider) => {
-      const result = await provider.contests.list();
-      if (!result.success) {
-        return null;
-      }
-
-      return result.data?.find((contest) => contest.id === id || contest.slug === id) ?? null;
-    });
+    try {
+      return await apiRequest<Contest>(`/api/contest/contests/${id}`);
+    } catch {
+      return null;
+    }
   },
 
   async createContest(data: Partial<Contest>): Promise<Contest | null> {
-    return runProviderCall(async (provider) => {
-      const result = await provider.contests.create({
-        name: data.name ?? '',
-        slug: data.slug ?? '',
-        phase: data.phase ?? 'set',
-        config: data.config,
-        location: data.location,
-        startTime: data.startTime,
-        bracketRound: data.bracketRound,
-        currentEntryId: data.currentEntryId,
-        defaultContest: data.defaultContest,
-        rounds: data.rounds,
-        activeRoundId: data.activeRoundId,
-        futureRoundId: data.futureRoundId,
+    try {
+      return await apiRequest<Contest>('/api/contest/contests', {
+        method: 'POST',
+        body: data,
       });
-
-      return result.success ? (result.data ?? null) : null;
-    });
+    } catch {
+      return null;
+    }
   },
 
   async updateContest(id: string, updates: Partial<Contest>): Promise<Contest | null> {
-    return runProviderCall(async (provider) => {
-      const result = await provider.contests.update(id, updates);
-      return result.success ? (result.data ?? null) : null;
-    });
+    try {
+      return await apiRequest<Contest>(`/api/contest/contests/${id}`, {
+        method: 'PATCH',
+        body: updates,
+      });
+    } catch {
+      return null;
+    }
   },
 
   async deleteContest(id: string): Promise<boolean> {
-    return runProviderCall(async (provider) => {
-      const result = await provider.contests.delete(id);
-      return result.success;
-    }).then((result) => result ?? false);
+    try {
+      await apiRequest<{ success: true }>(`/api/contest/contests/${id}`, {
+        method: 'DELETE',
+      });
+      return true;
+    } catch {
+      return false;
+    }
   },
 
   async createEntry(contestId: string, entry: Omit<Entry, 'id'>): Promise<Entry | null> {
-    return runProviderCall(async (provider) => {
-      const result = await provider.entries.create(contestId, entry);
-      return result.success ? (result.data ?? null) : null;
-    });
+    try {
+      return await apiRequest<Entry>(`/api/contest/contests/${contestId}/entries`, {
+        method: 'POST',
+        body: entry,
+      });
+    } catch {
+      return null;
+    }
   },
 
   async updateEntry(contestId: string, entryId: string, updates: Partial<Entry>): Promise<Entry | null> {
-    return runProviderCall(async (provider) => {
-      const result = await provider.entries.update(contestId, entryId, updates);
-      return result.success ? (result.data ?? null) : null;
-    });
+    try {
+      return await apiRequest<Entry>(`/api/contest/contests/${contestId}/entries/${entryId}`, {
+        method: 'PATCH',
+        body: updates,
+      });
+    } catch {
+      return null;
+    }
   },
 
   async deleteEntry(contestId: string, entryId: string): Promise<boolean> {
-    return runProviderCall(async (provider) => {
-      const result = await provider.entries.delete(contestId, entryId);
-      return result.success;
-    }).then((result) => result ?? false);
+    try {
+      await apiRequest<{ success: true }>(`/api/contest/contests/${contestId}/entries/${entryId}`, {
+        method: 'DELETE',
+      });
+      return true;
+    } catch {
+      return false;
+    }
   },
 
   async getScoresForUser(contestId: string, userId: string): Promise<ScoreEntry[]> {
-    const result = await runProviderCall(async (provider) => {
-      const response = await provider.scores.listByUser(contestId, userId);
-      return response.success ? (response.data ?? []) : [];
-    });
-    return result ?? [];
+    try {
+      const result = await apiRequest<{ scores: ScoreEntry[] }>(
+        `/api/contest/contests/${contestId}/scores?userId=${encodeURIComponent(userId)}`,
+      );
+      return result.scores ?? [];
+    } catch {
+      return [];
+    }
   },
 
   async getScoresForEntry(contestId: string, entryId: string): Promise<ScoreEntry[]> {
-    const result = await runProviderCall(async (provider) => {
-      const response = await provider.scores.listByEntry(contestId, entryId);
-      return response.success ? (response.data ?? []) : [];
-    });
-    return result ?? [];
+    try {
+      const result = await apiRequest<{ scores: ScoreEntry[] }>(
+        `/api/contest/contests/${contestId}/scores?entryId=${encodeURIComponent(entryId)}`,
+      );
+      return result.scores ?? [];
+    } catch {
+      return [];
+    }
   },
 
   async submitScore(contestId: string, data: {
@@ -124,16 +118,13 @@ export const contestApi = {
     round?: string;
     notes?: string;
   }): Promise<ScoreEntry | null> {
-    return runProviderCall(async (provider) => {
-      const result = await provider.scores.submit(contestId, {
-        entryId: data.entryId,
-        userId: data.userId,
-        round: data.round ?? '',
-        breakdown: data.breakdown as ScoreBreakdown,
-        ...(data.notes ? { notes: data.notes } : {}),
+    try {
+      return await apiRequest<ScoreEntry>(`/api/contest/contests/${contestId}/scores`, {
+        method: 'POST',
+        body: data,
       });
-
-      return result.success ? (result.data ?? null) : null;
-    });
+    } catch {
+      return null;
+    }
   },
 };

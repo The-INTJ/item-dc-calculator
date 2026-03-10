@@ -1,16 +1,17 @@
 'use client';
-import { useState, useEffect } from 'react';
+
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Contest, ContestConfig, Entry, Voter, ScoreEntry } from '../../contexts/contest/contestTypes';
-import { buildEntrySummary } from '../../lib/helpers/uiMappings';
-import { getEffectiveConfig } from '../../lib/helpers/validation';
-import { getRoundLabel } from '../../lib/helpers/contestGetters';
-import { EntryCard } from '../ui/EntryCard';
+import type { Contest, ContestConfig, Entry, ScoreEntry, Voter } from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
 import { adminApi } from '../../lib/api/adminApi';
 import { contestApi } from '../../lib/api/contestApi';
-import { AdminContestRounds } from './AdminContestRounds';
+import { getRoundLabel } from '../../lib/domain/contestGetters';
+import { getEffectiveConfig } from '../../lib/domain/validation';
+import { buildEntrySummary } from '../../lib/presentation/uiMappings';
+import { EntryCard } from '../ui/EntryCard';
 import { AdminContestants } from './AdminContestants';
+import { AdminContestRounds } from './AdminContestRounds';
 import { AdminRoundOverview } from './AdminRoundOverview';
 import { ContestConfigEditor } from './ContestConfigEditor';
 import { ContestPhaseControls } from './ContestPhaseControls';
@@ -32,7 +33,10 @@ function EntryItem({ entry, roundLabel }: { entry: Entry; roundLabel: string }) 
 }
 
 function getRoleLabel(role: Voter['role']) {
-  if (role === 'voter') return 'voter';
+  if (role === 'voter') {
+    return 'voter';
+  }
+
   return role;
 }
 
@@ -47,15 +51,31 @@ function VoterItem({ voter }: { voter: Voter }) {
   );
 }
 
-function ScoreItem({ score, entries, voters, config }: { score: ScoreEntry; entries: Entry[]; voters: Voter[]; config: ContestConfig }) {
+function ScoreItem({
+  score,
+  entries,
+  voters,
+  config,
+}: {
+  score: ScoreEntry;
+  entries: Entry[];
+  voters: Voter[];
+  config: ContestConfig;
+}) {
   const entry = entries.find((candidate) => candidate.id === score.entryId);
   const voter = voters.find((candidate) => candidate.id === score.userId);
-  const total = config.attributes.reduce((sum, attr) => {
-    const value = score.breakdown[attr.id];
-    if (typeof value !== 'number' || !Number.isFinite(value)) return sum;
+  const total = config.attributes.reduce((sum, attribute) => {
+    const value = score.breakdown[attribute.id];
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      return sum;
+    }
+
     return sum + value;
   }, 0);
-  const maxTotal = config.attributes.reduce((sum, attr) => sum + (attr.max ?? 10), 0);
+  const maxTotal = config.attributes.reduce(
+    (sum, attribute) => sum + (attribute.max ?? 10),
+    0,
+  );
 
   return (
     <li className="admin-detail-item admin-score-item">
@@ -64,12 +84,16 @@ function ScoreItem({ score, entries, voters, config }: { score: ScoreEntry; entr
         <span className="admin-detail-meta">by {voter?.displayName ?? 'Unknown'}</span>
       </div>
       <div className="admin-score-item__breakdown">
-        {config.attributes.map((attr) => (
-          <span key={attr.id}>{attr.label}: {score.breakdown[attr.id] ?? 'N/A'}</span>
+        {config.attributes.map((attribute) => (
+          <span key={attribute.id}>
+            {attribute.label}: {score.breakdown[attribute.id] ?? 'N/A'}
+          </span>
         ))}
-        <strong>Total: {total}/{maxTotal}</strong>
+        <strong>
+          Total: {total}/{maxTotal}
+        </strong>
       </div>
-      {score.notes && <p className="admin-score-item__notes">{score.notes}</p>}
+      {score.notes ? <p className="admin-score-item__notes">{score.notes}</p> : null}
     </li>
   );
 }
@@ -84,9 +108,10 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
   const activeRoundLabel = getRoundLabel(contest, contest.activeRoundId);
   const config = getEffectiveConfig(contest);
 
-  // Fetch scores from subcollection for admin detail view
   useEffect(() => {
-    if (!contest.id) return;
+    if (!contest.id) {
+      return;
+    }
 
     const fetchScores = async () => {
       const scoreGroups = await Promise.all(
@@ -97,22 +122,25 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
     };
 
     void fetchScores();
-  }, [contest.id, contest.entries.length]);
+  }, [contest.id, contest.entries]);
 
   const handleSaveConfig = async (nextConfig: ContestConfig) => {
     const result = await adminApi.updateContestConfig(contest.id, nextConfig);
     if (!result.success || !result.data) {
       throw new Error(result.error ?? 'Failed to update config');
     }
+
     onContestUpdated(result.data);
   };
 
   const handleDeleteContest = async () => {
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${contest.name}"?\n\nThis will permanently delete:\n• All rounds\n• All entries\n• All scores\n\nThis action cannot be undone.`
+      `Are you sure you want to delete "${contest.name}"?\n\nThis will permanently delete:\n- All rounds\n- All entries\n- All scores\n\nThis action cannot be undone.`,
     );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     setIsDeleting(true);
     setDeleteError(null);
@@ -134,7 +162,7 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
         <div>
           <h2>{contest.name}</h2>
           <p className="admin-detail-meta">
-            {contest.location ?? 'No location'} • {activeRoundLabel}
+            {contest.location ?? 'No location'} - {activeRoundLabel}
           </p>
         </div>
         <button
@@ -147,11 +175,11 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
         </button>
       </header>
 
-      {deleteError && (
+      {deleteError ? (
         <div className="admin-phase-controls__message--error" style={{ marginBottom: '1rem' }}>
           {deleteError}
         </div>
-      )}
+      ) : null}
 
       <ContestPhaseControls contest={contest} onContestUpdated={onContestUpdated} />
       <ContestConfigEditor contest={contest} onSave={handleSaveConfig} />
@@ -161,7 +189,9 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
 
       <section className="admin-details-section">
         <h3>Vote categories</h3>
-        <p className="admin-detail-meta">Server-managed categories are disabled for local testing.</p>
+        <p className="admin-detail-meta">
+          Server-managed categories are disabled for local testing.
+        </p>
       </section>
 
       <section className="admin-details-section">

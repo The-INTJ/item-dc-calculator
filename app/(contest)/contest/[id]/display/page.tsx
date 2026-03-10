@@ -2,18 +2,13 @@
 
 import { useParams } from 'next/navigation';
 import { ContestDisplay } from '@/contest/components/ui/ContestDisplay';
-import { useContestStore } from '@/contest/contexts/contest/ContestContext';
-import { useContestSubscription } from '@/contest/lib/hooks/useContestSubscription';
+import { useResolvedContest } from '@/contest/lib/hooks/useResolvedContest';
 
 export default function ContestDisplayPage() {
   const { id } = useParams<{ id: string }>();
-  const { contests } = useContestStore();
+  const { contest, status } = useResolvedContest(id);
 
-  useContestSubscription(id);
-
-  const contest = contests.find((item) => item.id === id) ?? null;
-
-  if (!contest && contests.length === 0) {
+  if (status === 'loading') {
     return (
       <div className="contest-display-page contest-display-page__state">
         <div className="contest-display-page__card">Loading display...</div>

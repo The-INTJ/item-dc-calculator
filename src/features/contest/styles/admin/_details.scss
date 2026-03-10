@@ -1,0 +1,148 @@
+@use '../index' as *;
+
+.admin-contest-details {
+  display: flex;
+  flex-direction: column;
+  gap: $space-gap-loose;
+}
+
+.admin-contest-details__header {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-lg;
+  justify-content: space-between;
+  margin-bottom: $space-gap-normal;
+}
+
+.admin-contest-details__header h2 {
+  @include type-large;
+  margin-bottom: 0.25rem;
+}
+
+.admin-detail-meta {
+  color: $color-text-dark;
+  @include type-normal;
+  opacity: 0.75;
+}
+
+.admin-details-section {
+  border-top: 1px solid $color-border;
+  padding-top: $space-padding-md;
+}
+
+.admin-details-section h3 {
+  @include type-large;
+  margin-bottom: $space-lg;
+}
+
+.admin-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-base;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-detail-item {
+  align-items: center;
+  background: #fff;
+  border: 1px solid $color-border;
+  border-radius: $radius-button;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-base;
+  padding: $space-padding-sm $space-padding-md;
+}
+
+.admin-contest-activation {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-gap-normal;
+  justify-content: space-between;
+}
+
+.admin-contestant-item {
+  justify-content: space-between;
+}
+
+.admin-category-form {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-lg;
+  margin-bottom: $space-base;
+}
+
+.admin-category-form__select {
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: $radius-button;
+  color: inherit;
+  padding: $space-md 0.6rem;
+}
+
+.admin-category-form__message {
+  @include type-normal;
+  color: $color-text-dark;
+  margin: 0 0 $space-base;
+  opacity: 0.75;
+
+  &--error {
+    color: $color-text-special;
+    font-weight: $font-weight-semibold;
+    opacity: 0.95;
+  }
+}
+
+.admin-role-badge {
+  @include status-badge;
+}
+
+.admin-role-badge--admin {
+  background: $color-error-600;
+  color: $color-text-light;
+}
+
+.admin-role-badge--voter {
+  background: $color-info-600;
+  color: $color-text-light;
+}
+
+.admin-role-badge--competitor {
+  background: $color-gray-500;
+  color: $color-text-light;
+}
+
+.admin-score-item {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.admin-score-item__header {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-base;
+}
+
+.admin-score-item__breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  @include type-normal;
+  gap: $space-lg;
+  margin-top: $space-base;
+}
+
+.admin-score-item__notes {
+  background: $color-light-100;
+  border-radius: $radius-xs;
+  color: $color-text-dark;
+  @include type-normal;
+  font-style: italic;
+  margin: $space-base 0 0;
+  opacity: 0.8;
+  padding: $space-base;
+}

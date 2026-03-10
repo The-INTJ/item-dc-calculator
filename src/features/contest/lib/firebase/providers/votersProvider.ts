@@ -4,7 +4,7 @@
  * Handles CRUD operations for voters stored as arrays in contest documents.
  */
 
-import type { VotersProvider, Voter } from '../../helpers/types';
+import type { VotersProvider, Voter } from '../../backend/types';
 import { createArrayEntityOperations } from '../arrayEntityAdapter';
 import type { FirestoreAdapter } from '../firestoreAdapter';
 

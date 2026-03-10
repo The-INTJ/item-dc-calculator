@@ -1,3 +1,1 @@
-// DC-calculator theme semantic tokens.
-// TODO: override or extend core semantic tokens for the dc-calculator app.
-$dc-calculator-semantic: () !default;
+@forward '../../../../styles/system/semantic/dc-calculator';

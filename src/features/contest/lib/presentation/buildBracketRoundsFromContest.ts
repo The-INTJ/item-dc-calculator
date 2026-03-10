@@ -1,17 +1,16 @@
 import type { BracketRound } from '../../components/ui/BracketView';
 import type { Contest } from '../../contexts/contest/contestTypes';
-import { buildMatchupsFromEntries } from './uiMappings';
-import { getContestRounds, getEntriesForRound, getEntryScore, getRoundStatus } from './contestGetters';
+import { getContestRounds, getEntriesForRound, getEntryScore, getRoundStatus } from '../domain/contestGetters';
+import { buildEntryPairs } from './uiMappings';
 
 export function buildBracketRoundsFromContest(contest: Contest): BracketRound[] {
   const rounds = getContestRounds(contest);
 
   return rounds.map((round, index) => {
     const entries = getEntriesForRound(contest, round.id);
-    const matchups = buildMatchupsFromEntries(entries).map((matchup) => {
-      const [firstId, secondId] = matchup.entryIds ?? [];
-      const firstEntry = firstId ? entries?.find((entry) => entry.id === firstId) : null;
-      const secondEntry = secondId ? entries?.find((entry) => entry.id === secondId) : null;
+    const matchups = buildEntryPairs(entries).map((matchup) => {
+      const firstEntry = matchup.contestantA;
+      const secondEntry = matchup.contestantB;
       const contestantA = firstEntry
         ? {
             id: firstEntry.id,
@@ -37,7 +36,7 @@ export function buildBracketRoundsFromContest(contest: Contest): BracketRound[] 
 
     return {
       id: round.id,
-      name: `Round ${index + 1}`,
+      name: round.name || `Round ${index + 1}`,
       status: getRoundStatus(contest, round.id),
       matchups,
     };

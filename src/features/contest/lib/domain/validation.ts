@@ -19,17 +19,6 @@ export function isValidAttributeId(key: string, config: ContestConfig): boolean 
 }
 
 /**
- * Create an empty breakdown with all attributes set to 0.
- */
-export function createEmptyBreakdown(config: ContestConfig): ScoreBreakdown {
-  const breakdown: ScoreBreakdown = {};
-  for (const attr of config.attributes) {
-    breakdown[attr.id] = 0;
-  }
-  return breakdown;
-}
-
-/**
  * Validate a score breakdown against a config.
  * Returns an array of error messages (empty if valid).
  */

@@ -127,7 +127,7 @@ export function createFirebaseAuthProvider(): AuthProvider {
         const existing = await getDoc(userRef);
         if (!existing.exists()) {
           await setDoc(userRef, {
-            displayName: user.displayName ?? user.email?.split('@')[0] ?? 'Mixology User',
+            displayName: user.displayName ?? user.email?.split('@')[0] ?? 'Contest User',
             email: user.email ?? undefined,
             role: 'voter',
             createdAt: serverTimestamp(),

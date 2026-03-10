@@ -1,18 +1,19 @@
-import { NextResponse } from 'next/server';
-import { getBackendProvider } from '@/contest/lib/helpers/backendProvider';
+import { fromProviderResult, jsonError, jsonSuccess, readJsonBody } from '../_lib/http';
+import { loadProvider } from '../_lib/provider';
 import { requireAdmin } from '../_lib/requireAdmin';
+import type { Contest } from '@/contest/contexts/contest/contestTypes';
 
 export async function GET(request: Request) {
-  const provider = await getBackendProvider();
+  const provider = await loadProvider();
   const url = new URL(request.url);
   const slug = url.searchParams.get('slug');
 
   if (slug) {
     const result = await provider.contests.getBySlug(slug);
     if (!result.success || !result.data) {
-      return NextResponse.json({ message: result.error ?? 'Contest not found' }, { status: 404 });
+      return jsonError(result.error ?? 'Contest not found', 404);
     }
-    return NextResponse.json(result.data);
+    return jsonSuccess(result.data);
   }
 
   const [contestsResult, defaultResult] = await Promise.all([
@@ -20,31 +21,32 @@ export async function GET(request: Request) {
     provider.contests.getDefault(),
   ]);
 
-  return NextResponse.json({
+  if (!contestsResult.success) {
+    return jsonError(contestsResult.error ?? 'Failed to load contests', 500);
+  }
+
+  if (!defaultResult.success) {
+    return jsonError(defaultResult.error ?? 'Failed to load current contest', 500);
+  }
+
+  return jsonSuccess({
     contests: contestsResult.data ?? [],
     currentContest: defaultResult.data ?? null,
   });
 }
 
 export async function POST(request: Request) {
-  /*
-const adminError = await requireAdmin(request);
+  const adminError = await requireAdmin(request);
   if (adminError) {
     return adminError;
   }
-*/
-  const provider = await getBackendProvider();
-
-  try {
-    const body = await request.json();
-    const result = await provider.contests.create(body);
-
-    if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 400 });
-    }
-
-    return NextResponse.json(result.data, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+  const body = await readJsonBody<Omit<Contest, 'id' | 'entries' | 'voters'>>(request);
+  if (!body.ok) {
+    return body.response;
   }
+
+  const provider = await loadProvider();
+  const result = await provider.contests.create(body.data);
+
+  return fromProviderResult(result, { failureStatus: 400, successStatus: 201 });
 }

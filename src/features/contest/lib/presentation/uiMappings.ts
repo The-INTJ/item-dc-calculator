@@ -1,5 +1,10 @@
 import type { Contest, Entry, ScoreEntry } from '../../contexts/contest/contestTypes';
-import { getActiveRoundId, getEntriesForRound, getRoundLabel, getRoundStatus } from './contestGetters';
+import {
+  getActiveRoundId,
+  getEntriesForRound,
+  getRoundLabel,
+  getRoundStatus,
+} from '../domain/contestGetters';
 
 export type RoundStatus = 'upcoming' | 'active' | 'closed';
 
@@ -16,6 +21,11 @@ export interface MatchupSummary {
   id: string;
   entryIds: string[];
   winnerEntryId?: string;
+}
+
+export interface EntryPair extends MatchupSummary {
+  contestantA: Entry | null;
+  contestantB: Entry | null;
 }
 
 export interface RoundDetail {
@@ -93,6 +103,18 @@ export function buildMatchupsFromEntries(entries: Entry[]): MatchupSummary[] {
   }
 
   return matchups;
+}
+
+export function buildEntryPairs(entries: Entry[]): EntryPair[] {
+  return buildMatchupsFromEntries(entries).map((matchup) => {
+    const [firstId, secondId] = matchup.entryIds;
+
+    return {
+      ...matchup,
+      contestantA: firstId ? entries.find((entry) => entry.id === firstId) ?? null : null,
+      contestantB: secondId ? entries.find((entry) => entry.id === secondId) ?? null : null,
+    };
+  });
 }
 
 export function buildRoundDetail(contest: Contest): RoundDetail {

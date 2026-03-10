@@ -3,7 +3,7 @@ import type {
   DisplayMatchup,
   DisplayModel,
   DisplayRound,
-} from '@/contest/lib/helpers/displayModel';
+} from '@/contest/lib/presentation/displayModel';
 
 interface DisplayBracketProps {
   model: DisplayModel;

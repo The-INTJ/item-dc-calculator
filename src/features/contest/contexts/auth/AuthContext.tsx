@@ -10,7 +10,7 @@ import type {
   GuestSessionResult,
   AuthResult,
 } from './types';
-import type { AuthProvider } from './provider';
+import type { AuthProvider as AuthProviderContract } from './provider';
 import { createSession } from './storage';
 import { useAuthReducer } from './useAuthReducer';
 import { useAuthInit } from './useAuthInit';
@@ -19,9 +19,9 @@ import { isFirebaseConfigured } from '../../lib/firebase/config';
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-let authProvider: AuthProvider | null = null;
+let authProvider: AuthProviderContract | null = null;
 
-function getAuthProvider(): AuthProvider {
+function getAuthProvider(): AuthProviderContract {
   if (!authProvider) {
     if (!isFirebaseConfigured()) {
       throw new Error('[Auth] Firebase not configured');

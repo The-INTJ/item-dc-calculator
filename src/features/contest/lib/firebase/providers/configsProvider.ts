@@ -14,8 +14,8 @@ import {
   deleteDoc,
   type Firestore,
 } from 'firebase/firestore';
-import type { ConfigsProvider, ContestConfigItem, ProviderResult } from '../../helpers/types';
-import { generateId, withDb } from '../../helpers/providerUtils';
+import type { ConfigsProvider, ContestConfigItem, ProviderResult } from '../../backend/types';
+import { generateId, withDb } from '../../backend/providerUtils';
 import type { FirestoreAdapter } from '../firestoreAdapter';
 
 const CONFIGS_COLLECTION = 'configs';

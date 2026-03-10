@@ -1,5 +1,5 @@
 import type { Contest } from '@/contest/contexts/contest/contestTypes';
-import { buildDisplayModel } from '@/contest/lib/helpers/displayModel';
+import { buildDisplayModel } from '@/contest/lib/presentation/displayModel';
 import { DisplayBracket } from './DisplayBracket';
 
 interface ContestDisplayProps {

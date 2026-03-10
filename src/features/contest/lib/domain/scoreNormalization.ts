@@ -1,5 +1,6 @@
 import type { Contest, ScoreBreakdown } from '../../contexts/contest/contestTypes';
-import { createEmptyBreakdown, getEffectiveConfig, validateBreakdown } from './validation';
+import { createEmptyBreakdown } from './breakdownUtils';
+import { getAttributeIds, getEffectiveConfig, validateBreakdown } from './validation';
 
 export interface NormalizedScorePayload {
   breakdown: ScoreBreakdown;
@@ -14,7 +15,7 @@ export function normalizeScorePayload(options: {
   const config = getEffectiveConfig(contest);
   const breakdown: ScoreBreakdown = baseBreakdown
     ? { ...baseBreakdown }
-    : { ...createEmptyBreakdown(config) };
+    : { ...createEmptyBreakdown(getAttributeIds(config)) };
 
   if (updates) {
     for (const [key, value] of Object.entries(updates)) {

@@ -2,12 +2,12 @@
 
 import type { Contest, ContestPhase } from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
-import { getRoundById } from '../../lib/helpers/contestGetters';
+import { getRoundById } from '../../lib/domain/contestGetters';
 import {
   PHASE_VALUES,
   phaseLabels,
   phaseDescriptions,
-} from '../../contexts/RoundStateContext';
+} from '../../lib/domain/contestPhases';
 
 interface AdminContestRoundsProps {
   contest: Contest;
@@ -17,7 +17,6 @@ export function AdminContestRounds({ contest }: AdminContestRoundsProps) {
   const { addRound, removeRound, setActiveRound, setRoundState } = useContestStore();
 
   const rounds = contest.rounds ?? [];
-  const activeRound = getRoundById(contest, contest.activeRoundId);
 
   const handleAddRound = () => {
     void addRound(contest.id);

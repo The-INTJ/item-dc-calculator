@@ -59,7 +59,7 @@ export function AdminDashboard() {
       <div className="admin-error">
         <p>Admin access required.</p>
         <Link href="/contest" className="button-secondary">
-          Return to Mixology
+          Return to contests
         </Link>
       </div>
     );
