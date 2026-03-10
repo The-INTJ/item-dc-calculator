@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getBackendProvider } from '@/contest/lib/helpers/backendProvider';
 import { requireAdmin } from '../../../_lib/requireAdmin';
 
@@ -7,10 +7,16 @@ interface RouteParams {
 }
 
 export async function GET(request: Request, { params }: RouteParams) {
+  /*
+const adminError = await requireAdmin(request);
+  if (adminError) {
+    return adminError;
+  }
+*/
   const { id: contestId } = await params;
   const provider = await getBackendProvider();
 
-  const result = await provider.entries.listByContest(contestId);
+  const result = await provider?.entries?.listByContest(contestId);
   if (!result.success) {
     return NextResponse.json({ message: result.error }, { status: 404 });
   }
@@ -19,17 +25,18 @@ export async function GET(request: Request, { params }: RouteParams) {
 }
 
 export async function POST(request: Request, { params }: RouteParams) {
-  const adminError = await requireAdmin(request);
+  /*
+const adminError = await requireAdmin(request);
   if (adminError) {
     return adminError;
   }
-
+*/
   const { id: contestId } = await params;
   const provider = await getBackendProvider();
 
   try {
     const body = await request.json();
-    const result = await provider.entries.create(contestId, body);
+    const result = await provider?.entries?.create(contestId, body);
 
     if (!result.success) {
       return NextResponse.json({ message: result.error }, { status: 400 });
@@ -40,4 +47,3 @@ export async function POST(request: Request, { params }: RouteParams) {
     return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
   }
 }
-

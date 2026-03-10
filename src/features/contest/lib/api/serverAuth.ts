@@ -1,5 +1,5 @@
-﻿/**
- * Server-side authentication utilities.
+/**
+ * Server-side authentication utilities
  *
  * Provides server-side functions to check authentication status.
  * For use in server components and API routes.
@@ -8,113 +8,83 @@
 import { cookies } from 'next/headers';
 import type { UserProfile } from '../../contexts/auth/types';
 import type { UserRole } from '../../contexts/contest/contestTypes';
-import { getFirebaseAdminAuth, getFirebaseAdminDb } from '../firebase/admin';
+import { getFirebaseAdminAuth } from '../firebase/admin';
 
 const USER_ROLES: UserRole[] = ['admin', 'voter', 'competitor'];
-const USERS_COLLECTION = 'users';
 
-export interface AuthenticatedUser {
-  uid: string;
-  profile: UserProfile;
-}
-
-function isUserRole(value: unknown): value is UserRole {
-  return typeof value === 'string' && USER_ROLES.includes(value as UserRole);
-}
-
-function resolveRoleFromClaims(claims: Record<string, unknown>): UserRole | null {
+function resolveRoleFromClaims(claims: Record<string, unknown>): UserRole {
   const rawRole =
     (typeof claims.role === 'string' && claims.role) ||
     (typeof claims.contestRole === 'string' && claims.contestRole) ||
     (claims.admin === true && 'admin') ||
-    null;
+    'voter';
 
-  return isUserRole(rawRole) ? rawRole : null;
-}
-
-async function loadUserProfileDoc(uid: string): Promise<Partial<UserProfile> | null> {
-  const db = getFirebaseAdminDb();
-  if (!db) {
-    return null;
+  if (USER_ROLES.includes(rawRole as UserRole)) {
+    return rawRole as UserRole;
   }
 
-  try {
-    const snapshot = await db.collection(USERS_COLLECTION).doc(uid).get();
-    if (!snapshot.exists) {
-      return null;
-    }
-
-    const data = snapshot.data() as Record<string, unknown>;
-    return {
-      ...(typeof data.displayName === 'string' ? { displayName: data.displayName } : {}),
-      ...(typeof data.email === 'string' ? { email: data.email } : {}),
-      ...(typeof data.avatarUrl === 'string' ? { avatarUrl: data.avatarUrl } : {}),
-      ...(isUserRole(data.role) ? { role: data.role } : {}),
-    };
-  } catch (error) {
-    console.error('[ServerAuth] Error reading user profile from Firestore:', error);
-    return null;
-  }
+  return 'voter';
 }
 
-async function buildAuthenticatedUser(uid: string, claims: Record<string, unknown>): Promise<AuthenticatedUser | null> {
+async function buildUserProfile(uid: string, claims: Record<string, unknown>): Promise<UserProfile | null> {
   const adminAuth = getFirebaseAdminAuth();
+
   if (!adminAuth) {
     return null;
   }
 
-  const [userRecord, profileDoc] = await Promise.all([
-    adminAuth.getUser(uid),
-    loadUserProfileDoc(uid),
-  ]);
+  const userRecord = await adminAuth.getUser(uid);
 
-  const roleFromClaims = resolveRoleFromClaims(claims);
-  const profile: UserProfile = {
-    displayName: profileDoc?.displayName ?? userRecord.displayName ?? 'User',
-    email: profileDoc?.email ?? userRecord.email ?? undefined,
-    role: roleFromClaims ?? profileDoc?.role ?? 'voter',
-    avatarUrl: profileDoc?.avatarUrl ?? userRecord.photoURL ?? undefined,
+  return {
+    displayName: userRecord.displayName ?? 'User',
+    email: userRecord.email ?? undefined,
+    role: resolveRoleFromClaims(claims),
+    avatarUrl: userRecord.photoURL ?? undefined,
   };
-
-  return { uid, profile };
 }
 
 /**
- * Get the current authenticated user from the server side.
+ * Get the current user from the server side.
+ *
+ * This checks for Firebase auth tokens in cookies and validates them.
+ * Returns null if the user is not authenticated.
  */
-export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> {
+export async function getCurrentUser(): Promise<UserProfile | null> {
   try {
     const cookieStore = await cookies();
+
     const sessionCookie = cookieStore.get('__session')?.value;
 
     if (!sessionCookie) {
       return null;
     }
-
     const adminAuth = getFirebaseAdminAuth();
+
     if (!adminAuth) {
       console.warn('[ServerAuth] Firebase Admin SDK is not configured.');
       return null;
     }
 
     const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie, true);
-    return await buildAuthenticatedUser(decodedClaims.uid, decodedClaims);
+    return await buildUserProfile(decodedClaims.uid, decodedClaims);
   } catch (error) {
     console.error('[ServerAuth] Error getting current user:', error);
     return null;
   }
 }
 
-export async function getAuthenticatedUserFromRequest(request: Request): Promise<AuthenticatedUser | null> {
+export async function getCurrentUserFromRequest(request: Request): Promise<UserProfile | null> {
   const authHeader = request.headers.get('authorization');
 
   if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
     const token = authHeader.slice(7).trim();
+
     if (!token) {
       return null;
     }
 
     const adminAuth = getFirebaseAdminAuth();
+
     if (!adminAuth) {
       console.warn('[ServerAuth] Firebase Admin SDK is not configured.');
       return null;
@@ -122,23 +92,12 @@ export async function getAuthenticatedUserFromRequest(request: Request): Promise
 
     try {
       const decodedClaims = await adminAuth.verifyIdToken(token, true);
-      return await buildAuthenticatedUser(decodedClaims.uid, decodedClaims);
+      return await buildUserProfile(decodedClaims.uid, decodedClaims);
     } catch (error) {
       console.error('[ServerAuth] Error verifying ID token:', error);
       return null;
     }
   }
 
-  return getAuthenticatedUser();
+  return getCurrentUser();
 }
-
-export async function getCurrentUser(): Promise<UserProfile | null> {
-  const user = await getAuthenticatedUser();
-  return user?.profile ?? null;
-}
-
-export async function getCurrentUserFromRequest(request: Request): Promise<UserProfile | null> {
-  const user = await getAuthenticatedUserFromRequest(request);
-  return user?.profile ?? null;
-}
-

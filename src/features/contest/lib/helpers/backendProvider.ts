@@ -1,8 +1,8 @@
-﻿/**
+/**
  * Backend provider singleton.
  */
 
-import { createFirebaseAdminBackendProvider } from '../firebase/firebaseAdminBackendProvider';
+import { createFirebaseBackendProvider } from '../firebase/firebaseBackendProvider';
 import type { BackendProvider } from './types';
 
 let _provider: BackendProvider | null = null;
@@ -13,7 +13,7 @@ let _initPromise: Promise<void> | null = null;
  */
 export async function getBackendProvider(): Promise<BackendProvider> {
   if (!_provider) {
-    _provider = createFirebaseAdminBackendProvider();
+    _provider = createFirebaseBackendProvider();
   }
 
   if (!_initPromise) {
@@ -28,4 +28,3 @@ export async function getBackendProvider(): Promise<BackendProvider> {
   await _initPromise;
   return _provider;
 }
-

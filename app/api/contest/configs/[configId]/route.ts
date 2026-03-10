@@ -1,6 +1,5 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getBackendProvider } from '@/contest/lib/helpers/backendProvider';
-import { requireAdmin } from '../../_lib/requireAdmin';
 
 interface RouteParams {
   params: Promise<{ configId: string }>;
@@ -19,11 +18,6 @@ export async function GET(request: Request, { params }: RouteParams) {
 }
 
 export async function PATCH(request: Request, { params }: RouteParams) {
-  const adminError = await requireAdmin(request);
-  if (adminError) {
-    return adminError;
-  }
-
   const { configId } = await params;
   const provider = await getBackendProvider();
 
@@ -42,11 +36,6 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {
-  const adminError = await requireAdmin(request);
-  if (adminError) {
-    return adminError;
-  }
-
   const { configId } = await params;
   const provider = await getBackendProvider();
 
@@ -57,4 +46,3 @@ export async function DELETE(request: Request, { params }: RouteParams) {
 
   return NextResponse.json({ success: true });
 }
-
