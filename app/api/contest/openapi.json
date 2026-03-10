@@ -213,7 +213,6 @@
         "summary": "List all contests",
         "description": "Returns all contests and the current default contest. Optionally filter by slug.",
         "tags": ["Contests"],
-        "security": [{ "AdminRole": [] }],
         "parameters": [
           {
             "name": "slug",
@@ -363,7 +362,7 @@
       ],
       "get": {
         "summary": "Get a contest",
-        "description": "Returns a single contest by ID or slug. Currently no admin requirement.",
+        "description": "Returns a single contest by ID or slug.",
         "tags": ["Contests"],
         "responses": {
           "200": {
@@ -394,8 +393,9 @@
       },
       "patch": {
         "summary": "Update a contest",
-        "description": "Updates an existing contest. Currently no admin requirement.",
+        "description": "Updates an existing contest. Admin only.",
         "tags": ["Contests"],
+        "security": [{ "AdminRole": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -457,8 +457,9 @@
       },
       "delete": {
         "summary": "Delete a contest",
-        "description": "Deletes a contest by ID. Currently no admin requirement.",
+        "description": "Deletes a contest by ID. Admin only.",
         "tags": ["Contests"],
+        "security": [{ "AdminRole": [] }],
         "responses": {
           "200": {
             "description": "Contest deleted",
@@ -499,7 +500,7 @@
       ],
       "get": {
         "summary": "List entries in a contest",
-        "description": "Returns all entries for a contest. Currently no admin requirement.",
+        "description": "Returns all entries for a contest.",
         "tags": ["Entries"],
         "responses": {
           "200": {
@@ -533,8 +534,9 @@
       },
       "post": {
         "summary": "Add an entry to a contest",
-        "description": "Creates a new entry in the contest. Currently no admin requirement.",
+        "description": "Creates a new entry in the contest. Admin only.",
         "tags": ["Entries"],
+        "security": [{ "AdminRole": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -607,7 +609,7 @@
       ],
       "get": {
         "summary": "Get an entry",
-        "description": "Returns a single entry by ID. Currently no admin requirement.",
+        "description": "Returns a single entry by ID.",
         "tags": ["Entries"],
         "responses": {
           "200": {
@@ -638,8 +640,9 @@
       },
       "patch": {
         "summary": "Update an entry",
-        "description": "Updates an existing entry. Currently no admin requirement.",
+        "description": "Updates an existing entry. Admin only.",
         "tags": ["Entries"],
+        "security": [{ "AdminRole": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -697,8 +700,9 @@
       },
       "delete": {
         "summary": "Delete an entry",
-        "description": "Removes an entry from the contest. Currently no admin requirement.",
+        "description": "Removes an entry from the contest. Admin only.",
         "tags": ["Entries"],
+        "security": [{ "AdminRole": [] }],
         "responses": {
           "200": {
             "description": "Entry deleted",
@@ -938,8 +942,9 @@
       },
       "post": {
         "summary": "Create a configuration",
-        "description": "Creates a new contest configuration.",
+        "description": "Creates a new contest configuration. Admin only.",
         "tags": ["ContestConfigs"],
+        "security": [{ "AdminRole": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -1027,8 +1032,9 @@
       },
       "patch": {
         "summary": "Update a configuration",
-        "description": "Updates an existing configuration.",
+        "description": "Updates an existing configuration. Admin only.",
         "tags": ["ContestConfigs"],
+        "security": [{ "AdminRole": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -1081,8 +1087,9 @@
       },
       "delete": {
         "summary": "Delete a configuration",
-        "description": "Removes a configuration from the datastore.",
+        "description": "Removes a configuration from the datastore. Admin only.",
         "tags": ["ContestConfigs"],
+        "security": [{ "AdminRole": [] }],
         "responses": {
           "200": {
             "description": "Configuration deleted",

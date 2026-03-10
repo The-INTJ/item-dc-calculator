@@ -2,9 +2,8 @@
 
 import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import { AuthProvider } from '@/src/features/contest/contexts/auth/AuthContext';
-import { RoundStateProvider } from '@/src/features/contest/contexts/RoundStateContext';
-import { ContestProvider } from '@/src/features/contest/contexts/contest/ContestContext';
+import { AuthProvider } from '@/contest/contexts/auth/AuthContext';
+import { ContestProvider } from '@/contest/contexts/contest/ContestContext';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 
 interface RootLayoutClientProps {
@@ -18,12 +17,10 @@ export function RootLayoutClient({ children }: RootLayoutClientProps) {
 
   return (
     <AuthProvider>
-      <RoundStateProvider>
-        <ContestProvider>
-          <SiteHeader />
-          <main className={mainClassName}>{children}</main>
-        </ContestProvider>
-      </RoundStateProvider>
+      <ContestProvider>
+        <SiteHeader />
+        <main className={mainClassName}>{children}</main>
+      </ContestProvider>
     </AuthProvider>
   );
 }

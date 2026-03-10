@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useAuth } from "@/src/features/contest/contexts/auth/AuthContext";
-import { useRoundState } from "@/src/features/contest/contexts/RoundStateContext";
+import { useParams, usePathname } from "next/navigation";
+import { useAuth } from "@/contest/contexts/auth/AuthContext";
+import { useContestStore } from "@/contest/contexts/contest/ContestContext";
+import { getRoundById } from "@/contest/lib/domain/contestGetters";
+import { phaseLabels } from "@/contest/lib/domain/contestPhases";
 import { navItems } from "./navItems";
 
 function isActiveLink(pathname: string, href: string) {
@@ -16,9 +18,17 @@ function isActiveLink(pathname: string, href: string) {
 
 export function NavBar() {
   const pathname = usePathname();
+  const params = useParams<{ id?: string }>();
   const { role, loading } = useAuth();
+  const { contests } = useContestStore();
   const isAdmin = role === "admin";
-  const { state, label } = useRoundState();
+  const contestParam = typeof params.id === "string" ? params.id : null;
+  const activeContest = contestParam
+    ? contests.find((contest) => contest.id === contestParam || contest.slug === contestParam) ?? null
+    : null;
+  const activeRound = activeContest ? getRoundById(activeContest, activeContest.activeRoundId) : null;
+  const phase = activeRound?.state ?? activeContest?.phase ?? null;
+  const phaseLabel = phase ? phaseLabels[phase] : null;
 
   return (
     <nav className="site-nav">
@@ -42,9 +52,9 @@ export function NavBar() {
         );
       })}
       <div className="site-nav__status" aria-live="polite">
-        {label && (
-          <span className={`site-nav__phase site-nav__phase--${state}`}>
-            {label}
+        {phaseLabel && phase && (
+          <span className={`site-nav__phase site-nav__phase--${phase}`}>
+            {phaseLabel}
           </span>
         )}
       </div>

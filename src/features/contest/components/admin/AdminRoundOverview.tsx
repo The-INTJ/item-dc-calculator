@@ -1,7 +1,7 @@
 'use client';
 
 import type { Contest } from '../../contexts/contest/contestTypes';
-import { buildRoundSummary } from '../../lib/helpers/uiMappings';
+import { buildRoundSummary } from '../../lib/presentation/uiMappings';
 import { RoundCard } from '../ui/RoundCard';
 
 interface AdminRoundOverviewProps {

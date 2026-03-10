@@ -1,0 +1,207 @@
+@use '../index' as *;
+
+.admin-phase-controls {
+  background: $color-light-50;
+  border-radius: $radius-lg;
+  padding: $space-padding-md;
+}
+
+.admin-phase-controls__header {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-lg;
+  justify-content: space-between;
+  margin-bottom: $space-lg;
+}
+
+.admin-phase-controls__message {
+  @include type-normal;
+  color: $color-text-dark;
+  margin: 0;
+  opacity: 0.85;
+
+  &--error {
+    color: $color-text-special;
+    font-weight: $font-weight-semibold;
+    opacity: 1;
+  }
+
+  &--success {
+    color: $color-text-special;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.admin-phase-controls__grid {
+  display: grid;
+  gap: $space-lg;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.admin-phase-button {
+  align-items: flex-start;
+  background: #fff;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: $space-padding-sm;
+  text-align: left;
+  transition: border-color $transition-base, box-shadow $transition-base, transform $transition-fast;
+
+  &:hover {
+    border-color: $color-gray-400;
+    box-shadow: $shadow-lg;
+    transform: translateY(-1px);
+  }
+
+  &--active {
+    border-color: $color-primary;
+    box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.2);
+  }
+}
+
+.admin-phase-button__label {
+  @include type-normal;
+}
+
+.admin-phase-button__desc {
+  color: $color-text-dark;
+  @include type-normal;
+  line-height: $line-height-normal;
+  opacity: 0.75;
+}
+
+.admin-rounds-header {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-gap-normal;
+  justify-content: space-between;
+  margin-bottom: $space-lg;
+}
+
+.admin-rounds-controls {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-gap-normal;
+  margin-bottom: $space-lg;
+}
+
+.admin-round-item {
+  background: rgba($color-light-100, 0.5);
+  border: 1px solid $color-border;
+  border-radius: $radius-button;
+  display: flex;
+  flex-direction: column;
+  gap: $space-base;
+  padding: $space-base;
+  position: relative;
+
+  &--active {
+    background: rgba($color-success-500, 0.08);
+    border-color: $color-success-500;
+  }
+}
+
+.admin-round-item__header {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: $space-base;
+  justify-content: space-between;
+  padding: $space-base;
+  text-align: left;
+  width: 100%;
+
+  &:hover {
+    background: rgba($color-dark-950, 0.04);
+  }
+}
+
+.admin-round-item__info {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.admin-round-item__remove {
+  align-self: flex-end;
+}
+
+.admin-round-state-controls {
+  border-top: 1px solid $color-border;
+  margin-top: $space-base;
+  padding-top: $space-base;
+}
+
+.admin-rounds-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-base;
+}
+
+.admin-phase-controls__grid--compact {
+  gap: $space-md;
+}
+
+.admin-phase-button--compact {
+  padding: $space-base $space-md;
+
+  .admin-phase-button__label {
+    @include type-normal;
+  }
+
+  .admin-phase-button__desc {
+    @include type-normal;
+  }
+}
+
+.admin-phase-controls__info {
+  @include type-normal;
+  color: $color-text-dark;
+  margin: 0;
+  opacity: 0.75;
+}
+
+.admin-round-badge {
+  @include status-badge;
+}
+
+.admin-round-badge--set {
+  background: $color-info-600;
+  color: $color-text-light;
+}
+
+.admin-round-badge--shake {
+  background: $color-success-500;
+  color: $color-text-light;
+}
+
+.admin-round-badge--scored {
+  background: $color-warning-700;
+  color: $color-text-light;
+}
+
+.admin-round-badge--active {
+  background: $color-success-500;
+  color: $color-text-light;
+}
+
+.admin-round-badge--closed {
+  background: $color-gray-400;
+  color: $color-text-dark;
+}
+
+.admin-round-badge--upcoming {
+  background: $color-info-600;
+  color: $color-text-light;
+}

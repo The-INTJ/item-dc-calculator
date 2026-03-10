@@ -1,5 +1,5 @@
 /**
- * Guest identity registration for Mixology.
+ * Guest identity registration for the contest app.
  *
  * Attempts to register guest identity in Firestore. Falls back gracefully
  * to local-only mode if Firestore is unavailable or fails.

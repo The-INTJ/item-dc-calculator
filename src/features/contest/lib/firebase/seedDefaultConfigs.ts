@@ -14,7 +14,7 @@ const CONFIGS_COLLECTION = 'configs';
 
 /**
  * Default configurations for seeding.
- * These are based on the original contestTemplates.ts configurations.
+ * These default configs preserve the legacy template set.
  */
 const DEFAULT_CONFIGS: ContestConfigItem[] = [
   {

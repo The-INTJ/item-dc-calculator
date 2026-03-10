@@ -7,8 +7,8 @@
  */
 
 import type { Firestore } from 'firebase/firestore';
-import type { BackendProvider } from '../helpers/types';
-import { success } from '../helpers/providerUtils';
+import type { BackendProvider } from '../backend/types';
+import { success } from '../backend/providerUtils';
 import { initializeFirebase, isFirebaseConfigured } from './config';
 import { createFirestoreAdapter } from './firestoreAdapter';
 import { createFirebaseContestsProvider } from './providers/contestsProvider';

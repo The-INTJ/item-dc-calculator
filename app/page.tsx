@@ -1,7 +1,7 @@
-import SignedInLanding from '@/src/features/contest/ViewSnippets/SignedInActions/SignedInActions';
-import SignedOutLanding from '@/src/features/contest/ViewSnippets/SignedInActions/SignedOutActions';
+import SignedInLanding from '@/contest/components/home/SignedInLanding';
+import SignedOutLanding from '@/contest/components/home/SignedOutLanding';
 import { getCurrentUser } from '@/contest/lib/api/serverAuth';
-import ListOfContests from '@/src/features/contest/ViewSnippets/DataDisplays/ListOfContests';
+import ContestList from '@/contest/components/home/ContestList';
 import styles from './page.module.scss';
 
 export const dynamic = 'force-dynamic';
@@ -13,7 +13,7 @@ export default async function HomePage() {
   return (
     <div className={styles.landingPage}>
       {userOptions}
-      <ListOfContests />
+      <ContestList />
     </div>
   );
 }

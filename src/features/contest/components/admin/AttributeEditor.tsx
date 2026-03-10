@@ -7,24 +7,15 @@
 
 import { useCallback } from 'react';
 import type { AttributeConfig } from '../../contexts/contest/contestTypes';
+import {
+  createEmptyAttribute,
+  generateAttributeId,
+} from '../../lib/domain/contestConfigDraft';
 
 interface AttributeEditorProps {
   attributes: AttributeConfig[];
   onChange: (attributes: AttributeConfig[]) => void;
   disabled?: boolean;
-}
-
-function generateAttributeId(label: string): string {
-  return label
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s]/g, '')
-    .replace(/\s+/g, '_')
-    .replace(/^[^a-z]/, 'attr_');
-}
-
-function createEmptyAttribute(): AttributeConfig {
-  return { id: '', label: '', description: '', min: 0, max: 10 };
 }
 
 export function AttributeEditor({ attributes, onChange, disabled }: AttributeEditorProps) {
@@ -34,54 +25,67 @@ export function AttributeEditor({ attributes, onChange, disabled }: AttributeEdi
 
   const handleRemove = useCallback(
     (index: number) => {
-      onChange(attributes.filter((_, i) => i !== index));
+      onChange(attributes.filter((_, itemIndex) => itemIndex !== index));
     },
-    [attributes, onChange]
+    [attributes, onChange],
   );
 
   const handleChange = useCallback(
     (index: number, field: keyof AttributeConfig, value: string | number) => {
-      const updated = attributes.map((attr, i) => {
-        if (i !== index) return attr;
-        const newAttr = { ...attr, [field]: value };
-        // Auto-generate ID from label if ID is empty or was auto-generated
-        if (field === 'label' && (!attr.id || attr.id === generateAttributeId(attr.label))) {
-          newAttr.id = generateAttributeId(value as string);
+      const updated = attributes.map((attribute, itemIndex) => {
+        if (itemIndex !== index) {
+          return attribute;
         }
-        return newAttr;
+
+        const nextAttribute = { ...attribute, [field]: value };
+        if (
+          field === 'label' &&
+          (!attribute.id || attribute.id === generateAttributeId(attribute.label))
+        ) {
+          nextAttribute.id = generateAttributeId(value as string);
+        }
+
+        return nextAttribute;
       });
+
       onChange(updated);
     },
-    [attributes, onChange]
+    [attributes, onChange],
   );
 
   const handleMoveUp = useCallback(
     (index: number) => {
-      if (index === 0) return;
+      if (index === 0) {
+        return;
+      }
+
       const updated = [...attributes];
       [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
       onChange(updated);
     },
-    [attributes, onChange]
+    [attributes, onChange],
   );
 
   const handleMoveDown = useCallback(
     (index: number) => {
-      if (index === attributes.length - 1) return;
+      if (index === attributes.length - 1) {
+        return;
+      }
+
       const updated = [...attributes];
       [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
       onChange(updated);
     },
-    [attributes, onChange]
+    [attributes, onChange],
   );
 
   return (
     <div className="admin-attribute-editor">
       <div className="admin-attribute-editor__list">
-        {attributes.map((attr, index) => (
+        {attributes.map((attribute, index) => (
           <AttributeRow
             key={index}
-            attribute={attr}
+            attribute={attribute}
             index={index}
             isFirst={index === 0}
             isLast={index === attributes.length - 1}
@@ -138,7 +142,7 @@ function AttributeRow({
           disabled={disabled || isFirst}
           aria-label="Move up"
         >
-          ▲
+          ^
         </button>
         <button
           type="button"
@@ -147,7 +151,7 @@ function AttributeRow({
           disabled={disabled || isLast}
           aria-label="Move down"
         >
-          ▼
+          v
         </button>
       </div>
       <div className="admin-attribute-row__fields">
@@ -155,7 +159,7 @@ function AttributeRow({
           type="text"
           className="admin-rounds-input"
           value={attribute.label}
-          onChange={(e) => onChange(index, 'label', e.target.value)}
+          onChange={(event) => onChange(index, 'label', event.target.value)}
           placeholder="Label (e.g. Creativity)"
           disabled={disabled}
           required
@@ -164,7 +168,7 @@ function AttributeRow({
           type="text"
           className="admin-rounds-input admin-attribute-row__id"
           value={attribute.id}
-          onChange={(e) => onChange(index, 'id', e.target.value)}
+          onChange={(event) => onChange(index, 'id', event.target.value)}
           placeholder="ID"
           disabled={disabled}
           required
@@ -173,7 +177,7 @@ function AttributeRow({
           type="text"
           className="admin-rounds-input"
           value={attribute.description ?? ''}
-          onChange={(e) => onChange(index, 'description', e.target.value)}
+          onChange={(event) => onChange(index, 'description', event.target.value)}
           placeholder="Description (optional)"
           disabled={disabled}
         />
@@ -182,17 +186,17 @@ function AttributeRow({
             type="number"
             className="admin-rounds-input admin-attribute-row__number"
             value={attribute.min ?? 0}
-            onChange={(e) => onChange(index, 'min', parseInt(e.target.value, 10) || 0)}
+            onChange={(event) => onChange(index, 'min', parseInt(event.target.value, 10) || 0)}
             placeholder="Min"
             disabled={disabled}
             min={0}
           />
-          <span>–</span>
+          <span>-</span>
           <input
             type="number"
             className="admin-rounds-input admin-attribute-row__number"
             value={attribute.max ?? 10}
-            onChange={(e) => onChange(index, 'max', parseInt(e.target.value, 10) || 10)}
+            onChange={(event) => onChange(index, 'max', parseInt(event.target.value, 10) || 10)}
             placeholder="Max"
             disabled={disabled}
             min={1}
@@ -206,7 +210,7 @@ function AttributeRow({
         disabled={disabled}
         aria-label="Remove attribute"
       >
-        ✕
+        x
       </button>
     </div>
   );

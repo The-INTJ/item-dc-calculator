@@ -8,7 +8,9 @@
 
 import React from 'react';
 import { AttributeEditor } from './AttributeEditor';
-import type { AttributeConfig, ContestConfig, ContestConfigItem } from '../../contexts/contest/contestTypes';
+import { ContestConfigPreview } from './ContestConfigPreview';
+import type { AttributeConfig, ContestConfigItem } from '../../contexts/contest/contestTypes';
+import { buildContestConfigFromTemplate } from '../../lib/domain/contestConfigDraft';
 
 type ConfigMode = 'template' | 'custom';
 
@@ -53,7 +55,13 @@ export function ContestConfigSetupForm({
   onSaveAsTemplateChange,
   disabled = false,
 }: ContestConfigSetupFormProps) {
-  const selectedConfig: ContestConfig | undefined = configs.find((c) => c.id === selectedTemplate);
+  const selectedConfig = configs.find((config) => config.id === selectedTemplate);
+  const previewConfig = selectedConfig
+    ? buildContestConfigFromTemplate(selectedConfig, {
+        entryLabel,
+        entryLabelPlural,
+      })
+    : null;
 
   return (
     <section className="admin-details-section">
@@ -63,7 +71,9 @@ export function ContestConfigSetupForm({
           <div className="admin-contest-setup-form__mode-toggle">
             <button
               type="button"
-              className={`button-secondary ${configMode === 'template' ? 'button-secondary--active' : ''}`}
+              className={`button-secondary ${
+                configMode === 'template' ? 'button-secondary--active' : ''
+              }`}
               onClick={() => onConfigModeChange('template')}
               disabled={disabled}
             >
@@ -71,7 +81,9 @@ export function ContestConfigSetupForm({
             </button>
             <button
               type="button"
-              className={`button-secondary ${configMode === 'custom' ? 'button-secondary--active' : ''}`}
+              className={`button-secondary ${
+                configMode === 'custom' ? 'button-secondary--active' : ''
+              }`}
               onClick={() => onConfigModeChange('custom')}
               disabled={disabled}
             >
@@ -80,7 +92,7 @@ export function ContestConfigSetupForm({
           </div>
         </div>
 
-        {configMode === 'template' && (
+        {configMode === 'template' ? (
           <>
             <div className="admin-contest-setup-form__field">
               <label htmlFor="contest-template">Contest Template</label>
@@ -88,7 +100,7 @@ export function ContestConfigSetupForm({
                 id="contest-template"
                 className="admin-rounds-select"
                 value={selectedTemplate}
-                onChange={(e) => onSelectedTemplateChange(e.target.value)}
+                onChange={(event) => onSelectedTemplateChange(event.target.value)}
                 disabled={configsLoading || disabled}
               >
                 {configs.map((config) => (
@@ -97,8 +109,12 @@ export function ContestConfigSetupForm({
                   </option>
                 ))}
               </select>
-              {configsLoading && <span className="admin-detail-meta">Loading configs...</span>}
-              {configsError && <p className="admin-phase-controls__message--error">{configsError}</p>}
+              {configsLoading ? (
+                <span className="admin-detail-meta">Loading configs...</span>
+              ) : null}
+              {configsError ? (
+                <p className="admin-phase-controls__message--error">{configsError}</p>
+              ) : null}
             </div>
 
             <div className="admin-contest-setup-form__row">
@@ -109,7 +125,7 @@ export function ContestConfigSetupForm({
                   type="text"
                   className="admin-rounds-input"
                   value={entryLabel}
-                  onChange={(e) => onEntryLabelChange(e.target.value)}
+                  onChange={(event) => onEntryLabelChange(event.target.value)}
                   placeholder={selectedConfig?.entryLabel ?? 'Entry'}
                   disabled={disabled}
                 />
@@ -121,18 +137,16 @@ export function ContestConfigSetupForm({
                   type="text"
                   className="admin-rounds-input"
                   value={entryLabelPlural}
-                  onChange={(e) => onEntryLabelPluralChange(e.target.value)}
+                  onChange={(event) => onEntryLabelPluralChange(event.target.value)}
                   placeholder={selectedConfig?.entryLabelPlural ?? 'Entries'}
                   disabled={disabled}
                 />
               </div>
             </div>
 
-            {selectedConfig && <ConfigPreview config={selectedConfig} />}
+            {previewConfig ? <ContestConfigPreview config={previewConfig} /> : null}
           </>
-        )}
-
-        {configMode === 'custom' && (
+        ) : (
           <>
             <div className="admin-contest-setup-form__field">
               <label htmlFor="contest-topic">Topic / Contest Type</label>
@@ -141,7 +155,7 @@ export function ContestConfigSetupForm({
                 type="text"
                 className="admin-rounds-input"
                 value={customTopic}
-                onChange={(e) => onCustomTopicChange(e.target.value)}
+                onChange={(event) => onCustomTopicChange(event.target.value)}
                 placeholder="e.g. Chili Cook-Off, Dance Battle"
                 disabled={disabled}
                 required
@@ -156,7 +170,7 @@ export function ContestConfigSetupForm({
                   type="text"
                   className="admin-rounds-input"
                   value={entryLabel}
-                  onChange={(e) => onEntryLabelChange(e.target.value)}
+                  onChange={(event) => onEntryLabelChange(event.target.value)}
                   placeholder="Entry"
                   disabled={disabled}
                 />
@@ -168,7 +182,7 @@ export function ContestConfigSetupForm({
                   type="text"
                   className="admin-rounds-input"
                   value={entryLabelPlural}
-                  onChange={(e) => onEntryLabelPluralChange(e.target.value)}
+                  onChange={(event) => onEntryLabelPluralChange(event.target.value)}
                   placeholder="Entries"
                   disabled={disabled}
                 />
@@ -189,7 +203,7 @@ export function ContestConfigSetupForm({
                 <input
                   type="checkbox"
                   checked={saveAsTemplate}
-                  onChange={(e) => onSaveAsTemplateChange(e.target.checked)}
+                  onChange={(event) => onSaveAsTemplateChange(event.target.checked)}
                   disabled={disabled}
                 />
                 Save as Template
@@ -199,37 +213,5 @@ export function ContestConfigSetupForm({
         )}
       </div>
     </section>
-  );
-}
-
-interface ConfigPreviewProps {
-  config: ContestConfig;
-}
-
-function ConfigPreview({ config }: ConfigPreviewProps) {
-  return (
-    <div className="admin-contest-setup-form__preview">
-      <p>
-        <strong>Topic:</strong> {config.topic}
-      </p>
-      <p>
-        <strong>Entry type:</strong> {config.entryLabel ?? 'Entry'} / {config.entryLabelPlural ?? 'Entries'}
-      </p>
-      <h4>Scoring Attributes ({config.attributes.length})</h4>
-      <ul className="admin-detail-list">
-        {config.attributes.map((attr) => (
-          <li key={attr.id} className="admin-detail-item">
-            <strong>{attr.label}</strong>
-            <span className="admin-detail-meta"> ({attr.id})</span>
-            {attr.description && (
-              <span className="admin-detail-meta"> - {attr.description}</span>
-            )}
-            <span className="admin-detail-meta">
-              {' '}Range: {attr.min ?? 0}-{attr.max ?? 10}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
   );
 }

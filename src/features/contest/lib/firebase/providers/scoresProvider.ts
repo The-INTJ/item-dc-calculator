@@ -16,8 +16,8 @@ import {
   runTransaction,
   serverTimestamp,
 } from 'firebase/firestore';
-import type { ScoresProvider, ScoreEntry, ProviderResult } from '../../helpers/types';
-import { success, error } from '../../helpers/providerUtils';
+import type { ScoresProvider, ScoreEntry, ProviderResult } from '../../backend/types';
+import { success, error } from '../../backend/providerUtils';
 import type { FirestoreAdapter } from '../firestoreAdapter';
 import type { Contest, Entry, ScoreBreakdown } from '../../../contexts/contest/contestTypes';
 

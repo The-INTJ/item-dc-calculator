@@ -1,8 +1,8 @@
 import { AdminDashboard } from '@/contest/components/admin/AdminDashboard';
 
 export const metadata = {
-  title: 'Admin Dashboard | Mixology Rating App',
-  description: 'Backend validation and contest management interface.',
+  title: 'Admin Dashboard | Contest App',
+  description: 'Contest management, configuration, and scoring administration.',
 };
 
 export default function AdminPage() {

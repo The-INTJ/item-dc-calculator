@@ -1,5 +1,5 @@
 import type { ScoreEntry, AttributeConfig } from '../../contexts/contest/contestTypes';
-import type { VoteTotals } from '../../lib/helpers/uiMappings';
+import type { VoteTotals } from '../../lib/presentation/uiMappings';
 
 /**
  * Build per-entry, per-category totals from an array of score entries.

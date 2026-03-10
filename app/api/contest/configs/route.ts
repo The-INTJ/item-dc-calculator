@@ -1,30 +1,32 @@
-import { NextResponse } from 'next/server';
-import { getBackendProvider } from '@/contest/lib/helpers/backendProvider';
+import { fromProviderResult, jsonError, readJsonBody } from '../_lib/http';
+import { loadProvider } from '../_lib/provider';
+import { requireAdmin } from '../_lib/requireAdmin';
+import type { ContestConfigItem } from '@/contest/contexts/contest/contestTypes';
 
 export async function GET() {
-  const provider = await getBackendProvider();
+  const provider = await loadProvider();
 
   const result = await provider.configs.list();
   if (!result.success) {
-    return NextResponse.json({ message: result.error }, { status: 500 });
+    return jsonError(result.error ?? 'Failed to load configs', 500);
   }
 
-  return NextResponse.json(result.data);
+  return fromProviderResult(result, { failureStatus: 500 });
 }
 
 export async function POST(request: Request) {
-  const provider = await getBackendProvider();
-
-  try {
-    const body = await request.json();
-    const result = await provider.configs.create(body);
-
-    if (!result.success) {
-      return NextResponse.json({ message: result.error }, { status: 400 });
-    }
-
-    return NextResponse.json(result.data, { status: 201 });
-  } catch {
-    return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
+  const adminError = await requireAdmin(request);
+  if (adminError) {
+    return adminError;
   }
+
+  const body = await readJsonBody<Omit<ContestConfigItem, 'id'> & { id?: string }>(request);
+  if (!body.ok) {
+    return body.response;
+  }
+
+  const provider = await loadProvider();
+  const result = await provider.configs.create(body.data);
+
+  return fromProviderResult(result, { failureStatus: 400, successStatus: 201 });
 }

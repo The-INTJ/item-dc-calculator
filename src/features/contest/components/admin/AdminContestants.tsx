@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Contest, Entry } from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
-import { getRoundLabel } from '../../lib/helpers/contestGetters';
+import { getRoundLabel } from '../../lib/domain/contestGetters';
 
 interface AdminContestantsProps {
   contest: Contest;

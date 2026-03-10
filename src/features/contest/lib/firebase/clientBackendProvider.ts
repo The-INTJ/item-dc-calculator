@@ -1,5 +1,5 @@
 import { createFirebaseBackendProvider } from './firebaseBackendProvider';
-import type { BackendProvider } from '../helpers/types';
+import type { BackendProvider } from '../backend/types';
 
 let providerPromise: Promise<BackendProvider> | null = null;
 

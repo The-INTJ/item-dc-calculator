@@ -6,7 +6,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/src/features/contest/contexts/auth/AuthContext';
+import { useAuth } from '@/contest/contexts/auth/AuthContext';
 import { UserMenu } from '@/contest/components/auth/UserMenu';
 
 export default function AccountPage() {

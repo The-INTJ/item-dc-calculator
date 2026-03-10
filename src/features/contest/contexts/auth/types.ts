@@ -1,5 +1,5 @@
 /**
- * Auth types for Mixology - Cloud-first.
+ * Auth types for the contest app.
  */
 
 import type { ReactNode } from 'react';

@@ -1,7 +1,8 @@
 'use client';
 
 import type { Contest } from '../../contexts/contest/contestTypes';
-import { useRoundState, phaseLabels } from '../../contexts/RoundStateContext';
+import { getRoundById } from '../../lib/domain/contestGetters';
+import { phaseLabels } from '../../lib/domain/contestPhases';
 
 interface ContestPhaseControlsProps {
   contest: Contest;
@@ -9,10 +10,11 @@ interface ContestPhaseControlsProps {
 }
 
 export function ContestPhaseControls({ contest }: ContestPhaseControlsProps) {
-  const { state, label } = useRoundState();
   const rounds = contest.rounds ?? [];
   const activeRoundIndex = rounds.findIndex((r) => r.id === contest.activeRoundId);
-  const activeRound = activeRoundIndex !== -1 ? rounds[activeRoundIndex] : null;
+  const activeRound = getRoundById(contest, contest.activeRoundId);
+  const currentPhase = activeRound?.state ?? contest.phase;
+  const label = phaseLabels[currentPhase];
 
   return (
     <section className="admin-details-section admin-phase-controls">

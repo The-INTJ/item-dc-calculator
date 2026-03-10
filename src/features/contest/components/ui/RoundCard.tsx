@@ -1,5 +1,5 @@
 import React from 'react';
-import type { RoundSummary } from '../../lib/helpers/uiMappings';
+import type { RoundSummary } from '../../lib/presentation/uiMappings';
 
 type RoundCardVariant = 'compact' | 'detailed';
 

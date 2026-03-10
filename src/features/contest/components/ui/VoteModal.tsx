@@ -1,11 +1,11 @@
 'use client';
 
-import { Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
-import { VoteScorePanel } from './VoteScorePanel';
-import { VoteActions } from '../votePage/VoteActions';
-import { useRoundVoting } from '../../lib/hooks/useRoundVoting';
-import { getRoundLabel } from '../../lib/helpers/contestGetters';
+import { Dialog, DialogActions, DialogContent, DialogTitle, IconButton } from '@mui/material';
 import type { Contest } from '../../contexts/contest/contestTypes';
+import { getRoundLabel } from '../../lib/domain/contestGetters';
+import { useRoundVoting } from '../../lib/hooks/useRoundVoting';
+import { VoteActions } from '../votePage/VoteActions';
+import { VoteScorePanel } from './VoteScorePanel';
 
 interface VoteModalProps {
   open: boolean;
@@ -24,7 +24,7 @@ export function VoteModal({ open, onClose, contest, roundId }: VoteModalProps) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>
-        {roundName} — Vote
+        {roundName} - Vote
         <IconButton
           aria-label="close"
           onClick={onClose}

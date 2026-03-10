@@ -5,12 +5,17 @@
  * MVP: name, slug (auto-generated), and template dropdown.
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ContestConfigSetupForm } from './ContestConfigSetupForm';
 import type { AttributeConfig, ContestConfigItem } from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
 import { adminApi } from '../../lib/api/adminApi';
+import {
+  buildContestConfigFromDraft,
+  buildContestConfigFromTemplate,
+  validateContestConfigDraft,
+} from '../../lib/domain/contestConfigDraft';
 
 type ConfigMode = 'template' | 'custom';
 
@@ -50,18 +55,18 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
   const [error, setError] = useState<string | null>(null);
 
   const handleNameChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newName = e.target.value;
-      setName(newName);
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const nextName = event.target.value;
+      setName(nextName);
       if (!slugManuallyEdited) {
-        setSlug(slugify(newName));
+        setSlug(slugify(nextName));
       }
     },
-    [slugManuallyEdited]
+    [slugManuallyEdited],
   );
 
-  const handleSlugChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSlug(slugify(e.target.value));
+  const handleSlugChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setSlug(slugify(event.target.value));
     setSlugManuallyEdited(true);
   }, []);
 
@@ -74,10 +79,10 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
         return;
       }
 
-      const data = result.data ?? [];
-      setConfigs(data);
-      if (data.length > 0) {
-        setSelectedTemplate(data[0].id);
+      const nextConfigs = result.data ?? [];
+      setConfigs(nextConfigs);
+      if (nextConfigs.length > 0) {
+        setSelectedTemplate(nextConfigs[0].id);
       }
       setConfigsLoading(false);
     }
@@ -85,25 +90,20 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
     void fetchConfigs();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!name.trim() || !slug.trim()) {
       setError('Name and slug are required.');
       return;
     }
 
     if (configMode === 'custom') {
-      if (!customTopic.trim()) {
-        setError('Topic is required for custom configuration.');
-        return;
-      }
-      if (customAttributes.length === 0) {
-        setError('At least one scoring attribute is required.');
-        return;
-      }
-      const invalidAttr = customAttributes.find((a) => !a.id.trim() || !a.label.trim());
-      if (invalidAttr) {
-        setError('All attributes must have an ID and label.');
+      const validationError = validateContestConfigDraft({
+        topic: customTopic,
+        attributes: customAttributes,
+      });
+      if (validationError) {
+        setError(validationError);
         return;
       }
     }
@@ -112,23 +112,25 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
     setError(null);
 
     try {
-      const selectedConfig = configs.find((c) => c.id === selectedTemplate);
+      const selectedConfig = configs.find((config) => config.id === selectedTemplate);
 
-      let config;
-      if (configMode === 'template' && selectedConfig) {
-        config = {
-          topic: selectedConfig.topic,
-          attributes: selectedConfig.attributes,
-          entryLabel: entryLabel.trim() || selectedConfig.entryLabel,
-          entryLabelPlural: entryLabelPlural.trim() || selectedConfig.entryLabelPlural,
-        };
-      } else {
-        config = {
-          topic: customTopic.trim(),
-          attributes: customAttributes,
-          entryLabel: entryLabel.trim() || undefined,
-          entryLabelPlural: entryLabelPlural.trim() || undefined,
-        };
+      const config =
+        configMode === 'template'
+          ? selectedConfig
+            ? buildContestConfigFromTemplate(selectedConfig, {
+                entryLabel,
+                entryLabelPlural,
+              })
+            : null
+          : buildContestConfigFromDraft({
+              topic: customTopic,
+              entryLabel,
+              entryLabelPlural,
+              attributes: customAttributes,
+            });
+
+      if (!config) {
+        throw new Error('Select a template before creating a contest.');
       }
 
       if (configMode === 'custom' && saveAsTemplate) {
@@ -158,8 +160,8 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
       upsertContest(createResult.data);
       onSuccess?.();
       router.push('/admin');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create contest.');
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'Failed to create contest.');
     } finally {
       setIsSubmitting(false);
     }
@@ -175,7 +177,7 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
           className="admin-rounds-input"
           value={name}
           onChange={handleNameChange}
-          placeholder="e.g. Summer Mixology Championship"
+          placeholder="e.g. Summer Dessert Showdown"
           required
         />
       </div>
@@ -215,7 +217,7 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
         disabled={isSubmitting}
       />
 
-      {error && <p className="admin-phase-controls__message--error">{error}</p>}
+      {error ? <p className="admin-phase-controls__message--error">{error}</p> : null}
 
       <div className="admin-contest-setup-form__actions">
         <button

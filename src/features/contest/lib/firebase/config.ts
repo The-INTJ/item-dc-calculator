@@ -41,6 +41,9 @@ function isFirebaseConfigured(): boolean {
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
+const firebaseRuntimeState = globalThis as typeof globalThis & {
+  __fbEmulatorsConnected?: boolean;
+};
 
 function initializeFirebase(): { 
   app: FirebaseApp | null; 
@@ -78,11 +81,11 @@ function initializeFirebase(): {
   const useEmulators = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === 'true';
   console.log('[Firebase] Emulator flag:', process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS);
   console.log('[Firebase] useEmulators:', useEmulators);
-  console.log('[Firebase] Already connected:', (globalThis as any).__fbEmulatorsConnected);
+  console.log('[Firebase] Already connected:', firebaseRuntimeState.__fbEmulatorsConnected);
   
   if (useEmulators) {
     // Guard so Next/React strict mode / HMR doesn't reconnect repeatedly
-    if (!(globalThis as any).__fbEmulatorsConnected) {
+    if (!firebaseRuntimeState.__fbEmulatorsConnected) {
       console.log('[Firebase] Connecting to emulators...');
       
       if (auth) {
@@ -93,7 +96,7 @@ function initializeFirebase(): {
       connectFirestoreEmulator(db, '127.0.0.1', 8080);
       console.log('[Firebase] Connected to Firestore Emulator');
 
-      (globalThis as any).__fbEmulatorsConnected = true;
+      firebaseRuntimeState.__fbEmulatorsConnected = true;
     }
   }
 

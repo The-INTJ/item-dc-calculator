@@ -1,67 +1,62 @@
-import { NextResponse } from 'next/server';
-import { getBackendProvider } from '@/contest/lib/helpers/backendProvider';
+import { fromProviderResult, jsonError, jsonSuccess, readJsonBody } from '../../../../_lib/http';
+import { getContestByParam } from '../../../../_lib/provider';
 import { requireAdmin } from '../../../../_lib/requireAdmin';
+import type { Entry } from '@/contest/contexts/contest/contestTypes';
 
 interface RouteParams {
   params: Promise<{ id: string; entryId: string }>;
 }
 
 export async function GET(request: Request, { params }: RouteParams) {
-  /*
-const adminError = await requireAdmin(request);
-  if (adminError) {
-    return adminError;
+  const { id: contestParam, entryId } = await params;
+  const { provider, contest, error } = await getContestByParam(contestParam);
+  if (!contest) {
+    return jsonError(error ?? 'Contest not found', 404);
   }
-*/
-  const { id: contestId, entryId } = await params;
-  const provider = await getBackendProvider();
 
-  const result = await provider?.entries?.getById(contestId, entryId);
+  const result = await provider.entries.getById(contest.id, entryId);
   if (!result.success || !result.data) {
-    return NextResponse.json({ message: result.error ?? 'Entry not found' }, { status: 404 });
+    return jsonError(result.error ?? 'Entry not found', 404);
   }
 
-  return NextResponse.json(result.data);
+  return jsonSuccess(result.data);
 }
 
 export async function PATCH(request: Request, { params }: RouteParams) {
-  /*
-const adminError = await requireAdmin(request);
+  const adminError = await requireAdmin(request);
   if (adminError) {
     return adminError;
   }
-*/
-  const { id: contestId, entryId } = await params;
-  const provider = await getBackendProvider();
-
-  try {
-    const body = await request.json();
-    const result = await provider?.entries?.update(contestId, entryId, body);
-
-    if (!result.success) {
-      return NextResponse.json({ message: result.error }, { status: 404 });
-    }
-
-    return NextResponse.json(result.data);
-  } catch {
-    return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
+  const { id: contestParam, entryId } = await params;
+  const { provider, contest, error } = await getContestByParam(contestParam);
+  if (!contest) {
+    return jsonError(error ?? 'Contest not found', 404);
   }
+
+  const body = await readJsonBody<Partial<Entry>>(request);
+  if (!body.ok) {
+    return body.response;
+  }
+
+  const result = await provider.entries.update(contest.id, entryId, body.data);
+  return fromProviderResult(result, { failureStatus: 404 });
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {
-  /*
-const adminError = await requireAdmin(request);
+  const adminError = await requireAdmin(request);
   if (adminError) {
     return adminError;
   }
-*/
-  const { id: contestId, entryId } = await params;
-  const provider = await getBackendProvider();
-
-  const result = await provider?.entries?.delete(contestId, entryId);
-  if (!result.success) {
-    return NextResponse.json({ message: result.error }, { status: 404 });
+  const { id: contestParam, entryId } = await params;
+  const { provider, contest, error } = await getContestByParam(contestParam);
+  if (!contest) {
+    return jsonError(error ?? 'Contest not found', 404);
   }
 
-  return NextResponse.json({ success: true });
+  const result = await provider.entries.delete(contest.id, entryId);
+  if (!result.success) {
+    return jsonError(result.error ?? 'Entry not found', 404);
+  }
+
+  return jsonSuccess({ success: true });
 }

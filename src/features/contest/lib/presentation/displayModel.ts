@@ -7,8 +7,8 @@ import {
   getFutureRoundId,
   getRoundById,
   getRoundStatus,
-} from './contestGetters';
-import { buildMatchupsFromEntries } from './uiMappings';
+} from '../domain/contestGetters';
+import { buildEntryPairs } from './uiMappings';
 
 export interface DisplayContestant {
   id: string;
@@ -78,10 +78,9 @@ export function buildDisplayModel(contest: Contest): DisplayModel {
   const futureRoundId = getFutureRoundId(contest);
   const rounds = getContestRounds(contest).map((round, roundIndex) => {
     const entries = getEntriesForRound(contest, round.id);
-    const matchups = buildMatchupsFromEntries(entries).map((matchup, matchupIndex) => {
-      const [firstId, secondId] = matchup.entryIds;
-      const firstEntry = firstId ? entries.find((entry) => entry.id === firstId) ?? null : null;
-      const secondEntry = secondId ? entries.find((entry) => entry.id === secondId) ?? null : null;
+    const matchups = buildEntryPairs(entries).map((matchup, matchupIndex) => {
+      const firstEntry = matchup.contestantA;
+      const secondEntry = matchup.contestantB;
       const winnerId = getLeadingContestantId(firstEntry, secondEntry);
 
       return {

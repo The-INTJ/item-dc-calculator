@@ -1,6 +1,6 @@
 import { Slider } from '@mui/material';
 import type { AttributeConfig } from '../../contexts/contest/contestTypes';
-import type { EntrySummary, VoteTotals } from '../../lib/helpers/uiMappings';
+import type { EntrySummary, VoteTotals } from '../../lib/presentation/uiMappings';
 import { EntryCard } from './EntryCard';
 
 interface VoteScorePanelProps {

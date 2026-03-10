@@ -1,17 +1,17 @@
 'use client';
 
 /**
- * Onboarding entry for Mixology (QR or direct).
+ * Onboarding entry for the contest app.
  *
  * Provides a welcoming guest-first flow with optional account creation.
- * Attempts Firestore registration and falls back to local-only mode gracefully.
+ * Guest and Google sign-in both rely on Firebase-backed auth flows.
  */
 
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/src/features/contest/contexts/auth/AuthContext';
+import { useAuth } from '@/contest/contexts/auth/AuthContext';
 
-export default function MixologyOnboardPage() {
+export default function ContestOnboardPage() {
   const router = useRouter();
   const { loading, isGuest, startGuestSession, loginWithGoogle, resetSessionForNewAccount } =
     useAuth();

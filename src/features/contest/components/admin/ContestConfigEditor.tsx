@@ -5,10 +5,16 @@
  * Shows current config and allows editing when no scores exist.
  */
 
-import { useState, useCallback } from 'react';
-import type { Contest, ContestConfig, AttributeConfig } from '../../contexts/contest/contestTypes';
-import { getEffectiveConfig } from '../../lib/helpers/validation';
+import { useCallback, useState } from 'react';
+import type { AttributeConfig, Contest, ContestConfig } from '../../contexts/contest/contestTypes';
+import {
+  buildContestConfigFromDraft,
+  createContestConfigDraft,
+  validateContestConfigDraft,
+} from '../../lib/domain/contestConfigDraft';
+import { getEffectiveConfig } from '../../lib/domain/validation';
 import { AttributeEditor } from './AttributeEditor';
+import { ContestConfigPreview } from './ContestConfigPreview';
 
 interface ContestConfigEditorProps {
   contest: Contest;
@@ -17,37 +23,31 @@ interface ContestConfigEditorProps {
 
 export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProps) {
   const effectiveConfig = getEffectiveConfig(contest);
-  const hasScores = contest.entries.some((e) => (e.voteCount ?? 0) > 0);
+  const hasScores = contest.entries.some((entry) => (entry.voteCount ?? 0) > 0);
+  const defaultDraft = createContestConfigDraft(effectiveConfig);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [topic, setTopic] = useState(effectiveConfig.topic);
-  const [entryLabel, setEntryLabel] = useState(effectiveConfig.entryLabel ?? '');
-  const [entryLabelPlural, setEntryLabelPlural] = useState(effectiveConfig.entryLabelPlural ?? '');
-  const [attributes, setAttributes] = useState<AttributeConfig[]>(effectiveConfig.attributes);
+  const [topic, setTopic] = useState(defaultDraft.topic);
+  const [entryLabel, setEntryLabel] = useState(defaultDraft.entryLabel);
+  const [entryLabelPlural, setEntryLabelPlural] = useState(defaultDraft.entryLabelPlural);
+  const [attributes, setAttributes] = useState<AttributeConfig[]>(defaultDraft.attributes);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleCancel = useCallback(() => {
-    setTopic(effectiveConfig.topic);
-    setEntryLabel(effectiveConfig.entryLabel ?? '');
-    setEntryLabelPlural(effectiveConfig.entryLabelPlural ?? '');
-    setAttributes(effectiveConfig.attributes);
+    const resetDraft = createContestConfigDraft(effectiveConfig);
+    setTopic(resetDraft.topic);
+    setEntryLabel(resetDraft.entryLabel);
+    setEntryLabelPlural(resetDraft.entryLabelPlural);
+    setAttributes(resetDraft.attributes);
     setIsEditing(false);
     setError(null);
   }, [effectiveConfig]);
 
   const handleSave = async () => {
-    if (!topic.trim()) {
-      setError('Topic is required.');
-      return;
-    }
-    if (attributes.length === 0) {
-      setError('At least one scoring attribute is required.');
-      return;
-    }
-    const invalidAttr = attributes.find((a) => !a.id.trim() || !a.label.trim());
-    if (invalidAttr) {
-      setError('All attributes must have an ID and label.');
+    const validationError = validateContestConfigDraft({ topic, attributes });
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -55,15 +55,17 @@ export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProp
     setError(null);
 
     try {
-      await onSave({
-        topic: topic.trim(),
-        attributes,
-        entryLabel: entryLabel.trim() || undefined,
-        entryLabelPlural: entryLabelPlural.trim() || undefined,
-      });
+      await onSave(
+        buildContestConfigFromDraft({
+          topic,
+          entryLabel,
+          entryLabelPlural,
+          attributes,
+        }),
+      );
       setIsEditing(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save config.');
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'Failed to save config.');
     } finally {
       setIsSaving(false);
     }
@@ -74,7 +76,7 @@ export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProp
       <section className="admin-details-section">
         <div className="admin-rounds-header">
           <h3>Contest Configuration</h3>
-          {!hasScores && (
+          {!hasScores ? (
             <button
               type="button"
               className="button-secondary"
@@ -82,9 +84,16 @@ export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProp
             >
               Edit Config
             </button>
-          )}
+          ) : null}
         </div>
-        <ConfigSummary config={effectiveConfig} hasScores={hasScores} />
+        <ContestConfigPreview
+          config={effectiveConfig}
+          footerMessage={
+            hasScores
+              ? 'Configuration is locked because scores have been submitted.'
+              : undefined
+          }
+        />
       </section>
     );
   }
@@ -92,11 +101,11 @@ export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProp
   return (
     <section className="admin-details-section">
       <h3>Edit Configuration</h3>
-      {hasScores && (
+      {hasScores ? (
         <p className="admin-phase-controls__message--error">
           Cannot edit configuration after scores have been submitted.
         </p>
-      )}
+      ) : null}
       <div className="admin-contest-setup-form">
         <div className="admin-contest-setup-form__field">
           <label htmlFor="edit-topic">Topic</label>
@@ -105,7 +114,7 @@ export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProp
             type="text"
             className="admin-rounds-input"
             value={topic}
-            onChange={(e) => setTopic(e.target.value)}
+            onChange={(event) => setTopic(event.target.value)}
             disabled={isSaving}
           />
         </div>
@@ -117,7 +126,7 @@ export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProp
               type="text"
               className="admin-rounds-input"
               value={entryLabel}
-              onChange={(e) => setEntryLabel(e.target.value)}
+              onChange={(event) => setEntryLabel(event.target.value)}
               placeholder="Entry"
               disabled={isSaving}
             />
@@ -129,7 +138,7 @@ export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProp
               type="text"
               className="admin-rounds-input"
               value={entryLabelPlural}
-              onChange={(e) => setEntryLabelPlural(e.target.value)}
+              onChange={(event) => setEntryLabelPlural(event.target.value)}
               placeholder="Entries"
               disabled={isSaving}
             />
@@ -143,7 +152,7 @@ export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProp
             disabled={isSaving}
           />
         </div>
-        {error && <p className="admin-phase-controls__message--error">{error}</p>}
+        {error ? <p className="admin-phase-controls__message--error">{error}</p> : null}
         <div className="admin-contest-setup-form__actions">
           <button
             type="button"
@@ -164,43 +173,5 @@ export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProp
         </div>
       </div>
     </section>
-  );
-}
-
-interface ConfigSummaryProps {
-  config: ContestConfig;
-  hasScores: boolean;
-}
-
-function ConfigSummary({ config, hasScores }: ConfigSummaryProps) {
-  return (
-    <div className="admin-contest-setup-form__preview">
-      <p>
-        <strong>Topic:</strong> {config.topic}
-      </p>
-      <p>
-        <strong>Entry type:</strong> {config.entryLabel ?? 'Entry'} / {config.entryLabelPlural ?? 'Entries'}
-      </p>
-      <h4>Scoring Attributes ({config.attributes.length})</h4>
-      <ul className="admin-detail-list">
-        {config.attributes.map((attr) => (
-          <li key={attr.id} className="admin-detail-item">
-            <strong>{attr.label}</strong>
-            <span className="admin-detail-meta">({attr.id})</span>
-            {attr.description && (
-              <span className="admin-detail-meta"> — {attr.description}</span>
-            )}
-            <span className="admin-detail-meta">
-              Range: {attr.min ?? 0}–{attr.max ?? 10}
-            </span>
-          </li>
-        ))}
-      </ul>
-      {hasScores && (
-        <p className="admin-detail-meta">
-          Configuration is locked because scores have been submitted.
-        </p>
-      )}
-    </div>
   );
 }

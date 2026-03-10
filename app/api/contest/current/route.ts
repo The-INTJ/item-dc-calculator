@@ -1,13 +1,13 @@
-import { NextResponse } from 'next/server';
-import { getBackendProvider } from '@/contest/lib/helpers/backendProvider';
+import { jsonError, jsonSuccess } from '../_lib/http';
+import { loadProvider } from '../_lib/provider';
 
 export async function GET() {
-  const provider = await getBackendProvider();
+  const provider = await loadProvider();
   const result = await provider.contests.getDefault();
 
   if (!result.success) {
-    return NextResponse.json({ message: result.error ?? 'Failed to load contest' }, { status: 500 });
+    return jsonError(result.error ?? 'Failed to load contest', 500);
   }
 
-  return NextResponse.json({ currentContest: result.data ?? null });
+  return jsonSuccess({ currentContest: result.data ?? null });
 }
