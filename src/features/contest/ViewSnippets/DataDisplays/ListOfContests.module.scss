@@ -11,9 +11,9 @@
 }
 
 .header {
-  @include type-xl;
+  @include type-massive;
   font-weight: $font-weight-bold;
-  color: $color-text-primary;
+  color: $color-text-dark;
   margin: 0;
   padding-bottom: $space-padding-sm;
   border-bottom: 1px solid $color-border;
@@ -46,9 +46,9 @@
 }
 
 .contestName {
-  @include type-md;
+  @include type-large;
   font-weight: $font-weight-semibold;
-  color: $color-text-primary;
+  color: $color-text-dark;
 }
 
 .phaseBadge {
@@ -57,7 +57,7 @@
   // Phase specific colors
   &[data-phase='set'] {
     background: $color-gray-200;
-    color: $color-gray-600;
+    color: $color-text-dark;
   }
 
   &[data-phase='shake'] {
@@ -67,6 +67,6 @@
 
   &[data-phase='scored'] {
     background: $color-success-50;
-    color: $color-success-600;
+    color: $color-text-dark;
   }
 }

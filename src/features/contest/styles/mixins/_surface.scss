@@ -79,17 +79,17 @@
   background: $color-input-bg;
   border: 1px solid $color-input-border;
   border-radius: $radius-button;
-  color: $color-text-primary;
-  font-size: $font-size-xl;
+  color: $color-text-dark;
+  font-size: $font-size-normal;
   padding: $space-padding-sm $space-padding-md;
 }
 
 /// Error state styling
 @mixin error-surface {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: $color-error-50;
+  border: 1px solid $color-error-200;
   border-radius: $radius-md;
-  color: #b91c1c;
+  color: $color-text-dark;
   padding: $space-padding-sm $space-padding-md;
 }
 
@@ -98,7 +98,7 @@
   background: $color-warning-100;
   border: 1px solid $color-warning-200;
   border-radius: $radius-md;
-  color: $color-warning-900;
+  color: $color-text-dark;
   padding: $space-padding-sm $space-padding-md;
 }
 
@@ -106,7 +106,7 @@
 @mixin status-badge {
   border-radius: $radius-xs;
   display: inline-block;
-  font-size: $font-size-2xs;
+  font-size: $font-size-small;
   font-weight: $font-weight-bold;
   padding: 0.15rem 0.4rem;
   text-transform: uppercase;

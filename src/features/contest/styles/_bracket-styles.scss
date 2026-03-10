@@ -12,7 +12,8 @@
 }
 
 .contest-bracket__hint {
-  @include type-base;
+  @include type-small;
+  color: $color-text-dark;
   margin: 0;
   opacity: 0.75;
 }
@@ -55,12 +56,13 @@
 }
 
 .contest-bracket__round-title {
-  @include type-xl;
+  @include type-large;
   margin: 0;
 }
 
 .contest-bracket__round-status {
   @include type-label;
+  color: $color-text-special;
 }
 
 .contest-bracket__matchups {
@@ -90,6 +92,7 @@
 }
 
 .contest-matchup-card__team--winner {
+  color: $color-text-special;
   font-weight: $font-weight-bold;
 }
 
@@ -99,6 +102,7 @@
 
 .contest-matchup-card__badge {
   @include type-label;
+  color: $color-text-special;
 }
 
 .contest-bracket__round-card--clickable {

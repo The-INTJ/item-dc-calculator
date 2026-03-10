@@ -13,12 +13,13 @@
 }
 
 .contest-entry-card__title {
-  @include type-lg;
+  @include type-large;
   margin: 0;
 }
 
 .contest-entry-card__creator {
-  @include type-base;
+  @include type-normal;
+  color: $color-text-dark;
   margin: 0;
   opacity: 0.8;
 }
@@ -34,7 +35,7 @@
 .contest-entry-card__totals li {
   display: flex;
   justify-content: space-between;
-  @include type-base;
+  @include type-normal;
 }
 
 .contest-entry-grid {

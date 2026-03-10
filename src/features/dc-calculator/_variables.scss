@@ -27,3 +27,15 @@ $dc-calculator-color-success: #2e7d32;
 $dc-calculator-color-error: #c62828;
 $dc-calculator-color-border-muted: #cccccc;
 $dc-calculator-color-highlight: #f8f8f8;
+
+// Canonical typography scale
+$dc-calculator-font-size-small: 0.75rem;
+$dc-calculator-font-size-normal: 1rem;
+$dc-calculator-font-size-large: clamp(1.2rem, 1rem + 0.8vw, 1.75rem);
+$dc-calculator-font-size-massive: clamp(2.25rem, 1.65rem + 2.5vw, 4.5rem);
+
+// Canonical text colors
+$dc-calculator-color-text-dark: $dc-calculator-color-text-primary;
+$dc-calculator-color-text-light: $dc-calculator-color-text-inverse;
+$dc-calculator-color-text-link: $dc-calculator-color-background-blue;
+$dc-calculator-color-text-special: $dc-calculator-color-main-brown;

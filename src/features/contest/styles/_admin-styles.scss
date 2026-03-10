@@ -15,18 +15,19 @@
 .admin-dashboard__header {
   background: linear-gradient(135deg, $color-dark-900, $color-dark-800);
   border-radius: $radius-lg;
-  color: $color-light-50;
+  color: $color-text-light;
   padding: $space-padding-lg;
 }
 
 .admin-dashboard__header h1 {
-  @include type-lg;
+  @include type-massive;
   margin-bottom: $space-sm;
 }
 
 .admin-dashboard__header p {
-  color: $color-gray-300;
+  color: $color-text-light;
   margin-bottom: $space-gap-normal;
+  opacity: 0.8;
 }
 
 .admin-dashboard__layout {
@@ -49,8 +50,8 @@
 }
 
 .admin-sidebar h2 {
-  color: $color-light-100;
-  @include type-lg;
+  color: $color-text-light;
+  @include type-large;
   margin-bottom: $space-gap-normal;
 }
 
@@ -65,7 +66,7 @@
   background: $color-dark-900;
   border: 2px solid transparent;
   border-radius: $radius-lg;
-  color: $color-light-100;
+  color: $color-text-light;
   cursor: pointer;
   padding: $space-padding-md;
   text-align: left;
@@ -92,34 +93,36 @@
 }
 
 .admin-contest-card__name {
-  @include type-lg;
+  @include type-large;
   font-weight: $font-weight-semibold;
   margin: 0;
 }
 
 .admin-contest-card__phase {
   @include status-badge;
-  color: #fff;
+  color: $color-text-light;
 }
 
 .admin-contest-card__location {
-  color: $color-gray-400;
-  @include type-base;
+  color: $color-text-light;
+  @include type-normal;
   margin: 0 0 $space-base;
+  opacity: 0.8;
 }
 
 .admin-contest-card__stats {
-  color: $color-gray-500;
+  color: $color-text-light;
   display: flex;
   flex-wrap: wrap;
-  @include type-xs;
+  @include type-small;
   gap: $space-lg;
+  opacity: 0.8;
 }
 
 .admin-contest-card__default {
   background: $color-primary;
   border-radius: $radius-xs;
-  color: $color-dark-950;
+  color: $color-text-dark;
   display: inline-block;
   @include type-label;
   margin-top: $space-base;
@@ -136,11 +139,12 @@
 
 .admin-placeholder {
   align-items: center;
-  color: $color-gray-500;
+  color: $color-text-dark;
   display: flex;
   height: 100%;
   justify-content: center;
   min-height: 300px;
+  opacity: 0.75;
 }
 
 /* Contest Details */
@@ -160,13 +164,14 @@
 }
 
 .admin-contest-details__header h2 {
-  @include type-lg;
+  @include type-large;
   margin-bottom: 0.25rem;
 }
 
 .admin-detail-meta {
-  color: $color-gray-500;
-  @include type-base;
+  color: $color-text-dark;
+  @include type-normal;
+  opacity: 0.75;
 }
 
 .admin-details-section {
@@ -175,7 +180,7 @@
 }
 
 .admin-details-section h3 {
-  @include type-lg;
+  @include type-large;
   margin-bottom: $space-lg;
 }
 
@@ -195,18 +200,19 @@
 }
 
 .admin-phase-controls__message {
-  @include type-base;
+  @include type-normal;
+  color: $color-text-dark;
   margin: 0;
   opacity: 0.85;
 
   &--error {
-    color: $color-error-600;
+    color: $color-text-special;
     font-weight: $font-weight-semibold;
     opacity: 1;
   }
 
   &--success {
-    color: #0f766e;
+    color: $color-text-special;
     font-weight: $font-weight-semibold;
   }
 }
@@ -243,13 +249,14 @@
 }
 
 .admin-phase-button__label {
-  @include type-lg;
+  @include type-normal;
 }
 
 .admin-phase-button__desc {
-  color: $color-gray-500;
-  @include type-sm;
+  color: $color-text-dark;
+  @include type-normal;
   line-height: $line-height-normal;
+  opacity: 0.75;
 }
 
 .admin-detail-list {
@@ -388,11 +395,11 @@
   padding: $space-base $space-md;
 
   .admin-phase-button__label {
-    @include type-base;
+    @include type-normal;
   }
 
   .admin-phase-button__desc {
-    @include type-sm;
+    @include type-normal;
   }
 }
 
@@ -416,9 +423,10 @@
 }
 
 .admin-phase-controls__info {
-  @include type-sm;
-  color: $color-gray-500;
+  @include type-normal;
+  color: $color-text-dark;
   margin: 0;
+  opacity: 0.75;
 }
 
 .admin-round-badge {
@@ -427,32 +435,32 @@
 
 .admin-round-badge--set {
   background: $color-info-600;
-  color: #fff;
+  color: $color-text-light;
 }
 
 .admin-round-badge--shake {
   background: $color-success-500;
-  color: #fff;
+  color: $color-text-light;
 }
 
 .admin-round-badge--scored {
   background: $color-warning-700;
-  color: #fff;
+  color: $color-text-light;
 }
 
 .admin-round-badge--active {
   background: $color-success-500;
-  color: #fff;
+  color: $color-text-light;
 }
 
 .admin-round-badge--closed {
   background: $color-gray-400;
-  color: $color-dark-950;
+  color: $color-text-dark;
 }
 
 .admin-round-badge--upcoming {
   background: $color-info-600;
-  color: #fff;
+  color: $color-text-light;
 }
 
 .admin-contestant-item {
@@ -476,11 +484,13 @@
 }
 
 .admin-category-form__message {
-  @include type-base;
+  @include type-normal;
+  color: $color-text-dark;
   margin: 0 0 $space-base;
   opacity: 0.75;
 
   &--error {
+    color: $color-text-special;
     font-weight: $font-weight-semibold;
     opacity: 0.95;
   }
@@ -492,17 +502,17 @@
 
 .admin-role-badge--admin {
   background: $color-error-600;
-  color: #fff;
+  color: $color-text-light;
 }
 
 .admin-role-badge--voter {
   background: $color-info-600;
-  color: #fff;
+  color: $color-text-light;
 }
 
 .admin-role-badge--competitor {
   background: $color-gray-500;
-  color: #fff;
+  color: $color-text-light;
 }
 
 /* Score Items */
@@ -521,7 +531,7 @@
 .admin-score-item__breakdown {
   display: flex;
   flex-wrap: wrap;
-  @include type-sm;
+  @include type-normal;
   gap: $space-lg;
   margin-top: $space-base;
 }
@@ -529,11 +539,12 @@
 .admin-score-item__notes {
   background: $color-light-100;
   border-radius: $radius-xs;
-  color: $color-gray-600;
-  @include type-base;
+  color: $color-text-dark;
+  @include type-normal;
   font-style: italic;
   margin: $space-base 0 0;
   padding: $space-base;
+  opacity: 0.8;
 }
 
 /* States */
@@ -549,12 +560,13 @@
 }
 
 .admin-error {
-  color: $color-error-600;
+  color: $color-text-special;
 }
 
 .admin-empty {
-  color: $color-gray-400;
+  color: $color-text-dark;
   font-style: italic;
+  opacity: 0.7;
 }
 
 /* Contest Setup Form */
@@ -572,7 +584,7 @@
 }
 
 .admin-contest-setup-form__field label {
-  @include type-lg;
+  @include type-normal;
   font-weight: $font-weight-semibold;
 }
 
@@ -584,7 +596,7 @@
 }
 
 .admin-contest-setup-form__preview h4 {
-  @include type-lg;
+  @include type-large;
   margin-bottom: $space-base;
 }
 
@@ -596,7 +608,7 @@
 .button-secondary--active {
   background: $color-primary;
   border-color: $color-primary;
-  color: $color-dark-950;
+  color: $color-text-dark;
 }
 
 .admin-contest-setup-form__actions {
@@ -645,16 +657,16 @@
   background: transparent;
   border: 1px solid $color-border;
   border-radius: $radius-xs;
-  color: $color-gray-500;
+  color: $color-text-dark;
   cursor: pointer;
-  font-size: 10px;
+  font-size: $font-size-small;
   line-height: 1;
   padding: $space-xs;
   transition: background $transition-fast, color $transition-fast;
 
   &:hover:not(:disabled) {
     background: $color-gray-200;
-    color: $color-dark-900;
+    color: $color-text-dark;
   }
 
   &:disabled {
@@ -689,9 +701,9 @@
   background: transparent;
   border: 1px solid $color-border;
   border-radius: $radius-xs;
-  color: $color-error-600;
+  color: $color-text-special;
   cursor: pointer;
-  font-size: 14px;
+  font-size: $font-size-small;
   line-height: 1;
   padding: $space-xs $space-sm;
   transition: background $transition-fast;

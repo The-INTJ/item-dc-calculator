@@ -6,14 +6,14 @@
 
 .dc-display {
   text-align: center;
-  font-size: 2rem;
+  font-size: $dc-calculator-font-size-large;
   margin-bottom: 20px;
 }
 
 .breakdown-container {
   margin-top: 20px;
   border: none;
-  color: $dc-calculator-color-text-primary;
+  color: $dc-calculator-color-text-dark;
 }
 
 .add-effect-btn {
@@ -99,14 +99,14 @@
 .shard-num {
   background-color: $dc-calculator-color-surface;
   border-radius: 50%;
-  font-size: 1rem;
+  font-size: $dc-calculator-font-size-normal;
   width: 20px;
   height: 20px;
   margin: 0;
   text-align: center;
   line-height: 17px;
   font-weight: 600;
-  color: $dc-calculator-color-text-primary;
+  color: $dc-calculator-color-text-dark;
 }
 
 .shard-btn {
@@ -114,11 +114,11 @@
   height: 35px;
   width: 43px;
   padding: 5px 15px 5px;
-  color: $dc-calculator-color-text-inverse;
+  color: $dc-calculator-color-text-light;
   border: none;
 
   &.White, &.Silver {
-    color: black;
+    color: $dc-calculator-color-text-dark;
   }
   
   &:hover {
@@ -159,7 +159,7 @@
 }
 
 .editable-title-input {
-  font-size: 2rem;
+  font-size: $dc-calculator-font-size-large;
   margin-bottom: 1rem;
   border: none;
   border-bottom: 2px solid $dc-calculator-color-border-muted;

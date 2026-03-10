@@ -3,39 +3,55 @@
 // Typography mixins.
 // Reusable type styles for consistent text patterns.
 
-@mixin type-base {
-  font-size: $font-size-sm;
+@mixin type-small {
+  font-size: $font-size-small;
   font-weight: $font-weight-regular;
 }
 
-/// Font size and weight preset: extra small labels (0.7rem, 600)
+@mixin type-normal {
+  font-size: $font-size-normal;
+  font-weight: $font-weight-regular;
+}
+
+@mixin type-large {
+  font-size: $font-size-large;
+}
+
+@mixin type-massive {
+  font-size: $font-size-massive;
+  line-height: $line-height-tight;
+}
+
+@mixin type-base {
+  @include type-normal;
+}
+
+/// Font size and weight preset: compact help labels
 @mixin type-2xs {
-  font-size: $font-size-2xs;
+  @include type-small;
   font-weight: $font-weight-semibold;
 }
 
-/// Font size and weight preset: small labels (0.75rem, 600)
+/// Font size and weight preset: small labels
 @mixin type-xs {
-  font-size: $font-size-xs;
+  @include type-small;
   font-weight: $font-weight-semibold;
 }
 
 @mixin type-sm {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-regular;
+  @include type-normal;
 }
 
-/// Font size preset: paragraph (1rem)
 @mixin type-md {
-  font-size: $font-size-md;
+  @include type-normal;
 }
 
 @mixin type-lg {
-  font-size: $font-size-lg;
+  @include type-large;
 }
 
 @mixin type-xl {
-  font-size: $font-size-xl;
+  @include type-massive;
 }
 
 /// Uppercase with letter spacing
@@ -46,12 +62,13 @@
 
 /// Small uppercase label styling
 @mixin type-label {
-  @include type-2xs;
+  @include type-small;
+  font-weight: $font-weight-semibold;
   @include type-uppercase;
 }
 
 /// Secondary text styling
 @mixin type-secondary {
-  color: $color-text-secondary;
-  font-size: $font-size-base;
+  color: $color-text-dark;
+  font-size: $font-size-normal;
 }

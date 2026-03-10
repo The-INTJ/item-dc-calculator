@@ -19,21 +19,25 @@
 
 .contest-round-card__eyebrow {
   @include type-label;
+  color: $color-text-special;
   margin: 0;
 }
 
 .contest-round-card__title {
-  @include type-lg;
+  @include type-large;
   margin: 0.15rem 0 0;
 }
 
 .contest-round-card__status {
   @include type-label;
+  color: $color-text-special;
 }
 
 .contest-round-card__meta {
-  @include type-lg;
+  @include type-normal;
+  color: $color-text-dark;
   margin: 0;
+  opacity: 0.75;
 }
 
 .contest-round-card__contestants {
@@ -45,6 +49,7 @@
 }
 
 .contest-round-card__empty {
+  color: $color-text-dark;
   opacity: 0.7;
 }
 

@@ -11,16 +11,16 @@
   position: sticky;
   top: 0;
   background-color: $dc-calculator-color-main-brown;
-  color: $dc-calculator-color-text-inverse;
+  color: $dc-calculator-color-text-light;
 
   text-align: center;
 
   button {
-    color: $dc-calculator-color-text-inverse;
+    color: $dc-calculator-color-text-light;
   }
 
   .title-bar-title {
-    font-size: 4rem;
+    font-size: $dc-calculator-font-size-massive;
   }
 }
 
@@ -60,7 +60,7 @@
 
 .modal-content {
   background: white;
-  color: black;
+  color: $dc-calculator-color-text-dark;
   padding: 1rem;
   border-radius: 4px;
   min-width: 300px;
@@ -80,7 +80,7 @@
     border-radius: 8px;
 
     // text size
-    font-size: 2rem;
+    font-size: $dc-calculator-font-size-large;
     font-weight: 700;
     font-family: 'Cinzel', serif; // a nice fantasy vibe
 
@@ -129,7 +129,7 @@
     }
 
     &.shine {
-      font-size: 2em;
+      font-size: $dc-calculator-font-size-large;
       font-weight: bold;
       background-size: 200%;
       -webkit-background-clip: text;

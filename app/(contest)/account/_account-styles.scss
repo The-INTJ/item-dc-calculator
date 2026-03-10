@@ -17,8 +17,9 @@
 }
 
 .account-page > p {
-  color: $color-text-secondary;
+  color: $color-text-dark;
   margin: 0;
+  opacity: 0.8;
 }
 
 .account-section {
@@ -26,7 +27,7 @@
 }
 
 .account-section h2 {
-  @include type-lg;
+  @include type-large;
   margin: 0 0 $space-gap-normal;
 }
 
@@ -45,7 +46,7 @@
   background: $color-code-bg;
   border-radius: $radius-button;
   font-family: $font-family-mono;
-  @include type-md;
+  @include type-normal;
   padding: $space-padding-md;
 }
 
@@ -73,8 +74,9 @@
 }
 
 .vote-time {
-  color: $color-text-muted;
-  @include type-xs;
+  color: $color-text-dark;
+  @include type-small;
+  opacity: 0.7;
 }
 
 .account-notes {
@@ -88,13 +90,14 @@
 }
 
 .account-hint {
-  color: $color-warning-900;
-  @include type-md;
+  color: $color-text-special;
+  @include type-normal;
   margin: $space-base 0 0;
 }
 
 .account-loading {
-  color: $color-text-secondary;
+  color: $color-text-dark;
   padding: $space-gap-xl;
   text-align: center;
+  opacity: 0.8;
 }

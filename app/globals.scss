@@ -7,6 +7,7 @@
 
 // DC calculator app styles
 @use '../src/features/dc-calculator/index' as dcCalculator;
+@use '../src/features/contest/styles/index' as contest;
 
 // Mixology app styles are loaded separately via app/mixology/layout.tsx
 // to keep the two apps' styles properly isolated
@@ -15,6 +16,10 @@
 // These should eventually be migrated to use design tokens too
 
 body {
+  color: contest.$color-text-dark;
+  font-family: contest.$font-family-sans;
+  font-size: contest.$font-size-normal;
+  line-height: contest.$line-height-normal;
   padding: 0;
   margin: 0;
 }
@@ -23,7 +28,7 @@ body {
   align-items: flex-start;
   background: #0f172a;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  color: #e2e8f0;
+  color: contest.$color-text-light;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -32,7 +37,7 @@ body {
 }
 
 .site-header__brand {
-  font-size: 1.2rem;
+  font-size: contest.$font-size-large;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
@@ -49,7 +54,8 @@ body {
 .site-nav__link {
   border: 1px solid #22d3ee;
   border-radius: 999px;
-  color: #e0f2fe;
+  color: contest.$color-text-light;
+  font-size: contest.$font-size-large;
   font-weight: 600;
   padding: 0.55rem 0.9rem;
   text-decoration: none;
@@ -59,24 +65,24 @@ body {
 
 .site-nav__link:hover {
   background: #22d3ee;
-  color: #0b1120;
+  color: contest.$color-text-dark;
 }
 
 .site-nav__link--active {
   background: rgba(34, 211, 238, 0.16);
   border-color: rgba(34, 211, 238, 0.7);
-  color: #e0f2fe;
+  color: contest.$color-text-light;
 }
 
 .site-nav__link--secondary {
   border-color: rgba(255, 255, 255, 0.25);
-  color: #cbd5e1;
+  color: contest.$color-text-light;
 }
 
 .site-nav__link--secondary:hover {
   border-color: #94a3b8;
   background: #e2e8f0;
-  color: #0f172a;
+  color: contest.$color-text-dark;
 }
 
 .site-nav__status {
@@ -87,8 +93,8 @@ body {
 }
 
 .site-nav__status-label {
-  color: #cbd5e1;
-  font-size: 0.75rem;
+  color: contest.$color-text-light;
+  font-size: contest.$font-size-small;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -96,8 +102,8 @@ body {
 
 .site-nav__phase {
   border-radius: 999px;
-  color: #0b1120;
-  font-size: 0.75rem;
+  color: contest.$color-text-dark;
+  font-size: contest.$font-size-small;
   font-weight: 700;
   padding: 0.3rem 0.65rem;
   text-transform: uppercase;
@@ -128,16 +134,16 @@ body {
 
 .auth-banner__content {
   align-items: center;
-  color: #e2e8f0;
+  color: contest.$color-text-light;
   display: flex;
-  font-size: 0.85rem;
+  font-size: contest.$font-size-normal;
   gap: 0.75rem;
   justify-content: space-between;
 }
 
 .auth-banner__action {
   border-radius: 999px;
-  font-size: 0.8rem;
+  font-size: contest.$font-size-normal;
   padding: 0.4rem 0.9rem;
 }
 
@@ -155,7 +161,7 @@ body {
 .contest-hero {
   background: linear-gradient(135deg, #0ea5e9, #7c3aed);
   border-radius: 16px;
-  color: #f8fafc;
+  color: contest.$color-text-light;
   display: grid;
   gap: 1rem;
   padding: 1.5rem;
@@ -163,7 +169,7 @@ body {
 }
 
 .contest-hero h1 {
-  font-size: clamp(2.1rem, 3vw, 2.8rem);
+  font-size: contest.$font-size-massive;
   margin-bottom: 0.5rem;
 }
 
@@ -190,6 +196,7 @@ body {
   border-radius: 10px;
   border: none;
   cursor: pointer;
+  font-size: contest.$font-size-normal;
   font-weight: 700;
   padding: 0.75rem 1rem;
   text-decoration: none;
@@ -199,7 +206,7 @@ body {
 .button-primary {
   background: #0f172a;
   box-shadow: 0 14px 35px rgba(15, 23, 42, 0.35);
-  color: #e2e8f0;
+  color: contest.$color-text-light;
 }
 
 .button-primary:hover {
@@ -210,7 +217,7 @@ body {
 .button-secondary {
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.35);
-  color: #e2e8f0;
+  color: contest.$color-text-light;
 }
 
 .button-secondary:hover {
@@ -220,13 +227,13 @@ body {
 .button-secondary--danger {
   background: rgba(239, 68, 68, 0.15);
   border-color: rgba(239, 68, 68, 0.5);
-  color: #fca5a5;
+  color: contest.$color-text-light;
 }
 
 .button-secondary--danger:hover {
   background: rgba(239, 68, 68, 0.25);
   border-color: rgba(239, 68, 68, 0.7);
-  color: #fecaca;
+  color: contest.$color-text-light;
 }
 
 .button-secondary--danger:disabled {
@@ -245,7 +252,7 @@ body {
     #0b1120;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
-  color: #e2e8f0;
+  color: contest.$color-text-light;
   padding: 1.15rem;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
 
@@ -263,7 +270,7 @@ body {
 }
 
 .contest-card h2 {
-  font-size: 1.2rem;
+  font-size: contest.$font-size-large;
   margin-bottom: 0.4rem;
 }
 

@@ -19,11 +19,11 @@
 }
 
 .player-chance-details {
-  color: $dc-calculator-color-text-inverse;
+  color: $dc-calculator-color-text-light;
   display: flex;
   flex-direction: row;
   align-items: center;
-  font-size: 1.5rem;
+  font-size: $dc-calculator-font-size-large;
 }
 
 .player-chance-label {
@@ -33,11 +33,11 @@
 
 .player-mod-input {
   background-color: transparent;
-  color: $dc-calculator-color-text-inverse;
+  color: $dc-calculator-color-text-light;
   border: none;
   border-radius: 100%;
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-  font-size: 2rem;
+  font-size: $dc-calculator-font-size-large;
   width: 40px;
   height: 40px;
 }
@@ -48,6 +48,6 @@
   max-width: 290px;
   text-align: center;
   z-index: 2;
-  color: $dc-calculator-color-text-inverse;
+  color: $dc-calculator-color-text-light;
   margin-top: 430px!important;
 }

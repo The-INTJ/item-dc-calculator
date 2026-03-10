@@ -8,7 +8,7 @@
     text-decoration: none;
     position: relative;
     transition: color $transition-slow;
-    @include type-lg();
+    @include type-large;
 
     &::after {
         content: '';
@@ -22,7 +22,7 @@
     }
 
     &:hover {
-        color: $color-info-600;
+        color: $color-text-link;
 
         &::after {
             width: 100%;
@@ -30,7 +30,7 @@
     }
 
     &:focus {
-        outline: $space-xs solid $color-info-600;
+        outline: $space-xs solid $color-text-link;
         outline-offset: $space-xs;
     }
 }

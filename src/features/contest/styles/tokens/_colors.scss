@@ -54,11 +54,18 @@ $color-phase-active: #22c55e;
 $color-phase-judging: #f59e0b;
 $color-phase-closed: #94a3b8;
 
-// Semantic mappings for component usage
-$color-text-primary: $color-dark-950;
-$color-text-secondary: $color-gray-500;
-$color-text-muted: $color-gray-400;
-$color-text-tertiary: $color-dark-950;
+// Canonical text colors
+$color-text-dark: $color-dark-950;
+$color-text-light: $color-light-50;
+$color-text-link: $color-primary;
+$color-text-special: $color-warning-700;
+
+// Legacy aliases kept for compatibility while the styles continue to converge
+// on the four tokens above.
+$color-text-primary: $color-text-dark;
+$color-text-secondary: $color-text-dark;
+$color-text-muted: $color-text-dark;
+$color-text-tertiary: $color-text-special;
 
 $color-surface: #ffffff;
 $color-surface-hover: $color-light-100;

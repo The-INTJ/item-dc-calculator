@@ -16,7 +16,7 @@
   border: 1px solid currentColor;
   border-radius: $radius-pill;
   cursor: pointer;
-  @include type-lg;
+  @include type-normal;
   padding: $space-md $space-2xl;
   transition: transform $transition-fast, opacity $transition-base;
 
@@ -63,13 +63,13 @@
 }
 
 .contest-vote-slider__label {
-  @include type-sm;
+  @include type-normal;
   font-weight: $font-weight-semibold;
   opacity: 0.75;
 }
 
 .contest-vote-slider__value {
-  @include type-sm;
+  @include type-normal;
   font-weight: $font-weight-semibold;
 }
 
@@ -86,21 +86,24 @@
 }
 
 .contest-vote-actions__message {
-  @include type-base;
+  @include type-normal;
   margin: 0;
   opacity: 0.75;
 
   &--error {
+    color: $color-text-special;
     font-weight: $font-weight-semibold;
     opacity: 0.95;
   }
 
   &--success {
+    color: $color-text-special;
     opacity: 0.9;
   }
 }
 
 .contest-empty {
+  color: $color-text-dark;
   opacity: 0.7;
 }
 

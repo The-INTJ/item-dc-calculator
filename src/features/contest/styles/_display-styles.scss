@@ -10,7 +10,7 @@
     radial-gradient(circle at top left, rgba(34, 211, 238, 0.16), transparent 34%),
     radial-gradient(circle at top right, rgba(37, 99, 235, 0.2), transparent 28%),
     linear-gradient(160deg, $color-dark-950 0%, #09111f 100%);
-  color: $color-light-50;
+  color: $color-text-light;
   min-height: 100dvh;
   padding: clamp(1rem, 2vw, 2rem);
 }
@@ -24,8 +24,8 @@
   @include card-elevated;
   background: rgba(15, 23, 42, 0.92);
   border-color: rgba(148, 163, 184, 0.24);
-  color: $color-light-50;
-  font-size: clamp(1.2rem, 2vw, 1.75rem);
+  color: $color-text-light;
+  font-size: $font-size-large;
   text-align: center;
 }
 
@@ -43,21 +43,22 @@
 .contest-display__eyebrow,
 .contest-display__label {
   @include type-label;
-  color: $color-primary;
+  color: $color-text-special;
   display: block;
   margin: 0 0 $space-base;
 }
 
 .contest-display__title {
-  font-size: clamp(2.6rem, 5vw, 5.5rem);
+  font-size: $font-size-massive;
   line-height: 1;
   margin: 0;
 }
 
 .contest-display__meta {
-  color: $color-gray-300;
-  font-size: clamp(1rem, 1.8vw, 1.5rem);
+  color: $color-text-light;
+  font-size: $font-size-large;
   margin: $space-lg 0 0;
+  opacity: 0.8;
 }
 
 .contest-display__ticker {
@@ -79,7 +80,7 @@
 }
 
 .contest-display__value {
-  font-size: clamp(1.25rem, 2.4vw, 2rem);
+  font-size: $font-size-large;
 }
 
 .contest-display__grid {
@@ -115,7 +116,7 @@
 }
 
 .contest-display__round-title {
-  font-size: clamp(1.4rem, 2.6vw, 2.2rem);
+  font-size: $font-size-large;
   margin: 0;
 }
 
@@ -127,17 +128,18 @@
 
 .contest-display__status--active {
   background: rgba(34, 211, 238, 0.16);
-  color: $color-primary;
+  color: $color-text-special;
 }
 
 .contest-display__status--closed {
   background: rgba(16, 185, 129, 0.16);
-  color: $color-success-500;
+  color: $color-text-light;
 }
 
 .contest-display__status--upcoming {
   background: rgba(148, 163, 184, 0.16);
-  color: $color-gray-300;
+  color: $color-text-light;
+  opacity: 0.8;
 }
 
 .contest-display__matchups {
@@ -152,11 +154,11 @@
 }
 
 .contest-display__team {
-  font-size: clamp(1rem, 2vw, 1.4rem);
+  font-size: $font-size-normal;
 }
 
 .contest-display__team--winner {
-  color: $color-primary;
+  color: $color-text-special;
   font-weight: $font-weight-bold;
 }
 
@@ -167,7 +169,7 @@
 }
 
 .contest-display__score {
-  font-size: clamp(1.4rem, 2.8vw, 2.4rem);
+  font-size: $font-size-large;
   font-weight: $font-weight-bold;
   min-width: 2ch;
   text-align: right;
@@ -175,12 +177,13 @@
 
 .contest-display__badge {
   @include type-label;
-  color: $color-warning-200;
+  color: $color-text-special;
 }
 
 .contest-display__empty {
-  color: $color-gray-300;
-  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  color: $color-text-light;
+  font-size: $font-size-normal;
+  opacity: 0.8;
 }
 
 @include respond-to-lg {
