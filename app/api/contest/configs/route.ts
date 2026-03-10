@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { getBackendProvider } from '@/contest/lib/helpers/backendProvider';
+import { requireAdmin } from '../_lib/requireAdmin';
 
 export async function GET() {
   const provider = await getBackendProvider();
@@ -13,6 +14,11 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const adminError = await requireAdmin(request);
+  if (adminError) {
+    return adminError;
+  }
+
   const provider = await getBackendProvider();
 
   try {
@@ -28,3 +34,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
   }
 }
+

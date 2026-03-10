@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { getBackendProvider } from '@/contest/lib/helpers/backendProvider';
 import { requireAdmin } from '../../_lib/requireAdmin';
 
@@ -7,22 +7,15 @@ interface RouteParams {
 }
 
 export async function GET(request: Request, { params }: RouteParams) {
-  /*
-const adminError = await requireAdmin(request);
-  if (adminError) {
-    return adminError;
-  }
-*/
   const { id } = await params;
   const provider = await getBackendProvider();
 
-  // Try to find by ID first, then by slug
   const contestsResult = await provider.contests.list();
   if (!contestsResult.success || !contestsResult.data) {
     return NextResponse.json({ message: 'Failed to fetch contests' }, { status: 500 });
   }
 
-  const contest = contestsResult.data.find((c) => c.id === id || c.slug === id);
+  const contest = contestsResult.data.find((candidate) => candidate.id === id || candidate.slug === id);
   if (!contest) {
     return NextResponse.json({ message: 'Contest not found' }, { status: 404 });
   }
@@ -31,12 +24,11 @@ const adminError = await requireAdmin(request);
 }
 
 export async function PATCH(request: Request, { params }: RouteParams) {
-  /*
-const adminError = await requireAdmin(request);
+  const adminError = await requireAdmin(request);
   if (adminError) {
     return adminError;
   }
-*/
+
   const { id } = await params;
   const provider = await getBackendProvider();
 
@@ -55,12 +47,11 @@ const adminError = await requireAdmin(request);
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {
-  /*
-const adminError = await requireAdmin(request);
+  const adminError = await requireAdmin(request);
   if (adminError) {
     return adminError;
   }
-*/
+
   const { id } = await params;
   const provider = await getBackendProvider();
 
@@ -71,3 +62,4 @@ const adminError = await requireAdmin(request);
 
   return NextResponse.json({ success: true });
 }
+

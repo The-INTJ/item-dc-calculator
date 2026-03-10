@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Contest, ContestConfig, Entry, Voter, ScoreEntry } from '../../contexts/contest/contestTypes';
@@ -8,6 +8,7 @@ import { getRoundLabel } from '../../lib/helpers/contestGetters';
 import { EntryCard } from '../ui/EntryCard';
 import { useContestStore } from '../../contexts/contest/ContestContext';
 import { adminApi } from '../../lib/api/adminApi';
+import { contestApi } from '../../lib/api/contestApi';
 import { AdminContestRounds } from './AdminContestRounds';
 import { AdminContestants } from './AdminContestants';
 import { AdminRoundOverview } from './AdminRoundOverview';
@@ -82,26 +83,23 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
 
   const activeRoundLabel = getRoundLabel(contest, contest.activeRoundId);
   const config = getEffectiveConfig(contest);
+  const entryIdsKey = contest.entries.map((entry) => entry.id).join('|');
 
-  // Fetch scores from subcollection for admin detail view
   useEffect(() => {
-    if (!contest.id) return;
-    // Fetch all scores for each entry
+    if (!contest.id || contest.entries.length === 0) {
+      setContestScores([]);
+      return;
+    }
+
     const fetchScores = async () => {
-      const allScores: ScoreEntry[] = [];
-      for (const entry of contest.entries) {
-        try {
-          const res = await fetch(`/api/contest/contests/${contest.id}/scores?entryId=${entry.id}`);
-          if (res.ok) {
-            const data = await res.json();
-            allScores.push(...(data.scores ?? []));
-          }
-        } catch { /* ignore fetch errors */ }
-      }
-      setContestScores(allScores);
+      const scoreGroups = await Promise.all(
+        contest.entries.map((entry) => contestApi.getScoresForEntry(contest.id, entry.id)),
+      );
+      setContestScores(scoreGroups.flat());
     };
+
     void fetchScores();
-  }, [contest.id, contest.entries.length]);
+  }, [contest.id, entryIdsKey]);
 
   const handleSaveConfig = async (nextConfig: ContestConfig) => {
     const result = await adminApi.updateContestConfig(contest.id, nextConfig);
@@ -113,7 +111,7 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
 
   const handleDeleteContest = async () => {
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${contest.name}"?\n\nThis will permanently delete:\n• All rounds\n• All entries\n• All scores\n\nThis action cannot be undone.`
+      `Are you sure you want to delete "${contest.name}"?\n\nThis will permanently delete:\n- All rounds\n- All entries\n- All scores\n\nThis action cannot be undone.`
     );
 
     if (!confirmed) return;
@@ -219,3 +217,4 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
     </div>
   );
 }
+

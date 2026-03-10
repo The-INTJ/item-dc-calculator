@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 /**
  * ContestSetupForm - Form for creating a new contest with template selection.
@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { ContestConfigSetupForm } from './ContestConfigSetupForm';
 import type { AttributeConfig, ContestConfigItem } from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
+import { getAuthToken } from '../../lib/firebase/firebaseAuthProvider';
 
 type ConfigMode = 'template' | 'custom';
 
@@ -24,6 +25,15 @@ function slugify(text: string): string {
     .replace(/[^\w\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-');
+}
+
+async function buildAdminHeaders(): Promise<Record<string, string>> {
+  const token = await getAuthToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    'x-contest-role': 'admin',
+  };
 }
 
 export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
@@ -64,7 +74,6 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
     setSlugManuallyEdited(true);
   }, []);
 
-  // Fetch configs from API on mount
   useEffect(() => {
     async function fetchConfigs() {
       try {
@@ -75,7 +84,7 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
         const data = await response.json();
         setConfigs(data);
         if (data.length > 0) {
-          setSelectedTemplate(data[0].id); // Select first config by default
+          setSelectedTemplate(data[0].id);
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to load configs';
@@ -85,7 +94,7 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
       }
     }
 
-    fetchConfigs();
+    void fetchConfigs();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,7 +113,7 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
         setError('At least one scoring attribute is required.');
         return;
       }
-      const invalidAttr = customAttributes.find((a) => !a.id.trim() || !a.label.trim());
+      const invalidAttr = customAttributes.find((attribute) => !attribute.id.trim() || !attribute.label.trim());
       if (invalidAttr) {
         setError('All attributes must have an ID and label.');
         return;
@@ -115,68 +124,55 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
     setError(null);
 
     try {
-      // Build config from template or custom values
-      const selectedConfig = configs.find((c) => c.id === selectedTemplate);
+      const selectedConfig = configs.find((config) => config.id === selectedTemplate);
 
-      let config;
-      if (configMode === 'template' && selectedConfig) {
-        config = {
-          topic: selectedConfig.topic,
-          attributes: selectedConfig.attributes,
-          entryLabel: entryLabel.trim() || selectedConfig.entryLabel,
-          entryLabelPlural: entryLabelPlural.trim() || selectedConfig.entryLabelPlural,
-        };
-      } else {
-        config = {
-          topic: customTopic.trim(),
-          attributes: customAttributes,
-          entryLabel: entryLabel.trim() || undefined,
-          entryLabelPlural: entryLabelPlural.trim() || undefined,
-        };
-      }
+      const config = configMode === 'template' && selectedConfig
+        ? {
+            topic: selectedConfig.topic,
+            attributes: selectedConfig.attributes,
+            entryLabel: entryLabel.trim() || selectedConfig.entryLabel,
+            entryLabelPlural: entryLabelPlural.trim() || selectedConfig.entryLabelPlural,
+          }
+        : {
+            topic: customTopic.trim(),
+            attributes: customAttributes,
+            entryLabel: entryLabel.trim() || undefined,
+            entryLabelPlural: entryLabelPlural.trim() || undefined,
+          };
 
-      // If custom mode and saveAsTemplate is checked, create the config first
+      const headers = await buildAdminHeaders();
+
       if (configMode === 'custom' && saveAsTemplate) {
-        const configPayload = {
-          topic: config.topic,
-          attributes: config.attributes,
-          entryLabel: config.entryLabel,
-          entryLabelPlural: config.entryLabelPlural,
-        };
-
         const configResponse = await fetch('/api/contest/configs', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-contest-role': 'admin',
-          },
-          body: JSON.stringify(configPayload),
+          headers,
+          body: JSON.stringify({
+            topic: config.topic,
+            attributes: config.attributes,
+            entryLabel: config.entryLabel,
+            entryLabelPlural: config.entryLabelPlural,
+          }),
         });
 
         if (!configResponse.ok) {
           const data = await configResponse.json().catch(() => ({}));
-          throw new Error(data.error ?? `Failed to save config as template (${configResponse.status})`);
+          throw new Error(data.error ?? data.message ?? `Failed to save config as template (${configResponse.status})`);
         }
       }
 
-      const payload = {
-        name: name.trim(),
-        slug: slug.trim(),
-        config,
-      };
-
       const response = await fetch('/api/contest/contests', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-contest-role': 'admin',
-        },
-        body: JSON.stringify(payload),
+        headers,
+        body: JSON.stringify({
+          name: name.trim(),
+          slug: slug.trim(),
+          config,
+        }),
       });
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.error ?? `Failed to create contest (${response.status})`);
+        throw new Error(data.error ?? data.message ?? `Failed to create contest (${response.status})`);
       }
 
       const createdContest = await response.json();
@@ -258,3 +254,4 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
     </form>
   );
 }
+
