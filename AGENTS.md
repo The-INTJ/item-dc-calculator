@@ -24,6 +24,8 @@
 - Live contest CRUD currently goes through the browser Firebase-backed provider in `src/features/contest/lib/api/`.
 - Direct Firebase usage outside that client layer should stay limited to auth and live subscriptions.
 - `app/api/contest/openapi.json` documents the HTTP contract for route handlers, but the browser app is not fully migrated to that path yet.
+- Do not move a browser flow onto route handlers unless the server-side auth and provider story moves with it.
+- Voting reads should prefer cached entry aggregates (`sumScore`, `voteCount`) over recounting the votes collection.
 
 ## Required checks
 

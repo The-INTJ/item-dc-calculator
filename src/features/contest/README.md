@@ -20,3 +20,4 @@ This is the active product area.
 - Keep route-handler logic shared and documented, but do not treat it as the live client path unless that migration is completed.
 - Keep pure derivation helpers in `lib/domain/` or `lib/presentation/`.
 - Keep display/bracket models render-focused and testable.
+- See the "Current vs target approach" section in the root `ARCHITECTURE.md` for the agreed runtime path and vote-aggregation model.
