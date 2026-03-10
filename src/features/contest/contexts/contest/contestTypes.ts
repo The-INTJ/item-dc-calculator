@@ -128,6 +128,8 @@ export interface Contest {
 
 export interface ContestContextState {
   contests: Contest[];
+  loading: boolean;
+  error: string | null;
   lastUpdatedAt: number | null;
 }
 

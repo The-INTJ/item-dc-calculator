@@ -17,12 +17,12 @@ export function AdminDashboard() {
   const { role, loading: authLoading, isAuthenticated } = useAuth();
   const {
     contests,
+    loading,
+    error,
     refresh,
     updateContest,
   } = useContestStore();
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
-  const loading = false;
-  const error = null;
 
   useEffect(() => {
     if (!selectedContest && contests.length > 0) {

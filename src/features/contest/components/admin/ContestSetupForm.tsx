@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { ContestConfigSetupForm } from './ContestConfigSetupForm';
 import type { AttributeConfig, ContestConfigItem } from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
+import { adminApi } from '../../lib/api/adminApi';
 
 type ConfigMode = 'template' | 'custom';
 
@@ -64,28 +65,24 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
     setSlugManuallyEdited(true);
   }, []);
 
-  // Fetch configs from API on mount
   useEffect(() => {
     async function fetchConfigs() {
-      try {
-        const response = await fetch('/api/contest/configs');
-        if (!response.ok) {
-          throw new Error('Failed to load configs');
-        }
-        const data = await response.json();
-        setConfigs(data);
-        if (data.length > 0) {
-          setSelectedTemplate(data[0].id); // Select first config by default
-        }
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to load configs';
-        setConfigsError(message);
-      } finally {
+      const result = await adminApi.listConfigs();
+      if (!result.success) {
+        setConfigsError(result.error ?? 'Failed to load configs');
         setConfigsLoading(false);
+        return;
       }
+
+      const data = result.data ?? [];
+      setConfigs(data);
+      if (data.length > 0) {
+        setSelectedTemplate(data[0].id);
+      }
+      setConfigsLoading(false);
     }
 
-    fetchConfigs();
+    void fetchConfigs();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -115,7 +112,6 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
     setError(null);
 
     try {
-      // Build config from template or custom values
       const selectedConfig = configs.find((c) => c.id === selectedTemplate);
 
       let config;
@@ -135,52 +131,31 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
         };
       }
 
-      // If custom mode and saveAsTemplate is checked, create the config first
       if (configMode === 'custom' && saveAsTemplate) {
-        const configPayload = {
+        const configResult = await adminApi.createConfig({
           topic: config.topic,
           attributes: config.attributes,
           entryLabel: config.entryLabel,
           entryLabelPlural: config.entryLabelPlural,
-        };
-
-        const configResponse = await fetch('/api/contest/configs', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-contest-role': 'admin',
-          },
-          body: JSON.stringify(configPayload),
         });
 
-        if (!configResponse.ok) {
-          const data = await configResponse.json().catch(() => ({}));
-          throw new Error(data.error ?? `Failed to save config as template (${configResponse.status})`);
+        if (!configResult.success) {
+          throw new Error(configResult.error ?? 'Failed to save config as template');
         }
       }
 
-      const payload = {
+      const createResult = await adminApi.createContest({
         name: name.trim(),
         slug: slug.trim(),
+        phase: 'set',
         config,
-      };
-
-      const response = await fetch('/api/contest/contests', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-contest-role': 'admin',
-        },
-        body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error ?? `Failed to create contest (${response.status})`);
+      if (!createResult.success || !createResult.data) {
+        throw new Error(createResult.error ?? 'Failed to create contest');
       }
 
-      const createdContest = await response.json();
-      upsertContest(createdContest);
+      upsertContest(createResult.data);
       onSuccess?.();
       router.push('/admin');
     } catch (err) {

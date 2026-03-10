@@ -1,101 +1,118 @@
-/**
- * Contest API Service
- * 
- * Clean API layer that returns data or null.
- * All methods throw on network errors but return null on API errors.
- * Uses Firebase ID tokens for authentication.
- */
-
 import type { Contest, Entry, ScoreEntry, ScoreBreakdown, UserRole } from '../../contexts/contest/contestTypes';
-import { getAuthToken } from '@/contest/lib/firebase/firebaseAuthProvider';
+import { getClientBackendProvider } from '../firebase/clientBackendProvider';
 
-// seems like a wrapper that enforces auth fetch for every call
-// but we need a default, "don't need to be authed" state
-async function apiRequest<T>(
-  url: string,
-  options: Parameters<typeof fetch>[1] = {}
+async function runProviderCall<T>(
+  operation: (provider: Awaited<ReturnType<typeof getClientBackendProvider>>) => Promise<T>,
 ): Promise<T | null> {
   try {
-    const token = await getAuthToken();
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const res = await fetch(url, { ...options, headers: { ...headers, ...options.headers } });
-    
-    if (!res.ok) {
-      const json = await res.json().catch(() => ({}));
-      console.error(`API error: ${res.status}`, json.message ?? 'Unknown error');
-      return null;
-    }
-    
-    return await res.json();
+    const provider = await getClientBackendProvider();
+    return await operation(provider);
   } catch (err) {
-    console.error('API request failed:', err);
+    console.error('Contest data operation failed:', err);
     return null;
   }
 }
 
 export const contestApi = {
-  // Contest Operations
   async listContests(): Promise<{ contests: Contest[]; currentContest: Contest | null } | null> {
-    return apiRequest('/api/contest/contests', { method: 'GET' });
+    return runProviderCall(async (provider) => {
+      const [contestsResult, currentContestResult] = await Promise.all([
+        provider.contests.list(),
+        provider.contests.getDefault(),
+      ]);
+
+      if (!contestsResult.success || !currentContestResult.success) {
+        return null;
+      }
+
+      return {
+        contests: contestsResult.data ?? [],
+        currentContest: currentContestResult.data ?? null,
+      };
+    });
   },
 
   async getContest(id: string): Promise<Contest | null> {
-    return apiRequest(`/api/contest/contests/${id}`, { method: 'GET' });
+    return runProviderCall(async (provider) => {
+      const result = await provider.contests.list();
+      if (!result.success) {
+        return null;
+      }
+
+      return result.data?.find((contest) => contest.id === id || contest.slug === id) ?? null;
+    });
   },
 
   async createContest(data: Partial<Contest>): Promise<Contest | null> {
-    return apiRequest('/api/contest/contests', {
-      method: 'POST',
-      body: JSON.stringify(data),
+    return runProviderCall(async (provider) => {
+      const result = await provider.contests.create({
+        name: data.name ?? '',
+        slug: data.slug ?? '',
+        phase: data.phase ?? 'set',
+        config: data.config,
+        location: data.location,
+        startTime: data.startTime,
+        bracketRound: data.bracketRound,
+        currentEntryId: data.currentEntryId,
+        defaultContest: data.defaultContest,
+        rounds: data.rounds,
+        activeRoundId: data.activeRoundId,
+        futureRoundId: data.futureRoundId,
+      });
+
+      return result.success ? (result.data ?? null) : null;
     });
   },
 
   async updateContest(id: string, updates: Partial<Contest>): Promise<Contest | null> {
-    return apiRequest(`/api/contest/contests/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify(updates),
+    return runProviderCall(async (provider) => {
+      const result = await provider.contests.update(id, updates);
+      return result.success ? (result.data ?? null) : null;
     });
   },
 
   async deleteContest(id: string): Promise<boolean> {
-    const result = await apiRequest<void>(`/api/contest/contests/${id}`, { method: 'DELETE' });
-    return result !== null;
+    return runProviderCall(async (provider) => {
+      const result = await provider.contests.delete(id);
+      return result.success;
+    }).then((result) => result ?? false);
   },
 
-  // Entry Operations
   async createEntry(contestId: string, entry: Omit<Entry, 'id'>): Promise<Entry | null> {
-    return apiRequest(`/api/contest/contests/${contestId}/entries`, {
-      method: 'POST',
-      body: JSON.stringify(entry),
+    return runProviderCall(async (provider) => {
+      const result = await provider.entries.create(contestId, entry);
+      return result.success ? (result.data ?? null) : null;
     });
   },
 
   async updateEntry(contestId: string, entryId: string, updates: Partial<Entry>): Promise<Entry | null> {
-    return apiRequest(`/api/contest/contests/${contestId}/entries/${entryId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(updates),
+    return runProviderCall(async (provider) => {
+      const result = await provider.entries.update(contestId, entryId, updates);
+      return result.success ? (result.data ?? null) : null;
     });
   },
 
   async deleteEntry(contestId: string, entryId: string): Promise<boolean> {
-    const result = await apiRequest<void>(`/api/contest/contests/${contestId}/entries/${entryId}`, { method: 'DELETE' });
-    return result !== null;
+    return runProviderCall(async (provider) => {
+      const result = await provider.entries.delete(contestId, entryId);
+      return result.success;
+    }).then((result) => result ?? false);
   },
 
-  // Score Operations
   async getScoresForUser(contestId: string, userId: string): Promise<ScoreEntry[]> {
-    const result = await apiRequest<{ scores: ScoreEntry[] }>(`/api/contest/contests/${contestId}/scores?userId=${userId}`);
-    return result?.scores ?? [];
+    const result = await runProviderCall(async (provider) => {
+      const response = await provider.scores.listByUser(contestId, userId);
+      return response.success ? (response.data ?? []) : [];
+    });
+    return result ?? [];
   },
 
   async getScoresForEntry(contestId: string, entryId: string): Promise<ScoreEntry[]> {
-    const result = await apiRequest<{ scores: ScoreEntry[] }>(`/api/contest/contests/${contestId}/scores?entryId=${entryId}`);
-    return result?.scores ?? [];
+    const result = await runProviderCall(async (provider) => {
+      const response = await provider.scores.listByEntry(contestId, entryId);
+      return response.success ? (response.data ?? []) : [];
+    });
+    return result ?? [];
   },
 
   async submitScore(contestId: string, data: {
@@ -107,9 +124,16 @@ export const contestApi = {
     round?: string;
     notes?: string;
   }): Promise<ScoreEntry | null> {
-    return apiRequest(`/api/contest/contests/${contestId}/scores`, {
-      method: 'POST',
-      body: JSON.stringify(data),
+    return runProviderCall(async (provider) => {
+      const result = await provider.scores.submit(contestId, {
+        entryId: data.entryId,
+        userId: data.userId,
+        round: data.round ?? '',
+        breakdown: data.breakdown as ScoreBreakdown,
+        ...(data.notes ? { notes: data.notes } : {}),
+      });
+
+      return result.success ? (result.data ?? null) : null;
     });
   },
 };

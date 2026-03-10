@@ -1,0 +1,126 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function userDoc(uid) {
+      return get(/databases/$(database)/documents/users/$(uid));
+    }
+
+    function userExists(uid) {
+      return exists(/databases/$(database)/documents/users/$(uid));
+    }
+
+    function currentRole() {
+      return signedIn() && userExists(request.auth.uid)
+        ? userDoc(request.auth.uid).data.role
+        : null;
+    }
+
+    function isAdmin() {
+      return currentRole() == 'admin';
+    }
+
+    function isContestAggregateUpdate() {
+      return signedIn()
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly(['entries', 'updatedAt'])
+        && request.resource.data.entries is list
+        && request.resource.data.entries.size() == resource.data.entries.size();
+    }
+
+    function validOptionalString(data, field) {
+      return !data.keys().hasAny([field]) || data[field] is string;
+    }
+
+    function validOptionalNullableString(data, field) {
+      return !data.keys().hasAny([field]) || data[field] is string || data[field] == null;
+    }
+
+    function validUserCreate(data) {
+      return data.keys().hasOnly([
+          'displayName',
+          'email',
+          'role',
+          'avatarUrl',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.displayName is string
+        && data.displayName.size() > 0
+        && data.displayName.size() <= 80
+        && data.role == 'voter'
+        && validOptionalString(data, 'email')
+        && validOptionalNullableString(data, 'avatarUrl')
+        && data.createdAt == request.time
+        && data.updatedAt == request.time;
+    }
+
+    function validUserUpdate() {
+      return request.resource.data.keys().hasOnly([
+          'displayName',
+          'email',
+          'role',
+          'avatarUrl',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0
+        && request.resource.data.displayName.size() <= 80
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time
+        && (!request.resource.data.keys().hasAny(['email']) || request.resource.data.email == resource.data.email)
+        && validOptionalNullableString(request.resource.data, 'avatarUrl');
+    }
+
+    function validVoteWrite(contestId, voteId) {
+      return signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && voteId == request.auth.uid + '_' + request.resource.data.entryId
+        && request.resource.data.entryId is string
+        && request.resource.data.entryId.size() > 0
+        && request.resource.data.round is string
+        && request.resource.data.breakdown is map
+        && request.resource.data.breakdown.size() > 0
+        && request.resource.data.updatedAt == request.time
+        && (resource == null || request.resource.data.createdAt == resource.data.createdAt || request.resource.data.createdAt == request.time);
+    }
+
+    match /users/{uid} {
+      allow get: if isSelf(uid);
+      allow list: if isAdmin();
+      allow create: if isSelf(uid) && validUserCreate(request.resource.data);
+      allow update: if isSelf(uid) && validUserUpdate();
+      allow delete: if false;
+    }
+
+    match /configs/{configId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /contests/{contestId} {
+      allow read: if signedIn();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || isContestAggregateUpdate();
+
+      match /votes/{voteId} {
+        allow read: if signedIn();
+        allow create, update: if validVoteWrite(contestId, voteId);
+        allow delete: if signedIn() && resource.data.userId == request.auth.uid;
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

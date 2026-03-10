@@ -8,6 +8,7 @@ import { getRoundLabel } from '../../lib/helpers/contestGetters';
 import { EntryCard } from '../ui/EntryCard';
 import { useContestStore } from '../../contexts/contest/ContestContext';
 import { adminApi } from '../../lib/api/adminApi';
+import { contestApi } from '../../lib/api/contestApi';
 import { AdminContestRounds } from './AdminContestRounds';
 import { AdminContestants } from './AdminContestants';
 import { AdminRoundOverview } from './AdminRoundOverview';
@@ -86,20 +87,15 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
   // Fetch scores from subcollection for admin detail view
   useEffect(() => {
     if (!contest.id) return;
-    // Fetch all scores for each entry
+
     const fetchScores = async () => {
-      const allScores: ScoreEntry[] = [];
-      for (const entry of contest.entries) {
-        try {
-          const res = await fetch(`/api/contest/contests/${contest.id}/scores?entryId=${entry.id}`);
-          if (res.ok) {
-            const data = await res.json();
-            allScores.push(...(data.scores ?? []));
-          }
-        } catch { /* ignore fetch errors */ }
-      }
-      setContestScores(allScores);
+      const scoreGroups = await Promise.all(
+        contest.entries.map((entry) => contestApi.getScoresForEntry(contest.id, entry.id)),
+      );
+
+      setContestScores(scoreGroups.flat());
     };
+
     void fetchScores();
   }, [contest.id, contest.entries.length]);
 

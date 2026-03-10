@@ -18,7 +18,7 @@ export type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error';
  * Pre-fills scores from the user's existing votes when available.
  */
 export function useRoundVoting(contest: Contest | null, roundId: string | null) {
-  const { session, role } = useAuth();
+  const { session, role, loading: authLoading } = useAuth();
   const [scores, setScores] = useState<ScoreByDrinkId>({});
   const [status, setStatus] = useState<SubmitStatus>('idle');
   const [message, setMessage] = useState<string | null>(null);
@@ -29,9 +29,14 @@ export function useRoundVoting(contest: Contest | null, roundId: string | null) 
   const entries = contest && roundId ? getEntriesForRound(contest, roundId) : [];
   const drinks = buildEntrySummaries(entries);
   const userId = session?.firebaseUid ?? session?.sessionId;
+  const categoryKey = categoryIds.join('|');
+  const drinkKey = entries.map((entry) => entry.id).join('|');
 
-  // Reset scores and pre-fill from existing votes when round changes
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     const drinkIds = entries.map((e) => e.id);
     if (drinkIds.length === 0 || categoryIds.length === 0) {
       setScores({});
@@ -63,7 +68,7 @@ export function useRoundVoting(contest: Contest | null, roundId: string | null) 
 
     setStatus('idle');
     setMessage(null);
-  }, [roundId]); // Only reset when the selected round changes
+  }, [authLoading, categoryKey, contest?.id, drinkKey, roundId, userId]);
 
   const updateScore = (drinkId: string, categoryId: string, value: number) => {
     setScores((prev) => ({

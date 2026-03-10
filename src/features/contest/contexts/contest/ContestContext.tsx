@@ -14,9 +14,11 @@ const ContestContext = createContext<ContestContextValue | undefined>(undefined)
 export function ContestProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<ContestContextState>({
     contests: [],
+    loading: true,
+    error: null,
     lastUpdatedAt: null,
   });
-  const [, setLoadCount] = useState(0);
+  const [loadCount, setLoadCount] = useState(0);
 
   const updateState = useCallback((updater: (prev: ContestContextState) => ContestContextState) => {
     setState((prev) => ({ ...updater(prev), lastUpdatedAt: Date.now() }));
@@ -25,13 +27,15 @@ export function ContestProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(() => setLoadCount((c) => c + 1), []);
 
   // Named effects
-  useFetchContestsOnMount(updateState);
+  useFetchContestsOnMount(updateState, loadCount);
 
   // All mutation actions
   const actions = useContestActions(state, updateState);
 
   const value: ContestContextValue = {
     contests: state.contests,
+    loading: state.loading,
+    error: state.error,
     lastUpdatedAt: state.lastUpdatedAt,
     refresh,
     ...actions,
