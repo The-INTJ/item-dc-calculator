@@ -1,6 +1,6 @@
 # Contest API
 
-This folder is the canonical CRUD boundary for contest data.
+This folder defines the HTTP contract for contest data.
 
 ## Responsibilities
 
@@ -8,9 +8,11 @@ This folder is the canonical CRUD boundary for contest data.
 - apply auth/admin rules
 - translate provider results into stable HTTP responses
 - keep response shapes aligned with `openapi.json`
+- stay consistent with the live browser data path until a full server migration exists
 
 ## Rules
 
 - Prefer shared route helpers over repeating parsing/error boilerplate.
 - Non-read admin operations should enforce `requireAdmin`.
 - Keep response shapes stable even if backend providers change.
+- Do not assume the browser client is fully routed through these handlers.

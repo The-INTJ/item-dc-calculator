@@ -16,15 +16,16 @@ These rules apply to active contest-app work by default. The DC calculator is a 
 - Use `@/contest/*` for contest feature code.
 - Use `@/components/*` for shared app-shell code.
 - Do not introduce new `@/src/*` imports.
-- Route handlers are the canonical CRUD boundary for contest operations.
-- Direct Firebase client access is for auth and live subscriptions only.
+- Keep browser CRUD flows inside `src/features/contest/lib/api/*`.
+- If you touch route handlers, use their shared helpers instead of repeating HTTP boilerplate.
+- Direct Firebase client access outside `lib/api/*` is for auth and live subscriptions only.
 
 ## Styling
 
 - Prefer tokens and mixins over ad hoc values.
 - Keep global styles limited to app-shell concerns.
 - Keep contest styles inside `src/features/contest/styles/`.
-- Preserve the DC calculator’s runtime behavior when deduplicating shared style primitives.
+- Preserve the DC calculator's runtime behavior when deduplicating shared style primitives.
 
 ## TypeScript and data modeling
 

@@ -43,17 +43,25 @@ Contest routes load contest feature SCSS through `app/(contest)/layout.tsx`.
 
 ## Contest data path
 
-The intended long-term boundary is:
+Current live path:
 
 1. client hooks/components call `src/features/contest/lib/api/*`
-2. API clients call `app/api/contest/*`
-3. route handlers resolve a backend provider
-4. the backend provider talks to Firebase/Firestore
+2. the client API layer uses the browser Firebase-backed provider
+3. provider modules talk to Firestore directly with the signed-in browser session
 
-Direct Firebase usage in the client is reserved for:
+Separate HTTP path:
 
+1. `app/api/contest/*` route handlers expose contest endpoints
+2. those handlers share request/response/admin helpers
+3. `app/api/contest/openapi.json` documents that contract
+
+Direct Firebase usage in the client should stay limited to:
+
+- the `lib/api/*` client layer
 - authentication
 - live Firestore subscriptions
+
+Do not describe the route handlers as the canonical runtime CRUD path until a true server-side provider exists behind them.
 
 ## Contest feature layout
 

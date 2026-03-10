@@ -16,6 +16,7 @@ This is the active product area.
 ## Conventions
 
 - Import contest code through `@/contest/*`.
-- Keep CRUD flows inside `lib/api/*` and route handlers.
+- Keep browser CRUD flows inside `lib/api/*`.
+- Keep route-handler logic shared and documented, but do not treat it as the live client path unless that migration is completed.
 - Keep pure derivation helpers in `lib/domain/` or `lib/presentation/`.
 - Keep display/bracket models render-focused and testable.

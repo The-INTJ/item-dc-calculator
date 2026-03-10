@@ -21,9 +21,9 @@
 
 ## Data path rules
 
-- Contest CRUD should go through the Next API layer in `app/api/contest/`.
-- Direct Firebase usage is reserved for auth and live subscriptions.
-- `app/api/contest/openapi.json` is the API contract for contest endpoints.
+- Live contest CRUD currently goes through the browser Firebase-backed provider in `src/features/contest/lib/api/`.
+- Direct Firebase usage outside that client layer should stay limited to auth and live subscriptions.
+- `app/api/contest/openapi.json` documents the HTTP contract for route handlers, but the browser app is not fully migrated to that path yet.
 
 ## Required checks
 
