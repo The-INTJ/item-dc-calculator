@@ -5,64 +5,98 @@ description: Update the OpenAPI documentation for /api/contest endpoints. Use wh
 
 # Update Contest API OpenAPI Documentation
 
-Keep the `app/api/contest/openapi.json` file synchronized with the actual API implementation.
+Keep `app/api/contest/openapi.json` synchronized with the actual `/api/contest` route-handler implementation.
 
 ## Scope
 
-This skill is scoped ONLY to `/api/contest` endpoints. Do not document other API routes.
+This skill is scoped only to `/api/contest` endpoints. Do not document other API routes.
 
-## Route Files to Analyze
+Important boundary:
+
+- `openapi.json` documents the HTTP route-handler surface.
+- It does not define the browser app's primary runtime data path.
+- The browser app may still use the Firebase-backed client path directly.
+
+## Route Files To Analyze
 
 Scan these route files for the current API implementation:
 
-- `app/api/contest/current/route.ts` - GET /current
-- `app/api/contest/contests/route.ts` - GET/POST /contests
-- `app/api/contest/contests/[id]/route.ts` - GET/PATCH/DELETE /contests/{id}
-- `app/api/contest/contests/[id]/entries/route.ts` - GET/POST /contests/{id}/entries
-- `app/api/contest/contests/[id]/entries/[entryId]/route.ts` - GET/PATCH/DELETE /contests/{id}/entries/{entryId}
-- `app/api/contest/contests/[id]/scores/route.ts` - GET/POST /contests/{id}/scores
-- `app/api/contest/docs/route.ts` - Serves the OpenAPI documentation
+- `app/api/contest/current/route.ts` - `GET /current`
+- `app/api/contest/contests/route.ts` - `GET/POST /contests`
+- `app/api/contest/contests/[id]/route.ts` - `GET/PATCH/DELETE /contests/{id}`
+- `app/api/contest/contests/[id]/entries/route.ts` - `GET/POST /contests/{id}/entries`
+- `app/api/contest/contests/[id]/entries/[entryId]/route.ts` - `GET/PATCH/DELETE /contests/{id}/entries/{entryId}`
+- `app/api/contest/contests/[id]/scores/route.ts` - `GET/POST /contests/{id}/scores`
+- `app/api/contest/configs/route.ts` - `GET/POST /configs`
+- `app/api/contest/configs/[configId]/route.ts` - `GET/PATCH/DELETE /configs/{configId}`
+- `app/api/contest/docs/route.ts` - serves the OpenAPI documentation
+
+Read shared helpers too when auth or response behavior is unclear:
+
+- `app/api/contest/_lib/http.ts`
+- `app/api/contest/_lib/provider.ts`
+- `app/api/contest/_lib/requireAdmin.ts`
+- `src/features/contest/lib/api/serverAuth.ts`
 
 ## Update Process
 
-1. **Read the current OpenAPI spec** at `app/api/contest/openapi.json`
-2. **Analyze each route file** to extract:
-   - HTTP methods exported (GET, POST, PATCH, DELETE, PUT)
-   - Request body schemas (from TypeScript interfaces and validation)
-   - Query parameters (from `url.searchParams`)
-   - Path parameters (from `params`)
-   - Response schemas and status codes
-3. **Compare** the current spec against the actual implementation
-4. **Update the OpenAPI spec** to reflect:
-   - New endpoints
-   - Changed request/response schemas
-   - New or modified query parameters
-   - Updated descriptions based on code comments
-   - Correct HTTP status codes
-5. **Maintain consistency** with existing schema definitions in `components/schemas`
+1. Read the current spec at `app/api/contest/openapi.json`.
+2. Analyze each route file to extract:
+   - exported HTTP methods
+   - request body schemas from TypeScript interfaces and validation
+   - query parameters from `url.searchParams`
+   - path parameters from `params`
+   - response schemas and status codes
+   - auth requirements, especially `requireAdmin`
+3. Compare the spec against the actual implementation.
+4. Update the spec to reflect:
+   - new endpoints
+   - changed request or response schemas
+   - new or modified query parameters
+   - correct status codes
+   - current auth requirements
+5. Validate the finished spec with `npm run docs:validate`.
 
 ## OpenAPI Structure
 
 The spec uses OpenAPI 3.1.0 with:
-- Server base URL: `/api/contest`
-- Tags: Contests, Entries, Scores
-- Reusable schemas in `components/schemas`
-- Security scheme: AdminRole (header-based)
+
+- server base URL: `/api/contest`
+- tags for contest API areas
+- reusable schemas in `components/schemas`
+- `FirebaseBearer` for admin-only HTTP endpoints
+
+Auth note:
+
+- The public contract should describe the real supported auth story.
+- For admin endpoints, document Firebase bearer auth.
+- Same-origin cookie-based auth can be mentioned in descriptions when helpful.
+- Do not present dev-only fallbacks as the primary public contract.
 
 ## Schema Guidelines
 
-- Reuse existing schemas from `components/schemas` when possible
-- Add new schemas for new data structures
-- Use `$ref` for schema references
-- Include examples for request/response bodies
-- Mark deprecated parameters appropriately
+- Reuse existing schemas from `components/schemas` when possible.
+- Add new schemas only when a route introduces a real new payload shape.
+- Use `$ref` for schema references.
+- Include examples when they clarify a request or response.
+- Remove stale schemas and fields when routes no longer support them.
+
+## Consistency Rules
+
+- If a public `GET` route does not enforce admin access, do not document a `403` response.
+- If a route always returns `200` on success, do not document `201`.
+- If a route supports multiple success shapes, document that explicitly.
+- Keep descriptions aligned with the actual code path, not past implementations.
+- Treat `openapi.json` as maintained source, not a generated artifact.
 
 ## Validation Checklist
 
 After updating, verify:
-- [ ] All exported route handlers have corresponding path operations
-- [ ] Request body schemas match TypeScript interfaces
-- [ ] Response status codes match the actual implementation
-- [ ] Query parameters are documented with correct types
-- [ ] Path parameters use consistent naming (`id`, `entryId`)
-- [ ] Security requirements are applied correctly
+
+- all exported route handlers have corresponding path operations
+- request body schemas match the current TypeScript interfaces and validation
+- response status codes match the implementation
+- query and path parameters are documented with correct types
+- auth requirements match `requireAdmin` and current server auth behavior
+- removed features are no longer described in the spec
+- `npm run docs:validate` passes

@@ -18,3 +18,4 @@ This folder defines the HTTP contract for contest data.
 - Keep response shapes stable even if backend providers change.
 - Do not assume the browser client is fully routed through these handlers.
 - OpenAPI documents this surface; it does not force the browser app to use it.
+- Keep `openapi.json` aligned with route-handler auth, status codes, and payload shapes.

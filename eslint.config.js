@@ -12,7 +12,6 @@ export default [
       'node_modules/**',
       'dist/**',
       'coverage/**',
-      'AI_Assistance/archive/**',
       '*.tsbuildinfo',
     ],
   },

@@ -3,7 +3,7 @@
   "info": {
     "title": "Contest Rating API",
     "version": "2.0.0",
-    "description": "API for managing contests, entries, voters, and scoring. Supports multiple contest types through configurable ContestConfig."
+    "description": "HTTP contract for the contest route handlers. The browser app primarily uses the Firebase-backed client path today, while this spec documents the maintained API surface for integrations, docs, and future server-backed flows."
   },
   "servers": [
     {
@@ -13,11 +13,11 @@
   ],
   "components": {
     "securitySchemes": {
-      "AdminRole": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "x-contest-role",
-        "description": "Set to 'admin' for admin-only endpoints"
+      "FirebaseBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Firebase ID token for admin-only HTTP endpoints. Same-origin browser requests may also authenticate via the __session cookie."
       }
     },
     "schemas": {
@@ -85,15 +85,6 @@
           "presentation": 9,
           "creativity": 8,
           "overall": 8
-        }
-      },
-      "ScoreLock": {
-        "type": "object",
-        "properties": {
-          "locked": { "type": "boolean", "example": false },
-          "expiresAt": { "type": "number", "example": 1704067200000 },
-          "token": { "type": "string", "example": "abc123" },
-          "updatedAt": { "type": "number", "example": 1704063600000 }
         }
       },
       "Voter": {
@@ -224,32 +215,29 @@
         ],
         "responses": {
           "200": {
-            "description": "List of contests",
+            "description": "Contest list or a single contest when filtering by slug",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "contests": {
-                      "type": "array",
-                      "items": { "$ref": "#/components/schemas/Contest" }
-                    },
-                    "currentContest": {
-                      "oneOf": [
-                        { "$ref": "#/components/schemas/Contest" },
-                        { "type": "null" }
-                      ]
+                  "oneOf": [
+                    { "$ref": "#/components/schemas/Contest" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "contests": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/Contest" }
+                        },
+                        "currentContest": {
+                          "oneOf": [
+                            { "$ref": "#/components/schemas/Contest" },
+                            { "type": "null" }
+                          ]
+                        }
+                      }
                     }
-                  }
+                  ]
                 }
-              }
-            }
-          },
-          "403": {
-            "description": "Admin access required",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
               }
             }
           },
@@ -265,9 +253,9 @@
       },
       "post": {
         "summary": "Create a contest",
-        "description": "Creates a new contest. Use configTemplate for built-in templates or provide a custom config.",
+        "description": "Creates a new contest.",
         "tags": ["Contests"],
-        "security": [{ "AdminRole": [] }],
+        "security": [{ "FirebaseBearer": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -281,25 +269,11 @@
                   "location": { "type": "string" },
                   "startTime": { "type": "string" },
                   "defaultContest": { "type": "boolean" },
-                  "configTemplate": {
-                    "type": "string",
-                    "description": "Built-in template key: mixology, chili, cosplay, dance",
-                    "enum": ["mixology", "chili", "cosplay", "dance"]
-                  },
                   "config": { "$ref": "#/components/schemas/ContestConfig" }
                 },
                 "required": ["name", "slug"]
               },
               "examples": {
-                "withTemplate": {
-                  "summary": "Create using built-in template",
-                  "value": {
-                    "name": "Chili Cook-Off 2024",
-                    "slug": "chili-cookoff-2024",
-                    "configTemplate": "chili",
-                    "location": "Community Center"
-                  }
-                },
                 "withCustomConfig": {
                   "summary": "Create with custom config",
                   "value": {
@@ -373,14 +347,6 @@
               }
             }
           },
-          "403": {
-            "description": "Admin access required",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
           "404": {
             "description": "Contest not found",
             "content": {
@@ -395,7 +361,7 @@
         "summary": "Update a contest",
         "description": "Updates an existing contest. Admin only.",
         "tags": ["Contests"],
-        "security": [{ "AdminRole": [] }],
+        "security": [{ "FirebaseBearer": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -459,7 +425,7 @@
         "summary": "Delete a contest",
         "description": "Deletes a contest by ID. Admin only.",
         "tags": ["Contests"],
-        "security": [{ "AdminRole": [] }],
+        "security": [{ "FirebaseBearer": [] }],
         "responses": {
           "200": {
             "description": "Contest deleted",
@@ -514,14 +480,6 @@
               }
             }
           },
-          "403": {
-            "description": "Admin access required",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
           "404": {
             "description": "Contest not found",
             "content": {
@@ -536,7 +494,7 @@
         "summary": "Add an entry to a contest",
         "description": "Creates a new entry in the contest. Admin only.",
         "tags": ["Entries"],
-        "security": [{ "AdminRole": [] }],
+        "security": [{ "FirebaseBearer": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -620,14 +578,6 @@
               }
             }
           },
-          "403": {
-            "description": "Admin access required",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
           "404": {
             "description": "Entry not found",
             "content": {
@@ -642,7 +592,7 @@
         "summary": "Update an entry",
         "description": "Updates an existing entry. Admin only.",
         "tags": ["Entries"],
-        "security": [{ "AdminRole": [] }],
+        "security": [{ "FirebaseBearer": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -702,7 +652,7 @@
         "summary": "Delete an entry",
         "description": "Removes an entry from the contest. Admin only.",
         "tags": ["Entries"],
-        "security": [{ "AdminRole": [] }],
+        "security": [{ "FirebaseBearer": [] }],
         "responses": {
           "200": {
             "description": "Entry deleted",
@@ -807,7 +757,7 @@
       },
       "post": {
         "summary": "Submit or update a score",
-        "description": "Submits a new score or updates an existing one via the votes subcollection. Can submit full breakdown or a single category score. Score categories are validated against the contest's config.attributes. Auto-registers the voter if not already known.",
+        "description": "Submits or updates a score via the votes subcollection. Accepts either a full breakdown or a single category/value pair and auto-registers the voter if not already known.",
         "tags": ["Scores"],
         "requestBody": {
           "required": true,
@@ -860,15 +810,7 @@
         },
         "responses": {
           "200": {
-            "description": "Score updated",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ScoreEntry" }
-              }
-            }
-          },
-          "201": {
-            "description": "Score created",
+            "description": "Score submitted",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ScoreEntry" }
@@ -883,9 +825,6 @@
                 "examples": {
                   "missingFields": {
                     "value": { "message": "entryId and userId are required." }
-                  },
-                  "invalidCategory": {
-                    "value": { "message": "Invalid categoryId for scoring." }
                   },
                   "missingScore": {
                     "value": { "message": "Score breakdown or categoryId + value is required." }
@@ -944,7 +883,7 @@
         "summary": "Create a configuration",
         "description": "Creates a new contest configuration. Admin only.",
         "tags": ["ContestConfigs"],
-        "security": [{ "AdminRole": [] }],
+        "security": [{ "FirebaseBearer": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -993,6 +932,14 @@
                 "schema": { "$ref": "#/components/schemas/Error" }
               }
             }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
           }
         }
       }
@@ -1034,7 +981,7 @@
         "summary": "Update a configuration",
         "description": "Updates an existing configuration. Admin only.",
         "tags": ["ContestConfigs"],
-        "security": [{ "AdminRole": [] }],
+        "security": [{ "FirebaseBearer": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -1075,6 +1022,14 @@
               }
             }
           },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
           "404": {
             "description": "Configuration not found",
             "content": {
@@ -1089,13 +1044,21 @@
         "summary": "Delete a configuration",
         "description": "Removes a configuration from the datastore. Admin only.",
         "tags": ["ContestConfigs"],
-        "security": [{ "AdminRole": [] }],
+        "security": [{ "FirebaseBearer": [] }],
         "responses": {
           "200": {
             "description": "Configuration deleted",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
               }
             }
           },

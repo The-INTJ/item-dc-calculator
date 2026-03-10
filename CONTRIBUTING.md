@@ -20,7 +20,13 @@
   - `DEV_STANDARDS.md`
   - `CONTRIBUTING.md`
 - Folder README files own local implementation guidance.
-- `AI_Assistance/` is archival and should not be expanded as a second live doc system.
+
+## OpenAPI contract
+
+- `app/api/contest/openapi.json` documents the HTTP route-handler surface, not the browser app's primary runtime path.
+- Update the spec when an API route changes request shape, response shape, status codes, or auth requirements.
+- Prefer documenting real public auth behavior in the spec. Dev-only fallbacks should stay out of the public contract.
+- Validate the spec with `npm run docs:validate`.
 
 ## Refactor rules
 
@@ -33,6 +39,6 @@
 
 - Routes and docs still match
 - No new `@/src/*` imports
-- Contest CRUD flows through the API layer
-- Direct Firebase usage is limited to approved cases
+- Browser CRUD still matches the live Firebase client path
+- Route handlers and `openapi.json` still match each other
 - Tests and checks pass

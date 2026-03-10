@@ -38,4 +38,4 @@
 
 - Update root docs when route structure, workflow, or architecture changes.
 - Prefer folder README files over adding new top-level one-off notes.
-- `AI_Assistance/` is archival; do not treat it as the canonical architecture source.
+- Keep historical notes out of the main repo flow unless they are still actively maintained.
