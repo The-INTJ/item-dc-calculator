@@ -63,6 +63,74 @@ Direct Firebase usage in the client should stay limited to:
 
 Do not describe the route handlers as the canonical runtime CRUD path until a true server-side provider exists behind them.
 
+## Current vs target approach
+
+Current approach:
+
+- The browser app is a thin CRUD client on top of Firebase Auth + Firestore rules.
+- React code calls `contestApi` and `adminApi`.
+- Those clients use `getClientBackendProvider()` and the browser Firebase SDK directly.
+- Logged-in users vote through Firestore with their own Firebase session.
+- Route handlers and OpenAPI exist as an HTTP surface, but they are not the main runtime path for the browser app today.
+
+Why the client/server confusion keeps happening:
+
+- OpenAPI is just a contract for HTTP endpoints; it is not a requirement that the browser app must go through those endpoints.
+- The browser already has a real auth context for Firestore.
+- A Next route handler needs a different auth story: verify the Firebase ID token, use a server-side provider, and enforce permissions on the server.
+- Mixing these two approaches halfway creates regressions: the browser thinks it is authenticated, but the server route may still hit Firestore without an equivalent server-side identity/permission model.
+
+Recommended target:
+
+- Keep the main contest app intentionally simple.
+- Treat the browser Firebase-backed client as the default CRUD path for contest, entry, and vote flows.
+- Treat `app/api/contest/*` as an integration/documentation surface unless and until we do a full migration to a real server-side backend.
+- If we ever move the browser app to HTTP, do it end-to-end:
+  1. browser sends Firebase ID token
+  2. route handler verifies token
+  3. route handler uses a server-side provider
+  4. server enforces auth/admin rules explicitly
+- Do not split one feature across both runtime paths.
+
+Short version:
+
+- Simple now: browser client + Firestore rules
+- Optional later: full server API migration
+- Avoid: hybrid half-migration
+
+## Voting and aggregation model
+
+Current implementation:
+
+- Contest entries live on the contest document in `entries[]`.
+- Individual votes live in `contests/{contestId}/votes/{userId}_{entryId}`.
+- Each vote stores the full per-attribute `breakdown`.
+- Each entry caches aggregate fields on the contest doc:
+  - `sumScore`
+  - `voteCount`
+
+Write algorithm:
+
+1. Read the existing vote doc for `{userId}_{entryId}`.
+2. Compute the old total and new total from the breakdown.
+3. Calculate `delta = newTotal - oldTotal`.
+4. Upsert the vote doc in the votes subcollection.
+5. Update the matching entry aggregate in the contest doc inside the same Firestore transaction.
+6. Increment `voteCount` only when this is a brand-new vote.
+
+Why this is the right shape for this app:
+
+- Scoreboards and brackets read precomputed aggregates from the contest doc.
+- The UI does not need an N-query recount across all votes just to show standings.
+- Re-votes are naturally handled by the deterministic vote document ID and delta update.
+- Per-user ballot state can still be read by querying votes for that user when needed.
+
+What should stay true:
+
+- Reading aggregate standings should not require scanning all votes.
+- Re-voting should be an update to one stable vote document, not a second vote row.
+- The aggregation logic should live in exactly one write path.
+
 ## Contest feature layout
 
 - `src/features/contest/components/`: UI grouped by area
