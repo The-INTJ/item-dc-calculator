@@ -7,7 +7,7 @@
       },
       {
         "matcher": "Bash",
-        "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'git (commit|merge)'; then npx gitnexus analyze 2>/dev/null || true; fi"
+        "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE '\"git (commit|merge)|git (commit|merge)\"'; then npx gitnexus analyze 2>/dev/null || true; fi"
       }
     ],
     "PreToolUse": [
