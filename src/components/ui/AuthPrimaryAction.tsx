@@ -24,7 +24,7 @@ export function AuthPrimaryAction({
   confirmMessage = 'Are you sure you want to sign out?',
   dataTestId,
 }: AuthPrimaryActionProps) {
-  const { isAuthenticated, loading, logout } = useAuth();
+  const { isAuthenticated, isGuest, loading, logout } = useAuth();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   if (loading) {
@@ -35,7 +35,7 @@ export function AuthPrimaryAction({
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !isGuest) {
     return (
       <Link href={signedOutHref} className={className} data-testid={dataTestId}>
         {signedOutLabel}

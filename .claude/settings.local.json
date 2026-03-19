@@ -9,7 +9,8 @@
       "Bash(winget list:*)",
       "mcp__Claude_Preview__preview_start",
       "Skill(update-config)",
-      "Skill(update-config:*)"
+      "Skill(update-config:*)",
+      "mcp__plugin_gitnexus_gitnexus__impact"
     ]
   }
 }
