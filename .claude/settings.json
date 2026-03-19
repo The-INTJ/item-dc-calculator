@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": "if echo \"$CLAUDE_FILE_PATH\" | grep -qE '\\.(ts|tsx|js|jsx)$'; then npx eslint --fix \"$CLAUDE_FILE_PATH\" 2>/dev/null || true; fi"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": "if echo \"$CLAUDE_FILE_PATH\" | grep -q '\\.env'; then echo 'BLOCK: Do not edit .env files directly — ask the user to update environment variables manually.' && exit 1; fi"
+      }
+    ]
+  }
+}
