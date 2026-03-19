@@ -4,10 +4,6 @@
       {
         "matcher": "Edit|Write",
         "command": "if echo \"$CLAUDE_FILE_PATH\" | grep -qE '\\.(ts|tsx|js|jsx)$'; then npx eslint --fix \"$CLAUDE_FILE_PATH\" 2>/dev/null || true; fi"
-      },
-      {
-        "matcher": "Bash",
-        "command": "INPUT=$(cat); if echo \"$INPUT\" | grep -qE 'git (commit|merge)'; then npx gitnexus analyze 2>/dev/null || true; fi"
       }
     ],
     "PreToolUse": [
