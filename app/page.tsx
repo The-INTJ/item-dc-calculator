@@ -6,14 +6,19 @@ import styles from './page.module.scss';
 
 export const dynamic = 'force-dynamic';
 
-export default async function HomePage() {
-  const user = await getCurrentUser();
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ contest?: string }>;
+}) {
+  const [user, params] = await Promise.all([getCurrentUser(), searchParams]);
+  const featuredContestId = params.contest;
   const userOptions = user ? <SignedInLanding user={user} /> : <SignedOutLanding />;
 
   return (
     <div className={styles.landingPage}>
-      {userOptions}
-      <ContestList />
+      {!featuredContestId && userOptions}
+      <ContestList featuredContestId={featuredContestId} />
     </div>
   );
 }

@@ -1,0 +1,65 @@
+@use '@/contest/styles/mixins/surface' as *;
+@use '@/contest/styles/mixins/typography' as *;
+@use '@/contest/styles/mixins/interactive' as *;
+@use '@/contest/styles/mixins/tokens' as *;
+
+.card {
+  @include card-surface;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-padding-lg;
+  text-align: center;
+  padding: $space-padding-xl;
+}
+
+.name {
+  @include type-massive;
+  font-weight: $font-weight-bold;
+  color: $color-text-dark;
+  margin: 0;
+}
+
+.topic {
+  @include type-large;
+  color: $color-text-dark;
+  opacity: 0.75;
+  margin: 0;
+}
+
+.phaseBadge {
+  @include status-badge;
+
+  &[data-phase='set'] {
+    background: $color-gray-200;
+    color: $color-text-dark;
+  }
+
+  &[data-phase='shake'] {
+    @include warning-surface;
+    border: none;
+  }
+
+  &[data-phase='scored'] {
+    background: $color-success-50;
+    color: $color-text-dark;
+  }
+}
+
+.cta {
+  @include interactive-button;
+  background: $color-text-special;
+  color: white;
+  border: none;
+  padding: $space-padding-md $space-padding-xl;
+  font-size: $font-size-large;
+  font-weight: $font-weight-semibold;
+  text-decoration: none;
+  border-radius: $radius-card;
+  transition: all $transition-base;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+  }
+}

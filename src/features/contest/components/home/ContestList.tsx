@@ -2,10 +2,31 @@
 
 import Link from 'next/link';
 import { useContestStore } from '@/contest/contexts/contest/ContestContext';
+import FeaturedContestCard from './FeaturedContestCard';
 import styles from './ContestList.module.scss';
 
-export default function ContestList() {
+interface ContestListProps {
+  featuredContestId?: string;
+}
+
+export default function ContestList({ featuredContestId }: ContestListProps) {
   const { contests } = useContestStore();
+
+  if (featuredContestId) {
+    const featured = contests.find(
+      (c) => c.id === featuredContestId || c.slug === featuredContestId,
+    );
+
+    if (!featured) {
+      return (
+        <div className={styles.container}>
+          <p>Contest not found.</p>
+        </div>
+      );
+    }
+
+    return <FeaturedContestCard contest={featured} />;
+  }
 
   return (
     <div className={styles.container}>
