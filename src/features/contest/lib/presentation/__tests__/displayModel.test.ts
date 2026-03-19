@@ -33,22 +33,89 @@ describe('buildDisplayModel', () => {
     expect(model.totalRounds).toBe(2);
     expect(model.rounds).toHaveLength(2);
 
+    // Round 0: bracket expects 2 matchups for 2 rounds; first matchup has real entries
     expect(model.rounds[0]).toMatchObject({
       id: 'round-1',
       status: 'active',
       isActive: true,
+      expectedMatchupCount: 2,
+      roundIndex: 0,
     });
+    expect(model.rounds[0].matchups).toHaveLength(2);
     expect(model.rounds[0].matchups[0]).toMatchObject({
       winnerId: 'entry-1',
       contestantA: { id: 'entry-1', score: 9, isWinner: true },
       contestantB: { id: 'entry-2', score: 7, isWinner: false },
+      slotIndex: 0,
+      sourceMatchups: null,
     });
+    // Second matchup is a TBD slot (no entries assigned)
+    expect(model.rounds[0].matchups[1].contestantA.name).toBe('TBD');
+    expect(model.rounds[0].matchups[1].contestantB.name).toBe('TBD');
 
+    // Round 1 (final): manual entries override winner propagation
     expect(model.rounds[1]).toMatchObject({
       id: 'round-2',
       status: 'upcoming',
       isActive: false,
+      expectedMatchupCount: 1,
+      roundIndex: 1,
     });
     expect(model.rounds[1].matchups[0].winnerId).toBeNull();
+    expect(model.rounds[1].matchups[0].contestantA.name).toBe('East');
+    expect(model.rounds[1].matchups[0].contestantB.name).toBe('West');
+
+    // Bracket structure
+    expect(model.bracketStructure.totalRounds).toBe(2);
+    expect(model.bracketStructure.totalContestants).toBe(4);
+    expect(model.isFinalRoundActive).toBe(false);
+  });
+
+  it('propagates winners to unfilled next-round slots', () => {
+    const contest: Contest = {
+      id: 'contest-2',
+      name: 'Propagation Test',
+      slug: 'propagation-test',
+      phase: 'shake',
+      activeRoundId: 'r1',
+      rounds: [
+        { id: 'r1', name: 'Round 1', state: 'scored' },
+        { id: 'r2', name: 'Final', state: 'shake' },
+      ],
+      entries: [
+        { id: 'e1', name: 'Alpha', slug: 'alpha', description: '', round: 'r1', submittedBy: 'A', sumScore: 20, voteCount: 2 },
+        { id: 'e2', name: 'Beta', slug: 'beta', description: '', round: 'r1', submittedBy: 'B', sumScore: 10, voteCount: 2 },
+        // No entries manually assigned to r2 — should propagate winner from r1
+      ],
+      voters: [],
+    };
+
+    const model = buildDisplayModel(contest);
+
+    // Round 1 (final): one slot expected, no manual entries
+    // Winner from r1 matchup 0 is e1 (Alpha, score 10 > Beta score 5)
+    // sourceMatchups[0] = matchup 0 from r1, sourceMatchups[1] = matchup 1 from r1
+    const finalMatchup = model.rounds[1].matchups[0];
+    expect(finalMatchup.contestantA.name).toBe('Alpha'); // propagated winner from matchup 0
+    expect(finalMatchup.contestantB.name).toBe('TBD'); // matchup 1 in r1 is all TBD, no winner
+  });
+
+  it('sets isFinalRoundActive when active round is the last', () => {
+    const contest: Contest = {
+      id: 'contest-3',
+      name: 'Final Active',
+      slug: 'final-active',
+      phase: 'shake',
+      activeRoundId: 'r2',
+      rounds: [
+        { id: 'r1', name: 'Semi', state: 'scored' },
+        { id: 'r2', name: 'Final', state: 'shake' },
+      ],
+      entries: [],
+      voters: [],
+    };
+
+    const model = buildDisplayModel(contest);
+    expect(model.isFinalRoundActive).toBe(true);
   });
 });
