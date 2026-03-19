@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find E:/Coding/item-dc-calculator -type f \\\\\\(-name *.test.* -o -name *.spec.* \\\\\\))",
+      "Bash(ls E:/Coding/item-dc-calculator/eslint* E:/Coding/item-dc-calculator/.prettier* E:/Coding/item-dc-calculator/prettier*)",
+      "Bash(npx gitnexus:*)",
+      "Bash(gh pr:*)",
+      "Bash(where gh:*)",
+      "Bash(winget list:*)"
+    ]
+  }
+}
