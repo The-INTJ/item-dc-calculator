@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "C:\\Program Files\\nodejs\\npm.cmd", "run", "dev"],
+      "port": 3001,
+      "autoPort": false
+    }
+  ]
+}

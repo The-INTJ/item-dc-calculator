@@ -26,6 +26,7 @@ firestore-debug.log
 *.njsproj
 *.sln
 *.sw?
+.claude/worktrees
 
 # The save file
 saveFile.txt

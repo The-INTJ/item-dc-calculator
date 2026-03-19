@@ -6,7 +6,10 @@
       "Bash(npx gitnexus:*)",
       "Bash(gh pr:*)",
       "Bash(where gh:*)",
-      "Bash(winget list:*)"
+      "Bash(winget list:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Skill(update-config)",
+      "Skill(update-config:*)"
     ]
   }
 }
