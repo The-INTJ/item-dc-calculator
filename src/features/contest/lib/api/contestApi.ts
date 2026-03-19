@@ -160,6 +160,33 @@ export const contestApi = {
     }
   },
 
+  async registerAsContestant(
+    contestId: string,
+    userId: string,
+    displayName: string,
+  ): Promise<boolean> {
+    try {
+      const provider = await getClientBackendProvider();
+      const contest = await getContestFromProvider(contestId);
+      if (!contest) return false;
+
+      const existing = await provider.voters.getById(contest.id, userId);
+      if (existing.success && existing.data) {
+        const result = await provider.voters.update(contest.id, userId, { role: 'competitor' });
+        return result.success;
+      }
+
+      const result = await provider.voters.create(contest.id, {
+        id: userId,
+        displayName,
+        role: 'competitor',
+      });
+      return result.success;
+    } catch {
+      return false;
+    }
+  },
+
   async submitScore(
     contestId: string,
     data: {

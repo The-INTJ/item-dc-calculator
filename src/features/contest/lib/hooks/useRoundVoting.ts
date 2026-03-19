@@ -12,6 +12,7 @@ import {
 } from '../domain/scoreUtils';
 import { buildEntrySummaries } from '../presentation/uiMappings';
 import type { Contest, ScoreBreakdown, ScoreEntry } from '../../contexts/contest/contestTypes';
+import { buildAutoVoteScores } from '../domain/autoVote';
 import { contestApi } from '../api/contestApi';
 
 type ScoreByDrinkId = Record<string, Record<string, number>>;
@@ -107,12 +108,18 @@ export function useRoundVoting(contest: Contest | null, roundId: string | null) 
       return;
     }
 
+    // Auto-vote: fill in midpoint scores for unscored entries in this round
+    const scoredIds = voteEntries.map((e) => e.entryId);
+    const allEntryIds = entries.map((e) => e.id);
+    const autoVotes = buildAutoVoteScores(allEntryIds, scoredIds, config);
+    const allVotes = [...voteEntries, ...autoVotes];
+
     setStatus('submitting');
     setMessage(null);
 
     try {
       const results = await Promise.all(
-        voteEntries.map(({ entryId, breakdown }) =>
+        allVotes.map(({ entryId, breakdown }) =>
           contestApi.submitScore(contest.id, {
             entryId,
             userId,

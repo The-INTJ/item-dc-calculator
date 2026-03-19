@@ -44,6 +44,10 @@ export interface ContestConfig {
   entryLabel?: string;
   /** Plural label for entries (default: "Entries") */
   entryLabelPlural?: string;
+  /** Singular label for contestants (default: "Contestant", e.g. "Mixologist") */
+  contestantLabel?: string;
+  /** Plural label for contestants (default: "Contestants", e.g. "Mixologists") */
+  contestantLabelPlural?: string;
 }
 
 /**
