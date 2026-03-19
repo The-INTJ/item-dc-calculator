@@ -48,6 +48,16 @@
   margin: 0 0 $space-base;
 }
 
+.contest-display__eyebrow--link {
+  color: $color-text-special;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .contest-display__title {
   font-size: $font-size-massive;
   line-height: 1;

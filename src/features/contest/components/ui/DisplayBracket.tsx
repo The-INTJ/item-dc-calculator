@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type {
   DisplayContestant,
   DisplayMatchup,
@@ -67,7 +68,7 @@ export function DisplayBracket({ model }: DisplayBracketProps) {
     <section className="contest-display">
       <header className="contest-display__hero">
         <div>
-          <p className="contest-display__eyebrow">Display Mode</p>
+          <Link href={`/contest/${model.contestId}`} className="contest-display__eyebrow contest-display__eyebrow--link">Display Mode</Link>
           <h1 className="contest-display__title">{model.contestName}</h1>
           <p className="contest-display__meta">{formatLabel(model.phase)} phase - {model.totalRounds} rounds - Live updates</p>
         </div>

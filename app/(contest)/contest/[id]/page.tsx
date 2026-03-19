@@ -34,12 +34,9 @@ export default function ContestPage() {
     <div className="contest-landing">
       <section className="contest-hero">
         <h1>{contest.name}</h1>
-        <p>Click a round to vote.</p>
-        <div className="contest-actions">
-          <Link href={`/contest/${id}/display`} className="button-secondary">
-            Open display mode
-          </Link>
-        </div>
+        <Link href={`/contest/${id}/display`} className="button-secondary">
+          Display mode
+        </Link>
       </section>
 
       <BracketView rounds={rounds} onRoundClick={setSelectedRoundId} />
