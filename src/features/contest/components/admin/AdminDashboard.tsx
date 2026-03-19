@@ -23,6 +23,7 @@ export function AdminDashboard() {
     updateContest,
   } = useContestStore();
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     if (!selectedContest && contests.length > 0) {
@@ -104,27 +105,38 @@ export function AdminDashboard() {
       </header>
 
       <div className="admin-dashboard__layout">
-        <aside className="admin-sidebar">
-          <h2>Contests</h2>
-          {!contests || contests.length === 0 ? (
-            <p className="admin-empty">No contests found.</p>
-          ) : (
-            <div className="admin-contest-list">
-              {contests.map((contest) => (
-                <ContestCard
-                  key={contest.id}
-                  contest={contest}
-                  onSelect={handleSelectContest}
-                  isSelected={selectedContest?.id === contest.id}
-                />
-              ))}
-            </div>
+        <aside className={`admin-sidebar ${sidebarCollapsed ? 'admin-sidebar--collapsed' : ''}`}>
+          <button
+            type="button"
+            className="admin-sidebar__toggle"
+            onClick={() => setSidebarCollapsed((prev) => !prev)}
+          >
+            <span>Contests ({contests.length})</span>
+            <span className="admin-sidebar__chevron">{sidebarCollapsed ? '▼' : '▲'}</span>
+          </button>
+          {!sidebarCollapsed && (
+            <>
+              {!contests || contests.length === 0 ? (
+                <p className="admin-empty">No contests found.</p>
+              ) : (
+                <div className="admin-contest-list">
+                  {contests.map((contest) => (
+                    <ContestCard
+                      key={contest.id}
+                      contest={contest}
+                      onSelect={handleSelectContest}
+                      isSelected={selectedContest?.id === contest.id}
+                    />
+                  ))}
+                </div>
+              )}
+              <div className="admin-add-contest">
+                <Link href="/admin/contest-setup" className="button-primary">
+                  Create New Contest
+                </Link>
+              </div>
+            </>
           )}
-          <div className="admin-add-contest">
-            <Link href="/admin/contest-setup" className="button-primary">
-              Create New Contest
-            </Link>
-          </div>
         </aside>
 
         <main className="admin-main">

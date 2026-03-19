@@ -106,6 +106,17 @@
     background: rgba($color-success-500, 0.08);
     border-color: $color-success-500;
   }
+
+  &--selected:not(&--active) {
+    background: rgba($color-info-600, 0.06);
+    border-color: $color-info-600;
+  }
+}
+
+.admin-round-actions {
+  display: flex;
+  gap: $space-base;
+  margin-bottom: $space-base;
 }
 
 .admin-round-item__header {
@@ -204,4 +215,42 @@
 .admin-round-badge--upcoming {
   background: $color-info-600;
   color: $color-text-light;
+}
+
+// Inline round entries
+.admin-round-entries {
+  border-top: 1px solid $color-border;
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  margin-top: $space-base;
+  padding-top: $space-base;
+}
+
+.admin-round-entry {
+  align-items: center;
+  background: #fff;
+  border: 1px solid $color-border;
+  border-radius: $radius-xs;
+  display: flex;
+  justify-content: space-between;
+  padding: $space-base $space-padding-sm;
+}
+
+.admin-round-entry__contestant {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-round-entry__name {
+  @include type-small;
+  color: $color-text-dark;
+  opacity: 0.8;
+}
+
+.admin-round-entry__score {
+  @include type-normal;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
 }

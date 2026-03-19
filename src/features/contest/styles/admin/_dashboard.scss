@@ -40,12 +40,50 @@
   background: $color-dark-950;
   border-radius: $radius-lg;
   padding: $space-padding-md;
+  position: relative;
 }
 
 .admin-sidebar h2 {
   color: $color-text-light;
   @include type-large;
   margin-bottom: $space-gap-normal;
+}
+
+.admin-sidebar__toggle {
+  align-items: center;
+  background: $color-dark-900;
+  border: 0;
+  border-radius: $radius-button;
+  color: $color-text-light;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  @include type-large;
+  font-weight: $font-weight-semibold;
+  gap: $space-base;
+  justify-content: space-between;
+  margin-bottom: $space-lg;
+  padding: $space-padding-sm $space-padding-md;
+  position: sticky;
+  top: 0;
+  width: 100%;
+  z-index: 10;
+}
+
+.admin-sidebar__chevron {
+  @include type-small;
+  opacity: 0.6;
+}
+
+@include respond-to-md {
+  .admin-sidebar__toggle {
+    display: none;
+  }
+
+  .admin-sidebar--collapsed .admin-contest-list,
+  .admin-sidebar--collapsed .admin-add-contest {
+    display: flex;
+  }
 }
 
 .admin-contest-list {

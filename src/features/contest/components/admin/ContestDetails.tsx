@@ -2,98 +2,109 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Contest, ContestConfig, Entry, ScoreEntry, Voter } from '../../contexts/contest/contestTypes';
+import type { Contest, ContestConfig, ScoreEntry } from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
 import { adminApi } from '../../lib/api/adminApi';
 import { contestApi } from '../../lib/api/contestApi';
-import { getRoundLabel } from '../../lib/domain/contestGetters';
+import { getEntriesForRound, getRoundById, getRoundLabel } from '../../lib/domain/contestGetters';
 import { getEffectiveConfig } from '../../lib/domain/validation';
-import { buildEntrySummary } from '../../lib/presentation/uiMappings';
-import { EntryCard } from '../ui/EntryCard';
 import { AdminContestants } from './AdminContestants';
 import { AdminContestRounds } from './AdminContestRounds';
-import { AdminRoundOverview } from './AdminRoundOverview';
 import { ContestConfigEditor } from './ContestConfigEditor';
-import { ContestPhaseControls } from './ContestPhaseControls';
 
 interface ContestDetailsProps {
   contest: Contest;
   onContestUpdated: (contest: Contest) => void;
 }
 
-function EntryItem({ entry, roundLabel }: { entry: Entry; roundLabel: string }) {
-  const summary = buildEntrySummary(entry);
-
-  return (
-    <li className="admin-detail-item">
-      <EntryCard entry={summary} variant="compact" showCreator />
-      <span className="admin-detail-meta">Round: {roundLabel}</span>
-    </li>
-  );
+interface Participant {
+  id: string;
+  displayName: string;
+  role: 'admin' | 'voter' | 'competitor' | 'contestant';
+  votedCount: number;
+  totalEntries: number;
+  isActiveContestant: boolean;
+  autoMax: boolean;
 }
 
-function getRoleLabel(role: Voter['role']) {
-  if (role === 'voter') {
-    return 'voter';
+function buildParticipants(
+  contest: Contest,
+  contestScores: ScoreEntry[],
+  selectedRoundId: string | null,
+): Participant[] {
+  const roundId = selectedRoundId ?? contest.activeRoundId;
+  const round = contest.rounds?.find((r) => r.id === roundId);
+  const roundEntries = roundId ? getEntriesForRound(contest, roundId) : [];
+  const roundContestantNames = new Set(roundEntries.map((e) => e.submittedBy?.toLowerCase()));
+  const isShakeOrScored = round?.state === 'shake' || round?.state === 'scored';
+
+  const roundEntryIds = new Set(roundEntries.map((e) => e.id));
+  const voterScoreCounts = new Map<string, number>();
+  for (const score of contestScores) {
+    if (roundEntryIds.has(score.entryId)) {
+      voterScoreCounts.set(score.userId, (voterScoreCounts.get(score.userId) ?? 0) + 1);
+    }
   }
 
+  const seen = new Set<string>();
+  const participants: Participant[] = [];
+
+  // Add registered voters (contest members)
+  for (const voter of contest.voters ?? []) {
+    seen.add(voter.displayName.toLowerCase());
+    const isContestant = roundContestantNames.has(voter.displayName.toLowerCase());
+    participants.push({
+      id: voter.id,
+      displayName: voter.displayName,
+      role: voter.role,
+      votedCount: voterScoreCounts.get(voter.id) ?? 0,
+      totalEntries: roundEntries.length,
+      isActiveContestant: isContestant,
+      autoMax: isContestant && isShakeOrScored,
+    });
+  }
+
+  // Add contestants not already in voters (from selected round entries only)
+  for (const entry of roundEntries) {
+    const name = entry.submittedBy;
+    if (!name || seen.has(name.toLowerCase())) continue;
+    seen.add(name.toLowerCase());
+    participants.push({
+      id: `contestant-${name}`,
+      displayName: name,
+      role: 'contestant',
+      votedCount: 0,
+      totalEntries: roundEntries.length,
+      isActiveContestant: true,
+      autoMax: isShakeOrScored,
+    });
+  }
+
+  return participants;
+}
+
+function getRoleBadgeLabel(role: Participant['role']) {
   return role;
 }
 
-function VoterItem({ voter }: { voter: Voter }) {
+function ParticipantItem({ participant }: { participant: Participant }) {
+  const voteStatus = participant.autoMax
+    ? 'Auto max'
+    : participant.votedCount > 0
+      ? 'Voted'
+      : 'Not voted';
+
   return (
-    <li className="admin-detail-item">
-      <strong>{voter.displayName}</strong>
-      <span className={`admin-role-badge admin-role-badge--${voter.role}`}>
-        {getRoleLabel(voter.role)}
+    <li className="admin-detail-item admin-participant-item">
+      <div className="admin-participant-item__info">
+        <strong>{participant.displayName}</strong>
+        <span className={`admin-role-badge admin-role-badge--${participant.role}`}>
+          {getRoleBadgeLabel(participant.role)}
+        </span>
+      </div>
+      <span className={`admin-vote-status admin-vote-status--${participant.autoMax ? 'auto' : participant.votedCount > 0 ? 'voted' : 'pending'}`}>
+        {voteStatus}
       </span>
-    </li>
-  );
-}
-
-function ScoreItem({
-  score,
-  entries,
-  voters,
-  config,
-}: {
-  score: ScoreEntry;
-  entries: Entry[];
-  voters: Voter[];
-  config: ContestConfig;
-}) {
-  const entry = entries.find((candidate) => candidate.id === score.entryId);
-  const voter = voters.find((candidate) => candidate.id === score.userId);
-  const total = config.attributes.reduce((sum, attribute) => {
-    const value = score.breakdown[attribute.id];
-    if (typeof value !== 'number' || !Number.isFinite(value)) {
-      return sum;
-    }
-
-    return sum + value;
-  }, 0);
-  const maxTotal = config.attributes.reduce(
-    (sum, attribute) => sum + (attribute.max ?? 10),
-    0,
-  );
-
-  return (
-    <li className="admin-detail-item admin-score-item">
-      <div className="admin-score-item__header">
-        <strong>{entry?.name ?? 'Unknown'}</strong>
-        <span className="admin-detail-meta">by {voter?.displayName ?? 'Unknown'}</span>
-      </div>
-      <div className="admin-score-item__breakdown">
-        {config.attributes.map((attribute) => (
-          <span key={attribute.id}>
-            {attribute.label}: {score.breakdown[attribute.id] ?? 'N/A'}
-          </span>
-        ))}
-        <strong>
-          Total: {total}/{maxTotal}
-        </strong>
-      </div>
-      {score.notes ? <p className="admin-score-item__notes">{score.notes}</p> : null}
     </li>
   );
 }
@@ -104,9 +115,22 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [contestScores, setContestScores] = useState<ScoreEntry[]>([]);
+  const [selectedRoundId, setSelectedRoundId] = useState<string | null>(
+    contest.activeRoundId ?? null,
+  );
+
+  // Keep selectedRoundId in sync when contest changes
+  useEffect(() => {
+    if (selectedRoundId && !contest.rounds?.some((r) => r.id === selectedRoundId)) {
+      setSelectedRoundId(contest.activeRoundId ?? null);
+    }
+  }, [contest.rounds, contest.activeRoundId, selectedRoundId]);
 
   const activeRoundLabel = getRoundLabel(contest, contest.activeRoundId);
+  const selectedRoundLabel = getRoundLabel(contest, selectedRoundId);
   const config = getEffectiveConfig(contest);
+  const hasScores = contest.entries.some((e) => (e.voteCount ?? 0) > 0);
+  const participants = buildParticipants(contest, contestScores, selectedRoundId);
 
   useEffect(() => {
     if (!contest.id) {
@@ -181,63 +205,26 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
         </div>
       ) : null}
 
-      <ContestPhaseControls contest={contest} onContestUpdated={onContestUpdated} />
-      <ContestConfigEditor contest={contest} onSave={handleSaveConfig} />
-      <AdminContestRounds contest={contest} />
-      <AdminContestants contest={contest} />
-      <AdminRoundOverview contest={contest} />
+      {!hasScores && <ContestConfigEditor contest={contest} onSave={handleSaveConfig} />}
+      <AdminContestRounds
+        contest={contest}
+        config={config}
+        selectedRoundId={selectedRoundId}
+        onSelectRound={setSelectedRoundId}
+      />
+      <AdminContestants contest={contest} selectedRoundId={selectedRoundId} />
 
       <section className="admin-details-section">
-        <h3>Vote categories</h3>
-        <p className="admin-detail-meta">
-          Server-managed categories are disabled for local testing.
+        <h3>Participants ({participants.length})</h3>
+        <p className="admin-detail-meta" style={{ marginTop: '-0.5rem', marginBottom: '0.75rem' }}>
+          Showing for {selectedRoundLabel}
         </p>
-      </section>
-
-      <section className="admin-details-section">
-        <h3>Entries ({contest.entries.length})</h3>
-        {contest.entries.length === 0 ? (
-          <p className="admin-empty">No entries registered yet.</p>
+        {participants.length === 0 ? (
+          <p className="admin-empty">No participants yet.</p>
         ) : (
           <ul className="admin-detail-list">
-            {contest.entries.map((entry) => (
-              <EntryItem
-                key={entry.id}
-                entry={entry}
-                roundLabel={getRoundLabel(contest, entry.round)}
-              />
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="admin-details-section">
-        <h3>Voters ({contest.voters?.length ?? 0})</h3>
-        {(contest.voters?.length ?? 0) === 0 ? (
-          <p className="admin-empty">No voters assigned yet.</p>
-        ) : (
-          <ul className="admin-detail-list">
-            {contest.voters.map((voter) => (
-              <VoterItem key={voter.id} voter={voter} />
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="admin-details-section">
-        <h3>Scores ({contestScores.length})</h3>
-        {contestScores.length === 0 ? (
-          <p className="admin-empty">No scores submitted yet.</p>
-        ) : (
-          <ul className="admin-detail-list">
-            {contestScores.map((score) => (
-              <ScoreItem
-                key={score.id}
-                score={score}
-                entries={contest.entries}
-                voters={contest.voters}
-                config={config}
-              />
+            {participants.map((p) => (
+              <ParticipantItem key={p.id} participant={p} />
             ))}
           </ul>
         )}

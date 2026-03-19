@@ -1,26 +1,24 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import type { Contest, Entry } from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
-import { getRoundLabel } from '../../lib/domain/contestGetters';
+import { getEntriesForRound, getRoundLabel } from '../../lib/domain/contestGetters';
 
 interface AdminContestantsProps {
   contest: Contest;
+  selectedRoundId: string | null;
 }
 
 function ContestantRow({
-  contest,
   entry,
   onUpdate,
   onRemove,
 }: {
-  contest: Contest;
   entry: Entry;
   onUpdate: (updates: Partial<Entry>) => Promise<void>;
   onRemove: () => Promise<void>;
 }) {
-  const rounds = contest.rounds ?? [];
   const [updating, setUpdating] = useState(false);
   const [removing, setRemoving] = useState(false);
 
@@ -37,13 +35,7 @@ function ContestantRow({
 
   return (
     <li className="admin-detail-item admin-contestant-item">
-      <input
-        className="admin-contestant-input"
-        value={entry.submittedBy}
-        onChange={(event) => handleUpdate({ submittedBy: event.target.value })}
-        placeholder="Contestant name"
-        disabled={updating || removing}
-      />
+      <strong>{entry.submittedBy}</strong>
       <input
         className="admin-contestant-input"
         value={entry.name ?? ''}
@@ -51,19 +43,6 @@ function ContestantRow({
         placeholder="Entry name"
         disabled={updating || removing}
       />
-      <select
-        className="admin-contestant-select"
-        value={entry.round}
-        onChange={(event) => handleUpdate({ round: event.target.value })}
-        disabled={updating || removing}
-      >
-        {rounds.length === 0 ? <option value="">No rounds</option> : null}
-        {rounds.map((round, index) => (
-          <option key={round.id} value={round.id}>
-            Round {index + 1}
-          </option>
-        ))}
-      </select>
       <button type="button" className="button-secondary" onClick={handleRemove} disabled={updating || removing}>
         {removing ? 'Removing...' : 'Remove'}
       </button>
@@ -71,40 +50,43 @@ function ContestantRow({
   );
 }
 
-export function AdminContestants({ contest }: AdminContestantsProps) {
+export function AdminContestants({ contest, selectedRoundId }: AdminContestantsProps) {
   const { addContestant, updateContestant, removeContestant } = useContestStore();
-  const [contestantName, setContestantName] = useState('');
+  const [selectedVoterId, setSelectedVoterId] = useState('');
   const [entryName, setEntryName] = useState('');
-  const [roundId, setRoundId] = useState(contest.futureRoundId ?? contest.activeRoundId ?? '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const rounds = contest.rounds ?? [];
-  const roundOptions = useMemo(() => rounds.slice(), [rounds]);
+  const roundId = selectedRoundId ?? contest.activeRoundId ?? '';
+  const roundLabel = getRoundLabel(contest, roundId);
+  const roundEntries = roundId ? getEntriesForRound(contest, roundId) : [];
 
-  useEffect(() => {
-    if (!roundId && (contest.futureRoundId || contest.activeRoundId)) {
-      setRoundId(contest.futureRoundId ?? contest.activeRoundId ?? '');
-    }
-  }, [contest.futureRoundId, contest.activeRoundId, roundId]);
+  // Voters already assigned to this round (by matching submittedBy to voter displayName)
+  const assignedNames = new Set(roundEntries.map((e) => e.submittedBy?.toLowerCase()));
+  const availableVoters = (contest.voters ?? []).filter(
+    (v) => !assignedNames.has(v.displayName.toLowerCase()),
+  );
 
   const handleAdd = async () => {
-    if (!contestantName.trim() || !roundId) return;
+    if (!selectedVoterId || !roundId) return;
+
+    const voter = contest.voters?.find((v) => v.id === selectedVoterId);
+    if (!voter) return;
 
     setLoading(true);
     setError(null);
 
     const result = await addContestant(contest.id, {
-      name: contestantName.trim(),
+      name: voter.displayName,
       entryName: entryName.trim(),
       roundId,
     });
 
     if (result) {
-      setContestantName('');
+      setSelectedVoterId('');
       setEntryName('');
     } else {
-      setError('Failed to add contestant');
+      setError('Failed to assign contestant');
     }
 
     setLoading(false);
@@ -113,49 +95,45 @@ export function AdminContestants({ contest }: AdminContestantsProps) {
   return (
     <section className="admin-details-section">
       <h3>Contestants & Entries</h3>
+      <p className="admin-detail-meta" style={{ marginTop: '-0.5rem', marginBottom: '0.75rem' }}>
+        {roundLabel}
+      </p>
+
       <div className="admin-contestant-add">
-        <input
-          className="admin-contestant-input"
-          placeholder="Contestant name"
-          value={contestantName}
-          onChange={(event) => setContestantName(event.target.value)}
+        <select
+          className="admin-contestant-select"
+          value={selectedVoterId}
+          onChange={(event) => setSelectedVoterId(event.target.value)}
           disabled={loading}
-        />
+        >
+          <option value="">Assign participant...</option>
+          {availableVoters.map((voter) => (
+            <option key={voter.id} value={voter.id}>
+              {voter.displayName}
+            </option>
+          ))}
+        </select>
         <input
           className="admin-contestant-input"
-          placeholder="Entry name"
+          placeholder="Entry name (optional)"
           value={entryName}
           onChange={(event) => setEntryName(event.target.value)}
           disabled={loading}
         />
-        <select
-          className="admin-contestant-select"
-          value={roundId}
-          onChange={(event) => setRoundId(event.target.value)}
-          disabled={loading}
-        >
-          <option value="">Select round</option>
-          {roundOptions.map((round, index) => (
-            <option key={round.id} value={round.id}>
-              Round {index + 1}
-            </option>
-          ))}
-        </select>
-        <button type="button" className="button-secondary" onClick={handleAdd} disabled={loading}>
-          {loading ? 'Adding...' : 'Add contestant'}
+        <button type="button" className="button-secondary" onClick={handleAdd} disabled={loading || !selectedVoterId}>
+          {loading ? 'Assigning...' : 'Assign'}
         </button>
       </div>
 
       {error && <p className="admin-phase-controls__message--error">{error}</p>}
 
-      {contest.entries.length === 0 ? (
-        <p className="admin-empty">No contestants added yet.</p>
+      {roundEntries.length === 0 ? (
+        <p className="admin-empty">No contestants in this round.</p>
       ) : (
         <ul className="admin-detail-list">
-          {contest.entries.map((entry) => (
+          {roundEntries.map((entry) => (
             <ContestantRow
               key={entry.id}
-              contest={contest}
               entry={entry}
               onUpdate={async (updates) => {
                 await updateContestant(contest.id, entry.id, updates);
@@ -167,8 +145,6 @@ export function AdminContestants({ contest }: AdminContestantsProps) {
           ))}
         </ul>
       )}
-
-      <p className="admin-detail-meta">Active round: {getRoundLabel(contest, contest.activeRoundId)}</p>
     </section>
   );
 }

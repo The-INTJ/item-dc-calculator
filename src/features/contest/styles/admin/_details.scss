@@ -146,3 +146,37 @@
   opacity: 0.8;
   padding: $space-base;
 }
+
+// Participants
+.admin-participant-item {
+  justify-content: space-between;
+}
+
+.admin-participant-item__info {
+  align-items: center;
+  display: flex;
+  gap: $space-base;
+}
+
+.admin-role-badge--contestant {
+  background: $color-warning-700;
+  color: $color-text-light;
+}
+
+.admin-vote-status {
+  @include type-small;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
+}
+
+.admin-vote-status--voted {
+  color: $color-success-500;
+}
+
+.admin-vote-status--pending {
+  color: $color-gray-400;
+}
+
+.admin-vote-status--auto {
+  color: $color-warning-700;
+}
