@@ -1,4 +1,5 @@
 import React from 'react';
+import { buildBracketLayout } from '@/contest/lib/presentation/bracketLayout';
 
 type BracketRoundStatus = 'upcoming' | 'active' | 'closed';
 
@@ -81,9 +82,49 @@ function BracketRoundColumn({ round, onClick }: { round: BracketRound; onClick?:
   );
 }
 
-export function BracketView({ rounds, onRoundClick }: BracketViewProps) {
+function FaceOffContestant({ contestant, winnerId }: { contestant: BracketContestant; winnerId?: string | null }) {
+  const isWinner = Boolean(winnerId && contestant.id === winnerId);
+  const score = contestant.score ?? '—';
+
   return (
-    <section className="contest-bracket">
+    <div className={`contest-face-off__contestant${isWinner ? ' contest-face-off__contestant--leader' : ''}`}>
+      <p className="contest-face-off__name">{contestant.name}</p>
+      <span className="contest-face-off__score">{score}</span>
+    </div>
+  );
+}
+
+function FaceOffView({ round, onClick }: { round: BracketRound; onClick?: () => void }) {
+  const matchup = round.matchups[0];
+
+  return (
+    <section
+      className={`contest-face-off${onClick ? ' contest-face-off--clickable' : ''}`}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); } : undefined}
+    >
+      <header className="contest-face-off__header">
+        <h3 className="contest-face-off__title">{round.name}</h3>
+        <span className="contest-face-off__status">{formatRoundStatus(round.status)}</span>
+      </header>
+      {matchup ? (
+        <div className="contest-face-off__matchup">
+          <FaceOffContestant contestant={matchup.contestantA} winnerId={matchup.winnerId} />
+          <span className="contest-face-off__vs">VS</span>
+          <FaceOffContestant contestant={matchup.contestantB} winnerId={matchup.winnerId} />
+        </div>
+      ) : (
+        <p className="contest-face-off__empty">No matchup in this round yet.</p>
+      )}
+    </section>
+  );
+}
+
+function BracketGrid({ rounds, onRoundClick }: BracketViewProps) {
+  return (
+    <>
       <div className="contest-bracket__mobile">
         <p className="contest-bracket__hint">Swipe to move between rounds.</p>
         <div className="contest-bracket__round-strip" role="list">
@@ -104,6 +145,23 @@ export function BracketView({ rounds, onRoundClick }: BracketViewProps) {
           ))}
         </div>
       </div>
+    </>
+  );
+}
+
+export function BracketView({ rounds, onRoundClick }: BracketViewProps) {
+  const layout = buildBracketLayout(rounds);
+
+  return (
+    <section className="contest-bracket">
+      {layout.kind === 'face-off' && layout.finalRound ? (
+        <FaceOffView
+          round={layout.finalRound}
+          onClick={onRoundClick ? () => onRoundClick(layout.finalRound!.id) : undefined}
+        />
+      ) : (
+        <BracketGrid rounds={rounds} onRoundClick={onRoundClick} />
+      )}
     </section>
   );
 }

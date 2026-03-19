@@ -117,6 +117,84 @@
   }
 }
 
+// Face-off view (single round, head-to-head)
+.contest-face-off {
+  @include card-elevated;
+  display: grid;
+  gap: $space-gap-normal;
+  text-align: center;
+}
+
+.contest-face-off--clickable {
+  cursor: pointer;
+  transition: transform $transition-fast, box-shadow $transition-base;
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-2px);
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+}
+
+.contest-face-off__header {
+  display: grid;
+  gap: $space-base;
+  justify-items: center;
+}
+
+.contest-face-off__title {
+  @include type-large;
+  margin: 0;
+}
+
+.contest-face-off__status {
+  @include type-label;
+  color: $color-text-special;
+}
+
+.contest-face-off__matchup {
+  align-items: center;
+  display: grid;
+  gap: $space-gap-normal;
+  grid-template-columns: 1fr auto 1fr;
+}
+
+.contest-face-off__contestant {
+  display: grid;
+  gap: $space-base;
+  justify-items: center;
+  padding: $space-padding-lg;
+}
+
+.contest-face-off__contestant--leader {
+  color: $color-text-special;
+  font-weight: $font-weight-bold;
+}
+
+.contest-face-off__name {
+  @include type-large;
+  margin: 0;
+}
+
+.contest-face-off__score {
+  font-size: $font-size-massive;
+  font-weight: $font-weight-bold;
+  line-height: 1;
+}
+
+.contest-face-off__vs {
+  @include type-label;
+  color: $color-text-dark;
+  font-size: $font-size-large;
+  opacity: 0.6;
+}
+
+.contest-face-off__empty {
+  color: $color-text-dark;
+  opacity: 0.75;
+}
+
 // Container queries for responsive behavior
 @include container('sm') {
   .contest-bracket__round {
