@@ -1,7 +1,7 @@
 'use client';
 
 import { useContestStore } from '@/contest/contexts/contest/ContestContext';
-import { useContestSubscription } from './useContestSubscription';
+import { useContestSubscription } from '../realtime';
 
 export type ResolvedContestStatus = 'loading' | 'ready' | 'missing';
 

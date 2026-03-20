@@ -28,28 +28,6 @@ service cloud.firestore {
       return currentRole() == 'admin';
     }
 
-    function isContestAggregateUpdate() {
-      return signedIn()
-        && request.resource.data.diff(resource.data).changedKeys().hasOnly(['entries', 'updatedAt'])
-        && request.resource.data.entries is list
-        && request.resource.data.entries.size() == resource.data.entries.size();
-    }
-
-    // Allow signed-in users to register as contestants (add to voters array)
-    function isContestantRegistration() {
-      let changed = request.resource.data.diff(resource.data).changedKeys();
-      return signedIn()
-        && (changed.hasOnly(['voters', 'updatedAt'])
-            || changed.hasOnly(['voters', 'entries', 'updatedAt']))
-        && request.resource.data.voters is list
-        && request.resource.data.voters.size() >= resource.data.voters.size()
-        && request.resource.data.voters.size() <= resource.data.voters.size() + 1
-        && (!changed.hasAny(['entries'])
-            || (request.resource.data.entries is list
-                && request.resource.data.entries.size() >= resource.data.entries.size()
-                && request.resource.data.entries.size() <= resource.data.entries.size() + 1));
-    }
-
     function validOptionalString(data, field) {
       return !data.keys().hasAny([field]) || data[field] is string;
     }
@@ -96,19 +74,7 @@ service cloud.firestore {
         && validOptionalNullableString(request.resource.data, 'avatarUrl');
     }
 
-    function validVoteWrite(contestId, voteId) {
-      return signedIn()
-        && request.resource.data.userId == request.auth.uid
-        && voteId == request.auth.uid + '_' + request.resource.data.entryId
-        && request.resource.data.entryId is string
-        && request.resource.data.entryId.size() > 0
-        && request.resource.data.round is string
-        && request.resource.data.breakdown is map
-        && request.resource.data.breakdown.size() > 0
-        && request.resource.data.updatedAt == request.time
-        && (resource == null || request.resource.data.createdAt == resource.data.createdAt || request.resource.data.createdAt == request.time);
-    }
-
+    // Users: self-service profile management (auth provider writes directly)
     match /users/{uid} {
       allow get: if isSelf(uid);
       allow list: if isAdmin();
@@ -117,23 +83,25 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Configs: read-only from client; all writes go through API routes
     match /configs/{configId} {
       allow read: if signedIn();
-      allow create, update, delete: if isAdmin();
+      allow write: if false;
     }
 
+    // Contests: read-only from client (onSnapshot for real-time updates);
+    // all writes go through API routes using the Admin SDK
     match /contests/{contestId} {
       allow read: if signedIn();
-      allow create, delete: if isAdmin();
-      allow update: if isAdmin() || isContestAggregateUpdate() || isContestantRegistration();
+      allow write: if false;
 
       match /votes/{voteId} {
         allow read: if signedIn();
-        allow create, update: if validVoteWrite(contestId, voteId);
-        allow delete: if signedIn() && resource.data.userId == request.auth.uid;
+        allow write: if false;
       }
     }
 
+    // Deny everything else
     match /{document=**} {
       allow read, write: if false;
     }

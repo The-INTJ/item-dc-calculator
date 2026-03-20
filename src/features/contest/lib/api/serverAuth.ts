@@ -8,6 +8,11 @@
 import { cookies } from 'next/headers';
 import type { UserProfile } from '../../contexts/auth/types';
 import type { UserRole } from '../../contexts/contest/contestTypes';
+
+/** Server-side user identity: profile data plus the Firebase UID from the verified token. */
+export interface ServerUser extends UserProfile {
+  uid: string;
+}
 import { getFirebaseAdminAuth } from '../firebase/admin';
 
 const USER_ROLES: UserRole[] = ['admin', 'voter', 'competitor'];
@@ -26,7 +31,7 @@ function resolveRoleFromClaims(claims: Record<string, unknown>): UserRole {
   return 'voter';
 }
 
-async function buildUserProfile(uid: string, claims: Record<string, unknown>): Promise<UserProfile | null> {
+async function buildServerUser(uid: string, claims: Record<string, unknown>): Promise<ServerUser | null> {
   const adminAuth = getFirebaseAdminAuth();
 
   if (!adminAuth) {
@@ -36,6 +41,7 @@ async function buildUserProfile(uid: string, claims: Record<string, unknown>): P
   const userRecord = await adminAuth.getUser(uid);
 
   return {
+    uid,
     displayName: userRecord.displayName ?? 'User',
     email: userRecord.email ?? undefined,
     role: resolveRoleFromClaims(claims),
@@ -49,7 +55,7 @@ async function buildUserProfile(uid: string, claims: Record<string, unknown>): P
  * This checks for Firebase auth tokens in cookies and validates them.
  * Returns null if the user is not authenticated.
  */
-export async function getCurrentUser(): Promise<UserProfile | null> {
+export async function getCurrentUser(): Promise<ServerUser | null> {
   try {
     const cookieStore = await cookies();
 
@@ -66,14 +72,14 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
     }
 
     const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie, true);
-    return await buildUserProfile(decodedClaims.uid, decodedClaims);
+    return await buildServerUser(decodedClaims.uid, decodedClaims);
   } catch (error) {
     console.error('[ServerAuth] Error getting current user:', error);
     return null;
   }
 }
 
-export async function getCurrentUserFromRequest(request: Request): Promise<UserProfile | null> {
+export async function getCurrentUserFromRequest(request: Request): Promise<ServerUser | null> {
   const authHeader = request.headers.get('authorization');
 
   if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
@@ -92,7 +98,7 @@ export async function getCurrentUserFromRequest(request: Request): Promise<UserP
 
     try {
       const decodedClaims = await adminAuth.verifyIdToken(token, true);
-      return await buildUserProfile(decodedClaims.uid, decodedClaims);
+      return await buildServerUser(decodedClaims.uid, decodedClaims);
     } catch (error) {
       console.error('[ServerAuth] Error verifying ID token:', error);
       return null;

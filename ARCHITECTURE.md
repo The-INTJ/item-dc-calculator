@@ -67,11 +67,11 @@ Do not describe the route handlers as the canonical runtime CRUD path until a tr
 
 Current approach:
 
-- The browser app is a thin CRUD client on top of Firebase Auth + Firestore rules.
-- React code calls `contestApi` and `adminApi`.
-- Those clients use `getClientBackendProvider()` and the browser Firebase SDK directly.
-- Logged-in users vote through Firestore with their own Firebase session.
-- Route handlers and OpenAPI exist as an HTTP surface, but they are not the main runtime path for the browser app today.
+- The browser app is API-first: all data access flows through REST routes under `/api/contest/`.
+- React code calls `contestApi` and `adminApi`, which use `fetchWithAuth` to call the REST API with Firebase Bearer tokens.
+- API routes use the `BackendProvider` interface server-side; the client never touches Firestore directly for data operations.
+- The only client-side Firestore usage is `onSnapshot` for real-time contest subscriptions (read-only).
+- Firebase Auth (client SDK) handles login/register/tokens; the Admin SDK verifies tokens server-side.
 
 Why the client/server confusion keeps happening:
 

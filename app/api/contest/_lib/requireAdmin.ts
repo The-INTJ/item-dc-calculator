@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUserFromRequest } from '@/contest/lib/api/serverAuth';
+import { requireAuth } from './requireAuth';
 
 function allowLegacyAdminHeader(request: Request): boolean {
   const role = request.headers.get('x-contest-role');
@@ -15,9 +15,9 @@ function allowLegacyAdminHeader(request: Request): boolean {
 }
 
 export async function requireAdmin(request: Request): Promise<NextResponse | null> {
-  const user = await getCurrentUserFromRequest(request);
+  const result = await requireAuth(request);
 
-  if (user?.role === 'admin') {
+  if (result.user?.role === 'admin') {
     return null;
   }
 
@@ -25,5 +25,5 @@ export async function requireAdmin(request: Request): Promise<NextResponse | nul
     return null;
   }
 
-  return NextResponse.json({ message: 'Admin access required' }, { status: 403 });
+  return result.response ?? NextResponse.json({ message: 'Admin access required' }, { status: 403 });
 }

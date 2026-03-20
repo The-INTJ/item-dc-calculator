@@ -10,7 +10,7 @@ vi.mock('@/contest/contexts/contest/ContestContext', () => ({
   useContestStore: () => useContestStoreMock(),
 }));
 
-vi.mock('./useContestSubscription', () => ({
+vi.mock('../realtime', () => ({
   useContestSubscription: (contestId: string | null) => useContestSubscriptionMock(contestId),
 }));
 

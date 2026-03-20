@@ -7,6 +7,13 @@
       "runtimeArgs": ["/c", "C:\\Program Files\\nodejs\\npm.cmd", "run", "dev"],
       "port": 3001,
       "autoPort": false
+    },
+    {
+      "name": "dev-emu",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "scripts\\dev-emu.cmd"],
+      "port": 3001,
+      "autoPort": false
     }
   ]
 }

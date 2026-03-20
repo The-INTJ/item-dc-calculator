@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Contest Rating API",
-    "version": "2.0.0",
-    "description": "HTTP contract for the contest route handlers. The browser app primarily uses the Firebase-backed client path today, while this spec documents the maintained API surface for integrations, docs, and future server-backed flows."
+    "version": "3.0.0",
+    "description": "HTTP contract for the contest route handlers. The browser app uses this API for all data access (reads and writes). Firebase Auth Bearer tokens authenticate requests; the Admin SDK verifies them server-side. The only direct Firestore client usage is onSnapshot for real-time contest subscriptions."
   },
   "servers": [
     {
@@ -835,6 +835,80 @@
           },
           "404": {
             "description": "Contest or entry not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contests/{id}/register": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Contest ID or slug",
+          "schema": { "type": "string" }
+        }
+      ],
+      "post": {
+        "summary": "Register as a contestant",
+        "description": "Registers the authenticated user as a competitor in the contest. Optionally creates an entry. The userId is derived from the verified Bearer token, not the request body.",
+        "tags": ["Contests"],
+        "security": [{ "FirebaseBearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "displayName": { "type": "string", "description": "Display name for the voter record" },
+                  "entryName": { "type": "string", "description": "Optional entry name to create alongside registration" }
+                }
+              },
+              "example": {
+                "displayName": "Jane Smith",
+                "entryName": "Smoky Paloma"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Registration successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "registered": { "type": "boolean", "example": true }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest not found",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/Error" }

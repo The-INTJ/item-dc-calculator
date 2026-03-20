@@ -1,128 +1,25 @@
-'use client';
+import { notFound } from 'next/navigation';
+import { loadProvider } from '@/app/api/contest/_lib/provider';
+import ContestPageClient from './ContestPageClient';
 
-import Link from 'next/link';
-import { useState } from 'react';
-import { useParams } from 'next/navigation';
-import { useAuth } from '@/contest/contexts/auth/AuthContext';
-import { BracketView } from '@/contest/components/ui/BracketView';
-import { VoteModal } from '@/contest/components/ui/VoteModal';
-import { useResolvedContest } from '@/contest/lib/hooks/useResolvedContest';
-import { contestApi } from '@/contest/lib/api/contestApi';
-import { getContestantLabel, getEntryLabel } from '@/contest/lib/domain/contestLabels';
-import { getUserContestRole } from '@/contest/lib/domain/userContestState';
-import { buildBracketRoundsFromContest } from '@/contest/lib/presentation/buildBracketRoundsFromContest';
+export const dynamic = 'force-dynamic';
 
-export default function ContestPage() {
-  const { id } = useParams<{ id: string }>();
-  const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null);
-  const [registering, setRegistering] = useState(false);
-  const [showEntryInput, setShowEntryInput] = useState(false);
-  const [entryName, setEntryName] = useState('');
-  const { session } = useAuth();
-  const { contest, status } = useResolvedContest(id);
-  const rounds = contest ? buildBracketRoundsFromContest(contest) : [];
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
 
-  const userId = session?.firebaseUid ?? session?.sessionId ?? null;
-  const contestRole = contest ? getUserContestRole(userId, contest) : 'spectator';
-  const contestantLabel = getContestantLabel(contest?.config);
-  const entryLabel = getEntryLabel(contest?.config);
-  const showContestantButton = userId && contest && contestRole !== 'contestant';
+export default async function ContestPage({ params }: PageProps) {
+  const { id } = await params;
+  const provider = await loadProvider();
+  const result = await provider.contests.list();
 
-  const handleRegisterContestant = async () => {
-    if (!contest?.id || !userId) return;
-    if (!showEntryInput) {
-      setShowEntryInput(true);
-      return;
-    }
-    if (!entryName.trim()) return;
-    setRegistering(true);
-    await contestApi.registerAsContestant(
-      contest.id,
-      userId,
-      session?.profile.displayName ?? 'Guest',
-      entryName.trim(),
-    );
-    setShowEntryInput(false);
-    setEntryName('');
-    setRegistering(false);
-  };
-
-  if (status === 'loading') {
-    return (
-      <div className="contest-landing">
-        <div className="contest-card">Loading contest...</div>
-      </div>
-    );
-  }
+  const contest = result.success
+    ? result.data?.find((c) => c.id === id || c.slug === id) ?? null
+    : null;
 
   if (!contest) {
-    return (
-      <div className="contest-landing">
-        <div className="contest-card">Contest not found.</div>
-      </div>
-    );
+    notFound();
   }
 
-  return (
-    <div className="contest-landing">
-      <section className="contest-hero">
-        <h1>{contest.name}</h1>
-        <Link href={`/contest/${id}/display`} className="button-secondary">
-          Display mode
-        </Link>
-      </section>
-
-      <BracketView rounds={rounds} onRoundClick={setSelectedRoundId} />
-
-      {showContestantButton && (
-        <section className="contest-actions" style={{ flexDirection: 'column', alignItems: 'stretch', maxWidth: 400 }}>
-          {showEntryInput && (
-            <input
-              type="text"
-              className="auth-field-input"
-              placeholder={`${entryLabel} name (e.g. "Smoky Paloma")`}
-              value={entryName}
-              onChange={(e) => setEntryName(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleRegisterContestant(); }}
-              autoFocus
-              style={{
-                padding: '0.625rem 0.75rem',
-                borderRadius: 8,
-                border: '1px solid rgba(255,255,255,0.3)',
-                background: 'rgba(255,255,255,0.1)',
-                color: '#fff',
-                fontSize: '0.95rem',
-              }}
-            />
-          )}
-          <button
-            className="button-secondary"
-            onClick={handleRegisterContestant}
-            disabled={registering || (showEntryInput && !entryName.trim())}
-          >
-            {registering
-              ? 'Registering...'
-              : showEntryInput
-                ? `Register as ${contestantLabel}`
-                : `Be a ${contestantLabel}`}
-          </button>
-        </section>
-      )}
-
-      {contestRole === 'contestant' && (
-        <section className="contest-actions">
-          <p className="contest-role-badge">You are a {contestantLabel}</p>
-        </section>
-      )}
-
-      {selectedRoundId && (
-        <VoteModal
-          open
-          onClose={() => setSelectedRoundId(null)}
-          contest={contest}
-          roundId={selectedRoundId}
-        />
-      )}
-    </div>
-  );
+  return <ContestPageClient contestId={id} initialContest={contest} />;
 }

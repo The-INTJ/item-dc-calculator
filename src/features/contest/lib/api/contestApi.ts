@@ -1,34 +1,14 @@
 import type { Contest, Entry, ScoreBreakdown, ScoreEntry, UserRole } from '../../contexts/contest/contestTypes';
-import { getClientBackendProvider } from '../firebase/clientBackendProvider';
+import { fetchJson } from './fetchWithAuth';
 
-async function getContestFromProvider(contestId: string): Promise<Contest | null> {
-  const provider = await getClientBackendProvider();
-  const result = await provider.contests.list();
-
-  if (!result.success || !result.data) {
-    return null;
-  }
-
-  return result.data.find((contest) => contest.id === contestId || contest.slug === contestId) ?? null;
-}
+const API = '/api/contest';
 
 export const contestApi = {
   async listContests(): Promise<{ contests: Contest[]; currentContest: Contest | null } | null> {
     try {
-      const provider = await getClientBackendProvider();
-      const [contestsResult, defaultResult] = await Promise.all([
-        provider.contests.list(),
-        provider.contests.getDefault(),
-      ]);
-
-      if (!contestsResult.success || !defaultResult.success) {
-        return null;
-      }
-
-      return {
-        contests: contestsResult.data ?? [],
-        currentContest: defaultResult.data ?? null,
-      };
+      return await fetchJson<{ contests: Contest[]; currentContest: Contest | null }>(
+        `${API}/contests`,
+      );
     } catch (error) {
       console.error('Contest data operation failed:', error);
       return null;
@@ -37,7 +17,7 @@ export const contestApi = {
 
   async getContest(id: string): Promise<Contest | null> {
     try {
-      return await getContestFromProvider(id);
+      return await fetchJson<Contest>(`${API}/contests/${encodeURIComponent(id)}`);
     } catch {
       return null;
     }
@@ -45,11 +25,10 @@ export const contestApi = {
 
   async createContest(data: Partial<Contest>): Promise<Contest | null> {
     try {
-      const provider = await getClientBackendProvider();
-      const result = await provider.contests.create(
-        data as Omit<Contest, 'id' | 'entries' | 'voters'>,
-      );
-      return result.success ? (result.data ?? null) : null;
+      return await fetchJson<Contest>(`${API}/contests`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
     } catch {
       return null;
     }
@@ -57,14 +36,10 @@ export const contestApi = {
 
   async updateContest(id: string, updates: Partial<Contest>): Promise<Contest | null> {
     try {
-      const provider = await getClientBackendProvider();
-      const contest = await getContestFromProvider(id);
-      if (!contest) {
-        return null;
-      }
-
-      const result = await provider.contests.update(contest.id, updates);
-      return result.success ? (result.data ?? null) : null;
+      return await fetchJson<Contest>(`${API}/contests/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify(updates),
+      });
     } catch {
       return null;
     }
@@ -72,14 +47,8 @@ export const contestApi = {
 
   async deleteContest(id: string): Promise<boolean> {
     try {
-      const provider = await getClientBackendProvider();
-      const contest = await getContestFromProvider(id);
-      if (!contest) {
-        return false;
-      }
-
-      const result = await provider.contests.delete(contest.id);
-      return result.success;
+      await fetchJson(`${API}/contests/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      return true;
     } catch {
       return false;
     }
@@ -87,14 +56,10 @@ export const contestApi = {
 
   async createEntry(contestId: string, entry: Omit<Entry, 'id'>): Promise<Entry | null> {
     try {
-      const provider = await getClientBackendProvider();
-      const contest = await getContestFromProvider(contestId);
-      if (!contest) {
-        return null;
-      }
-
-      const result = await provider.entries.create(contest.id, entry);
-      return result.success ? (result.data ?? null) : null;
+      return await fetchJson<Entry>(`${API}/contests/${encodeURIComponent(contestId)}/entries`, {
+        method: 'POST',
+        body: JSON.stringify(entry),
+      });
     } catch {
       return null;
     }
@@ -102,14 +67,10 @@ export const contestApi = {
 
   async updateEntry(contestId: string, entryId: string, updates: Partial<Entry>): Promise<Entry | null> {
     try {
-      const provider = await getClientBackendProvider();
-      const contest = await getContestFromProvider(contestId);
-      if (!contest) {
-        return null;
-      }
-
-      const result = await provider.entries.update(contest.id, entryId, updates);
-      return result.success ? (result.data ?? null) : null;
+      return await fetchJson<Entry>(
+        `${API}/contests/${encodeURIComponent(contestId)}/entries/${encodeURIComponent(entryId)}`,
+        { method: 'PATCH', body: JSON.stringify(updates) },
+      );
     } catch {
       return null;
     }
@@ -117,14 +78,11 @@ export const contestApi = {
 
   async deleteEntry(contestId: string, entryId: string): Promise<boolean> {
     try {
-      const provider = await getClientBackendProvider();
-      const contest = await getContestFromProvider(contestId);
-      if (!contest) {
-        return false;
-      }
-
-      const result = await provider.entries.delete(contest.id, entryId);
-      return result.success;
+      await fetchJson(
+        `${API}/contests/${encodeURIComponent(contestId)}/entries/${encodeURIComponent(entryId)}`,
+        { method: 'DELETE' },
+      );
+      return true;
     } catch {
       return false;
     }
@@ -132,14 +90,11 @@ export const contestApi = {
 
   async getScoresForUser(contestId: string, userId: string): Promise<ScoreEntry[]> {
     try {
-      const provider = await getClientBackendProvider();
-      const contest = await getContestFromProvider(contestId);
-      if (!contest) {
-        return [];
-      }
-
-      const result = await provider.scores.listByUser(contest.id, userId);
-      return result.success ? (result.data ?? []) : [];
+      const params = new URLSearchParams({ userId });
+      const data = await fetchJson<{ scores: ScoreEntry[] }>(
+        `${API}/contests/${encodeURIComponent(contestId)}/scores?${params}`,
+      );
+      return data.scores;
     } catch {
       return [];
     }
@@ -147,14 +102,11 @@ export const contestApi = {
 
   async getScoresForEntry(contestId: string, entryId: string): Promise<ScoreEntry[]> {
     try {
-      const provider = await getClientBackendProvider();
-      const contest = await getContestFromProvider(contestId);
-      if (!contest) {
-        return [];
-      }
-
-      const result = await provider.scores.listByEntry(contest.id, entryId);
-      return result.success ? (result.data ?? []) : [];
+      const params = new URLSearchParams({ entryId });
+      const data = await fetchJson<{ scores: ScoreEntry[] }>(
+        `${API}/contests/${encodeURIComponent(contestId)}/scores?${params}`,
+      );
+      return data.scores;
     } catch {
       return [];
     }
@@ -167,35 +119,10 @@ export const contestApi = {
     entryName?: string,
   ): Promise<boolean> {
     try {
-      const provider = await getClientBackendProvider();
-      const contest = await getContestFromProvider(contestId);
-      if (!contest) return false;
-
-      const existing = await provider.voters.getById(contest.id, userId);
-      if (existing.success && existing.data) {
-        const result = await provider.voters.update(contest.id, userId, { role: 'competitor' });
-        if (!result.success) return false;
-      } else {
-        const result = await provider.voters.create(contest.id, {
-          id: userId,
-          displayName,
-          role: 'competitor',
-        });
-        if (!result.success) return false;
-      }
-
-      // Create entry if drink/entry name was provided
-      if (entryName) {
-        const slug = entryName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-        await provider.entries.create(contest.id, {
-          name: entryName,
-          slug,
-          description: '',
-          round: '',
-          submittedBy: userId,
-        });
-      }
-
+      await fetchJson(`${API}/contests/${encodeURIComponent(contestId)}/register`, {
+        method: 'POST',
+        body: JSON.stringify({ displayName, entryName }),
+      });
       return true;
     } catch {
       return false;
@@ -215,30 +142,10 @@ export const contestApi = {
     },
   ): Promise<ScoreEntry | null> {
     try {
-      const provider = await getClientBackendProvider();
-      const contest = await getContestFromProvider(contestId);
-      if (!contest) {
-        return null;
-      }
-
-      const voterResult = await provider.voters.getById(contest.id, data.userId);
-      if (!voterResult.success || !voterResult.data) {
-        await provider.voters.create(contest.id, {
-          id: data.userId,
-          displayName: data.userName ?? 'Guest',
-          role: data.userRole ?? 'voter',
-        });
-      }
-
-      const result = await provider.scores.submit(contest.id, {
-        entryId: data.entryId,
-        userId: data.userId,
-        round: data.round ?? '',
-        breakdown: data.breakdown as ScoreBreakdown,
-        ...(data.notes ? { notes: data.notes } : {}),
-      });
-
-      return result.success ? (result.data ?? null) : null;
+      return await fetchJson<ScoreEntry>(
+        `${API}/contests/${encodeURIComponent(contestId)}/scores`,
+        { method: 'POST', body: JSON.stringify(data) },
+      );
     } catch {
       return null;
     }
