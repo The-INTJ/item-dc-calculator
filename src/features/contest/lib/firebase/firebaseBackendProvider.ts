@@ -16,6 +16,7 @@ import { createFirebaseEntriesProvider } from './providers/entriesProvider';
 import { createFirebaseVotersProvider } from './providers/votersProvider';
 import { createFirebaseScoresProvider } from './providers/scoresProvider';
 import { createFirebaseConfigsProvider } from './providers/configsProvider';
+import { seedDefaultConfigs } from './seedDefaultConfigs';
 
 /**
  * Creates the full Firebase backend provider.
@@ -43,6 +44,16 @@ export function createFirebaseBackendProvider(): BackendProvider {
       if (!isFirebaseConfigured() || !db) {
         console.warn('[FirebaseBackend] Firebase not configured or unavailable; using local-only mode.');
         return success(undefined);
+      }
+
+      // Seed default configs if collection is empty (client-side only,
+      // server-side has no auth context for Firestore security rules)
+      if (typeof window !== 'undefined') {
+        try {
+          await seedDefaultConfigs(adapter);
+        } catch (err) {
+          console.error('[FirebaseBackend] Failed to seed default configs:', err);
+        }
       }
 
       console.log('[FirebaseBackend] Initialized');
