@@ -30,6 +30,8 @@ export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProp
   const [topic, setTopic] = useState(defaultDraft.topic);
   const [entryLabel, setEntryLabel] = useState(defaultDraft.entryLabel);
   const [entryLabelPlural, setEntryLabelPlural] = useState(defaultDraft.entryLabelPlural);
+  const [contestantLabel, setContestantLabel] = useState(defaultDraft.contestantLabel);
+  const [contestantLabelPlural, setContestantLabelPlural] = useState(defaultDraft.contestantLabelPlural);
   const [attributes, setAttributes] = useState<AttributeConfig[]>(defaultDraft.attributes);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +41,8 @@ export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProp
     setTopic(resetDraft.topic);
     setEntryLabel(resetDraft.entryLabel);
     setEntryLabelPlural(resetDraft.entryLabelPlural);
+    setContestantLabel(resetDraft.contestantLabel);
+    setContestantLabelPlural(resetDraft.contestantLabelPlural);
     setAttributes(resetDraft.attributes);
     setIsEditing(false);
     setError(null);
@@ -60,6 +64,8 @@ export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProp
           topic,
           entryLabel,
           entryLabelPlural,
+          contestantLabel,
+          contestantLabelPlural,
           attributes,
         }),
       );
@@ -140,6 +146,32 @@ export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProp
               value={entryLabelPlural}
               onChange={(event) => setEntryLabelPlural(event.target.value)}
               placeholder="Entries"
+              disabled={isSaving}
+            />
+          </div>
+        </div>
+        <div className="admin-contest-setup-form__row">
+          <div className="admin-contest-setup-form__field">
+            <label htmlFor="edit-contestant-label">Contestant Label</label>
+            <input
+              id="edit-contestant-label"
+              type="text"
+              className="admin-rounds-input"
+              value={contestantLabel}
+              onChange={(event) => setContestantLabel(event.target.value)}
+              placeholder="Contestant"
+              disabled={isSaving}
+            />
+          </div>
+          <div className="admin-contest-setup-form__field">
+            <label htmlFor="edit-contestant-label-plural">Plural</label>
+            <input
+              id="edit-contestant-label-plural"
+              type="text"
+              className="admin-rounds-input"
+              value={contestantLabelPlural}
+              onChange={(event) => setContestantLabelPlural(event.target.value)}
+              placeholder="Contestants"
               disabled={isSaving}
             />
           </div>

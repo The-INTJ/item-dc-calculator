@@ -30,6 +30,10 @@ interface ContestConfigSetupFormProps {
   onEntryLabelChange: (label: string) => void;
   entryLabelPlural: string;
   onEntryLabelPluralChange: (label: string) => void;
+  contestantLabel: string;
+  onContestantLabelChange: (label: string) => void;
+  contestantLabelPlural: string;
+  onContestantLabelPluralChange: (label: string) => void;
   saveAsTemplate: boolean;
   onSaveAsTemplateChange: (save: boolean) => void;
   disabled?: boolean;
@@ -51,6 +55,10 @@ export function ContestConfigSetupForm({
   onEntryLabelChange,
   entryLabelPlural,
   onEntryLabelPluralChange,
+  contestantLabel,
+  onContestantLabelChange,
+  contestantLabelPlural,
+  onContestantLabelPluralChange,
   saveAsTemplate,
   onSaveAsTemplateChange,
   disabled = false,
@@ -60,6 +68,8 @@ export function ContestConfigSetupForm({
     ? buildContestConfigFromTemplate(selectedConfig, {
         entryLabel,
         entryLabelPlural,
+        contestantLabel,
+        contestantLabelPlural,
       })
     : null;
 
@@ -144,6 +154,33 @@ export function ContestConfigSetupForm({
               </div>
             </div>
 
+            <div className="admin-contest-setup-form__row">
+              <div className="admin-contest-setup-form__field">
+                <label htmlFor="contest-contestant-label">Contestant Label</label>
+                <input
+                  id="contest-contestant-label"
+                  type="text"
+                  className="admin-rounds-input"
+                  value={contestantLabel}
+                  onChange={(event) => onContestantLabelChange(event.target.value)}
+                  placeholder={selectedConfig?.contestantLabel ?? 'Contestant'}
+                  disabled={disabled}
+                />
+              </div>
+              <div className="admin-contest-setup-form__field">
+                <label htmlFor="contest-contestant-label-plural">Plural</label>
+                <input
+                  id="contest-contestant-label-plural"
+                  type="text"
+                  className="admin-rounds-input"
+                  value={contestantLabelPlural}
+                  onChange={(event) => onContestantLabelPluralChange(event.target.value)}
+                  placeholder={selectedConfig?.contestantLabelPlural ?? 'Contestants'}
+                  disabled={disabled}
+                />
+              </div>
+            </div>
+
             {previewConfig ? <ContestConfigPreview config={previewConfig} /> : null}
           </>
         ) : (
@@ -184,6 +221,33 @@ export function ContestConfigSetupForm({
                   value={entryLabelPlural}
                   onChange={(event) => onEntryLabelPluralChange(event.target.value)}
                   placeholder="Entries"
+                  disabled={disabled}
+                />
+              </div>
+            </div>
+
+            <div className="admin-contest-setup-form__row">
+              <div className="admin-contest-setup-form__field">
+                <label htmlFor="custom-contestant-label">Contestant Label</label>
+                <input
+                  id="custom-contestant-label"
+                  type="text"
+                  className="admin-rounds-input"
+                  value={contestantLabel}
+                  onChange={(event) => onContestantLabelChange(event.target.value)}
+                  placeholder="Contestant"
+                  disabled={disabled}
+                />
+              </div>
+              <div className="admin-contest-setup-form__field">
+                <label htmlFor="custom-contestant-label-plural">Plural</label>
+                <input
+                  id="custom-contestant-label-plural"
+                  type="text"
+                  className="admin-rounds-input"
+                  value={contestantLabelPlural}
+                  onChange={(event) => onContestantLabelPluralChange(event.target.value)}
+                  placeholder="Contestants"
                   disabled={disabled}
                 />
               </div>

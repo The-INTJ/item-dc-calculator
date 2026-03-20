@@ -8,6 +8,8 @@ export interface ContestConfigDraft {
   topic: string;
   entryLabel: string;
   entryLabelPlural: string;
+  contestantLabel: string;
+  contestantLabelPlural: string;
   attributes: AttributeConfig[];
 }
 
@@ -42,6 +44,8 @@ export function createContestConfigDraft(config?: ContestConfig | null): Contest
     topic: config?.topic ?? '',
     entryLabel: config?.entryLabel ?? '',
     entryLabelPlural: config?.entryLabelPlural ?? '',
+    contestantLabel: config?.contestantLabel ?? '',
+    contestantLabelPlural: config?.contestantLabelPlural ?? '',
     attributes: cloneAttributes(config?.attributes ?? []),
   };
 }
@@ -62,18 +66,22 @@ export function buildContestConfigFromDraft(draft: ContestConfigDraft): ContestC
     topic: draft.topic.trim(),
     entryLabel: draft.entryLabel.trim() || undefined,
     entryLabelPlural: draft.entryLabelPlural.trim() || undefined,
+    contestantLabel: draft.contestantLabel.trim() || undefined,
+    contestantLabelPlural: draft.contestantLabelPlural.trim() || undefined,
     attributes: draft.attributes.map((attribute) => normalizeAttribute(attribute)),
   };
 }
 
 export function buildContestConfigFromTemplate(
   template: ContestConfigItem,
-  overrides: Pick<ContestConfigDraft, 'entryLabel' | 'entryLabelPlural'>,
+  overrides: Pick<ContestConfigDraft, 'entryLabel' | 'entryLabelPlural' | 'contestantLabel' | 'contestantLabelPlural'>,
 ): ContestConfig {
   return {
     topic: template.topic,
     entryLabel: overrides.entryLabel.trim() || template.entryLabel,
     entryLabelPlural: overrides.entryLabelPlural.trim() || template.entryLabelPlural,
+    contestantLabel: overrides.contestantLabel.trim() || template.contestantLabel,
+    contestantLabelPlural: overrides.contestantLabelPlural.trim() || template.contestantLabelPlural,
     attributes: cloneAttributes(template.attributes),
   };
 }

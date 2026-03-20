@@ -50,6 +50,8 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
   ]);
   const [entryLabel, setEntryLabel] = useState('');
   const [entryLabelPlural, setEntryLabelPlural] = useState('');
+  const [contestantLabel, setContestantLabel] = useState('');
+  const [contestantLabelPlural, setContestantLabelPlural] = useState('');
   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -120,12 +122,16 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
             ? buildContestConfigFromTemplate(selectedConfig, {
                 entryLabel,
                 entryLabelPlural,
+                contestantLabel,
+                contestantLabelPlural,
               })
             : null
           : buildContestConfigFromDraft({
               topic: customTopic,
               entryLabel,
               entryLabelPlural,
+              contestantLabel,
+              contestantLabelPlural,
               attributes: customAttributes,
             });
 
@@ -212,6 +218,10 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
         onEntryLabelChange={setEntryLabel}
         entryLabelPlural={entryLabelPlural}
         onEntryLabelPluralChange={setEntryLabelPlural}
+        contestantLabel={contestantLabel}
+        onContestantLabelChange={setContestantLabel}
+        contestantLabelPlural={contestantLabelPlural}
+        onContestantLabelPluralChange={setContestantLabelPlural}
         saveAsTemplate={saveAsTemplate}
         onSaveAsTemplateChange={setSaveAsTemplate}
         disabled={isSubmitting}

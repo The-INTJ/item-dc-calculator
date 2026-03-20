@@ -22,6 +22,8 @@ const DEFAULT_CONFIGS: ContestConfigItem[] = [
     topic: 'Mixology',
     entryLabel: 'Drink',
     entryLabelPlural: 'Drinks',
+    contestantLabel: 'Mixologist',
+    contestantLabelPlural: 'Mixologists',
     attributes: [
       { id: 'aroma', label: 'Aroma', description: 'How appealing is the scent?', min: 0, max: 10 },
       { id: 'taste', label: 'Taste', description: 'How well do the flavors work together?', min: 0, max: 10 },
@@ -35,6 +37,8 @@ const DEFAULT_CONFIGS: ContestConfigItem[] = [
     topic: 'Chili',
     entryLabel: 'Chili',
     entryLabelPlural: 'Chilies',
+    contestantLabel: 'Chef',
+    contestantLabelPlural: 'Chefs',
     attributes: [
       { id: 'heat', label: 'Heat', description: 'Spiciness level and heat balance', min: 0, max: 10 },
       { id: 'flavor', label: 'Flavor', description: 'Depth and complexity of taste', min: 0, max: 10 },
@@ -48,6 +52,8 @@ const DEFAULT_CONFIGS: ContestConfigItem[] = [
     topic: 'Cosplay',
     entryLabel: 'Cosplay',
     entryLabelPlural: 'Cosplays',
+    contestantLabel: 'Cosplayer',
+    contestantLabelPlural: 'Cosplayers',
     attributes: [
       { id: 'accuracy', label: 'Accuracy', description: 'Faithfulness to source material', min: 0, max: 10 },
       { id: 'craftsmanship', label: 'Craftsmanship', description: 'Quality of construction', min: 0, max: 10 },
@@ -60,6 +66,8 @@ const DEFAULT_CONFIGS: ContestConfigItem[] = [
     topic: 'Dance',
     entryLabel: 'Performance',
     entryLabelPlural: 'Performances',
+    contestantLabel: 'Dancer',
+    contestantLabelPlural: 'Dancers',
     attributes: [
       { id: 'technique', label: 'Technique', description: 'Technical skill execution', min: 0, max: 10 },
       { id: 'musicality', label: 'Musicality', description: 'Rhythm and musical interpretation', min: 0, max: 10 },
