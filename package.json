@@ -12,7 +12,10 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "docs:validate": "npx swagger-cli validate app/api/contest/openapi.json"
+    "docs:validate": "npx swagger-cli validate app/api/contest/openapi.json",
+    "emulators": "firebase emulators:start",
+    "emulators:seed": "node scripts/seed-emulator.mjs",
+    "dev:emu": "next dev --env-file .env.emulators"
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-alpha.6",
@@ -38,6 +41,7 @@
     "@typescript-eslint/parser": "^8.22.0",
     "babel-plugin-react-compiler": "^1.0.0",
     "eslint": "^9.17.0",
+    "firebase-tools": "^15.11.0",
     "globals": "^15.14.0",
     "jsdom": "^26.0.0",
     "sass": "^1.81.0",

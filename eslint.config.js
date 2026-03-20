@@ -13,6 +13,7 @@ export default [
       'dist/**',
       'coverage/**',
       '*.tsbuildinfo',
+      'scripts/**',
     ],
   },
   {
