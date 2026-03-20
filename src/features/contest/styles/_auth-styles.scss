@@ -122,7 +122,15 @@
 }
 
 .guest-actions .button-secondary {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  color: $color-text-dark;
+  text-shadow: none;
   flex: 1;
+
+  &:hover {
+    background: $color-surface-hover;
+  }
 }
 
 .guest-note {
