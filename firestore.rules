@@ -35,6 +35,21 @@ service cloud.firestore {
         && request.resource.data.entries.size() == resource.data.entries.size();
     }
 
+    // Allow signed-in users to register as contestants (add to voters array)
+    function isContestantRegistration() {
+      let changed = request.resource.data.diff(resource.data).changedKeys();
+      return signedIn()
+        && (changed.hasOnly(['voters', 'updatedAt'])
+            || changed.hasOnly(['voters', 'entries', 'updatedAt']))
+        && request.resource.data.voters is list
+        && request.resource.data.voters.size() >= resource.data.voters.size()
+        && request.resource.data.voters.size() <= resource.data.voters.size() + 1
+        && (!changed.hasAny(['entries'])
+            || (request.resource.data.entries is list
+                && request.resource.data.entries.size() >= resource.data.entries.size()
+                && request.resource.data.entries.size() <= resource.data.entries.size() + 1));
+    }
+
     function validOptionalString(data, field) {
       return !data.keys().hasAny([field]) || data[field] is string;
     }
@@ -110,7 +125,7 @@ service cloud.firestore {
     match /contests/{contestId} {
       allow read: if signedIn();
       allow create, delete: if isAdmin();
-      allow update: if isAdmin() || isContestAggregateUpdate();
+      allow update: if isAdmin() || isContestAggregateUpdate() || isContestantRegistration();
 
       match /votes/{voteId} {
         allow read: if signedIn();
