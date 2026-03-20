@@ -164,6 +164,7 @@ export const contestApi = {
     contestId: string,
     userId: string,
     displayName: string,
+    entryName?: string,
   ): Promise<boolean> {
     try {
       const provider = await getClientBackendProvider();
@@ -173,15 +174,29 @@ export const contestApi = {
       const existing = await provider.voters.getById(contest.id, userId);
       if (existing.success && existing.data) {
         const result = await provider.voters.update(contest.id, userId, { role: 'competitor' });
-        return result.success;
+        if (!result.success) return false;
+      } else {
+        const result = await provider.voters.create(contest.id, {
+          id: userId,
+          displayName,
+          role: 'competitor',
+        });
+        if (!result.success) return false;
       }
 
-      const result = await provider.voters.create(contest.id, {
-        id: userId,
-        displayName,
-        role: 'competitor',
-      });
-      return result.success;
+      // Create entry if drink/entry name was provided
+      if (entryName) {
+        const slug = entryName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        await provider.entries.create(contest.id, {
+          name: entryName,
+          slug,
+          description: '',
+          round: '',
+          submittedBy: userId,
+        });
+      }
+
+      return true;
     } catch {
       return false;
     }
