@@ -29,7 +29,7 @@ describe('useResolvedContest', () => {
     useContestSubscriptionMock.mockReset();
   });
 
-  it('returns the matched contest and subscribes by route param', () => {
+  it('returns the matched contest and subscribes by its resolved id', () => {
     useContestStoreMock.mockReturnValue({
       contests: [contest],
       loading: false,
@@ -37,7 +37,7 @@ describe('useResolvedContest', () => {
 
     const { result } = renderHook(() => useResolvedContest('bracket-bash'));
 
-    expect(useContestSubscriptionMock).toHaveBeenCalledWith('bracket-bash');
+    expect(useContestSubscriptionMock).toHaveBeenCalledWith('contest-1');
     expect(result.current.status).toBe('ready');
     expect(result.current.contest).toEqual(contest);
   });
