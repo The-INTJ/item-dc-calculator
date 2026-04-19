@@ -20,7 +20,7 @@ export default function SignedInLanding({ user }: SignedInLandingProps) {
           or explore ongoing contests.
         </p>
         <div className="contest-actions">
-          <Link href="/" className="button-primary">
+          <Link href="/contests" className="button-primary">
             Browse contests
           </Link>
           <Link href="/account" className="button-secondary">

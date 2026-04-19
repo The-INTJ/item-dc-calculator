@@ -1,7 +1,76 @@
-@use '@/contest/styles/mixins/tokens' as *;
-
-.landingPage {
+.portal {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: $space-gap-normal;
+    gap: 2rem;
+}
+
+.header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 600;
+    }
+
+    p {
+        margin: 0;
+        color: rgba(0, 0, 0, 0.6);
+    }
+}
+
+.list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 1rem;
+
+    @media (min-width: 40rem) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+    background-color: rgba(255, 255, 255, 0.6);
+    transition:
+        border-color 120ms ease,
+        background-color 120ms ease,
+        transform 120ms ease;
+
+    &:hover,
+    &:focus-visible {
+        border-color: rgba(0, 0, 0, 0.4);
+        background-color: rgba(255, 255, 255, 0.9);
+        transform: translateY(-1px);
+    }
+
+    &:focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 2px;
+    }
+}
+
+.cardTitle {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.cardDescription {
+    font-size: 0.95rem;
+    color: rgba(0, 0, 0, 0.65);
+    line-height: 1.4;
 }

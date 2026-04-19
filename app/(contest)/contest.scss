@@ -8,6 +8,9 @@
  * Each partial uses @use to load the assets it needs.
  */
 
+// Contest landing (was previously imported globally)
+@use '../styles/contest-landing';
+
 // Feature styles (from src/features/contest/styles/)
 @use '../../src/features/contest/styles/admin-styles';
 @use '../../src/features/contest/styles/auth-styles';

@@ -1,8 +1,8 @@
 /**
- * Global styles entry point for shared shell styles and the home page landing
- * experience that lives outside the contest route group.
+ * Global styles entry point. Only truly shared shell styles (reset, base
+ * typography, .site-header / .site-nav framework classes) belong here. Each
+ * experience (contest, dc-calculator) loads its own stylesheet from its route
+ * group layout.
  */
 
-@use '../src/features/dc-calculator/index' as dcCalculator;
 @use './styles/site-shell';
-@use './styles/contest-landing';

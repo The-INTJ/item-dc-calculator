@@ -6,11 +6,7 @@ import { AuthProvider } from '@/contest/contexts/auth/AuthContext';
 import { ContestProvider } from '@/contest/contexts/contest/ContestContext';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 
-interface RootLayoutClientProps {
-  children: ReactNode;
-}
-
-export function RootLayoutClient({ children }: RootLayoutClientProps) {
+export function ContestShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isDisplayMode = pathname.startsWith('/contest/') && pathname.endsWith('/display');
   const mainClassName = isDisplayMode ? 'site-main site-main--display' : 'site-main';

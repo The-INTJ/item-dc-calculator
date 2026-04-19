@@ -46,7 +46,7 @@ export default function ContestOnboardPage() {
       return;
     }
 
-    router.push('/');
+    router.push('/contests');
   };
 
   const handleGoogle = async () => {
@@ -56,7 +56,7 @@ export default function ContestOnboardPage() {
     const result = await loginWithGoogle();
     setBusyAction(null);
     if (result.success) {
-      router.push('/');
+      router.push('/contests');
     } else {
       setError(result.error ?? 'Google sign-in failed');
     }

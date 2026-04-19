@@ -17,7 +17,7 @@ export default async function AdminPage() {
   }
 
   if (user.role !== 'admin') {
-    redirect('/');
+    redirect('/contests');
   }
 
   return <AdminDashboard />;

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import './dc-calculator.scss';
 
 export const metadata = {
   title: 'DC Calculator',
@@ -6,5 +7,5 @@ export const metadata = {
 };
 
 export default function DcCalculatorGroupLayout({ children }: { children: ReactNode }) {
-  return <>{children}</>;
+  return <main className="site-main">{children}</main>;
 }
