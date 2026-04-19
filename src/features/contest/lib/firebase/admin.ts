@@ -1,5 +1,6 @@
 import { cert, getApps, initializeApp, type App } from 'firebase-admin/app';
 import { getAuth, type Auth } from 'firebase-admin/auth';
+import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 
 interface ServiceAccountConfig {
   projectId: string;
@@ -7,7 +8,9 @@ interface ServiceAccountConfig {
   privateKey: string;
 }
 
+let cachedApp: App | null = null;
 let cachedAuth: Auth | null = null;
+let cachedFirestore: Firestore | null = null;
 let initAttempted = false;
 
 function isEmulatorMode(): boolean {
@@ -85,6 +88,7 @@ function getOrInitApp(config: ServiceAccountConfig | null): App {
         clientEmail: config.clientEmail,
         privateKey: config.privateKey,
       }),
+      projectId: config.projectId,
     });
   }
 
@@ -94,9 +98,9 @@ function getOrInitApp(config: ServiceAccountConfig | null): App {
   return initializeApp({ projectId });
 }
 
-export function getFirebaseAdminAuth(): Auth | null {
-  if (cachedAuth) {
-    return cachedAuth;
+function ensureAdminApp(): App | null {
+  if (cachedApp) {
+    return cachedApp;
   }
 
   if (initAttempted) {
@@ -111,11 +115,38 @@ export function getFirebaseAdminAuth(): Auth | null {
   }
 
   try {
-    const app = getOrInitApp(config);
-    cachedAuth = getAuth(app);
-    return cachedAuth;
+    cachedApp = getOrInitApp(config);
+    return cachedApp;
   } catch (error) {
     console.error('[FirebaseAdmin] Failed to initialize Firebase Admin SDK.', error);
     return null;
   }
+}
+
+export function getFirebaseAdminAuth(): Auth | null {
+  if (cachedAuth) {
+    return cachedAuth;
+  }
+
+  const app = ensureAdminApp();
+  if (!app) {
+    return null;
+  }
+
+  cachedAuth = getAuth(app);
+  return cachedAuth;
+}
+
+export function getFirebaseAdminFirestore(): Firestore | null {
+  if (cachedFirestore) {
+    return cachedFirestore;
+  }
+
+  const app = ensureAdminApp();
+  if (!app) {
+    return null;
+  }
+
+  cachedFirestore = getFirestore(app);
+  return cachedFirestore;
 }

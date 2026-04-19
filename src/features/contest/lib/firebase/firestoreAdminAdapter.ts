@@ -1,31 +1,17 @@
 /**
- * Firestore adapter — SDK-agnostic interface for all Firestore operations.
+ * Firestore adapter backed by firebase-admin. Used in API routes on the server.
  *
- * Two implementations exist:
- *  - this file (client SDK, used in the browser for realtime-compatible flows)
- *  - firestoreAdminAdapter.ts (Admin SDK, used in API routes on the server)
- *
- * Sub-providers must only call adapter methods — never import `firebase/firestore`
- * or `firebase-admin/firestore` directly. This keeps the server/client swap in
- * firebaseBackendProvider.ts as the single branch point.
+ * Mirrors the client-SDK adapter in firestoreAdapter.ts, but uses Admin SDK
+ * APIs (db.collection().doc(), FieldValue.serverTimestamp(), etc.).
+ * The Admin SDK bypasses Firestore security rules by design, which is what
+ * lets API routes read/write even though the rules require `signedIn()`
+ * for direct client access.
  */
 
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  runTransaction,
-  serverTimestamp,
-  type Firestore,
-} from 'firebase/firestore';
+import { FieldValue, type Firestore as AdminFirestore } from 'firebase-admin/firestore';
 import type { Contest, ContestConfigItem, Entry, ScoreBreakdown, ScoreEntry, Voter } from '../../contexts/contest/contestTypes';
 import type { ScoreUpdatePayload } from '../backend/types';
+import type { FirestoreAdapter } from './firestoreAdapter';
 import { computeVoteTotal, docToScoreEntry, makeVoteDocId } from './scoreHelpers';
 
 const CONTESTS_COLLECTION = 'contests';
@@ -40,46 +26,10 @@ function normalizeContestDoc(id: string, data: Record<string, unknown>): Contest
   } as Contest;
 }
 
-/**
- * SDK-agnostic adapter interface for contest/config/score operations.
- */
-export interface FirestoreAdapter {
-  /** True iff the underlying database connection is initialized. */
-  isReady(): boolean;
-
-  // ---- Contests ----
-  getContest(contestId: string): Promise<Contest | null>;
-  getContestBySlug(slug: string): Promise<Contest | null>;
-  getDefaultContest(): Promise<Contest | null>;
-  listContests(): Promise<Contest[]>;
-  createContest(id: string, data: Omit<Contest, 'id'>): Promise<void>;
-  updateContest(contestId: string, updates: Partial<Contest>): Promise<void>;
-  deleteContest(contestId: string): Promise<void>;
-
-  // ---- Configs ----
-  getConfig(configId: string): Promise<ContestConfigItem | null>;
-  listConfigs(): Promise<ContestConfigItem[]>;
-  configExists(configId: string): Promise<boolean>;
-  createConfig(id: string, data: Omit<ContestConfigItem, 'id'>): Promise<void>;
-  updateConfig(configId: string, updates: Partial<ContestConfigItem>): Promise<ContestConfigItem>;
-  deleteConfig(configId: string): Promise<void>;
-
-  // ---- Scores / votes ----
-  listScoresByEntry(contestId: string, entryId: string): Promise<ScoreEntry[]>;
-  listScoresByUser(contestId: string, userId: string): Promise<ScoreEntry[]>;
-  getScore(contestId: string, scoreId: string): Promise<ScoreEntry | null>;
-  submitScore(contestId: string, input: Omit<ScoreEntry, 'id'>): Promise<ScoreEntry>;
-  updateScore(contestId: string, scoreId: string, updates: ScoreUpdatePayload): Promise<ScoreEntry>;
-  deleteScore(contestId: string, scoreId: string): Promise<void>;
-}
-
-/**
- * Creates a Firestore adapter backed by the client SDK.
- */
-export function createFirestoreAdapter(getDb: () => Firestore | null): FirestoreAdapter {
-  function requireDb(): Firestore {
+export function createFirestoreAdminAdapter(getDb: () => AdminFirestore | null): FirestoreAdapter {
+  function requireDb(): AdminFirestore {
     const db = getDb();
-    if (!db) throw new Error('Firebase not initialized');
+    if (!db) throw new Error('Firebase Admin not initialized');
     return db;
   }
 
@@ -94,64 +44,62 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
       const db = getDb();
       if (!db) return null;
 
-      const docSnap = await getDoc(doc(db, CONTESTS_COLLECTION, contestId));
-      if (!docSnap.exists()) return null;
+      const snap = await db.collection(CONTESTS_COLLECTION).doc(contestId).get();
+      if (!snap.exists) return null;
 
-      return normalizeContestDoc(docSnap.id, docSnap.data());
+      return normalizeContestDoc(snap.id, snap.data() as Record<string, unknown>);
     },
 
     async getContestBySlug(slug): Promise<Contest | null> {
       const db = getDb();
       if (!db) return null;
 
-      const q = query(collection(db, CONTESTS_COLLECTION), where('slug', '==', slug));
-      const snapshot = await getDocs(q);
+      const snapshot = await db.collection(CONTESTS_COLLECTION).where('slug', '==', slug).limit(1).get();
       if (snapshot.empty) return null;
 
       const docSnap = snapshot.docs[0];
-      return normalizeContestDoc(docSnap.id, docSnap.data());
+      return normalizeContestDoc(docSnap.id, docSnap.data() as Record<string, unknown>);
     },
 
     async getDefaultContest(): Promise<Contest | null> {
       const db = getDb();
       if (!db) return null;
 
-      const q = query(collection(db, CONTESTS_COLLECTION), where('defaultContest', '==', true));
-      const snapshot = await getDocs(q);
+      const snapshot = await db.collection(CONTESTS_COLLECTION).where('defaultContest', '==', true).limit(1).get();
       if (snapshot.empty) return null;
 
       const docSnap = snapshot.docs[0];
-      return normalizeContestDoc(docSnap.id, docSnap.data());
+      return normalizeContestDoc(docSnap.id, docSnap.data() as Record<string, unknown>);
     },
 
     async listContests(): Promise<Contest[]> {
       const db = getDb();
       if (!db) return [];
 
-      const snapshot = await getDocs(collection(db, CONTESTS_COLLECTION));
-      return snapshot.docs.map((docSnap) => normalizeContestDoc(docSnap.id, docSnap.data()));
+      const snapshot = await db.collection(CONTESTS_COLLECTION).get();
+      return snapshot.docs.map((docSnap) => normalizeContestDoc(docSnap.id, docSnap.data() as Record<string, unknown>));
     },
 
     async createContest(id, data): Promise<void> {
       const db = requireDb();
-      await setDoc(doc(db, CONTESTS_COLLECTION, id), {
+      await db.collection(CONTESTS_COLLECTION).doc(id).set({
         ...data,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
       });
     },
 
     async updateContest(contestId, updates): Promise<void> {
       const db = requireDb();
-      await updateDoc(doc(db, CONTESTS_COLLECTION, contestId), {
+      await db.collection(CONTESTS_COLLECTION).doc(contestId).update({
         ...updates,
-        updatedAt: serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
       });
     },
 
     async deleteContest(contestId): Promise<void> {
       const db = requireDb();
-      await deleteDoc(doc(db, CONTESTS_COLLECTION, contestId));
+      await db.collection(CONTESTS_COLLECTION).doc(contestId).delete();
     },
 
     // ---- Configs ----
@@ -160,17 +108,17 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
       const db = getDb();
       if (!db) return null;
 
-      const docSnap = await getDoc(doc(db, CONFIGS_COLLECTION, configId));
-      if (!docSnap.exists()) return null;
+      const snap = await db.collection(CONFIGS_COLLECTION).doc(configId).get();
+      if (!snap.exists) return null;
 
-      return { id: docSnap.id, ...docSnap.data() } as ContestConfigItem;
+      return { id: snap.id, ...snap.data() } as ContestConfigItem;
     },
 
     async listConfigs(): Promise<ContestConfigItem[]> {
       const db = getDb();
       if (!db) return [];
 
-      const snapshot = await getDocs(collection(db, CONFIGS_COLLECTION));
+      const snapshot = await db.collection(CONFIGS_COLLECTION).get();
       return snapshot.docs.map((d) => ({ id: d.id, ...d.data() })) as ContestConfigItem[];
     },
 
@@ -178,35 +126,35 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
       const db = getDb();
       if (!db) return false;
 
-      const snap = await getDoc(doc(db, CONFIGS_COLLECTION, configId));
-      return snap.exists();
+      const snap = await db.collection(CONFIGS_COLLECTION).doc(configId).get();
+      return snap.exists;
     },
 
     async createConfig(id, data): Promise<void> {
       const db = requireDb();
-      await setDoc(doc(db, CONFIGS_COLLECTION, id), data);
+      await db.collection(CONFIGS_COLLECTION).doc(id).set(data);
     },
 
     async updateConfig(configId, updates): Promise<ContestConfigItem> {
       const db = requireDb();
-      const docRef = doc(db, CONFIGS_COLLECTION, configId);
-      const existing = await getDoc(docRef);
-      if (!existing.exists()) throw new Error('Config not found');
+      const docRef = db.collection(CONFIGS_COLLECTION).doc(configId);
+      const existing = await docRef.get();
+      if (!existing.exists) throw new Error('Config not found');
 
       const { id: _ignored, ...updateData } = updates;
       void _ignored;
-      await updateDoc(docRef, updateData);
+      await docRef.update(updateData);
 
-      const updated = await getDoc(docRef);
+      const updated = await docRef.get();
       return { id: updated.id, ...updated.data() } as ContestConfigItem;
     },
 
     async deleteConfig(configId): Promise<void> {
       const db = requireDb();
-      const docRef = doc(db, CONFIGS_COLLECTION, configId);
-      const existing = await getDoc(docRef);
-      if (!existing.exists()) throw new Error('Config not found');
-      await deleteDoc(docRef);
+      const docRef = db.collection(CONFIGS_COLLECTION).doc(configId);
+      const existing = await docRef.get();
+      if (!existing.exists) throw new Error('Config not found');
+      await docRef.delete();
     },
 
     // ---- Scores / votes ----
@@ -215,34 +163,40 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
       const db = getDb();
       if (!db) return [];
 
-      const q = query(
-        collection(db, CONTESTS_COLLECTION, contestId, VOTES_SUBCOLLECTION),
-        where('entryId', '==', entryId),
-      );
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map((d) => docToScoreEntry(d.id, d.data()));
+      const snapshot = await db
+        .collection(CONTESTS_COLLECTION)
+        .doc(contestId)
+        .collection(VOTES_SUBCOLLECTION)
+        .where('entryId', '==', entryId)
+        .get();
+      return snapshot.docs.map((d) => docToScoreEntry(d.id, d.data() as Record<string, unknown>));
     },
 
     async listScoresByUser(contestId, userId): Promise<ScoreEntry[]> {
       const db = getDb();
       if (!db) return [];
 
-      const q = query(
-        collection(db, CONTESTS_COLLECTION, contestId, VOTES_SUBCOLLECTION),
-        where('userId', '==', userId),
-      );
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map((d) => docToScoreEntry(d.id, d.data()));
+      const snapshot = await db
+        .collection(CONTESTS_COLLECTION)
+        .doc(contestId)
+        .collection(VOTES_SUBCOLLECTION)
+        .where('userId', '==', userId)
+        .get();
+      return snapshot.docs.map((d) => docToScoreEntry(d.id, d.data() as Record<string, unknown>));
     },
 
     async getScore(contestId, scoreId): Promise<ScoreEntry | null> {
       const db = getDb();
       if (!db) return null;
 
-      const docRef = doc(db, CONTESTS_COLLECTION, contestId, VOTES_SUBCOLLECTION, scoreId);
-      const docSnap = await getDoc(docRef);
-      if (!docSnap.exists()) return null;
-      return docToScoreEntry(docSnap.id, docSnap.data());
+      const snap = await db
+        .collection(CONTESTS_COLLECTION)
+        .doc(contestId)
+        .collection(VOTES_SUBCOLLECTION)
+        .doc(scoreId)
+        .get();
+      if (!snap.exists) return null;
+      return docToScoreEntry(snap.id, snap.data() as Record<string, unknown>);
     },
 
     async submitScore(contestId, input): Promise<ScoreEntry> {
@@ -250,16 +204,16 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
       const { userId, entryId } = input;
       const voteDocId = makeVoteDocId(userId, entryId);
 
-      return runTransaction(db, async (transaction) => {
-        const contestRef = doc(db, CONTESTS_COLLECTION, contestId);
-        const voteRef = doc(db, CONTESTS_COLLECTION, contestId, VOTES_SUBCOLLECTION, voteDocId);
+      return db.runTransaction(async (transaction) => {
+        const contestRef = db.collection(CONTESTS_COLLECTION).doc(contestId);
+        const voteRef = contestRef.collection(VOTES_SUBCOLLECTION).doc(voteDocId);
 
         const [contestSnap, voteSnap] = await Promise.all([
           transaction.get(contestRef),
           transaction.get(voteRef),
         ]);
 
-        if (!contestSnap.exists()) throw new Error('Contest not found');
+        if (!contestSnap.exists) throw new Error('Contest not found');
         const contest = { id: contestSnap.id, ...contestSnap.data() } as Contest;
 
         const entryIndex = contest.entries?.findIndex((e: Entry) => e.id === entryId);
@@ -269,8 +223,8 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
         let delta: number;
         let isNewVote: boolean;
 
-        if (voteSnap.exists()) {
-          const oldBreakdown = (voteSnap.data().breakdown ?? {}) as ScoreBreakdown;
+        if (voteSnap.exists) {
+          const oldBreakdown = ((voteSnap.data() as Record<string, unknown>).breakdown ?? {}) as ScoreBreakdown;
           delta = newTotal - computeVoteTotal(oldBreakdown);
           isNewVote = false;
         } else {
@@ -283,9 +237,9 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
           entryId,
           round: input.round ?? '',
           breakdown: input.breakdown,
-          updatedAt: serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
         };
-        if (isNewVote) voteData.createdAt = serverTimestamp();
+        if (isNewVote) voteData.createdAt = FieldValue.serverTimestamp();
         transaction.set(voteRef, voteData, { merge: true });
 
         const entries = [...contest.entries];
@@ -294,7 +248,7 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
         entry.voteCount = (entry.voteCount ?? 0) + (isNewVote ? 1 : 0);
         entries[entryIndex] = entry;
 
-        transaction.update(contestRef, { entries, updatedAt: serverTimestamp() });
+        transaction.update(contestRef, { entries, updatedAt: FieldValue.serverTimestamp() });
 
         return docToScoreEntry(voteDocId, {
           userId,
@@ -308,19 +262,19 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
     async updateScore(contestId, scoreId, updates): Promise<ScoreEntry> {
       const db = requireDb();
 
-      return runTransaction(db, async (transaction) => {
-        const voteRef = doc(db, CONTESTS_COLLECTION, contestId, VOTES_SUBCOLLECTION, scoreId);
-        const contestRef = doc(db, CONTESTS_COLLECTION, contestId);
+      return db.runTransaction(async (transaction) => {
+        const contestRef = db.collection(CONTESTS_COLLECTION).doc(contestId);
+        const voteRef = contestRef.collection(VOTES_SUBCOLLECTION).doc(scoreId);
 
         const [voteSnap, contestSnap] = await Promise.all([
           transaction.get(voteRef),
           transaction.get(contestRef),
         ]);
 
-        if (!voteSnap.exists()) throw new Error('Vote not found');
-        if (!contestSnap.exists()) throw new Error('Contest not found');
+        if (!voteSnap.exists) throw new Error('Vote not found');
+        if (!contestSnap.exists) throw new Error('Contest not found');
 
-        const existingData = voteSnap.data();
+        const existingData = voteSnap.data() as Record<string, unknown>;
         const contest = { id: contestSnap.id, ...contestSnap.data() } as Contest;
         const entryId = existingData.entryId as string;
 
@@ -336,7 +290,7 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
 
         const voteUpdate: Record<string, unknown> = {
           breakdown: newBreakdown,
-          updatedAt: serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
         };
         if (updates.notes !== undefined) voteUpdate.notes = updates.notes;
         transaction.set(voteRef, voteUpdate, { merge: true });
@@ -347,7 +301,7 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
           const entry = { ...entries[entryIndex] };
           entry.sumScore = (entry.sumScore ?? 0) + delta;
           entries[entryIndex] = entry;
-          transaction.update(contestRef, { entries, updatedAt: serverTimestamp() });
+          transaction.update(contestRef, { entries, updatedAt: FieldValue.serverTimestamp() });
         }
 
         return docToScoreEntry(scoreId, {
@@ -361,19 +315,19 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
     async deleteScore(contestId, scoreId): Promise<void> {
       const db = requireDb();
 
-      await runTransaction(db, async (transaction) => {
-        const voteRef = doc(db, CONTESTS_COLLECTION, contestId, VOTES_SUBCOLLECTION, scoreId);
-        const contestRef = doc(db, CONTESTS_COLLECTION, contestId);
+      await db.runTransaction(async (transaction) => {
+        const contestRef = db.collection(CONTESTS_COLLECTION).doc(contestId);
+        const voteRef = contestRef.collection(VOTES_SUBCOLLECTION).doc(scoreId);
 
         const [voteSnap, contestSnap] = await Promise.all([
           transaction.get(voteRef),
           transaction.get(contestRef),
         ]);
 
-        if (!voteSnap.exists()) throw new Error('Vote not found');
-        if (!contestSnap.exists()) throw new Error('Contest not found');
+        if (!voteSnap.exists) throw new Error('Vote not found');
+        if (!contestSnap.exists) throw new Error('Contest not found');
 
-        const voteData = voteSnap.data();
+        const voteData = voteSnap.data() as Record<string, unknown>;
         const entryId = voteData.entryId as string;
         const oldBreakdown = (voteData.breakdown ?? {}) as ScoreBreakdown;
         const oldTotal = computeVoteTotal(oldBreakdown);
@@ -387,7 +341,7 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
           entry.sumScore = (entry.sumScore ?? 0) - oldTotal;
           entry.voteCount = Math.max(0, (entry.voteCount ?? 0) - 1);
           entries[entryIndex] = entry;
-          transaction.update(contestRef, { entries, updatedAt: serverTimestamp() });
+          transaction.update(contestRef, { entries, updatedAt: FieldValue.serverTimestamp() });
         }
 
         transaction.delete(voteRef);

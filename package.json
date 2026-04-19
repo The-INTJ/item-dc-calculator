@@ -15,7 +15,10 @@
     "docs:validate": "npx swagger-cli validate app/api/contest/openapi.json",
     "emulators": "firebase emulators:start",
     "emulators:seed": "node scripts/seed-emulator.mjs",
-    "dev:emu": "next dev --env-file .env.emulators"
+    "dev:emu": "next dev --env-file .env.emulators",
+    "deploy:rules": "firebase deploy --only firestore:rules",
+    "deploy:indexes": "firebase deploy --only firestore:indexes",
+    "deploy:firestore": "firebase deploy --only firestore"
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-alpha.6",

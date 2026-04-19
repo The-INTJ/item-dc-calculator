@@ -17,11 +17,11 @@ export function error<T>(message: string): ProviderResult<T> {
 }
 
 export async function withDb<T>(
-  adapter: { getDb(): unknown | null },
+  adapter: { isReady(): boolean },
   operation: () => Promise<T>,
   notInitializedMessage = 'Firebase not initialized'
 ): Promise<ProviderResult<T>> {
-  if (!adapter.getDb()) {
+  if (!adapter.isReady()) {
     return error(notInitializedMessage);
   }
 
