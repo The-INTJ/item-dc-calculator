@@ -10,7 +10,8 @@
       "mcp__Claude_Preview__preview_start",
       "Skill(update-config)",
       "Skill(update-config:*)",
-      "mcp__plugin_gitnexus_gitnexus__impact"
+      "mcp__plugin_gitnexus_gitnexus__impact",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:9099)"
     ]
   }
 }

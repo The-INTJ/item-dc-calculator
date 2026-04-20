@@ -11,14 +11,23 @@
 .admin-contestant-input,
 .admin-contestant-select {
   background: #fff;
-  border: 1px solid $color-border;
+  border: 1px solid $color-input-border;
   border-radius: $radius-button;
-  color: inherit;
+  color: $color-text-dark;
   padding: $space-md 0.6rem;
+
+  &:focus {
+    border-color: $color-primary;
+    outline: none;
+  }
+
+  &:disabled {
+    background: $color-light-100;
+    color: $color-gray-600;
+  }
 }
 
-.admin-rounds-add,
-.admin-contestant-add {
+.admin-rounds-add {
   align-items: center;
   display: flex;
   flex-wrap: wrap;

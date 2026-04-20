@@ -21,9 +21,8 @@
 }
 
 .admin-detail-meta {
-  color: $color-text-dark;
+  color: $color-gray-600;
   @include type-normal;
-  opacity: 0.75;
 }
 
 .admin-details-section {
@@ -61,10 +60,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: $space-gap-normal;
-  justify-content: space-between;
-}
-
-.admin-contestant-item {
   justify-content: space-between;
 }
 
@@ -112,7 +107,12 @@
 }
 
 .admin-role-badge--competitor {
-  background: $color-gray-500;
+  background: $color-gray-600;
+  color: $color-text-light;
+}
+
+.admin-role-badge--contestant {
+  background: $color-warning-700;
   color: $color-text-light;
 }
 
@@ -147,20 +147,361 @@
   padding: $space-base;
 }
 
-// Participants
-.admin-participant-item {
-  justify-content: space-between;
+// ─── Participants ──────────────────────────────────────────────────────────
+.admin-participants-header {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: $space-base;
+  margin-bottom: $space-lg;
 }
 
-.admin-participant-item__info {
+.admin-participants-header h3 {
+  margin: 0;
+}
+
+@include respond-to-sm {
+  .admin-participants-header {
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: $space-lg;
+    justify-content: space-between;
+  }
+}
+
+.admin-participants-filter {
+  align-items: center;
+  color: $color-text-dark;
+  display: flex;
+  @include type-normal;
+  font-weight: $font-weight-semibold;
+  gap: $space-base;
+
+  select {
+    background: #fff;
+    border: 1px solid $color-input-border;
+    border-radius: $radius-button;
+    color: $color-text-dark;
+    font-weight: $font-weight-regular;
+    padding: $space-base $space-md;
+  }
+}
+
+.admin-participants-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-base;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-participant-card {
+  background: #fff;
+  border: 1px solid $color-border;
+  border-radius: $radius-button;
+  overflow: hidden;
+  transition: border-color $transition-base, box-shadow $transition-base;
+
+  &--expanded {
+    border-color: $color-border-hover;
+    box-shadow: $shadow-sm;
+  }
+}
+
+.admin-participant-card__header {
+  align-items: flex-start;
+  background: transparent;
+  border: 0;
+  color: $color-text-dark;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  font: inherit;
+  gap: $space-base;
+  padding: $space-padding-sm $space-padding-md;
+  text-align: left;
+  width: 100%;
+
+  &:hover {
+    background: rgba($color-dark-950, 0.03);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: -2px;
+  }
+}
+
+@include respond-to-sm {
+  .admin-participant-card__header {
+    align-items: center;
+    flex-direction: row;
+    gap: $space-lg;
+    justify-content: space-between;
+  }
+}
+
+.admin-participant-card__identity {
   align-items: center;
   display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: $space-base;
+  min-width: 0;
+}
+
+.admin-participant-card__name {
+  @include type-normal;
+  color: $color-text-dark;
+  font-weight: $font-weight-semibold;
+}
+
+.admin-participant-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-xs;
+}
+
+.admin-participant-card__summary {
+  align-items: center;
+  color: $color-gray-600;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-lg;
+  justify-content: space-between;
+  width: 100%;
+}
+
+@include respond-to-sm {
+  .admin-participant-card__summary {
+    flex-shrink: 0;
+    justify-content: flex-end;
+    width: auto;
+  }
+}
+
+.admin-participant-card__chevron {
+  color: $color-gray-500;
+  font-size: $font-size-small;
+}
+
+.admin-participant-card__body {
+  background: rgba($color-light-100, 0.65);
+  border-top: 1px solid $color-border;
+  display: flex;
+  flex-direction: column;
+  gap: $space-gap-normal;
+  padding: $space-padding-md;
+}
+
+.admin-participant-section {
+  display: flex;
+  flex-direction: column;
   gap: $space-base;
 }
 
-.admin-role-badge--contestant {
-  background: $color-warning-700;
-  color: $color-text-light;
+.admin-participant-section h4 {
+  @include type-normal;
+  color: $color-text-dark;
+  font-weight: $font-weight-semibold;
+  margin: 0;
+}
+
+.admin-participant-section__header {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-base $space-lg;
+  justify-content: space-between;
+}
+
+.admin-participant-section__toggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: $space-lg;
+  justify-content: space-between;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+
+  &:hover h4 {
+    color: $color-info-600;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
+  }
+}
+
+// Entry list (inside participant card)
+.admin-entry-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-base;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-entry-row {
+  align-items: stretch;
+  background: #fff;
+  border: 1px solid $color-border;
+  border-radius: $radius-button;
+  display: flex;
+  flex-direction: column;
+  gap: $space-base;
+  padding: $space-base $space-padding-sm;
+}
+
+@include respond-to-sm {
+  .admin-entry-row {
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+.admin-entry-row__name {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-entry-row__placement {
+  @include type-small;
+  color: $color-gray-600;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
+}
+
+.admin-entry-add {
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: $space-base;
+  margin-top: $space-xs;
+}
+
+@include respond-to-sm {
+  .admin-entry-add {
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+.admin-entry-add .admin-contestant-input {
+  flex: 1;
+  min-width: 0;
+}
+
+// Inline action button with proper contrast for admin light surfaces
+.admin-inline-button {
+  background: #fff;
+  border: 1px solid $color-gray-400;
+  border-radius: $radius-button;
+  color: $color-text-dark;
+  cursor: pointer;
+  font-size: $font-size-normal;
+  font-weight: $font-weight-semibold;
+  padding: $space-base $space-padding-sm;
+  transition: background $transition-fast, border-color $transition-fast, color $transition-fast;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: $color-light-100;
+    border-color: $color-gray-600;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &--primary {
+    background: $color-info-600;
+    border-color: $color-info-600;
+    color: $color-text-light;
+
+    &:hover:not(:disabled) {
+      background: $color-dark-900;
+      border-color: $color-dark-900;
+      color: $color-text-light;
+    }
+  }
+
+  &--danger {
+    border-color: $color-error-200;
+    color: $color-error-700;
+
+    &:hover:not(:disabled) {
+      background: $color-error-50;
+      border-color: $color-error-600;
+      color: $color-error-700;
+    }
+  }
+}
+
+// Per-round voting list
+.admin-round-vote-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  list-style: none;
+  margin: $space-xs 0 0;
+  padding: 0;
+}
+
+.admin-round-vote-row {
+  align-items: center;
+  background: #fff;
+  border: 1px solid $color-border;
+  border-radius: $radius-xs;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-base;
+  justify-content: space-between;
+  padding: $space-base $space-padding-sm;
+}
+
+.admin-round-vote-row__label {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-base;
+}
+
+.admin-round-vote-row__detail {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-lg;
+}
+
+.admin-inline-chip {
+  border-radius: $radius-xs;
+  @include type-small;
+  font-weight: $font-weight-semibold;
+  padding: 0.15rem 0.4rem;
+  text-transform: uppercase;
+
+  &--competitor {
+    background: rgba($color-warning-700, 0.15);
+    color: $color-warning-900;
+  }
 }
 
 .admin-vote-status {
@@ -170,13 +511,17 @@
 }
 
 .admin-vote-status--voted {
-  color: $color-success-500;
+  color: $color-success-600;
+}
+
+.admin-vote-status--partial {
+  color: $color-warning-700;
 }
 
 .admin-vote-status--pending {
-  color: $color-gray-400;
+  color: $color-gray-600;
 }
 
 .admin-vote-status--auto {
-  color: $color-warning-700;
+  color: $color-warning-900;
 }
