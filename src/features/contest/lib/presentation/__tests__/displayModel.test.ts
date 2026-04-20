@@ -3,104 +3,7 @@ import type { Contest, Matchup } from '../../../contexts/contest/contestTypes';
 import { buildDisplayModel } from '../displayModel';
 
 describe('buildDisplayModel', () => {
-  it('derives active round data, scores, and leader styling from a contest', () => {
-    const contest: Contest = {
-      id: 'contest-1',
-      name: 'Winter Showdown',
-      slug: 'winter-showdown',
-      phase: 'shake',
-      activeRoundId: 'round-1',
-      futureRoundId: 'round-2',
-      rounds: [
-        { id: 'round-1', name: 'Semifinal', state: 'shake' },
-        { id: 'round-2', name: 'Final', state: 'set' },
-      ],
-      entries: [
-        { id: 'entry-1', name: 'North', slug: 'north', description: '', round: 'round-1', submittedBy: 'A', sumScore: 18, voteCount: 2 },
-        { id: 'entry-2', name: 'South', slug: 'south', description: '', round: 'round-1', submittedBy: 'B', sumScore: 14, voteCount: 2 },
-        { id: 'entry-3', name: 'East', slug: 'east', description: '', round: 'round-2', submittedBy: 'C', sumScore: 9, voteCount: 1 },
-        { id: 'entry-4', name: 'West', slug: 'west', description: '', round: 'round-2', submittedBy: 'D', sumScore: 9, voteCount: 1 },
-      ],
-      voters: [],
-    };
-
-    const model = buildDisplayModel(contest);
-
-    expect(model.contestId).toBe('contest-1');
-    expect(model.activeRoundId).toBe('round-1');
-    expect(model.activeRoundName).toBe('Semifinal');
-    expect(model.nextRoundName).toBe('Final');
-    expect(model.totalRounds).toBe(2);
-    expect(model.rounds).toHaveLength(2);
-
-    // Round 0: bracket expects 2 matchups for 2 rounds; first matchup has real entries
-    expect(model.rounds[0]).toMatchObject({
-      id: 'round-1',
-      status: 'active',
-      isActive: true,
-      expectedMatchupCount: 2,
-      roundIndex: 0,
-    });
-    expect(model.rounds[0].matchups).toHaveLength(2);
-    expect(model.rounds[0].matchups[0]).toMatchObject({
-      winnerId: 'entry-1',
-      contestantA: { id: 'entry-1', score: 9, isWinner: true },
-      contestantB: { id: 'entry-2', score: 7, isWinner: false },
-      slotIndex: 0,
-      sourceMatchups: null,
-    });
-    // Second matchup is a TBD slot (no entries assigned)
-    expect(model.rounds[0].matchups[1].contestantA.name).toBe('TBD');
-    expect(model.rounds[0].matchups[1].contestantB.name).toBe('TBD');
-
-    // Round 1 (final): manual entries override winner propagation
-    expect(model.rounds[1]).toMatchObject({
-      id: 'round-2',
-      status: 'upcoming',
-      isActive: false,
-      expectedMatchupCount: 1,
-      roundIndex: 1,
-    });
-    expect(model.rounds[1].matchups[0].winnerId).toBeNull();
-    expect(model.rounds[1].matchups[0].contestantA.name).toBe('East');
-    expect(model.rounds[1].matchups[0].contestantB.name).toBe('West');
-
-    // Bracket structure
-    expect(model.bracketStructure.totalRounds).toBe(2);
-    expect(model.bracketStructure.totalContestants).toBe(4);
-    expect(model.isFinalRoundActive).toBe(false);
-  });
-
-  it('propagates winners to unfilled next-round slots', () => {
-    const contest: Contest = {
-      id: 'contest-2',
-      name: 'Propagation Test',
-      slug: 'propagation-test',
-      phase: 'shake',
-      activeRoundId: 'r1',
-      rounds: [
-        { id: 'r1', name: 'Round 1', state: 'scored' },
-        { id: 'r2', name: 'Final', state: 'shake' },
-      ],
-      entries: [
-        { id: 'e1', name: 'Alpha', slug: 'alpha', description: '', round: 'r1', submittedBy: 'A', sumScore: 20, voteCount: 2 },
-        { id: 'e2', name: 'Beta', slug: 'beta', description: '', round: 'r1', submittedBy: 'B', sumScore: 10, voteCount: 2 },
-        // No entries manually assigned to r2 — should propagate winner from r1
-      ],
-      voters: [],
-    };
-
-    const model = buildDisplayModel(contest);
-
-    // Round 1 (final): one slot expected, no manual entries
-    // Winner from r1 matchup 0 is e1 (Alpha, score 10 > Beta score 5)
-    // sourceMatchups[0] = matchup 0 from r1, sourceMatchups[1] = matchup 1 from r1
-    const finalMatchup = model.rounds[1].matchups[0];
-    expect(finalMatchup.contestantA.name).toBe('Alpha'); // propagated winner from matchup 0
-    expect(finalMatchup.contestantB.name).toBe('TBD'); // matchup 1 in r1 is all TBD, no winner
-  });
-
-  it('drives rounds, matchupIds, and phases from a stored matchup collection', () => {
+  it('drives rounds, matchupIds, scores, and phases from the matchup collection', () => {
     const contest: Contest = {
       id: 'contest-m',
       name: 'Matchup Driven',
@@ -140,38 +43,68 @@ describe('buildDisplayModel', () => {
     const model = buildDisplayModel(contest, matchups);
 
     expect(model.activeRoundId).toBe('r1');
+    expect(model.activeRoundName).toBe('Semifinal');
+    expect(model.nextRoundName).toBe('Final');
+    expect(model.totalRounds).toBe(2);
     expect(model.rounds[0].status).toBe('active');
     expect(model.rounds[0].matchups).toHaveLength(2);
     expect(model.rounds[0].matchups[0]).toMatchObject({
       matchupId: 'm-1',
       phase: 'scored',
       winnerId: 'e1',
-      contestantA: { id: 'e1', isWinner: true },
+      contestantA: { id: 'e1', score: 10, isWinner: true },
+      contestantB: { id: 'e2', score: 5, isWinner: false },
+      slotIndex: 0,
     });
     expect(model.rounds[0].matchups[1]).toMatchObject({
       matchupId: 'm-2',
       phase: 'shake',
+      contestantA: { id: 'e3', name: 'Gamma' },
+      contestantB: { id: 'e4', name: 'Delta' },
     });
     expect(model.phase).toBe('shake');
     expect(model.rounds[1].status).toBe('pending');
+    expect(model.rounds[1].matchups[0].contestantA.name).toBe('TBD');
+
+    expect(model.bracketStructure.totalRounds).toBe(2);
+    expect(model.bracketStructure.totalContestants).toBe(4);
+    expect(model.isFinalRoundActive).toBe(false);
   });
 
-  it('sets isFinalRoundActive when active round is the last', () => {
+  it('derives active round name and finals flag when the final round is active', () => {
     const contest: Contest = {
-      id: 'contest-3',
+      id: 'contest-f',
       name: 'Final Active',
       slug: 'final-active',
-      phase: 'shake',
-      activeRoundId: 'r2',
       rounds: [
-        { id: 'r1', name: 'Semi', state: 'scored' },
-        { id: 'r2', name: 'Final', state: 'shake' },
+        { id: 'r1', name: 'Semi' },
+        { id: 'r2', name: 'Final' },
       ],
       entries: [],
       voters: [],
     };
+    const matchups: Matchup[] = [
+      {
+        id: 'm-r1-0',
+        contestId: 'contest-f',
+        roundId: 'r1',
+        slotIndex: 0,
+        entryIds: ['x', 'y'],
+        phase: 'scored',
+        winnerEntryId: 'x',
+      },
+      {
+        id: 'm-r2-0',
+        contestId: 'contest-f',
+        roundId: 'r2',
+        slotIndex: 0,
+        entryIds: ['x', 'z'],
+        phase: 'shake',
+      },
+    ];
 
-    const model = buildDisplayModel(contest);
+    const model = buildDisplayModel(contest, matchups);
+    expect(model.activeRoundId).toBe('r2');
     expect(model.isFinalRoundActive).toBe(true);
   });
 });

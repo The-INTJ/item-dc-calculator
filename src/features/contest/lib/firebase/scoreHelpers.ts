@@ -24,8 +24,7 @@ export function docToScoreEntry(docId: string, data: Record<string, unknown>): S
     id: docId,
     entryId: (data.entryId as string) ?? '',
     userId: (data.userId as string) ?? '',
-    ...(data.matchupId ? { matchupId: data.matchupId as string } : {}),
-    round: (data.round as string) ?? '',
+    matchupId: (data.matchupId as string) ?? '',
     breakdown: (data.breakdown as ScoreBreakdown) ?? {},
     ...(data.notes ? { notes: data.notes as string } : {}),
   };

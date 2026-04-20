@@ -61,7 +61,6 @@ describe('/api/contest/contests/[id]/entries route', () => {
       name: 'North',
       slug: 'north',
       description: 'Northern entry',
-      round: 'round-1',
       submittedBy: 'user-1',
     };
     const create = vi.fn().mockResolvedValue({

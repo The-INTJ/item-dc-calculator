@@ -56,7 +56,6 @@ export async function POST(request: Request, { params }: RouteParams) {
       name: entryName,
       slug,
       description: '',
-      round: '',
       submittedBy: userId,
     });
     if (!entryResult.success) {

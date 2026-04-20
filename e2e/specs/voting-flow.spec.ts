@@ -21,9 +21,7 @@ test('three voters complete a round concurrently — tally aggregates on every p
   voter3Page,
 }) => {
   const { contestId } = await createContest({
-    entries: [{ name: 'Paloma' }, { name: 'Margarita' }],
-    activeRoundId: 'round-1',
-    phase: 'shake',
+    matchups: [{ entryNames: ['Paloma', 'Margarita'], phase: 'shake' }],
   });
 
   const pages: Page[] = [adminPage, voter1Page, voter2Page, voter3Page];

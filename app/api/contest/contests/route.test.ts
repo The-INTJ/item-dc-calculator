@@ -61,14 +61,13 @@ describe('/api/contest/contests route', () => {
       id: 'contest-1',
       name: 'Bracket Bash',
       slug: 'bracket-bash',
-      phase: 'set' as const,
     };
     const create = vi.fn().mockResolvedValue({ success: true, data: created });
     loadProviderMock.mockResolvedValue({
       contests: { create },
     });
 
-    const requestBody = { name: 'Bracket Bash', slug: 'bracket-bash', phase: 'set' };
+    const requestBody = { name: 'Bracket Bash', slug: 'bracket-bash' };
     const response = await POST(
       new Request('http://localhost/api/contest/contests', {
         method: 'POST',

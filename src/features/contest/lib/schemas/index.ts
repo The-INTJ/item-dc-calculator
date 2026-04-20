@@ -33,9 +33,6 @@ export const MatchupPhaseSchema = z
   .enum(['set', 'shake', 'scored'])
   .openapi('MatchupPhase', { description: 'Matchup lifecycle phase', example: 'shake' });
 
-/** @deprecated Alias of MatchupPhaseSchema for backward compatibility. */
-export const ContestPhaseSchema = MatchupPhaseSchema;
-
 export const RoundStatusSchema = z
   .enum(['pending', 'upcoming', 'active', 'closed'])
   .openapi('RoundStatus', {
@@ -100,12 +97,10 @@ export const ScoreEntrySchema = z
     id: z.string().openapi({ example: 'user1_matchup1_entry1' }),
     entryId: z.string().openapi({ example: 'entry-1' }),
     userId: z.string().openapi({ example: 'user-1' }),
-    matchupId: z.string().optional().openapi({
-      description: 'Matchup this vote belongs to. Required for new votes.',
+    matchupId: z.string().openapi({
+      description: 'Matchup this vote belongs to.',
       example: 'matchup-1',
     }),
-    /** @deprecated Use matchupId. Kept for legacy vote docs during the matchup refactor. */
-    round: z.string().optional().openapi({ example: 'finals' }),
     breakdown: ScoreBreakdownSchema,
     notes: z.string().optional().openapi({ example: 'Excellent balance of flavors' }),
   })
@@ -150,8 +145,6 @@ export const EntrySchema = z
     name: z.string().openapi({ example: 'Summer Sunset' }),
     slug: z.string().openapi({ example: 'summer-sunset' }),
     description: z.string().openapi({ example: 'A refreshing citrus cocktail with a hint of lavender' }),
-    /** @deprecated Entries are contest-scoped; assignment is via Matchup.entryIds. Removed in PR 8. */
-    round: z.string().optional().openapi({ example: 'finals' }),
     submittedBy: z.string().openapi({ example: 'John Doe' }),
     sumScore: z.number().optional().openapi({
       description: 'Aggregate: sum of all vote totals for this entry',
@@ -176,8 +169,6 @@ export const ContestRoundSchema = z
     id: z.string(),
     name: z.string(),
     number: z.number().int().nullable().optional(),
-    /** @deprecated Computed from matchup phases; removed in PR 8. */
-    state: MatchupPhaseSchema.optional(),
     adminOverride: z.enum(['active', 'closed']).nullable().optional().openapi({
       description:
         "Admin escape hatch. 'active' forces the round open; 'closed' forces it closed; null/undefined uses computed status.",
@@ -239,20 +230,12 @@ export const ContestSchema = z
     id: z.string().openapi({ example: 'contest-1' }),
     name: z.string().openapi({ example: 'Summer Mixoff 2024' }),
     slug: z.string().openapi({ example: 'summer-mixoff-2024' }),
-    /** @deprecated Derive from active round's matchup phases. Removed in PR 8. */
-    phase: MatchupPhaseSchema.optional(),
     config: ContestConfigSchema.optional(),
     location: z.string().optional(),
     startTime: z.string().optional(),
-    /** @deprecated Vestigial. Removed in PR 8. */
-    bracketRound: z.string().optional(),
     currentEntryId: z.string().optional(),
     defaultContest: z.boolean().optional(),
     rounds: z.array(ContestRoundSchema).optional(),
-    /** @deprecated Derived. Removed in PR 8. */
-    activeRoundId: z.string().nullable().optional(),
-    /** @deprecated Derived. Removed in PR 8. */
-    futureRoundId: z.string().nullable().optional(),
     entries: z.array(EntrySchema),
     voters: z.array(VoterSchema),
   })
@@ -326,8 +309,6 @@ export const ErrorSchema = z
 // as new code is migrated. For now they coexist — the shapes are identical.
 
 export type MatchupPhase = z.infer<typeof MatchupPhaseSchema>;
-/** @deprecated Use {@link MatchupPhase}. */
-export type ContestPhase = MatchupPhase;
 export type RoundStatus = z.infer<typeof RoundStatusSchema>;
 export type UserRole = z.infer<typeof UserRoleSchema>;
 export type AttributeConfig = z.infer<typeof AttributeConfigSchema>;

@@ -10,11 +10,6 @@
  */
 export type MatchupPhase = 'set' | 'shake' | 'scored';
 
-/**
- * @deprecated Use {@link MatchupPhase}. Kept as alias so old imports compile during the matchup refactor.
- */
-export type ContestPhase = MatchupPhase;
-
 export type UserRole = 'admin' | 'voter' | 'competitor';
 
 /**
@@ -85,11 +80,6 @@ export interface Entry {
   name: string;
   slug: string;
   description: string;
-  /**
-   * @deprecated Entries are now contest-scoped. Round assignment is via `Matchup.entryIds`.
-   * Kept as optional during the matchup refactor; will be removed in PR 8.
-   */
-  round?: string;
   submittedBy: string;
   /** Aggregate: sum of per-user average scores */
   sumScore?: number;
@@ -109,12 +99,8 @@ export interface ScoreEntry {
   id: string;
   entryId: string;
   userId: string;
-  /** Matchup this vote belongs to. Required for new votes. */
-  matchupId?: string;
-  /**
-   * @deprecated Use {@link matchupId}. Kept for legacy vote docs during the matchup refactor.
-   */
-  round?: string;
+  /** Matchup this vote belongs to. */
+  matchupId: string;
   breakdown: ScoreBreakdown;
   notes?: string;
 }
@@ -146,11 +132,6 @@ export interface ContestRound {
   name: string;
   number?: number | null;
   /**
-   * @deprecated Round status is now computed from its matchups' phases.
-   * Kept as optional during the matchup refactor; will be removed in PR 8.
-   */
-  state?: MatchupPhase;
-  /**
    * Admin escape hatch. When set, overrides the computed round status.
    * - 'active': force the round open even if all matchups are scored.
    * - 'closed': force the round closed even if matchups are still in progress.
@@ -163,24 +144,13 @@ export interface Contest {
   id: string;
   name: string;
   slug: string;
-  /**
-   * @deprecated No longer authoritative; derive from active round's matchup phases.
-   * Optional during the matchup refactor; will be removed in PR 8.
-   */
-  phase?: MatchupPhase;
   /** Configuration defining contest type and scoring attributes */
   config?: ContestConfig;
   location?: string;
   startTime?: string;
-  /** @deprecated Vestigial label field. Will be removed in PR 8. */
-  bracketRound?: string;
   currentEntryId?: string;
   defaultContest?: boolean;
   rounds?: ContestRound[];
-  /** @deprecated Derived from rounds' matchup phases. Will be removed in PR 8. */
-  activeRoundId?: string | null;
-  /** @deprecated Derived from rounds' matchup phases. Will be removed in PR 8. */
-  futureRoundId?: string | null;
   entries: Entry[];
   voters: Voter[];
 }

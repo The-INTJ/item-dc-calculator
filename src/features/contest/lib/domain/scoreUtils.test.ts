@@ -30,7 +30,7 @@ describe('scoreUtils', () => {
         id: 'score-1',
         entryId: 'entry-1',
         userId: 'user-1',
-        round: 'round-1',
+        matchupId: 'matchup-1',
         breakdown: { taste: 7, texture: 8, mystery: 9 },
       },
     ];

@@ -6,7 +6,7 @@ import { useResolvedContest } from '@/contest/lib/hooks/useResolvedContest';
 
 export default function ContestDisplayPage() {
   const { id } = useParams<{ id: string }>();
-  const { contest, status } = useResolvedContest(id);
+  const { contest, matchups, status } = useResolvedContest(id);
 
   if (status === 'loading') {
     return (
@@ -24,5 +24,5 @@ export default function ContestDisplayPage() {
     );
   }
 
-  return <ContestDisplay contest={contest} />;
+  return <ContestDisplay contest={contest} matchups={matchups} />;
 }

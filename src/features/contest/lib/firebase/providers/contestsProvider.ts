@@ -41,7 +41,6 @@ export function createFirebaseContestsProvider(adapter: FirestoreAdapter): Conte
           id,
           name: typedInput.name,
           slug: typedInput.slug,
-          phase: 'set', // Default phase for new contests
           config: typedInput.config,
           entries: [],
           voters: [],

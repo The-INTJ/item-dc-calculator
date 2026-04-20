@@ -4,12 +4,8 @@ import type {
   MatchupPhase,
   RoundStatus,
 } from '../../contexts/contest/contestTypes';
-import { getContestRounds, getEntriesForRound, getEntryScore, getRoundStatus } from '../domain/contestGetters';
-import {
-  getComputedRoundStatus,
-  getMatchupsForRound,
-} from '../domain/matchupGetters';
-import { buildEntryPairs } from './uiMappings';
+import { getContestRounds, getEntryScore } from '../domain/contestGetters';
+import { getComputedRoundStatus, getMatchupsForRound } from '../domain/matchupGetters';
 
 export type BracketRoundStatus = RoundStatus;
 
@@ -24,9 +20,9 @@ export interface BracketMatchup {
   contestantA: BracketContestant;
   contestantB: BracketContestant;
   winnerId?: string | null;
-  /** Stored matchup document id (present when driven from Matchup[]). */
+  /** Stored matchup document id. */
   matchupId?: string;
-  /** Matchup lifecycle phase (present when driven from Matchup[]). */
+  /** Matchup lifecycle phase. */
   phase?: MatchupPhase;
 }
 
@@ -38,23 +34,13 @@ export interface BracketRound {
 }
 
 /**
- * Build bracket rounds from a contest. When `matchups` is provided and
- * non-empty, rounds are driven from the stored matchup collection (matchupId
- * and phase are populated on each BracketMatchup). When omitted or empty, the
- * builder falls back to legacy entry-pair inference so existing callers keep
- * working during the matchup refactor.
+ * Build bracket rounds from a contest and its stored matchup collection.
+ * Matchups are the authoritative source for round seeding and status.
  */
 export function buildBracketRoundsFromContest(
   contest: Contest,
-  matchups: Matchup[] = [],
+  matchups: Matchup[],
 ): BracketRound[] {
-  if (matchups.length > 0) {
-    return buildFromMatchups(contest, matchups);
-  }
-  return buildLegacy(contest);
-}
-
-function buildFromMatchups(contest: Contest, matchups: Matchup[]): BracketRound[] {
   const rounds = getContestRounds(contest);
   const entriesById = new Map(contest.entries.map((entry) => [entry.id, entry]));
 
@@ -89,46 +75,6 @@ function buildFromMatchups(contest: Contest, matchups: Matchup[]): BracketRound[
       name: round.name || `Round ${index + 1}`,
       status: getComputedRoundStatus(round, matchups),
       matchups: bracketMatchups,
-    };
-  });
-}
-
-function buildLegacy(contest: Contest): BracketRound[] {
-  const rounds = getContestRounds(contest);
-
-  return rounds.map((round, index) => {
-    const entries = getEntriesForRound(contest, round.id);
-    const matchups = buildEntryPairs(entries).map((matchup) => {
-      const firstEntry = matchup.contestantA;
-      const secondEntry = matchup.contestantB;
-      const contestantA = firstEntry
-        ? {
-            id: firstEntry.id,
-            name: firstEntry.name ?? 'TBD',
-            score: getEntryScore(firstEntry),
-          }
-        : { id: 'tbd-a', name: 'TBD', score: null };
-      const contestantB = secondEntry
-        ? {
-            id: secondEntry.id,
-            name: secondEntry.name ?? 'TBD',
-            score: getEntryScore(secondEntry),
-          }
-        : { id: 'tbd-b', name: 'TBD', score: null };
-
-      return {
-        id: matchup.id,
-        contestantA,
-        contestantB,
-        winnerId: null,
-      };
-    });
-
-    return {
-      id: round.id,
-      name: round.name || `Round ${index + 1}`,
-      status: getRoundStatus(contest, round.id),
-      matchups,
     };
   });
 }

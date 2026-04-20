@@ -98,25 +98,46 @@ Short version:
 - Optional later: full server API migration
 - Avoid: hybrid half-migration
 
+## Contest, Round, Matchup hierarchy
+
+The tournament model has three tiers:
+
+- **Contest** — the overall event; holds entries flat, rounds as a lightweight array, and config.
+- **Round** — a collection of matchups whose winners advance. Rounds carry `id`, `name`, `number`, and an optional `adminOverride`. Round status is *computed* from its matchups (see below), not stored.
+- **Matchup** — a first-class entity stored at `contests/{id}/matchups/{matchupId}`. Each matchup owns `entryIds`, `slotIndex`, `roundId`, a `phase` (`set | shake | scored`), and pointers for bracket advancement (`advancesToMatchupId`, `advancesToSlot`).
+
+Phase lives on Matchup only. A round's computed status:
+
+- no matchups → `pending`
+- `adminOverride === 'closed'` → `closed`
+- `adminOverride === 'active'` → `active`
+- all matchups `scored` → `closed`
+- all matchups `set` → `upcoming`
+- else → `active`
+
+Round advancement is auto + admin override: once all matchups in a round reach `scored`, the next round's matchups are seeded from winners. Admin can force-close or reopen via `adminOverride`.
+
 ## Voting and aggregation model
 
 Current implementation:
 
-- Contest entries live on the contest document in `entries[]`.
-- Individual votes live in `contests/{contestId}/votes/{userId}_{entryId}`.
-- Each vote stores the full per-attribute `breakdown`.
+- Contest entries live flat on the contest document in `entries[]` (no `round` field).
+- Matchups live in `contests/{contestId}/matchups/{matchupId}` and pair entries via `entryIds[]`.
+- Individual votes live in `contests/{contestId}/votes/{userId}_{matchupId}_{entryId}`.
+- Each vote stores the full per-attribute `breakdown` and the `matchupId` it was cast against.
 - Each entry caches aggregate fields on the contest doc:
   - `sumScore`
   - `voteCount`
 
 Write algorithm:
 
-1. Read the existing vote doc for `{userId}_{entryId}`.
-2. Compute the old total and new total from the breakdown.
-3. Calculate `delta = newTotal - oldTotal`.
-4. Upsert the vote doc in the votes subcollection.
-5. Update the matching entry aggregate in the contest doc inside the same Firestore transaction.
-6. Increment `voteCount` only when this is a brand-new vote.
+1. Read the matchup doc; reject unless `phase === 'shake'` and `entryId ∈ entryIds`.
+2. Read the existing vote doc for `{userId}_{matchupId}_{entryId}`.
+3. Compute the old total and new total from the breakdown.
+4. Calculate `delta = newTotal - oldTotal`.
+5. Upsert the vote doc in the votes subcollection.
+6. Update the matching entry aggregate in the contest doc inside the same Firestore transaction.
+7. Increment `voteCount` only when this is a brand-new vote.
 
 Why this is the right shape for this app:
 
@@ -124,12 +145,14 @@ Why this is the right shape for this app:
 - The UI does not need an N-query recount across all votes just to show standings.
 - Re-votes are naturally handled by the deterministic vote document ID and delta update.
 - Per-user ballot state can still be read by querying votes for that user when needed.
+- One vote per `(voter, matchup, entry)` pair — the same voter can score both sides of a matchup.
 
 What should stay true:
 
 - Reading aggregate standings should not require scanning all votes.
 - Re-voting should be an update to one stable vote document, not a second vote row.
 - The aggregation logic should live in exactly one write path.
+- Scoring writes must only land while the target matchup is in `shake`.
 
 ## Contest feature layout
 

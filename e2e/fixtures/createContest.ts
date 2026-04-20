@@ -1,14 +1,19 @@
 /**
- * Admin-authenticated helper to create a contest + entries for a spec.
+ * Admin-authenticated helper to create a contest + matchups for a spec.
  *
- * Calls the real POST /api/contest/contests and POST /entries endpoints —
- * the same endpoints the admin UI uses. Consistent with the no-drift rule:
- *   ✅ setup MAY use real admin APIs (equivalent to the admin clicking
- *      through the admin UI manually before the test runs)
- *   ❌ spec BODIES still drive the app through real UI surfaces — never
- *      import this helper into a spec to "shortcut" a user action.
+ * Calls the real admin endpoints — the same ones the admin UI uses. Consistent
+ * with the no-drift rule:
+ *   ✅ setup MAY use real admin APIs (equivalent to the admin clicking through
+ *      the admin UI manually before the test runs)
+ *   ❌ spec BODIES still drive the app through real UI surfaces — never import
+ *      this helper into a spec to "shortcut" a user action.
  *
- * Used by specs only in `beforeEach`/top-of-test setup.
+ * Flow mirrors the admin-UI sequence:
+ *   1. POST /api/contest/contests                         — create shell
+ *   2. PATCH /api/contest/contests/{id} (rounds: [...])   — add the round
+ *   3. POST /api/contest/contests/{id}/entries (× N)      — flat entries
+ *   4. POST /api/contest/contests/{id}/rounds/{rid}/seed  — create matchups
+ *   5. PATCH /api/contest/contests/{id}/matchups/{mid}    — set phase per matchup
  */
 
 import { request } from '@playwright/test';
@@ -49,25 +54,27 @@ async function getAdminIdToken(): Promise<string> {
   return json.idToken;
 }
 
-export interface EntryInput {
-  name: string;
-  submittedBy?: string;
-  description?: string;
+export interface MatchupInput {
+  entryNames: [string, string];
+  phase?: Phase;
+  descriptions?: [string, string];
+  submittedBy?: [string, string];
 }
 
 export interface CreateContestOptions {
   name?: string;
   slug?: string;
-  phase?: Phase;
-  activeRoundId?: string;
+  roundId?: string;
   roundName?: string;
-  entries?: EntryInput[];
+  matchups?: MatchupInput[];
   attributes?: Array<{ id: string; label: string; min?: number; max?: number }>;
 }
 
 export interface CreatedContest {
   contestId: string;
+  roundId: string;
   entries: Array<{ id: string; name: string }>;
+  matchups: Array<{ id: string; entryIds: [string, string]; phase: Phase }>;
 }
 
 function slugify(name: string): string {
@@ -84,10 +91,11 @@ export async function createContest(
   const suffix = Math.random().toString(36).slice(2, 8);
   const slug = opts.slug ?? `e2e-${suffix}`;
   const name = opts.name ?? `E2E Contest ${suffix}`;
-  const phase: Phase = opts.phase ?? 'shake';
-  const activeRoundId = opts.activeRoundId ?? 'round-1';
+  const roundId = opts.roundId ?? 'round-1';
   const roundName = opts.roundName ?? 'Round 1';
-  const entriesInput = opts.entries ?? [{ name: 'Paloma' }, { name: 'Margarita' }];
+  const matchupInputs: MatchupInput[] = opts.matchups ?? [
+    { entryNames: ['Paloma', 'Margarita'], phase: 'shake' },
+  ];
   const attributes = opts.attributes ?? [
     { id: 'taste', label: 'Taste', min: 1, max: 10 },
   ];
@@ -99,14 +107,11 @@ export async function createContest(
   });
 
   try {
-    // Step 1 — POST creates with name/slug/phase/config (the admin UI sends
-    // phase:'set' here, then uses the phase-progression UI to advance).
-    // The POST provider hardcodes phase to 'set' anyway.
+    // Step 1 — create the contest shell.
     const contestRes = await api.post('/api/contest/contests', {
       data: {
         name,
         slug,
-        phase: 'set',
         config: {
           topic: 'Mixology',
           entryLabel: 'Drink',
@@ -127,14 +132,10 @@ export async function createContest(
       throw new Error(`createContest: missing id in response: ${JSON.stringify(contestEnvelope)}`);
     }
 
-    // Step 2 — PATCH sets phase, rounds, and active round. This mirrors the
-    // admin UI flow (create contest, then configure rounds & phase).
+    // Step 2 — add the round (no state; rounds are lightweight now).
     const patchRes = await api.patch(`/api/contest/contests/${contestId}`, {
       data: {
-        phase,
-        rounds: [{ id: activeRoundId, name: roundName, number: 1, state: phase }],
-        activeRoundId,
-        futureRoundId: null,
+        rounds: [{ id: roundId, name: roundName, number: 1 }],
       },
     });
     if (!patchRes.ok()) {
@@ -143,14 +144,15 @@ export async function createContest(
       );
     }
 
-    const entries: Array<{ id: string; name: string }> = [];
-    for (const entry of entriesInput) {
+    // Step 3 — create entries (flat; no round assignment at the entry level).
+    const uniqueEntryInputs = collectUniqueEntries(matchupInputs);
+    const entriesByName = new Map<string, { id: string; name: string }>();
+    for (const input of uniqueEntryInputs) {
       const body = {
-        name: entry.name,
-        slug: slugify(entry.name),
-        description: entry.description ?? `${entry.name} — e2e fixture`,
-        round: activeRoundId,
-        submittedBy: entry.submittedBy ?? 'Admin',
+        name: input.name,
+        slug: slugify(input.name),
+        description: input.description,
+        submittedBy: input.submittedBy,
       };
       const res = await api.post(`/api/contest/contests/${contestId}/entries`, { data: body });
       if (!res.ok()) {
@@ -166,11 +168,97 @@ export async function createContest(
           `createContest: missing entry id in response: ${JSON.stringify(envelope)}`,
         );
       }
-      entries.push({ id, name: created?.name ?? entry.name });
+      entriesByName.set(input.name, { id, name: created?.name ?? input.name });
     }
 
-    return { contestId, entries };
+    // Step 4 — seed the round with explicit entry pairs.
+    const entryIdPairs: Array<[string, string]> = matchupInputs.map((m) => {
+      const a = entriesByName.get(m.entryNames[0])?.id;
+      const b = entriesByName.get(m.entryNames[1])?.id;
+      if (!a || !b) {
+        throw new Error(
+          `createContest: missing entry id for matchup ${m.entryNames.join(' vs ')}`,
+        );
+      }
+      return [a, b];
+    });
+
+    const seedRes = await api.post(
+      `/api/contest/contests/${contestId}/rounds/${roundId}/seed`,
+      { data: { entryIdPairs } },
+    );
+    if (!seedRes.ok()) {
+      throw new Error(
+        `createContest POST /rounds/${roundId}/seed: ${seedRes.status()} ${await seedRes.text()}`,
+      );
+    }
+    const seedEnvelope = await seedRes.json();
+    const seeded = seedEnvelope?.data?.matchups ?? seedEnvelope?.matchups ?? [];
+    const seededMatchups: Array<{
+      id: string;
+      entryIds: [string, string];
+      phase: Phase;
+      slotIndex: number;
+    }> = seeded.map((m: { id: string; entryIds: string[]; phase: Phase; slotIndex: number }) => ({
+      id: m.id,
+      entryIds: [m.entryIds[0], m.entryIds[1]] as [string, string],
+      phase: m.phase,
+      slotIndex: m.slotIndex,
+    }));
+    seededMatchups.sort((a, b) => a.slotIndex - b.slotIndex);
+
+    // Step 5 — promote each matchup to its requested phase.
+    const resolvedMatchups: Array<{ id: string; entryIds: [string, string]; phase: Phase }> = [];
+    for (let i = 0; i < seededMatchups.length; i += 1) {
+      const seededMatchup = seededMatchups[i];
+      const requestedPhase: Phase = matchupInputs[i]?.phase ?? 'set';
+      if (requestedPhase !== seededMatchup.phase) {
+        const patchMatchupRes = await api.patch(
+          `/api/contest/contests/${contestId}/matchups/${seededMatchup.id}`,
+          { data: { phase: requestedPhase } },
+        );
+        if (!patchMatchupRes.ok()) {
+          throw new Error(
+            `createContest PATCH /matchups/${seededMatchup.id}: ${patchMatchupRes.status()} ${await patchMatchupRes.text()}`,
+          );
+        }
+      }
+      resolvedMatchups.push({
+        id: seededMatchup.id,
+        entryIds: seededMatchup.entryIds,
+        phase: requestedPhase,
+      });
+    }
+
+    return {
+      contestId,
+      roundId,
+      entries: Array.from(entriesByName.values()),
+      matchups: resolvedMatchups,
+    };
   } finally {
     await api.dispose();
   }
+}
+
+interface EntryCreateInput {
+  name: string;
+  description: string;
+  submittedBy: string;
+}
+
+function collectUniqueEntries(matchups: MatchupInput[]): EntryCreateInput[] {
+  const seen = new Map<string, EntryCreateInput>();
+  for (const matchup of matchups) {
+    for (let i = 0; i < 2; i += 1) {
+      const name = matchup.entryNames[i];
+      if (seen.has(name)) continue;
+      seen.set(name, {
+        name,
+        description: matchup.descriptions?.[i] ?? `${name} — e2e fixture`,
+        submittedBy: matchup.submittedBy?.[i] ?? 'Admin',
+      });
+    }
+  }
+  return Array.from(seen.values());
 }

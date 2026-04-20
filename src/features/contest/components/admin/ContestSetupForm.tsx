@@ -155,7 +155,6 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
       const createResult = await contestApi.createContest({
         name: name.trim(),
         slug: slug.trim(),
-        phase: 'set',
         config,
       });
 

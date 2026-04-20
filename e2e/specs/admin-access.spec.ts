@@ -16,6 +16,7 @@
  */
 
 import { test, expect } from '../fixtures/auth';
+import { createContest } from '../fixtures/createContest';
 import { test as anonymousTest } from '@playwright/test';
 
 test('admin can open /admin via the landing page link', async ({ adminPage }) => {
@@ -62,3 +63,38 @@ anonymousTest(
     await expect(page).toHaveURL(/\/onboard/);
   },
 );
+
+test('admin sees per-matchup phase controls and a force-close round override', async ({
+  adminPage,
+}) => {
+  const suffix = Math.random().toString(36).slice(2, 8);
+  const contestName = `Admin Controls ${suffix}`;
+  await createContest({
+    name: contestName,
+    matchups: [{ entryNames: [`Alpha-${suffix}`, `Bravo-${suffix}`], phase: 'shake' }],
+  });
+
+  await adminPage.goto('/admin', { waitUntil: 'domcontentloaded' });
+  await expect(adminPage.getByRole('heading', { name: /admin dashboard/i })).toBeVisible();
+
+  // Pick our freshly-created contest out of the sidebar.
+  await adminPage.getByRole('button', { name: new RegExp(contestName, 'i') }).click();
+
+  // Expand the round to reveal the matchup controls.
+  const roundHeader = adminPage.getByRole('button', { name: /Round 1/i }).first();
+  await expect(roundHeader).toBeVisible();
+  await roundHeader.click();
+
+  // Per-matchup phase selector — three toggle buttons labelled by phase.
+  const matchupBlock = adminPage.locator('.admin-round-entry').first();
+  await expect(matchupBlock).toBeVisible();
+  await expect(matchupBlock.getByRole('button', { name: /^Set$/ })).toBeVisible();
+  const shakeButton = matchupBlock.getByRole('button', { name: /^Shake$/ });
+  await expect(shakeButton).toBeVisible();
+  await expect(shakeButton).toHaveAttribute('aria-pressed', 'true');
+  await expect(matchupBlock.getByRole('button', { name: /^Scored$/ })).toBeVisible();
+
+  // Admin can force-close the round — the escape hatch is always visible when no override is set.
+  await expect(adminPage.getByRole('button', { name: /force close/i })).toBeVisible();
+  await expect(adminPage.getByRole('button', { name: /force open/i })).toBeVisible();
+});

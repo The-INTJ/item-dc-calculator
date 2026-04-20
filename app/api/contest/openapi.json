@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Contest Rating API",
-    "version": "3.0.0",
+    "version": "4.0.0",
     "description": "HTTP contract for the contest route handlers. The browser app uses this API for all data access (reads and writes). Firebase Auth Bearer tokens authenticate requests; the Admin SDK verifies them server-side. The only direct Firestore client usage is onSnapshot for real-time contest subscriptions."
   },
   "servers": [
@@ -222,12 +222,8 @@
           },
           "matchupId": {
             "type": "string",
-            "description": "Matchup this vote belongs to. Required for new votes.",
+            "description": "Matchup this vote belongs to.",
             "example": "matchup-1"
-          },
-          "round": {
-            "type": "string",
-            "example": "finals"
           },
           "breakdown": {
             "$ref": "#/components/schemas/ScoreBreakdown"
@@ -241,6 +237,7 @@
           "id",
           "entryId",
           "userId",
+          "matchupId",
           "breakdown"
         ]
       },
@@ -330,10 +327,6 @@
             "type": "string",
             "example": "A refreshing citrus cocktail with a hint of lavender"
           },
-          "round": {
-            "type": "string",
-            "example": "finals"
-          },
           "submittedBy": {
             "type": "string",
             "example": "John Doe"
@@ -373,10 +366,6 @@
             "type": "string",
             "example": "A refreshing citrus cocktail with a hint of lavender"
           },
-          "round": {
-            "type": "string",
-            "example": "finals"
-          },
           "submittedBy": {
             "type": "string",
             "example": "John Doe"
@@ -414,10 +403,6 @@
             "type": "string",
             "example": "A refreshing citrus cocktail with a hint of lavender"
           },
-          "round": {
-            "type": "string",
-            "example": "finals"
-          },
           "submittedBy": {
             "type": "string",
             "example": "John Doe"
@@ -448,9 +433,6 @@
               "integer",
               "null"
             ]
-          },
-          "state": {
-            "$ref": "#/components/schemas/MatchupPhase"
           },
           "adminOverride": {
             "type": [
@@ -686,9 +668,6 @@
             "type": "string",
             "example": "summer-mixoff-2024"
           },
-          "phase": {
-            "$ref": "#/components/schemas/MatchupPhase"
-          },
           "config": {
             "$ref": "#/components/schemas/ContestConfig"
           },
@@ -696,9 +675,6 @@
             "type": "string"
           },
           "startTime": {
-            "type": "string"
-          },
-          "bracketRound": {
             "type": "string"
           },
           "currentEntryId": {
@@ -712,18 +688,6 @@
             "items": {
               "$ref": "#/components/schemas/ContestRound"
             }
-          },
-          "activeRoundId": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "futureRoundId": {
-            "type": [
-              "string",
-              "null"
-            ]
           },
           "entries": {
             "type": "array",
@@ -757,9 +721,6 @@
             "type": "string",
             "example": "summer-mixoff-2024"
           },
-          "phase": {
-            "$ref": "#/components/schemas/MatchupPhase"
-          },
           "config": {
             "$ref": "#/components/schemas/ContestConfig"
           },
@@ -767,9 +728,6 @@
             "type": "string"
           },
           "startTime": {
-            "type": "string"
-          },
-          "bracketRound": {
             "type": "string"
           },
           "currentEntryId": {
@@ -783,18 +741,6 @@
             "items": {
               "$ref": "#/components/schemas/ContestRound"
             }
-          },
-          "activeRoundId": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "futureRoundId": {
-            "type": [
-              "string",
-              "null"
-            ]
           }
         },
         "required": [
@@ -817,9 +763,6 @@
             "type": "string",
             "example": "summer-mixoff-2024"
           },
-          "phase": {
-            "$ref": "#/components/schemas/MatchupPhase"
-          },
           "config": {
             "$ref": "#/components/schemas/ContestConfig"
           },
@@ -827,9 +770,6 @@
             "type": "string"
           },
           "startTime": {
-            "type": "string"
-          },
-          "bracketRound": {
             "type": "string"
           },
           "currentEntryId": {
@@ -843,18 +783,6 @@
             "items": {
               "$ref": "#/components/schemas/ContestRound"
             }
-          },
-          "activeRoundId": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "futureRoundId": {
-            "type": [
-              "string",
-              "null"
-            ]
           },
           "entries": {
             "type": "array",
@@ -1265,7 +1193,6 @@
                 }
               },
               "example": {
-                "phase": "shake",
                 "currentEntryId": "entry-2"
               }
             }
@@ -1423,9 +1350,6 @@
                   "description": {
                     "type": "string"
                   },
-                  "round": {
-                    "type": "string"
-                  },
                   "submittedBy": {
                     "type": "string"
                   }
@@ -1434,7 +1358,6 @@
                   "name",
                   "slug",
                   "description",
-                  "round",
                   "submittedBy"
                 ]
               },
@@ -1442,7 +1365,6 @@
                 "name": "Midnight Mojito",
                 "slug": "midnight-mojito",
                 "description": "A dark twist on the classic mojito",
-                "round": "semifinals",
                 "submittedBy": "Jane Smith"
               }
             }
@@ -1559,16 +1481,13 @@
                   "description": {
                     "type": "string"
                   },
-                  "round": {
-                    "type": "string"
-                  },
                   "submittedBy": {
                     "type": "string"
                   }
                 }
               },
               "example": {
-                "round": "finals"
+                "name": "Midnight Mojito"
               }
             }
           }
@@ -1711,10 +1630,10 @@
                 "example": {
                   "scores": [
                     {
-                      "id": "user1_entry1",
+                      "id": "user1_matchup1_entry1",
                       "entryId": "entry-1",
                       "userId": "user-1",
-                      "round": "finals",
+                      "matchupId": "matchup-1",
                       "breakdown": {
                         "aroma": 8,
                         "balance": 7,
