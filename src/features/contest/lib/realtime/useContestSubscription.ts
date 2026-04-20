@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { initializeFirebase } from '../firebase/config';
 import { useContestStore } from '../../contexts/contest/ContestContext';
+import { useAuth } from '../../contexts/auth/AuthContext';
 import { createPacedSubscription } from './firestoreSubscription';
 import type { Contest, Voter } from '../../contexts/contest/contestTypes';
 
@@ -23,9 +24,11 @@ function contestFromSnapshot(id: string, data: Record<string, unknown>): Contest
  */
 export function useContestSubscription(contestId: string | null) {
   const { upsertContest } = useContestStore();
+  const { session } = useAuth();
+  const firebaseUid = session?.firebaseUid ?? null;
 
   useEffect(() => {
-    if (!contestId) return;
+    if (!contestId || !firebaseUid) return;
 
     const { db } = initializeFirebase();
     if (!db) return;
@@ -37,5 +40,5 @@ export function useContestSubscription(contestId: string | null) {
       contestFromSnapshot,
       upsertContest,
     );
-  }, [contestId, upsertContest]);
+  }, [contestId, firebaseUid, upsertContest]);
 }

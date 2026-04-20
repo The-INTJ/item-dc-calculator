@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { initializeFirebase } from '../firebase/config';
 import { useContestStore } from '../../contexts/contest/ContestContext';
+import { useAuth } from '../../contexts/auth/AuthContext';
 import { subscribeToMatchups } from './firestoreSubscription';
 import type { Matchup } from '../../contexts/contest/contestTypes';
 
@@ -27,9 +28,11 @@ function matchupFromSnapshot(id: string, data: Record<string, unknown>): Matchup
  */
 export function useMatchupsSubscription(contestId: string | null) {
   const { setMatchupsForContest } = useContestStore();
+  const { session } = useAuth();
+  const firebaseUid = session?.firebaseUid ?? null;
 
   useEffect(() => {
-    if (!contestId) return;
+    if (!contestId || !firebaseUid) return;
 
     const { db } = initializeFirebase();
     if (!db) return;
@@ -37,5 +40,5 @@ export function useMatchupsSubscription(contestId: string | null) {
     return subscribeToMatchups(db, contestId, matchupFromSnapshot, (matchups) => {
       setMatchupsForContest(contestId, matchups);
     });
-  }, [contestId, setMatchupsForContest]);
+  }, [contestId, firebaseUid, setMatchupsForContest]);
 }

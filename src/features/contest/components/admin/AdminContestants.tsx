@@ -11,11 +11,13 @@ interface AdminContestantsProps {
 
 function ContestantRow({
   entry,
+  contestantLabel,
   placedLabel,
   onUpdate,
   onRemove,
 }: {
   entry: Entry;
+  contestantLabel: string;
   placedLabel: string;
   onUpdate: (updates: Partial<Entry>) => Promise<void>;
   onRemove: () => Promise<void>;
@@ -36,7 +38,7 @@ function ContestantRow({
 
   return (
     <li className="admin-detail-item admin-contestant-item">
-      <strong>{entry.submittedBy}</strong>
+      <strong>{contestantLabel}</strong>
       <input
         className="admin-contestant-input"
         value={entry.name ?? ''}
@@ -93,10 +95,15 @@ export function AdminContestants({ contest, matchups }: AdminContestantsProps) {
     return `Round ${placement.roundIndex + 1}`;
   };
 
-  const assignedNames = new Set(entries.map((e) => e.submittedBy?.toLowerCase()));
-  const availableVoters = (contest.voters ?? []).filter(
-    (v) => !assignedNames.has(v.displayName.toLowerCase()),
+  const voterById = useMemo(
+    () => new Map((contest.voters ?? []).map((v) => [v.id, v])),
+    [contest.voters],
   );
+  const contestantLabel = (entry: Entry) =>
+    voterById.get(entry.submittedBy)?.displayName ?? entry.submittedBy;
+
+  const assignedVoterIds = new Set(entries.map((e) => e.submittedBy));
+  const availableVoters = (contest.voters ?? []).filter((v) => !assignedVoterIds.has(v.id));
 
   const handleAdd = async () => {
     if (!selectedVoterId) return;
@@ -182,6 +189,7 @@ export function AdminContestants({ contest, matchups }: AdminContestantsProps) {
             <ContestantRow
               key={entry.id}
               entry={entry}
+              contestantLabel={contestantLabel(entry)}
               placedLabel={placedLabel(entry.id)}
               onUpdate={async (updates) => {
                 await updateContestant(contest.id, entry.id, updates);
