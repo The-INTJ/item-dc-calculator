@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { computeBracketStructure } from './bracketMath';
+import {
+  computeBracketStructure,
+  getBracketGridRowCount,
+  getMatchupGridPlacement,
+} from './bracketMath';
 
 describe('computeBracketStructure', () => {
   it('returns empty structure for 0 rounds', () => {
@@ -57,5 +61,41 @@ describe('computeBracketStructure', () => {
     const result = computeBracketStructure(-1);
     expect(result.totalRounds).toBe(0);
     expect(result.rounds).toEqual([]);
+  });
+});
+
+describe('getBracketGridRowCount', () => {
+  it('returns 0 for no rounds', () => {
+    expect(getBracketGridRowCount(0)).toBe(0);
+  });
+
+  it('returns 2 ** totalRounds for positive counts', () => {
+    expect(getBracketGridRowCount(1)).toBe(2);
+    expect(getBracketGridRowCount(2)).toBe(4);
+    expect(getBracketGridRowCount(3)).toBe(8);
+    expect(getBracketGridRowCount(4)).toBe(16);
+  });
+});
+
+describe('getMatchupGridPlacement', () => {
+  it('places round 0 matchups two rows each starting at row 1', () => {
+    // 3 rounds, 4 matchups in round 0 → rows [1-2], [3-4], [5-6], [7-8]
+    expect(getMatchupGridPlacement(0, 0)).toEqual({ rowStart: 1, rowSpan: 2 });
+    expect(getMatchupGridPlacement(0, 1)).toEqual({ rowStart: 3, rowSpan: 2 });
+    expect(getMatchupGridPlacement(0, 2)).toEqual({ rowStart: 5, rowSpan: 2 });
+    expect(getMatchupGridPlacement(0, 3)).toEqual({ rowStart: 7, rowSpan: 2 });
+  });
+
+  it('places round 1 matchups centered between their two feeders', () => {
+    // Round 1 slot 0 spans rows 1-4 (centered on the boundary of feeders in rows 1-2 and 3-4)
+    expect(getMatchupGridPlacement(1, 0)).toEqual({ rowStart: 1, rowSpan: 4 });
+    expect(getMatchupGridPlacement(1, 1)).toEqual({ rowStart: 5, rowSpan: 4 });
+  });
+
+  it('places the final round matchup across the full bracket height', () => {
+    // 3-round bracket: final spans 8 rows
+    expect(getMatchupGridPlacement(2, 0)).toEqual({ rowStart: 1, rowSpan: 8 });
+    // 4-round bracket: final spans 16 rows
+    expect(getMatchupGridPlacement(3, 0)).toEqual({ rowStart: 1, rowSpan: 16 });
   });
 });

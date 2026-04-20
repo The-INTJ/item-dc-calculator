@@ -18,8 +18,8 @@ function contestFromSnapshot(id: string, data: Record<string, unknown>): Contest
  * Subscribes to real-time updates for a single contest document.
  *
  * Entry aggregates (sumScore, voteCount) update live as votes come in,
- * so BracketView scores refresh automatically. Uses paced subscriptions
- * to batch rapid concurrent votes into fewer React state updates.
+ * so round cards refresh automatically. Uses paced subscriptions to batch
+ * rapid concurrent votes into fewer React state updates.
  */
 export function useContestSubscription(contestId: string | null) {
   const { upsertContest } = useContestStore();

@@ -17,6 +17,14 @@
   box-shadow: 0 20px 60px rgba(79, 70, 229, 0.35);
 }
 
+.contest-hero__display-link {
+  display: none;
+
+  @media (min-width: 900px) {
+    display: inline-flex;
+  }
+}
+
 .contest-hero h1 {
   font-size: contest.$font-size-massive;
   margin-bottom: 0.5rem;

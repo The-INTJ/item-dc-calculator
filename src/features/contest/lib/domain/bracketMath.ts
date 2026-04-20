@@ -62,3 +62,27 @@ export function computeBracketStructure(numRounds: number): BracketStructure {
 
   return { totalRounds: numRounds, totalContestants, rounds };
 }
+
+export interface MatchupGridPlacement {
+  rowStart: number;
+  rowSpan: number;
+}
+
+/**
+ * Placement of a single matchup inside a CSS Grid column whose row count is
+ * `getBracketGridRowCount(totalRounds)`. Each subsequent round doubles the
+ * span, which naturally vertically centers a winner between its two feeders.
+ */
+export function getMatchupGridPlacement(roundIndex: number, slotIndex: number): MatchupGridPlacement {
+  const rowSpan = 2 ** (roundIndex + 1);
+  const rowStart = slotIndex * rowSpan + 1;
+  return { rowStart, rowSpan };
+}
+
+/**
+ * Total number of rows a bracket of `totalRounds` rounds needs for matchup
+ * placement. Matches `2 ** totalRounds` (the number of round-0 contestants).
+ */
+export function getBracketGridRowCount(totalRounds: number): number {
+  return totalRounds > 0 ? 2 ** totalRounds : 0;
+}

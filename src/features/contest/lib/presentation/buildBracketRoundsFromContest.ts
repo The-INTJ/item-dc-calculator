@@ -1,7 +1,28 @@
-import type { BracketRound } from '../../components/ui/BracketView';
 import type { Contest } from '../../contexts/contest/contestTypes';
 import { getContestRounds, getEntriesForRound, getEntryScore, getRoundStatus } from '../domain/contestGetters';
 import { buildEntryPairs } from './uiMappings';
+
+export type BracketRoundStatus = 'upcoming' | 'active' | 'closed';
+
+export interface BracketContestant {
+  id: string;
+  name: string;
+  score?: number | null;
+}
+
+export interface BracketMatchup {
+  id: string;
+  contestantA: BracketContestant;
+  contestantB: BracketContestant;
+  winnerId?: string | null;
+}
+
+export interface BracketRound {
+  id: string;
+  name: string;
+  status: BracketRoundStatus;
+  matchups: BracketMatchup[];
+}
 
 export function buildBracketRoundsFromContest(contest: Contest): BracketRound[] {
   const rounds = getContestRounds(contest);

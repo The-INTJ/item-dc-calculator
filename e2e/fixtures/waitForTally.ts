@@ -34,25 +34,13 @@ export async function waitForEntryScore(
 }
 
 async function readEntryScore(page: Page, entryName: string): Promise<string | null> {
-  // Face-off layout (single round)
-  const faceOff = page
-    .locator('.contest-face-off__contestant', { hasText: entryName })
-    .locator('.contest-face-off__score')
+  const row = page
+    .locator('.contest-rounds__matchup-row', { hasText: entryName })
+    .locator('.contest-rounds__matchup-score')
     .first();
-  if ((await faceOff.count()) > 0) {
-    const text = await faceOff.textContent();
+  if ((await row.count()) > 0) {
+    const text = await row.textContent();
     return text?.trim() ?? null;
   }
-
-  // Bracket layout (2+ rounds)
-  const bracket = page
-    .locator('.contest-matchup-card__team', { hasText: entryName })
-    .locator('.contest-matchup-card__score')
-    .first();
-  if ((await bracket.count()) > 0) {
-    const text = await bracket.textContent();
-    return text?.trim() ?? null;
-  }
-
   return null;
 }

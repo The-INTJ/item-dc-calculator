@@ -31,10 +31,9 @@ test('three voters complete a round concurrently — tally aggregates on every p
 
   await Promise.all(pages.map((p) => p.goto(url)));
 
-  // Hydration gate — confirm the face-off round is actionable on each page
-  // by waiting for the round card as a button, not just the static heading.
+  // Hydration gate — confirm the active round's Vote CTA is present on each page.
   for (const p of pages) {
-    await expect(p.getByRole('button', { name: /round 1/i }).first()).toBeVisible();
+    await expect(p.getByRole('button', { name: /vote this round/i }).first()).toBeVisible();
   }
 
   // Initial tally — no votes yet
@@ -59,7 +58,7 @@ test('three voters complete a round concurrently — tally aggregates on every p
 });
 
 async function submitVoteInUI(page: Page, scores: VoteScores): Promise<void> {
-  await page.getByRole('button', { name: /round 1/i }).first().click();
+  await page.getByRole('button', { name: /vote this round/i }).first().click();
 
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();

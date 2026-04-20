@@ -56,3 +56,314 @@
 .contest-round-card--compact .contest-round-card__meta {
   display: none;
 }
+
+/* =====================================================================
+ * Contest Rounds Navigator
+ * Mobile-first: tab strip + hero card focused on the active round.
+ * ===================================================================== */
+
+.contest-rounds {
+  display: grid;
+  gap: $space-gap-loose;
+  width: 100%;
+}
+
+.contest-rounds__tabs {
+  align-items: stretch;
+  display: flex;
+  gap: $space-lg;
+  overflow-x: auto;
+  padding: $space-xs 0 $space-base;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    height: 0;
+    width: 0;
+  }
+
+  @media (min-width: 900px) {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    padding: 0;
+  }
+}
+
+.contest-rounds__tab {
+  align-items: flex-start;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: $radius-lg;
+  color: $color-text-dark;
+  cursor: pointer;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  font-family: inherit;
+  gap: 0.15rem;
+  min-width: 7.5rem;
+  padding: $space-lg $space-padding-md;
+  scroll-snap-align: start;
+  text-align: left;
+  transition: background $transition-base, border-color $transition-base, transform $transition-fast,
+    box-shadow $transition-base;
+
+  &:hover {
+    background: rgba(15, 23, 42, 0.07);
+    border-color: rgba(15, 23, 42, 0.18);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
+  }
+}
+
+.contest-rounds__tab--viewed {
+  background: $color-surface;
+  border-color: rgba(34, 211, 238, 0.5);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12), 0 0 0 3px rgba(34, 211, 238, 0.18);
+  transform: translateY(-1px);
+
+  &:hover {
+    background: $color-surface;
+    border-color: $color-primary;
+  }
+}
+
+.contest-rounds__tab--active .contest-rounds__tab-status {
+  color: $color-primary-hover;
+  font-weight: $font-weight-bold;
+}
+
+.contest-rounds__tab--closed {
+  opacity: 0.75;
+
+  .contest-rounds__tab-status {
+    color: $color-success-700;
+  }
+}
+
+.contest-rounds__tab--upcoming {
+  opacity: 0.85;
+
+  .contest-rounds__tab-status {
+    color: $color-gray-500;
+  }
+}
+
+.contest-rounds__tab-label {
+  font-size: $font-size-normal;
+  font-weight: $font-weight-semibold;
+  line-height: 1.1;
+}
+
+.contest-rounds__tab-status {
+  @include type-label;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+}
+
+.contest-rounds__hero {
+  background: $color-surface;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: $radius-card;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+  display: grid;
+  gap: $space-gap-normal;
+  padding: $space-padding-lg;
+  position: relative;
+  transition: border-color $transition-base, box-shadow $transition-base;
+
+  @media (min-width: 640px) {
+    padding: $space-padding-xl;
+  }
+}
+
+.contest-rounds__hero--active {
+  border-color: rgba(34, 211, 238, 0.45);
+  box-shadow: 0 18px 60px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(34, 211, 238, 0.22);
+}
+
+.contest-rounds__hero-header {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.contest-rounds__eyebrow {
+  @include type-label;
+  color: $color-primary-hover;
+  margin: 0;
+}
+
+.contest-rounds__hero--closed .contest-rounds__eyebrow {
+  color: $color-success-700;
+}
+
+.contest-rounds__hero--upcoming .contest-rounds__eyebrow {
+  color: $color-gray-500;
+}
+
+.contest-rounds__hero-title {
+  color: $color-text-dark;
+  font-size: clamp(1.5rem, 4vw, 2.1rem);
+  font-weight: $font-weight-bold;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.contest-rounds__matchups {
+  display: grid;
+  gap: $space-base;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.contest-rounds__matchup {
+  background: $color-light-100;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: $radius-md;
+  display: grid;
+  gap: $space-xs;
+  padding: $space-lg $space-padding-md;
+}
+
+.contest-rounds__matchup-row {
+  align-items: baseline;
+  display: flex;
+  gap: $space-lg;
+  justify-content: space-between;
+}
+
+.contest-rounds__matchup-row--winner {
+  color: $color-primary-hover;
+  font-weight: $font-weight-bold;
+}
+
+.contest-rounds__matchup-name {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contest-rounds__matchup-score {
+  font-size: $font-size-large;
+  font-variant-numeric: tabular-nums;
+  font-weight: $font-weight-semibold;
+  min-width: 2ch;
+  text-align: right;
+}
+
+.contest-rounds__empty {
+  color: $color-text-dark;
+  margin: 0;
+  opacity: 0.7;
+}
+
+.contest-rounds__vote-cta {
+  background: linear-gradient(135deg, #0ea5e9, #7c3aed);
+  border: none;
+  border-radius: $radius-lg;
+  color: $color-text-light;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: $font-size-large;
+  font-weight: $font-weight-bold;
+  margin-top: $space-base;
+  padding: $space-padding-md $space-padding-lg;
+  transition: transform $transition-fast, box-shadow $transition-base, filter $transition-base;
+  width: 100%;
+
+  &:hover {
+    box-shadow: 0 14px 32px rgba(124, 58, 237, 0.35);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 3px;
+  }
+
+  @media (min-width: 640px) {
+    justify-self: start;
+    width: auto;
+  }
+}
+
+.contest-rounds__hint {
+  @include type-small;
+  color: $color-text-dark;
+  margin: 0;
+  opacity: 0.7;
+}
+
+/* =====================================================================
+ * Contestant CTA (Be a <contestant>)
+ * ===================================================================== */
+
+.contestant-cta {
+  display: grid;
+  gap: $space-lg;
+  max-width: 28rem;
+  width: 100%;
+}
+
+.contestant-cta__prompt {
+  @include type-small;
+  color: $color-text-dark;
+  margin: 0;
+  opacity: 0.75;
+}
+
+.contestant-cta__input {
+  background: $color-surface;
+  border: 1px solid $color-input-border;
+  border-radius: $radius-button;
+  color: $color-text-dark;
+  font-family: inherit;
+  font-size: $font-size-normal;
+  padding: $space-padding-sm $space-padding-md;
+  transition: border-color $transition-base, box-shadow $transition-base;
+  width: 100%;
+
+  &:focus {
+    border-color: $color-primary;
+    box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.18);
+    outline: none;
+  }
+}
+
+.contestant-cta__button {
+  background: #0f172a;
+  border: none;
+  border-radius: $radius-lg;
+  color: $color-text-light;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: $font-size-normal;
+  font-weight: $font-weight-bold;
+  padding: $space-padding-sm $space-padding-lg;
+  transition: transform $transition-fast, box-shadow $transition-base, background $transition-base;
+
+  &:hover:not(:disabled) {
+    background: #1e293b;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.25);
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}
