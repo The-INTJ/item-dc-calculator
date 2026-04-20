@@ -1,7 +1,8 @@
-import { fromProviderResult, jsonError, jsonSuccess, readJsonBody } from '../../_lib/http';
-import { loadProvider } from '../../_lib/provider';
+import { NextResponse } from 'next/server';
+import { fromProviderResult, jsonError, jsonSuccess, parseBody } from '../../_lib/http';
+import { loadProvider } from '@/contest/lib/backend/serverProvider';
 import { requireAdmin } from '../../_lib/requireAdmin';
-import type { ContestConfigItem } from '@/contest/contexts/contest/contestTypes';
+import { UpdateContestConfigBodySchema } from '@/contest/lib/schemas';
 
 interface RouteParams {
   params: Promise<{ configId: string }>;
@@ -28,7 +29,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   const { configId } = await params;
   const provider = await loadProvider();
 
-  const body = await readJsonBody<Partial<ContestConfigItem>>(request);
+  const body = await parseBody(request, UpdateContestConfigBodySchema);
   if (!body.ok) {
     return body.response;
   }
@@ -52,5 +53,5 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     return jsonError(result.error ?? 'Config not found', 404);
   }
 
-  return jsonSuccess({ success: true });
+  return new NextResponse(null, { status: 204 });
 }

@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { loadProvider } from '@/app/api/contest/_lib/provider';
+import { loadProvider } from '@/contest/lib/backend/serverProvider';
 import ContestPageClient from './ContestPageClient';
 
 export const dynamic = 'force-dynamic';

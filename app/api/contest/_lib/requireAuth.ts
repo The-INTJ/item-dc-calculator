@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUserFromRequest, type ServerUser } from '@/contest/lib/api/serverAuth';
+import { getCurrentUserFromRequest, type ServerUser } from '@/contest/lib/server/serverAuth';
 
 type AuthSuccess = { user: ServerUser; response: null };
 type AuthFailure = { user: null; response: NextResponse };

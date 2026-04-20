@@ -1,5 +1,5 @@
 import { jsonError, jsonSuccess } from '../_lib/http';
-import { loadProvider } from '../_lib/provider';
+import { loadProvider } from '@/contest/lib/backend/serverProvider';
 
 export async function GET() {
   const provider = await loadProvider();

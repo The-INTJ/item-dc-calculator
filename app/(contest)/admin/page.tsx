@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/contest/lib/api/serverAuth';
+import { getCurrentUser } from '@/contest/lib/server/serverAuth';
 import { AdminDashboard } from '@/contest/components/admin/AdminDashboard';
 
 export const dynamic = 'force-dynamic';

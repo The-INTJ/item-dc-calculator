@@ -28,59 +28,13 @@ service cloud.firestore {
       return currentRole() == 'admin';
     }
 
-    function validOptionalString(data, field) {
-      return !data.keys().hasAny([field]) || data[field] is string;
-    }
-
-    function validOptionalNullableString(data, field) {
-      return !data.keys().hasAny([field]) || data[field] is string || data[field] == null;
-    }
-
-    function validUserCreate(data) {
-      return data.keys().hasOnly([
-          'displayName',
-          'email',
-          'role',
-          'avatarUrl',
-          'createdAt',
-          'updatedAt'
-        ])
-        && data.displayName is string
-        && data.displayName.size() > 0
-        && data.displayName.size() <= 80
-        && data.role == 'voter'
-        && validOptionalString(data, 'email')
-        && validOptionalNullableString(data, 'avatarUrl')
-        && data.createdAt == request.time
-        && data.updatedAt == request.time;
-    }
-
-    function validUserUpdate() {
-      return request.resource.data.keys().hasOnly([
-          'displayName',
-          'email',
-          'role',
-          'avatarUrl',
-          'createdAt',
-          'updatedAt'
-        ])
-        && request.resource.data.displayName is string
-        && request.resource.data.displayName.size() > 0
-        && request.resource.data.displayName.size() <= 80
-        && request.resource.data.role == resource.data.role
-        && request.resource.data.createdAt == resource.data.createdAt
-        && request.resource.data.updatedAt == request.time
-        && (!request.resource.data.keys().hasAny(['email']) || request.resource.data.email == resource.data.email)
-        && validOptionalNullableString(request.resource.data, 'avatarUrl');
-    }
-
-    // Users: self-service profile management (auth provider writes directly)
+    // Users: all writes go through API routes (Admin SDK bypasses rules).
+    // Clients may read their own profile for realtime/SDK access; admins may
+    // list the collection for admin UI.
     match /users/{uid} {
       allow get: if isSelf(uid);
       allow list: if isAdmin();
-      allow create: if isSelf(uid) && validUserCreate(request.resource.data);
-      allow update: if isSelf(uid) && validUserUpdate();
-      allow delete: if false;
+      allow write: if false;
     }
 
     // Configs: read-only from client; all writes go through API routes

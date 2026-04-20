@@ -1,7 +1,7 @@
-import { fromProviderResult, jsonError, jsonSuccess, readJsonBody } from '../_lib/http';
-import { loadProvider } from '../_lib/provider';
+import { fromProviderResult, jsonError, jsonSuccess, parseBody } from '../_lib/http';
+import { loadProvider } from '@/contest/lib/backend/serverProvider';
 import { requireAdmin } from '../_lib/requireAdmin';
-import type { Contest } from '@/contest/contexts/contest/contestTypes';
+import { CreateContestBodySchema } from '@/contest/lib/schemas';
 
 export async function GET(request: Request) {
   const provider = await loadProvider();
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   if (adminError) {
     return adminError;
   }
-  const body = await readJsonBody<Omit<Contest, 'id' | 'entries' | 'voters'>>(request);
+  const body = await parseBody(request, CreateContestBodySchema);
   if (!body.ok) {
     return body.response;
   }

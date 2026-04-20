@@ -4,7 +4,7 @@ import { GET, POST } from './route';
 const loadProviderMock = vi.fn();
 const requireAdminMock = vi.fn();
 
-vi.mock('../_lib/provider', () => ({
+vi.mock('@/contest/lib/backend/serverProvider', () => ({
   loadProvider: () => loadProviderMock(),
 }));
 
@@ -57,13 +57,34 @@ describe('/api/contest/contests route', () => {
 
   it('creates a contest through the provider on POST', async () => {
     requireAdminMock.mockResolvedValue(null);
-    const create = vi.fn().mockResolvedValue({
-      success: true,
-      data: { id: 'contest-1', name: 'Bracket Bash' },
-    });
+    const created = {
+      id: 'contest-1',
+      name: 'Bracket Bash',
+      slug: 'bracket-bash',
+      phase: 'set' as const,
+    };
+    const create = vi.fn().mockResolvedValue({ success: true, data: created });
     loadProviderMock.mockResolvedValue({
       contests: { create },
     });
+
+    const requestBody = { name: 'Bracket Bash', slug: 'bracket-bash', phase: 'set' };
+    const response = await POST(
+      new Request('http://localhost/api/contest/contests', {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+
+    expect(create).toHaveBeenCalledWith(requestBody);
+    expect(response.status).toBe(201);
+    await expect(response.json()).resolves.toEqual(created);
+  });
+
+  it('rejects a contest POST with an invalid body', async () => {
+    requireAdminMock.mockResolvedValue(null);
+    loadProviderMock.mockResolvedValue({ contests: { create: vi.fn() } });
 
     const response = await POST(
       new Request('http://localhost/api/contest/contests', {
@@ -73,8 +94,11 @@ describe('/api/contest/contests route', () => {
       }),
     );
 
-    expect(create).toHaveBeenCalledWith({ name: 'Bracket Bash' });
-    expect(response.status).toBe(201);
-    await expect(response.json()).resolves.toEqual({ id: 'contest-1', name: 'Bracket Bash' });
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.message).toBe('Invalid request body');
+    expect(body.errors).toEqual(
+      expect.arrayContaining([expect.stringContaining('slug')]),
+    );
   });
 });

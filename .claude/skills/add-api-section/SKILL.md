@@ -16,24 +16,55 @@ This skill guides you through adding a complete, documented API section followin
 ## Gold Standard: Entries Section
 
 The Entries section is the reference implementation. It includes:
+
 - **File structure**: `app/api/contest/[resource]/route.ts` files
+- **Zod-first schemas**: Request bodies validated with zod, types inferred from the same definition
 - **CRUD operations**: GET (list), POST (create), GET (single), PATCH (update), DELETE (delete)
-- **Type definitions**: TypeScript interfaces for request bodies
-- **Error handling**: Consistent error responses (400, 403, 404, 500)
-- **OpenAPI documentation**: Full endpoint definitions with schemas
+- **Error handling**: `jsonError`, `fromProviderResult`, `parseBody` helpers
+- **OpenAPI documentation**: `components.schemas` generated from zod; path operations hand-written
 
 ## Step 1: Plan Your Resource
 
 Define what you're adding:
+
 - **Resource name** (singular): `judges`, `rounds`, `results`, etc.
 - **Base path**: `/contests/{id}/[resource]`
 - **Operations**: Which CRUD operations does this need? (Entries has all five)
 - **Parent resource**: Is it nested under a contest? Under an entry? At the root?
 - **Data schema**: What properties does your resource have?
 
-## Step 2: Create Directory Structure
+## Step 2: Add zod schemas
 
-Create the nested route files following Entries pattern:
+Edit `src/features/contest/lib/schemas/index.ts`:
+
+```ts
+export const ResourceSchema = z
+  .object({
+    id: z.string().openapi({ example: 'resource-1' }),
+    name: z.string().openapi({ example: 'Something' }),
+    // ...
+  })
+  .openapi('Resource');
+
+export const CreateResourceBodySchema = ResourceSchema.omit({ id: true }).openapi('CreateResourceBody');
+export const UpdateResourceBodySchema = ResourceSchema.partial()
+  .omit({ id: true })
+  .openapi('UpdateResourceBody');
+
+export type Resource = z.infer<typeof ResourceSchema>;
+export type CreateResourceBody = z.infer<typeof CreateResourceBodySchema>;
+export type UpdateResourceBody = z.infer<typeof UpdateResourceBodySchema>;
+```
+
+At the bottom of the file, register each schema so it ends up in the generated spec:
+
+```ts
+register('Resource', ResourceSchema);
+register('CreateResourceBody', CreateResourceBodySchema);
+register('UpdateResourceBody', UpdateResourceBodySchema);
+```
+
+## Step 3: Create directory structure
 
 ```
 app/api/contest/contests/[id]/[resource]/
@@ -42,227 +73,192 @@ app/api/contest/contests/[id]/[resource]/
     └── route.ts                  # GET (single), PATCH (update), DELETE (delete)
 ```
 
-Example for `judges`:
-- `app/api/contest/contests/[id]/judges/route.ts`
-- `app/api/contest/contests/[id]/judges/[judgeId]/route.ts`
+## Step 4: Implement route files
 
-## Step 3: Implement Route Files
+### Collection route (`route.ts`)
 
-### Pattern: Collection Route (`route.ts`)
-
-```typescript
+```ts
 import { NextResponse } from 'next/server';
-import { getBackendProvider } from '@/contest/lib/helpers/backendProvider';
+import { fromProviderResult, jsonError, jsonSuccess, parseBody } from '../../../_lib/http';
+import { getContestByParam } from '@/contest/lib/backend/serverProvider';
+import { requireAdmin } from '../../../_lib/requireAdmin';
+import { CreateResourceBodySchema } from '@/contest/lib/schemas';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-// GET: List all [resource] for a contest
 export async function GET(request: Request, { params }: RouteParams) {
-  const { id: contestId } = await params;
-  const provider = await getBackendProvider();
+  const { id: contestParam } = await params;
+  const { provider, contest, error } = await getContestByParam(contestParam);
+  if (!contest) return jsonError(error ?? 'Contest not found', 404);
 
-  const result = await provider?.[resource]?.listByContest(contestId);
-  if (!result.success) {
-    return NextResponse.json({ message: result.error }, { status: 404 });
-  }
-
-  return NextResponse.json(result.data);
+  const result = await provider.resources.listByContest(contest.id);
+  if (!result.success) return jsonError(result.error ?? 'Resources not found', 404);
+  return jsonSuccess(result.data ?? []);
 }
 
-// POST: Create a new [resource]
 export async function POST(request: Request, { params }: RouteParams) {
-  const { id: contestId } = await params;
-  const provider = await getBackendProvider();
+  const adminError = await requireAdmin(request);
+  if (adminError) return adminError;
 
-  try {
-    const body = await request.json();
-    const result = await provider?.[resource]?.create(contestId, body);
+  const { id: contestParam } = await params;
+  const { provider, contest, error } = await getContestByParam(contestParam);
+  if (!contest) return jsonError(error ?? 'Contest not found', 404);
 
-    if (!result.success) {
-      return NextResponse.json({ message: result.error }, { status: 400 });
-    }
+  const body = await parseBody(request, CreateResourceBodySchema);
+  if (!body.ok) return body.response;
 
-    return NextResponse.json(result.data, { status: 201 });
-  } catch {
-    return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
-  }
+  const result = await provider.resources.create(contest.id, body.data);
+  return fromProviderResult(result, { failureStatus: 400, successStatus: 201 });
 }
 ```
 
-### Pattern: Item Route (`[resourceId]/route.ts`)
+### Item route (`[resourceId]/route.ts`)
 
-```typescript
+```ts
 import { NextResponse } from 'next/server';
-import { getBackendProvider } from '@/contest/lib/helpers/backendProvider';
+import { fromProviderResult, jsonError, jsonSuccess, parseBody } from '../../../../_lib/http';
+import { getContestByParam } from '@/contest/lib/backend/serverProvider';
+import { requireAdmin } from '../../../../_lib/requireAdmin';
+import { UpdateResourceBodySchema } from '@/contest/lib/schemas';
 
 interface RouteParams {
   params: Promise<{ id: string; resourceId: string }>;
 }
 
-// GET: Fetch a single [resource]
 export async function GET(request: Request, { params }: RouteParams) {
-  const { id: contestId, resourceId } = await params;
-  const provider = await getBackendProvider();
+  const { id: contestParam, resourceId } = await params;
+  const { provider, contest, error } = await getContestByParam(contestParam);
+  if (!contest) return jsonError(error ?? 'Contest not found', 404);
 
-  const result = await provider?.[resource]?.getById(contestId, resourceId);
-  if (!result.success || !result.data) {
-    return NextResponse.json({ message: result.error ?? '[Resource] not found' }, { status: 404 });
-  }
-
-  return NextResponse.json(result.data);
+  const result = await provider.resources.getById(contest.id, resourceId);
+  if (!result.success || !result.data) return jsonError(result.error ?? 'Resource not found', 404);
+  return jsonSuccess(result.data);
 }
 
-// PATCH: Update a [resource]
 export async function PATCH(request: Request, { params }: RouteParams) {
-  const { id: contestId, resourceId } = await params;
-  const provider = await getBackendProvider();
+  const adminError = await requireAdmin(request);
+  if (adminError) return adminError;
 
-  try {
-    const body = await request.json();
-    const result = await provider?.[resource]?.update(contestId, resourceId, body);
+  const { id: contestParam, resourceId } = await params;
+  const { provider, contest, error } = await getContestByParam(contestParam);
+  if (!contest) return jsonError(error ?? 'Contest not found', 404);
 
-    if (!result.success) {
-      return NextResponse.json({ message: result.error }, { status: 404 });
-    }
+  const body = await parseBody(request, UpdateResourceBodySchema);
+  if (!body.ok) return body.response;
 
-    return NextResponse.json(result.data);
-  } catch {
-    return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
-  }
+  const result = await provider.resources.update(contest.id, resourceId, body.data);
+  return fromProviderResult(result, { failureStatus: 404 });
 }
 
-// DELETE: Remove a [resource]
 export async function DELETE(request: Request, { params }: RouteParams) {
-  const { id: contestId, resourceId } = await params;
-  const provider = await getBackendProvider();
+  const adminError = await requireAdmin(request);
+  if (adminError) return adminError;
 
-  const result = await provider?.[resource]?.delete(contestId, resourceId);
-  if (!result.success) {
-    return NextResponse.json({ message: result.error }, { status: 404 });
-  }
+  const { id: contestParam, resourceId } = await params;
+  const { provider, contest, error } = await getContestByParam(contestParam);
+  if (!contest) return jsonError(error ?? 'Contest not found', 404);
 
-  return NextResponse.json({ success: true });
+  const result = await provider.resources.delete(contest.id, resourceId);
+  if (!result.success) return jsonError(result.error ?? 'Resource not found', 404);
+  return new NextResponse(null, { status: 204 });
 }
 ```
 
-## Step 4: Define TypeScript Types
+Notes on the pattern:
 
-In `contestTypes.ts`, add an interface matching your route body:
+- Use `parseBody(request, Schema)` — never hand-write JSON parsing or body validation.
+- `fromProviderResult` for pass-through of provider results; `jsonError` for explicit errors.
+- DELETE returns 204 No Content with an empty body.
+- POST returns 201 Created with the new resource.
+- Admin-only mutations call `requireAdmin`; authenticated mutations call `requireAuth`.
 
-```typescript
-export interface [ResourceRequest] {
-  [field1]: string;
-  [field2]: string;
-  // ... other properties
-}
+## Step 5: Backend provider
 
-export interface [Resource] extends [ResourceRequest] {
-  id: string;
-  // ... auto-generated fields
-}
-```
+Add a new sub-provider interface to `src/features/contest/lib/backend/types.ts`:
 
-Example from Entries:
-```typescript
-export interface Entry {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  round: string;
-  submittedBy: string;
-  // ... additional fields
+```ts
+export interface ResourcesProvider {
+  listByContest(contestId: string): Promise<ProviderResult<Resource[]>>;
+  getById(contestId: string, resourceId: string): Promise<ProviderResult<Resource | null>>;
+  create(contestId: string, data: CreateResourceBody): Promise<ProviderResult<Resource>>;
+  update(contestId: string, resourceId: string, updates: Partial<Resource>): Promise<ProviderResult<Resource>>;
+  delete(contestId: string, resourceId: string): Promise<ProviderResult<void>>;
 }
 ```
 
-## Step 5: Implement Backend Provider Methods
+Add it to `BackendProvider`, implement in `src/features/contest/lib/firebase/providers/resourcesProvider.ts`, and wire into `firebaseBackendProvider.ts`.
 
-In the backend provider (typically in contest context), add these methods:
+## Step 6: OpenAPI documentation
 
-```typescript
-[resource]: {
-  listByContest: async (contestId: string) => Promise<Result<[Resource][]>>,
-  getById: async (contestId: string, resourceId: string) => Promise<Result<[Resource]>>,
-  create: async (contestId: string, data: [ResourceRequest]) => Promise<Result<[Resource]>>,
-  update: async (contestId: string, resourceId: string, data: Partial<[ResourceRequest]>) => Promise<Result<[Resource]>>,
-  delete: async (contestId: string, resourceId: string) => Promise<Result<{ success: boolean }>>,
-}
-```
+Path operations are hand-written in `app/api/contest/openapi.json`. Add:
 
-## Step 6: Update OpenAPI Documentation
-
-Add these sections to `app/api/contest/openapi.json`:
-
-1. **Add a schema** in `components.schemas`:
-```json
-"[Resource]": {
-  "type": "object",
-  "description": "Description of your resource",
-  "properties": {
-    "id": { "type": "string", "example": "judge-1" },
-    "name": { "type": "string", "example": "Jane Doe" }
-    // ... other properties
-  },
-  "required": ["id", "name"]
-}
-```
-
-2. **Add path operations** in `paths`:
 ```json
 "/contests/{id}/[resource]": {
-  "get": { ... },
-  "post": { ... }
+  "get": { "tags": ["Resource"], "summary": "List ...", "responses": { ... } },
+  "post": { "tags": ["Resource"], "security": [{ "FirebaseBearer": [] }], "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateResourceBody" } } } }, "responses": { "201": { ... } } }
 },
 "/contests/{id}/[resource]/{resourceId}": {
   "get": { ... },
   "patch": { ... },
-  "delete": { ... }
+  "delete": { "responses": { "204": { "description": "Resource deleted" } } }
 }
 ```
 
-3. **Add a tag** in `tags` array:
-```json
-{ "name": "[Resource]", "description": "Manage [resource] for contests" }
+Reference the registered schemas via `$ref`. Do NOT hand-edit `components.schemas` — it's regenerated by `npm run docs:build` from the zod registry.
+
+Add a tag to the `tags` array at the bottom.
+
+## Step 7: Client wrapper
+
+Add methods to `src/features/contest/lib/api/contestApi.ts` that return `ProviderResult<T>`:
+
+```ts
+async listResources(contestId: string): Promise<ProviderResult<Resource[]>> {
+  return fetchProviderResult<Resource[]>(`${API}/contests/${encodeURIComponent(contestId)}/[resource]`);
+},
+
+async createResource(contestId: string, data: CreateResourceBody): Promise<ProviderResult<Resource>> {
+  return fetchProviderResult<Resource>(`${API}/contests/${encodeURIComponent(contestId)}/[resource]`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+},
+// ...
 ```
 
-Use the [Entries section](../../openapi.json#/paths/~1contests~1{id}~1entries) as a template for request/response structures.
+## Step 8: Validate
 
-## Step 7: Consistency Checklist
+- `npm run type-check`
+- `npm run lint`
+- `npm test` (add a route test using the `vi.mock('@/contest/lib/backend/serverProvider')` pattern)
+- `npm run docs:validate` — regenerates `components.schemas` then validates the spec
 
-Verify your implementation follows Entries standards:
+## Consistency checklist
 
-- [ ] Directory structure matches: `contests/[id]/[resource]/route.ts` and `[resourceId]/route.ts`
-- [ ] Both route files export GET, POST (collection) and GET, PATCH, DELETE (item)
-- [ ] Route handlers accept `Request` and `RouteParams` with proper typing
-- [ ] Error handling returns consistent status codes (400, 404, 500)
-- [ ] Backend provider has all five methods defined
-- [ ] Request body validated with TypeScript interfaces
-- [ ] All endpoints documented in OpenAPI spec with schemas
-- [ ] Tag added to OpenAPI and used in all endpoint definitions
-- [ ] Resource name used consistently (singular in URLs, consistent in code)
-- [ ] Response examples provided in OpenAPI POST/PATCH definitions
+- [ ] Zod schemas defined, registered, and TS types inferred via `z.infer`
+- [ ] Routes use `parseBody` (not `readJsonBody`) for validation
+- [ ] Admin endpoints call `requireAdmin`, authenticated endpoints call `requireAuth`
+- [ ] DELETE returns `204 No Content`, POST returns `201 Created`
+- [ ] `components.schemas` only contains generated entries (not hand-edited)
+- [ ] Path operations hand-written in `openapi.json` with correct auth, status codes, and `$ref` to zod schemas
+- [ ] Client wrapper returns `ProviderResult<T>` (no silent null returns)
+- [ ] Tag added to OpenAPI `tags` array
 
-## Step 8: Use the Update API Skill
-
-After adding routes and types, run `/update-contest-api-docs` to ensure OpenAPI docs stay synchronized.
-
-## Common Variations
+## Common variations
 
 ### Root-level resource (not nested under contest)
-```
-/api/contest/[resource]/route.ts
-/api/contest/[resource]/[resourceId]/route.ts
-```
 
-### Nested deeper than two levels
 ```
-/contests/{id}/[parent]/[parentId]/[resource]/route.ts
+app/api/contest/[resource]/route.ts
+app/api/contest/[resource]/[resourceId]/route.ts
 ```
 
 ### Read-only resource
-Implement only GET operations; skip POST, PATCH, DELETE.
+
+Implement only GET operations; skip POST, PATCH, DELETE. Do not include `security` in the path operation.
 
 ### Single item (not a collection)
+
 Implement only GET and PATCH; skip list operations.

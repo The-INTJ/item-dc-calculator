@@ -39,7 +39,8 @@ export async function fetchJson<T>(path: string, options: RequestInit = {}): Pro
 
 /**
  * Fetch from an API route and map the response to a ProviderResult<T>.
- * Used by adminApi to preserve its existing return type contract.
+ * The unified return shape lets callers distinguish loaded/loading/errored
+ * states without inventing a "null means both" convention.
  */
 export async function fetchProviderResult<T>(
   path: string,

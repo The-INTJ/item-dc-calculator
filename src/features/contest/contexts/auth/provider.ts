@@ -1,8 +1,11 @@
 /**
  * Auth provider interface for Firebase authentication.
+ *
+ * Covers Firebase Auth SDK operations only — user profile reads/writes live
+ * behind the `/api/contest/auth/*` routes and are not part of this contract.
  */
 
-import type { RegistrationData, LoginCredentials, UserProfile } from './types';
+import type { RegistrationData, LoginCredentials } from './types';
 
 export interface AuthResult {
   success: boolean;
@@ -20,7 +23,7 @@ export interface AuthProvider {
   logout(): Promise<AuthResult>;
   isAuthenticated(): boolean;
   getCurrentUid(): string | null;
-  fetchUserData(uid: string): Promise<{ profile?: UserProfile } | null>;
-  updateProfile(uid: string, updates: Partial<UserProfile>): Promise<AuthResult>;
+  getCurrentEmail(): string | null;
+  getCurrentDisplayName(): string | null;
   getIdToken(): Promise<string | null>;
 }

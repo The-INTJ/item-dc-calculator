@@ -7,9 +7,10 @@
  */
 
 import type { Contest, Entry, Voter, ScoreEntry, ScoreBreakdown, ContestConfigItem } from '../../contexts/contest/contestTypes';
+import type { UserProfile } from '../../contexts/auth/types';
 
 // Re-export core types for convenience
-export type { Contest, Entry, Voter, ScoreEntry, ScoreBreakdown, ContestConfigItem };
+export type { Contest, Entry, Voter, ScoreEntry, ScoreBreakdown, ContestConfigItem, UserProfile };
 
 /**
  * Result wrapper for async operations
@@ -97,6 +98,24 @@ export interface ConfigsProvider {
 }
 
 /**
+ * Fields a user is allowed to set on their own profile.
+ * `role` is intentionally excluded — admins set roles via separate admin flows.
+ */
+export type SelfProfileUpdates = Partial<Pick<UserProfile, 'displayName' | 'avatarUrl'>>;
+
+/**
+ * Profiles provider interface - manage the `users/{uid}` documents.
+ *
+ * Writes always happen server-side (Admin SDK) so the client never mutates
+ * its own role. Reads return null if no profile exists yet.
+ */
+export interface ProfilesProvider {
+  get(uid: string): Promise<ProviderResult<UserProfile | null>>;
+  upsert(uid: string, profile: UserProfile): Promise<ProviderResult<UserProfile>>;
+  updateSelf(uid: string, updates: SelfProfileUpdates): Promise<ProviderResult<UserProfile>>;
+}
+
+/**
  * Combined backend provider - aggregates all sub-providers
  */
 export interface BackendProvider {
@@ -106,6 +125,7 @@ export interface BackendProvider {
   voters: VotersProvider;
   scores: ScoresProvider;
   configs: ConfigsProvider;
+  profiles: ProfilesProvider;
 
   /**
    * Initialize the provider (connect to DB, load seed data, etc.)

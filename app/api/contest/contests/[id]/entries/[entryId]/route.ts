@@ -1,7 +1,8 @@
-import { fromProviderResult, jsonError, jsonSuccess, readJsonBody } from '../../../../_lib/http';
-import { getContestByParam } from '../../../../_lib/provider';
+import { NextResponse } from 'next/server';
+import { fromProviderResult, jsonError, jsonSuccess, parseBody } from '../../../../_lib/http';
+import { getContestByParam } from '@/contest/lib/backend/serverProvider';
 import { requireAdmin } from '../../../../_lib/requireAdmin';
-import type { Entry } from '@/contest/contexts/contest/contestTypes';
+import { UpdateEntryBodySchema } from '@/contest/lib/schemas';
 
 interface RouteParams {
   params: Promise<{ id: string; entryId: string }>;
@@ -33,7 +34,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return jsonError(error ?? 'Contest not found', 404);
   }
 
-  const body = await readJsonBody<Partial<Entry>>(request);
+  const body = await parseBody(request, UpdateEntryBodySchema);
   if (!body.ok) {
     return body.response;
   }
@@ -58,5 +59,5 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     return jsonError(result.error ?? 'Entry not found', 404);
   }
 
-  return jsonSuccess({ success: true });
+  return new NextResponse(null, { status: 204 });
 }

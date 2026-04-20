@@ -23,62 +23,169 @@
     "schemas": {
       "ContestPhase": {
         "type": "string",
-        "enum": ["set", "shake", "scored"],
+        "enum": [
+          "set",
+          "shake",
+          "scored"
+        ],
         "description": "Contest lifecycle state",
         "example": "shake"
       },
       "UserRole": {
         "type": "string",
-        "enum": ["admin", "voter", "competitor"],
+        "enum": [
+          "admin",
+          "voter",
+          "competitor"
+        ],
         "example": "voter"
       },
       "AttributeConfig": {
         "type": "object",
-        "description": "Configuration for a single scoring attribute",
         "properties": {
-          "id": { "type": "string", "description": "Unique identifier (lowercase alphanumeric)", "example": "aroma" },
-          "label": { "type": "string", "description": "Display name", "example": "Aroma" },
-          "description": { "type": "string", "description": "Helper text for voters", "example": "How appealing is the scent?" },
-          "min": { "type": "number", "description": "Minimum score value", "default": 0, "example": 0 },
-          "max": { "type": "number", "description": "Maximum score value", "default": 10, "example": 10 }
+          "id": {
+            "type": "string",
+            "description": "Unique identifier (lowercase alphanumeric)",
+            "example": "aroma"
+          },
+          "label": {
+            "type": "string",
+            "description": "Display name",
+            "example": "Aroma"
+          },
+          "description": {
+            "type": "string",
+            "description": "Helper text for voters",
+            "example": "How appealing is the scent?"
+          },
+          "min": {
+            "type": "number",
+            "description": "Minimum score value",
+            "example": 0
+          },
+          "max": {
+            "type": "number",
+            "description": "Maximum score value",
+            "example": 10
+          }
         },
-        "required": ["id", "label"]
+        "required": [
+          "id",
+          "label"
+        ],
+        "description": "Configuration for a single scoring attribute"
       },
       "ContestConfig": {
         "type": "object",
-        "description": "Configuration defining the contest type and scoring attributes",
         "properties": {
-          "topic": { "type": "string", "description": "Contest type", "example": "Mixology" },
-          "entryLabel": { "type": "string", "description": "Singular label for entries", "example": "Drink" },
-          "entryLabelPlural": { "type": "string", "description": "Plural label for entries", "example": "Drinks" },
+          "topic": {
+            "type": "string",
+            "example": "Mixology"
+          },
+          "entryLabel": {
+            "type": "string",
+            "example": "Drink"
+          },
+          "entryLabelPlural": {
+            "type": "string",
+            "example": "Drinks"
+          },
+          "contestantLabel": {
+            "type": "string"
+          },
+          "contestantLabelPlural": {
+            "type": "string"
+          },
           "attributes": {
             "type": "array",
-            "description": "Scoring dimensions",
-            "items": { "$ref": "#/components/schemas/AttributeConfig" }
+            "items": {
+              "$ref": "#/components/schemas/AttributeConfig"
+            },
+            "description": "Scoring dimensions"
           }
         },
-        "required": ["topic", "attributes"]
+        "required": [
+          "topic",
+          "attributes"
+        ],
+        "description": "Configuration defining the contest type and scoring attributes"
       },
       "ContestConfigItem": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ContestConfig"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "mixology"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        ],
+        "description": "Stored contest configuration with unique ID"
+      },
+      "CreateContestConfigBody": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ContestConfig"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "description": "Configuration defining the contest type and scoring attributes"
+      },
+      "UpdateContestConfigBody": {
         "type": "object",
-        "description": "Stored contest configuration with unique ID",
         "properties": {
-          "id": { "type": "string", "description": "Unique identifier", "example": "mixology" },
-          "topic": { "type": "string", "description": "Contest type", "example": "Mixology" },
-          "entryLabel": { "type": "string", "description": "Singular label for entries", "example": "Drink" },
-          "entryLabelPlural": { "type": "string", "description": "Plural label for entries", "example": "Drinks" },
+          "topic": {
+            "type": "string",
+            "example": "Mixology"
+          },
+          "entryLabel": {
+            "type": "string",
+            "example": "Drink"
+          },
+          "entryLabelPlural": {
+            "type": "string",
+            "example": "Drinks"
+          },
+          "contestantLabel": {
+            "type": "string"
+          },
+          "contestantLabelPlural": {
+            "type": "string"
+          },
           "attributes": {
             "type": "array",
-            "description": "Scoring dimensions",
-            "items": { "$ref": "#/components/schemas/AttributeConfig" }
+            "items": {
+              "$ref": "#/components/schemas/AttributeConfig"
+            },
+            "description": "Scoring dimensions"
+          },
+          "id": {
+            "type": "string",
+            "example": "mixology"
           }
-        },
-        "required": ["id", "topic", "attributes"]
+        }
       },
       "ScoreBreakdown": {
         "type": "object",
-        "description": "Dynamic score breakdown - keys are attribute IDs from the contest config",
-        "additionalProperties": { "type": "number" },
+        "additionalProperties": {
+          "type": "number"
+        },
+        "description": "Dynamic score breakdown — keys are attribute IDs from the contest config",
         "example": {
           "aroma": 8,
           "balance": 7,
@@ -87,79 +194,531 @@
           "overall": 8
         }
       },
-      "Voter": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "example": "user-1" },
-          "displayName": { "type": "string", "example": "Jane Smith" },
-          "role": { "$ref": "#/components/schemas/UserRole" },
-          "contact": { "type": "string", "example": "jane@example.com" }
-        },
-        "required": ["id", "displayName", "role"]
-      },
-      "Entry": {
-        "type": "object",
-        "description": "A contest entry (drink, chili, cosplay, performance, etc.)",
-        "properties": {
-          "id": { "type": "string", "example": "entry-1" },
-          "name": { "type": "string", "example": "Summer Sunset" },
-          "slug": { "type": "string", "example": "summer-sunset" },
-          "description": { "type": "string", "example": "A refreshing citrus cocktail with a hint of lavender" },
-          "round": { "type": "string", "example": "finals" },
-          "submittedBy": { "type": "string", "example": "John Doe" },
-          "sumScore": { "type": "number", "description": "Aggregate: sum of all vote totals for this entry", "example": 42.5 },
-          "voteCount": { "type": "integer", "description": "Aggregate: number of distinct voters", "example": 5 }
-        },
-        "required": ["id", "name", "slug", "description", "round", "submittedBy"]
-      },
       "ScoreEntry": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "example": "user1_entry1" },
-          "entryId": { "type": "string", "example": "entry-1" },
-          "userId": { "type": "string", "example": "user-1" },
-          "round": { "type": "string", "example": "finals" },
-          "breakdown": { "$ref": "#/components/schemas/ScoreBreakdown" },
-          "notes": { "type": "string", "example": "Excellent balance of flavors" }
+          "id": {
+            "type": "string",
+            "example": "user1_entry1"
+          },
+          "entryId": {
+            "type": "string",
+            "example": "entry-1"
+          },
+          "userId": {
+            "type": "string",
+            "example": "user-1"
+          },
+          "round": {
+            "type": "string",
+            "example": "finals"
+          },
+          "breakdown": {
+            "$ref": "#/components/schemas/ScoreBreakdown"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Excellent balance of flavors"
+          }
         },
-        "required": ["id", "entryId", "userId", "breakdown"]
+        "required": [
+          "id",
+          "entryId",
+          "userId",
+          "round",
+          "breakdown"
+        ]
+      },
+      "SubmitScoreBody": {
+        "type": "object",
+        "properties": {
+          "entryId": {
+            "type": "string",
+            "description": "Entry being scored"
+          },
+          "userName": {
+            "type": "string",
+            "description": "Display name for auto-registered voter (defaults to token display name)"
+          },
+          "userRole": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "categoryId": {
+            "type": "string",
+            "description": "Single category to update (must match a config attribute ID)"
+          },
+          "value": {
+            "type": "number",
+            "description": "Score value for single category"
+          },
+          "breakdown": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Partial or full ScoreBreakdown"
+          },
+          "round": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "entryId"
+        ]
+      },
+      "Voter": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "user-1"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Jane Smith"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "contact": {
+            "type": "string",
+            "example": "jane@example.com"
+          }
+        },
+        "required": [
+          "id",
+          "displayName",
+          "role"
+        ]
+      },
+      "Entry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "entry-1"
+          },
+          "name": {
+            "type": "string",
+            "example": "Summer Sunset"
+          },
+          "slug": {
+            "type": "string",
+            "example": "summer-sunset"
+          },
+          "description": {
+            "type": "string",
+            "example": "A refreshing citrus cocktail with a hint of lavender"
+          },
+          "round": {
+            "type": "string",
+            "example": "finals"
+          },
+          "submittedBy": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "sumScore": {
+            "type": "number",
+            "description": "Aggregate: sum of all vote totals for this entry",
+            "example": 42.5
+          },
+          "voteCount": {
+            "type": "integer",
+            "description": "Aggregate: number of distinct voters",
+            "example": 5
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "description",
+          "round",
+          "submittedBy"
+        ],
+        "description": "A contest entry (drink, chili, cosplay, performance, etc.)"
+      },
+      "CreateEntryBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Summer Sunset"
+          },
+          "slug": {
+            "type": "string",
+            "example": "summer-sunset"
+          },
+          "description": {
+            "type": "string",
+            "example": "A refreshing citrus cocktail with a hint of lavender"
+          },
+          "round": {
+            "type": "string",
+            "example": "finals"
+          },
+          "submittedBy": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "sumScore": {
+            "type": "number",
+            "description": "Aggregate: sum of all vote totals for this entry",
+            "example": 42.5
+          },
+          "voteCount": {
+            "type": "integer",
+            "description": "Aggregate: number of distinct voters",
+            "example": 5
+          }
+        },
+        "required": [
+          "name",
+          "slug",
+          "description",
+          "round",
+          "submittedBy"
+        ]
+      },
+      "UpdateEntryBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Summer Sunset"
+          },
+          "slug": {
+            "type": "string",
+            "example": "summer-sunset"
+          },
+          "description": {
+            "type": "string",
+            "example": "A refreshing citrus cocktail with a hint of lavender"
+          },
+          "round": {
+            "type": "string",
+            "example": "finals"
+          },
+          "submittedBy": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "sumScore": {
+            "type": "number",
+            "description": "Aggregate: sum of all vote totals for this entry",
+            "example": 42.5
+          },
+          "voteCount": {
+            "type": "integer",
+            "description": "Aggregate: number of distinct voters",
+            "example": 5
+          }
+        }
+      },
+      "ContestRound": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "number": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "state": {
+            "$ref": "#/components/schemas/ContestPhase"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "state"
+        ]
       },
       "Contest": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "example": "contest-1" },
-          "name": { "type": "string", "example": "Summer Mixoff 2024" },
-          "slug": { "type": "string", "example": "summer-mixoff-2024" },
-          "phase": { "$ref": "#/components/schemas/ContestPhase" },
-          "config": { "$ref": "#/components/schemas/ContestConfig" },
-          "location": { "type": "string", "example": "Downtown Bar" },
-          "startTime": { "type": "string", "example": "2024-07-15T18:00:00Z" },
-          "bracketRound": { "type": "string", "example": "finals" },
-          "currentEntryId": { "type": "string", "example": "entry-1" },
-          "defaultContest": { "type": "boolean", "example": true },
+          "id": {
+            "type": "string",
+            "example": "contest-1"
+          },
+          "name": {
+            "type": "string",
+            "example": "Summer Mixoff 2024"
+          },
+          "slug": {
+            "type": "string",
+            "example": "summer-mixoff-2024"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/ContestPhase"
+          },
+          "config": {
+            "$ref": "#/components/schemas/ContestConfig"
+          },
+          "location": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "bracketRound": {
+            "type": "string"
+          },
+          "currentEntryId": {
+            "type": "string"
+          },
+          "defaultContest": {
+            "type": "boolean"
+          },
+          "rounds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContestRound"
+            }
+          },
+          "activeRoundId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "futureRoundId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "entries": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Entry" }
+            "items": {
+              "$ref": "#/components/schemas/Entry"
+            }
           },
           "voters": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Voter" }
+            "items": {
+              "$ref": "#/components/schemas/Voter"
+            }
           }
         },
-        "required": ["id", "name", "slug", "phase", "entries", "voters"]
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "phase",
+          "entries",
+          "voters"
+        ]
+      },
+      "CreateContestBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Summer Mixoff 2024"
+          },
+          "slug": {
+            "type": "string",
+            "example": "summer-mixoff-2024"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/ContestPhase"
+          },
+          "config": {
+            "$ref": "#/components/schemas/ContestConfig"
+          },
+          "location": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "bracketRound": {
+            "type": "string"
+          },
+          "currentEntryId": {
+            "type": "string"
+          },
+          "defaultContest": {
+            "type": "boolean"
+          },
+          "rounds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContestRound"
+            }
+          },
+          "activeRoundId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "futureRoundId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "slug",
+          "phase"
+        ]
+      },
+      "UpdateContestBody": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "contest-1"
+          },
+          "name": {
+            "type": "string",
+            "example": "Summer Mixoff 2024"
+          },
+          "slug": {
+            "type": "string",
+            "example": "summer-mixoff-2024"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/ContestPhase"
+          },
+          "config": {
+            "$ref": "#/components/schemas/ContestConfig"
+          },
+          "location": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "bracketRound": {
+            "type": "string"
+          },
+          "currentEntryId": {
+            "type": "string"
+          },
+          "defaultContest": {
+            "type": "boolean"
+          },
+          "rounds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContestRound"
+            }
+          },
+          "activeRoundId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "futureRoundId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Entry"
+            }
+          },
+          "voters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Voter"
+            }
+          }
+        }
+      },
+      "UserProfile": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "example": "Jane Smith"
+          },
+          "email": {
+            "type": "string",
+            "example": "jane@example.com"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://example.com/avatar.png"
+          }
+        },
+        "required": [
+          "displayName",
+          "role"
+        ],
+        "description": "User profile document. Writes are only possible through the API; clients may read their own document."
+      },
+      "UpdateProfileBody": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "example": "Jane Smith"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://example.com/avatar.png"
+          }
+        }
+      },
+      "RegisterProfileBody": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "RegisterContestantBody": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "entryName": {
+            "type": "string"
+          }
+        }
       },
       "Error": {
         "type": "object",
         "properties": {
-          "message": { "type": "string", "example": "Contest not found" }
+          "message": {
+            "type": "string",
+            "example": "Contest not found"
+          }
         },
-        "required": ["message"]
-      },
-      "SuccessResponse": {
-        "type": "object",
-        "properties": {
-          "success": { "type": "boolean", "example": true }
-        }
+        "required": [
+          "message"
+        ]
       }
     }
   },
@@ -168,7 +727,9 @@
       "get": {
         "summary": "Get default contest",
         "description": "Returns the current/default contest for public display",
-        "tags": ["Contests"],
+        "tags": [
+          "Contests"
+        ],
         "responses": {
           "200": {
             "description": "Current contest or null",
@@ -179,8 +740,12 @@
                   "properties": {
                     "currentContest": {
                       "oneOf": [
-                        { "$ref": "#/components/schemas/Contest" },
-                        { "type": "null" }
+                        {
+                          "$ref": "#/components/schemas/Contest"
+                        },
+                        {
+                          "type": "null"
+                        }
                       ]
                     }
                   }
@@ -192,7 +757,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -203,14 +770,18 @@
       "get": {
         "summary": "List all contests",
         "description": "Returns all contests and the current default contest. Optionally filter by slug.",
-        "tags": ["Contests"],
+        "tags": [
+          "Contests"
+        ],
         "parameters": [
           {
             "name": "slug",
             "in": "query",
             "description": "Filter by contest slug",
             "required": false,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -220,18 +791,26 @@
               "application/json": {
                 "schema": {
                   "oneOf": [
-                    { "$ref": "#/components/schemas/Contest" },
+                    {
+                      "$ref": "#/components/schemas/Contest"
+                    },
                     {
                       "type": "object",
                       "properties": {
                         "contests": {
                           "type": "array",
-                          "items": { "$ref": "#/components/schemas/Contest" }
+                          "items": {
+                            "$ref": "#/components/schemas/Contest"
+                          }
                         },
                         "currentContest": {
                           "oneOf": [
-                            { "$ref": "#/components/schemas/Contest" },
-                            { "type": "null" }
+                            {
+                              "$ref": "#/components/schemas/Contest"
+                            },
+                            {
+                              "type": "null"
+                            }
                           ]
                         }
                       }
@@ -245,7 +824,9 @@
             "description": "Contest not found (when filtering by slug)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -254,8 +835,14 @@
       "post": {
         "summary": "Create a contest",
         "description": "Creates a new contest.",
-        "tags": ["Contests"],
-        "security": [{ "FirebaseBearer": [] }],
+        "tags": [
+          "Contests"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -263,15 +850,32 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "name": { "type": "string" },
-                  "slug": { "type": "string" },
-                  "phase": { "$ref": "#/components/schemas/ContestPhase" },
-                  "location": { "type": "string" },
-                  "startTime": { "type": "string" },
-                  "defaultContest": { "type": "boolean" },
-                  "config": { "$ref": "#/components/schemas/ContestConfig" }
+                  "name": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  },
+                  "phase": {
+                    "$ref": "#/components/schemas/ContestPhase"
+                  },
+                  "location": {
+                    "type": "string"
+                  },
+                  "startTime": {
+                    "type": "string"
+                  },
+                  "defaultContest": {
+                    "type": "boolean"
+                  },
+                  "config": {
+                    "$ref": "#/components/schemas/ContestConfig"
+                  }
                 },
-                "required": ["name", "slug"]
+                "required": [
+                  "name",
+                  "slug"
+                ]
               },
               "examples": {
                 "withCustomConfig": {
@@ -284,10 +888,22 @@
                       "entryLabel": "Photo",
                       "entryLabelPlural": "Photos",
                       "attributes": [
-                        { "id": "composition", "label": "Composition" },
-                        { "id": "lighting", "label": "Lighting" },
-                        { "id": "creativity", "label": "Creativity" },
-                        { "id": "overall", "label": "Overall" }
+                        {
+                          "id": "composition",
+                          "label": "Composition"
+                        },
+                        {
+                          "id": "lighting",
+                          "label": "Lighting"
+                        },
+                        {
+                          "id": "creativity",
+                          "label": "Creativity"
+                        },
+                        {
+                          "id": "overall",
+                          "label": "Overall"
+                        }
                       ]
                     }
                   }
@@ -301,7 +917,9 @@
             "description": "Contest created",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Contest" }
+                "schema": {
+                  "$ref": "#/components/schemas/Contest"
+                }
               }
             }
           },
@@ -309,7 +927,9 @@
             "description": "Invalid request body",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -317,7 +937,9 @@
             "description": "Admin access required",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -331,19 +953,25 @@
           "in": "path",
           "required": true,
           "description": "Contest ID or slug",
-          "schema": { "type": "string" }
+          "schema": {
+            "type": "string"
+          }
         }
       ],
       "get": {
         "summary": "Get a contest",
         "description": "Returns a single contest by ID or slug.",
-        "tags": ["Contests"],
+        "tags": [
+          "Contests"
+        ],
         "responses": {
           "200": {
             "description": "Contest details",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Contest" }
+                "schema": {
+                  "$ref": "#/components/schemas/Contest"
+                }
               }
             }
           },
@@ -351,7 +979,9 @@
             "description": "Contest not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -360,8 +990,14 @@
       "patch": {
         "summary": "Update a contest",
         "description": "Updates an existing contest. Admin only.",
-        "tags": ["Contests"],
-        "security": [{ "FirebaseBearer": [] }],
+        "tags": [
+          "Contests"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -369,14 +1005,30 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "name": { "type": "string" },
-                  "slug": { "type": "string" },
-                  "phase": { "$ref": "#/components/schemas/ContestPhase" },
-                  "location": { "type": "string" },
-                  "startTime": { "type": "string" },
-                  "currentEntryId": { "type": "string" },
-                  "defaultContest": { "type": "boolean" },
-                  "config": { "$ref": "#/components/schemas/ContestConfig" }
+                  "name": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  },
+                  "phase": {
+                    "$ref": "#/components/schemas/ContestPhase"
+                  },
+                  "location": {
+                    "type": "string"
+                  },
+                  "startTime": {
+                    "type": "string"
+                  },
+                  "currentEntryId": {
+                    "type": "string"
+                  },
+                  "defaultContest": {
+                    "type": "boolean"
+                  },
+                  "config": {
+                    "$ref": "#/components/schemas/ContestConfig"
+                  }
                 }
               },
               "example": {
@@ -391,7 +1043,9 @@
             "description": "Contest updated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Contest" }
+                "schema": {
+                  "$ref": "#/components/schemas/Contest"
+                }
               }
             }
           },
@@ -399,7 +1053,9 @@
             "description": "Invalid request body",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -407,7 +1063,9 @@
             "description": "Admin access required",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -415,7 +1073,9 @@
             "description": "Contest not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -424,22 +1084,25 @@
       "delete": {
         "summary": "Delete a contest",
         "description": "Deletes a contest by ID. Admin only.",
-        "tags": ["Contests"],
-        "security": [{ "FirebaseBearer": [] }],
+        "tags": [
+          "Contests"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
         "responses": {
-          "200": {
-            "description": "Contest deleted",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
-              }
-            }
+          "204": {
+            "description": "Contest deleted"
           },
           "403": {
             "description": "Admin access required",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -447,7 +1110,9 @@
             "description": "Contest not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -461,13 +1126,17 @@
           "in": "path",
           "required": true,
           "description": "Contest ID",
-          "schema": { "type": "string" }
+          "schema": {
+            "type": "string"
+          }
         }
       ],
       "get": {
         "summary": "List entries in a contest",
         "description": "Returns all entries for a contest.",
-        "tags": ["Entries"],
+        "tags": [
+          "Entries"
+        ],
         "responses": {
           "200": {
             "description": "List of entries",
@@ -475,7 +1144,9 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/Entry" }
+                  "items": {
+                    "$ref": "#/components/schemas/Entry"
+                  }
                 }
               }
             }
@@ -484,7 +1155,9 @@
             "description": "Contest not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -493,8 +1166,14 @@
       "post": {
         "summary": "Add an entry to a contest",
         "description": "Creates a new entry in the contest. Admin only.",
-        "tags": ["Entries"],
-        "security": [{ "FirebaseBearer": [] }],
+        "tags": [
+          "Entries"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -502,13 +1181,29 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "name": { "type": "string" },
-                  "slug": { "type": "string" },
-                  "description": { "type": "string" },
-                  "round": { "type": "string" },
-                  "submittedBy": { "type": "string" }
+                  "name": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "round": {
+                    "type": "string"
+                  },
+                  "submittedBy": {
+                    "type": "string"
+                  }
                 },
-                "required": ["name", "slug", "description", "round", "submittedBy"]
+                "required": [
+                  "name",
+                  "slug",
+                  "description",
+                  "round",
+                  "submittedBy"
+                ]
               },
               "example": {
                 "name": "Midnight Mojito",
@@ -525,7 +1220,9 @@
             "description": "Entry created",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Entry" }
+                "schema": {
+                  "$ref": "#/components/schemas/Entry"
+                }
               }
             }
           },
@@ -533,7 +1230,9 @@
             "description": "Invalid request body",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -541,7 +1240,9 @@
             "description": "Admin access required",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -555,26 +1256,34 @@
           "in": "path",
           "required": true,
           "description": "Contest ID",
-          "schema": { "type": "string" }
+          "schema": {
+            "type": "string"
+          }
         },
         {
           "name": "entryId",
           "in": "path",
           "required": true,
           "description": "Entry ID",
-          "schema": { "type": "string" }
+          "schema": {
+            "type": "string"
+          }
         }
       ],
       "get": {
         "summary": "Get an entry",
         "description": "Returns a single entry by ID.",
-        "tags": ["Entries"],
+        "tags": [
+          "Entries"
+        ],
         "responses": {
           "200": {
             "description": "Entry details",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Entry" }
+                "schema": {
+                  "$ref": "#/components/schemas/Entry"
+                }
               }
             }
           },
@@ -582,7 +1291,9 @@
             "description": "Entry not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -591,8 +1302,14 @@
       "patch": {
         "summary": "Update an entry",
         "description": "Updates an existing entry. Admin only.",
-        "tags": ["Entries"],
-        "security": [{ "FirebaseBearer": [] }],
+        "tags": [
+          "Entries"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -600,11 +1317,21 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "name": { "type": "string" },
-                  "slug": { "type": "string" },
-                  "description": { "type": "string" },
-                  "round": { "type": "string" },
-                  "submittedBy": { "type": "string" }
+                  "name": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "round": {
+                    "type": "string"
+                  },
+                  "submittedBy": {
+                    "type": "string"
+                  }
                 }
               },
               "example": {
@@ -618,7 +1345,9 @@
             "description": "Entry updated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Entry" }
+                "schema": {
+                  "$ref": "#/components/schemas/Entry"
+                }
               }
             }
           },
@@ -626,7 +1355,9 @@
             "description": "Invalid request body",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -634,7 +1365,9 @@
             "description": "Admin access required",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -642,7 +1375,9 @@
             "description": "Entry not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -651,22 +1386,25 @@
       "delete": {
         "summary": "Delete an entry",
         "description": "Removes an entry from the contest. Admin only.",
-        "tags": ["Entries"],
-        "security": [{ "FirebaseBearer": [] }],
+        "tags": [
+          "Entries"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
         "responses": {
-          "200": {
-            "description": "Entry deleted",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
-              }
-            }
+          "204": {
+            "description": "Entry deleted"
           },
           "403": {
             "description": "Admin access required",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -674,7 +1412,9 @@
             "description": "Entry not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -688,27 +1428,35 @@
           "in": "path",
           "required": true,
           "description": "Contest ID or slug",
-          "schema": { "type": "string" }
+          "schema": {
+            "type": "string"
+          }
         }
       ],
       "get": {
         "summary": "Get scores",
         "description": "Returns scores for a contest. Filter by entryId and/or userId. Scores are stored in a votes subcollection.",
-        "tags": ["Scores"],
+        "tags": [
+          "Scores"
+        ],
         "parameters": [
           {
             "name": "entryId",
             "in": "query",
             "description": "Filter by entry ID",
             "required": false,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "userId",
             "in": "query",
             "description": "Filter by user ID",
             "required": false,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -721,7 +1469,9 @@
                   "properties": {
                     "scores": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/ScoreEntry" }
+                      "items": {
+                        "$ref": "#/components/schemas/ScoreEntry"
+                      }
                     }
                   }
                 },
@@ -749,7 +1499,9 @@
             "description": "Contest not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -757,8 +1509,15 @@
       },
       "post": {
         "summary": "Submit or update a score",
-        "description": "Submits or updates a score via the votes subcollection. Accepts either a full breakdown or a single category/value pair and auto-registers the voter if not already known.",
-        "tags": ["Scores"],
+        "description": "Submits or updates a score via the votes subcollection. The userId is derived from the verified Bearer token, not the request body. Accepts either a full breakdown or a single category/value pair and auto-registers the voter if not already known.",
+        "tags": [
+          "Scores"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -766,24 +1525,45 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "entryId": { "type": "string", "description": "Entry being scored" },
-                  "userId": { "type": "string" },
-                  "userName": { "type": "string", "description": "Display name for auto-registered voter" },
-                  "userRole": { "$ref": "#/components/schemas/UserRole" },
-                  "categoryId": { "type": "string", "description": "Single category to update (must match a config attribute ID)" },
-                  "value": { "type": "number", "description": "Score value for single category" },
-                  "breakdown": { "$ref": "#/components/schemas/ScoreBreakdown" },
-                  "round": { "type": "string", "description": "Round ID (defaults to entry's round)" },
-                  "notes": { "type": "string" }
+                  "entryId": {
+                    "type": "string",
+                    "description": "Entry being scored"
+                  },
+                  "userName": {
+                    "type": "string",
+                    "description": "Display name for auto-registered voter (defaults to token display name)"
+                  },
+                  "userRole": {
+                    "$ref": "#/components/schemas/UserRole"
+                  },
+                  "categoryId": {
+                    "type": "string",
+                    "description": "Single category to update (must match a config attribute ID)"
+                  },
+                  "value": {
+                    "type": "number",
+                    "description": "Score value for single category"
+                  },
+                  "breakdown": {
+                    "$ref": "#/components/schemas/ScoreBreakdown"
+                  },
+                  "round": {
+                    "type": "string",
+                    "description": "Round ID (defaults to entry's round)"
+                  },
+                  "notes": {
+                    "type": "string"
+                  }
                 },
-                "required": ["entryId", "userId"]
+                "required": [
+                  "entryId"
+                ]
               },
               "examples": {
                 "fullBreakdown": {
                   "summary": "Submit full score breakdown",
                   "value": {
                     "entryId": "entry-1",
-                    "userId": "user-1",
                     "breakdown": {
                       "aroma": 8,
                       "balance": 7,
@@ -798,8 +1578,6 @@
                   "summary": "Submit single category score",
                   "value": {
                     "entryId": "entry-1",
-                    "userId": "guest-123",
-                    "userName": "Guest Voter",
                     "categoryId": "overall",
                     "value": 8
                   }
@@ -813,7 +1591,9 @@
             "description": "Score submitted",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ScoreEntry" }
+                "schema": {
+                  "$ref": "#/components/schemas/ScoreEntry"
+                }
               }
             }
           },
@@ -821,14 +1601,30 @@
             "description": "Invalid request body",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" },
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
                 "examples": {
                   "missingFields": {
-                    "value": { "message": "entryId and userId are required." }
+                    "value": {
+                      "message": "entryId is required."
+                    }
                   },
                   "missingScore": {
-                    "value": { "message": "Score breakdown or categoryId + value is required." }
+                    "value": {
+                      "message": "Score breakdown or categoryId + value is required."
+                    }
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -837,7 +1633,9 @@
             "description": "Contest or entry not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -845,7 +1643,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -859,14 +1659,22 @@
           "in": "path",
           "required": true,
           "description": "Contest ID or slug",
-          "schema": { "type": "string" }
+          "schema": {
+            "type": "string"
+          }
         }
       ],
       "post": {
         "summary": "Register as a contestant",
         "description": "Registers the authenticated user as a competitor in the contest. Optionally creates an entry. The userId is derived from the verified Bearer token, not the request body.",
-        "tags": ["Contests"],
-        "security": [{ "FirebaseBearer": [] }],
+        "tags": [
+          "Contests"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -874,8 +1682,14 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "displayName": { "type": "string", "description": "Display name for the voter record" },
-                  "entryName": { "type": "string", "description": "Optional entry name to create alongside registration" }
+                  "displayName": {
+                    "type": "string",
+                    "description": "Display name for the voter record"
+                  },
+                  "entryName": {
+                    "type": "string",
+                    "description": "Optional entry name to create alongside registration"
+                  }
                 }
               },
               "example": {
@@ -893,7 +1707,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "registered": { "type": "boolean", "example": true }
+                    "registered": {
+                      "type": "boolean",
+                      "example": true
+                    }
                   }
                 }
               }
@@ -903,7 +1720,9 @@
             "description": "Authentication required",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -911,7 +1730,9 @@
             "description": "Contest not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -919,7 +1740,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -930,7 +1753,9 @@
       "get": {
         "summary": "List all configurations",
         "description": "Returns all contest configurations from the datastore.",
-        "tags": ["ContestConfigs"],
+        "tags": [
+          "ContestConfigs"
+        ],
         "responses": {
           "200": {
             "description": "List of configurations",
@@ -938,7 +1763,9 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/ContestConfigItem" }
+                  "items": {
+                    "$ref": "#/components/schemas/ContestConfigItem"
+                  }
                 }
               }
             }
@@ -947,7 +1774,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -956,8 +1785,14 @@
       "post": {
         "summary": "Create a configuration",
         "description": "Creates a new contest configuration. Admin only.",
-        "tags": ["ContestConfigs"],
-        "security": [{ "FirebaseBearer": [] }],
+        "tags": [
+          "ContestConfigs"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -965,26 +1800,60 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "id": { "type": "string", "description": "Optional custom ID" },
-                  "topic": { "type": "string" },
-                  "entryLabel": { "type": "string" },
-                  "entryLabelPlural": { "type": "string" },
+                  "id": {
+                    "type": "string",
+                    "description": "Optional custom ID"
+                  },
+                  "topic": {
+                    "type": "string"
+                  },
+                  "entryLabel": {
+                    "type": "string"
+                  },
+                  "entryLabelPlural": {
+                    "type": "string"
+                  },
                   "attributes": {
                     "type": "array",
-                    "items": { "$ref": "#/components/schemas/AttributeConfig" }
+                    "items": {
+                      "$ref": "#/components/schemas/AttributeConfig"
+                    }
                   }
                 },
-                "required": ["topic", "attributes"]
+                "required": [
+                  "topic",
+                  "attributes"
+                ]
               },
               "example": {
                 "topic": "Beer Tasting",
                 "entryLabel": "Beer",
                 "entryLabelPlural": "Beers",
                 "attributes": [
-                  { "id": "appearance", "label": "Appearance", "min": 0, "max": 10 },
-                  { "id": "aroma", "label": "Aroma", "min": 0, "max": 10 },
-                  { "id": "taste", "label": "Taste", "min": 0, "max": 10 },
-                  { "id": "overall", "label": "Overall", "min": 0, "max": 10 }
+                  {
+                    "id": "appearance",
+                    "label": "Appearance",
+                    "min": 0,
+                    "max": 10
+                  },
+                  {
+                    "id": "aroma",
+                    "label": "Aroma",
+                    "min": 0,
+                    "max": 10
+                  },
+                  {
+                    "id": "taste",
+                    "label": "Taste",
+                    "min": 0,
+                    "max": 10
+                  },
+                  {
+                    "id": "overall",
+                    "label": "Overall",
+                    "min": 0,
+                    "max": 10
+                  }
                 ]
               }
             }
@@ -995,7 +1864,9 @@
             "description": "Configuration created",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ContestConfigItem" }
+                "schema": {
+                  "$ref": "#/components/schemas/ContestConfigItem"
+                }
               }
             }
           },
@@ -1003,7 +1874,9 @@
             "description": "Invalid request body",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -1011,7 +1884,9 @@
             "description": "Admin access required",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -1025,19 +1900,25 @@
           "in": "path",
           "required": true,
           "description": "Configuration ID",
-          "schema": { "type": "string" }
+          "schema": {
+            "type": "string"
+          }
         }
       ],
       "get": {
         "summary": "Get a configuration",
         "description": "Returns a single configuration by ID.",
-        "tags": ["ContestConfigs"],
+        "tags": [
+          "ContestConfigs"
+        ],
         "responses": {
           "200": {
             "description": "Configuration details",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ContestConfigItem" }
+                "schema": {
+                  "$ref": "#/components/schemas/ContestConfigItem"
+                }
               }
             }
           },
@@ -1045,7 +1926,9 @@
             "description": "Configuration not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -1054,8 +1937,14 @@
       "patch": {
         "summary": "Update a configuration",
         "description": "Updates an existing configuration. Admin only.",
-        "tags": ["ContestConfigs"],
-        "security": [{ "FirebaseBearer": [] }],
+        "tags": [
+          "ContestConfigs"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1063,12 +1952,20 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "topic": { "type": "string" },
-                  "entryLabel": { "type": "string" },
-                  "entryLabelPlural": { "type": "string" },
+                  "topic": {
+                    "type": "string"
+                  },
+                  "entryLabel": {
+                    "type": "string"
+                  },
+                  "entryLabelPlural": {
+                    "type": "string"
+                  },
                   "attributes": {
                     "type": "array",
-                    "items": { "$ref": "#/components/schemas/AttributeConfig" }
+                    "items": {
+                      "$ref": "#/components/schemas/AttributeConfig"
+                    }
                   }
                 }
               },
@@ -1084,7 +1981,9 @@
             "description": "Configuration updated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ContestConfigItem" }
+                "schema": {
+                  "$ref": "#/components/schemas/ContestConfigItem"
+                }
               }
             }
           },
@@ -1092,7 +1991,9 @@
             "description": "Invalid request body",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -1100,7 +2001,9 @@
             "description": "Admin access required",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -1108,7 +2011,9 @@
             "description": "Configuration not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -1117,22 +2022,25 @@
       "delete": {
         "summary": "Delete a configuration",
         "description": "Removes a configuration from the datastore. Admin only.",
-        "tags": ["ContestConfigs"],
-        "security": [{ "FirebaseBearer": [] }],
+        "tags": [
+          "ContestConfigs"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
         "responses": {
-          "200": {
-            "description": "Configuration deleted",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
-              }
-            }
+          "204": {
+            "description": "Configuration deleted"
           },
           "403": {
             "description": "Admin access required",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -1140,7 +2048,184 @@
             "description": "Configuration not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/profile": {
+      "get": {
+        "summary": "Get the current user's profile",
+        "description": "Returns the authenticated user's profile document.",
+        "tags": [
+          "Auth"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Profile not found (user has not registered a profile yet)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update the current user's profile",
+        "description": "Updates fields on the authenticated user's profile. `role` cannot be changed via this endpoint.",
+        "tags": [
+          "Auth"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "displayName": {
+                    "type": "string"
+                  },
+                  "avatarUrl": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/register-profile": {
+      "post": {
+        "summary": "Create (or fetch) the current user's profile",
+        "description": "Idempotent. Called by the client after signup/sign-in to ensure a profile document exists. Returns the existing profile if one already exists, otherwise creates a new profile with role=voter.",
+        "tags": [
+          "Auth"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "displayName": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "avatarUrl": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing profile returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Profile created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -1149,9 +2234,25 @@
     }
   },
   "tags": [
-    { "name": "Contests", "description": "Manage contests of any type" },
-    { "name": "Entries", "description": "Manage entries within contests (drinks, chilies, cosplays, etc.)" },
-    { "name": "Scores", "description": "Submit and retrieve scores from the votes subcollection" },
-    { "name": "ContestConfigs", "description": "Manage contest configuration templates and scoring attributes" }
+    {
+      "name": "Auth",
+      "description": "User profile and authentication helpers"
+    },
+    {
+      "name": "Contests",
+      "description": "Manage contests of any type"
+    },
+    {
+      "name": "Entries",
+      "description": "Manage entries within contests (drinks, chilies, cosplays, etc.)"
+    },
+    {
+      "name": "Scores",
+      "description": "Submit and retrieve scores from the votes subcollection"
+    },
+    {
+      "name": "ContestConfigs",
+      "description": "Manage contest configuration templates and scoring attributes"
+    }
   ]
 }

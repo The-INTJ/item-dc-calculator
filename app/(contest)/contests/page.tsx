@@ -1,6 +1,6 @@
 import SignedInLanding from '@/contest/components/home/SignedInLanding';
 import SignedOutLanding from '@/contest/components/home/SignedOutLanding';
-import { getCurrentUser } from '@/contest/lib/api/serverAuth';
+import { getCurrentUser } from '@/contest/lib/server/serverAuth';
 import ContestList from '@/contest/components/home/ContestList';
 import styles from './page.module.scss';
 

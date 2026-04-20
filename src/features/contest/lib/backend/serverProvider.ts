@@ -1,6 +1,15 @@
-import { getBackendProvider } from '@/contest/lib/backend/providerFactory';
-import type { BackendProvider, Contest } from '@/contest/lib/backend/types';
+import 'server-only';
 
+import { getBackendProvider } from './providerFactory';
+import type { BackendProvider, Contest } from './types';
+
+/**
+ * Resolve the shared backend provider (server-only).
+ *
+ * API routes and server components both call this — the provider picks up the
+ * Admin SDK automatically when running on the server. Don't import this from
+ * client code; the `server-only` import above will fail the build.
+ */
 export async function loadProvider(): Promise<BackendProvider> {
   return getBackendProvider();
 }

@@ -1,14 +1,10 @@
-import { jsonError, jsonSuccess, readJsonBody } from '../../../_lib/http';
-import { getContestByParam } from '../../../_lib/provider';
+import { jsonError, jsonSuccess, parseBody } from '../../../_lib/http';
+import { getContestByParam } from '@/contest/lib/backend/serverProvider';
 import { requireAuth } from '../../../_lib/requireAuth';
+import { RegisterContestantBodySchema } from '@/contest/lib/schemas';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
-}
-
-interface RegisterBody {
-  displayName?: string;
-  entryName?: string;
 }
 
 export async function POST(request: Request, { params }: RouteParams) {
@@ -23,7 +19,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     return jsonError(error ?? 'Contest not found', 404);
   }
 
-  const body = await readJsonBody<RegisterBody>(request);
+  const body = await parseBody(request, RegisterContestantBodySchema);
   if (!body.ok) {
     return body.response;
   }

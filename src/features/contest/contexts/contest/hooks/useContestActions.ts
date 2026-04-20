@@ -49,25 +49,28 @@ export function useContestActions(
     const trimmedName = name.trim();
     if (!trimmedName) return null;
 
-    const contest = await contestApi.createContest({
+    const result = await contestApi.createContest({
       name: trimmedName,
       slug: trimmedName.toLowerCase().replace(/\s+/g, '-'),
       phase: 'set',
     });
 
-    if (contest) replaceContest(contest);
-    return contest;
+    if (result.success && result.data) {
+      replaceContest(result.data);
+      return result.data;
+    }
+    return null;
   }, [replaceContest]);
 
   const deleteContest = useCallback(async (contestId: string): Promise<boolean> => {
-    const success = await contestApi.deleteContest(contestId);
-    if (success) {
+    const result = await contestApi.deleteContest(contestId);
+    if (result.success) {
       updateState((prev) => {
         const contests = prev.contests.filter((c) => c.id !== contestId);
         return { ...prev, contests };
       });
     }
-    return success;
+    return result.success;
   }, [updateState]);
 
   const addRound = useCallback(async (contestId: string): Promise<boolean> => {
@@ -82,9 +85,9 @@ export function useContestActions(
       state: 'set',
     };
 
-    const updated = await contestApi.updateContest(contestId, { rounds: [...rounds, newRound] });
-    if (updated) replaceContest(updated);
-    return updated !== null;
+    const result = await contestApi.updateContest(contestId, { rounds: [...rounds, newRound] });
+    if (result.success && result.data) replaceContest(result.data);
+    return result.success;
   }, [getContestById, replaceContest]);
 
   const updateRound = useCallback(async (contestId: string, roundId: string, updates: Partial<ContestRound>): Promise<boolean> => {
@@ -92,9 +95,9 @@ export function useContestActions(
     if (!contest) return false;
 
     const rounds = (contest.rounds ?? []).map((r) => r.id === roundId ? { ...r, ...updates } : r);
-    const updated = await contestApi.updateContest(contestId, { rounds });
-    if (updated) replaceContest(updated);
-    return updated !== null;
+    const result = await contestApi.updateContest(contestId, { rounds });
+    if (result.success && result.data) replaceContest(result.data);
+    return result.success;
   }, [getContestById, replaceContest]);
 
   const removeRound = useCallback(async (contestId: string, roundId: string): Promise<boolean> => {
@@ -106,15 +109,15 @@ export function useContestActions(
       .map((r, i) => ({ ...r, name: `Round ${i + 1}`, number: i + 1 }));
     const entries = contest.entries?.map((e) => e.round === roundId ? { ...e, round: '' } : e);
 
-    const updated = await contestApi.updateContest(contestId, { rounds, entries });
-    if (updated) replaceContest(updated);
-    return updated !== null;
+    const result = await contestApi.updateContest(contestId, { rounds, entries });
+    if (result.success && result.data) replaceContest(result.data);
+    return result.success;
   }, [getContestById, replaceContest]);
 
   const setActiveRound = useCallback(async (contestId: string, roundId: string): Promise<boolean> => {
-    const updated = await contestApi.updateContest(contestId, { activeRoundId: roundId });
-    if (updated) replaceContest(updated);
-    return updated !== null;
+    const result = await contestApi.updateContest(contestId, { activeRoundId: roundId });
+    if (result.success && result.data) replaceContest(result.data);
+    return result.success;
   }, [replaceContest]);
 
   const setRoundState = useCallback(async (contestId: string, roundId: string, newState: ContestPhase): Promise<boolean> => {
@@ -122,16 +125,16 @@ export function useContestActions(
     if (!contest) return false;
 
     const rounds = (contest.rounds ?? []).map((r) => r.id === roundId ? { ...r, state: newState } : r);
-    const updated = await contestApi.updateContest(contestId, { rounds });
-    if (updated) replaceContest(updated);
-    return updated !== null;
+    const result = await contestApi.updateContest(contestId, { rounds });
+    if (result.success && result.data) replaceContest(result.data);
+    return result.success;
   }, [getContestById, replaceContest]);
 
   const addContestant = useCallback(async (
     contestId: string,
     contestant: { name: string; entryName: string; roundId: string }
   ): Promise<Entry | null> => {
-    const entry = await contestApi.createEntry(contestId, {
+    const result = await contestApi.createEntry(contestId, {
       name: contestant.entryName,
       slug: contestant.entryName.toLowerCase().replace(/\s+/g, '-'),
       description: '',
@@ -139,20 +142,23 @@ export function useContestActions(
       submittedBy: contestant.name,
     });
 
-    if (entry) {
+    if (result.success && result.data) {
+      const entry = result.data;
       updateState((prev) => ({
         ...prev,
         contests: prev.contests.map((c) =>
           c.id === contestId ? { ...c, entries: [...(c.entries ?? []), entry] } : c
         ),
       }));
+      return entry;
     }
-    return entry;
+    return null;
   }, [updateState]);
 
   const updateContestant = useCallback(async (contestId: string, entryId: string, updates: Partial<Entry>): Promise<Entry | null> => {
-    const entry = await contestApi.updateEntry(contestId, entryId, updates);
-    if (entry) {
+    const result = await contestApi.updateEntry(contestId, entryId, updates);
+    if (result.success && result.data) {
+      const entry = result.data;
       updateState((prev) => ({
         ...prev,
         contests: prev.contests.map((c) =>
@@ -161,13 +167,14 @@ export function useContestActions(
             : c
         ),
       }));
+      return entry;
     }
-    return entry;
+    return null;
   }, [updateState]);
 
   const removeContestant = useCallback(async (contestId: string, entryId: string): Promise<boolean> => {
-    const success = await contestApi.deleteEntry(contestId, entryId);
-    if (success) {
+    const result = await contestApi.deleteEntry(contestId, entryId);
+    if (result.success) {
       updateState((prev) => ({
         ...prev,
         contests: prev.contests.map((c) =>
@@ -175,7 +182,7 @@ export function useContestActions(
         ),
       }));
     }
-    return success;
+    return result.success;
   }, [updateState]);
 
   return {

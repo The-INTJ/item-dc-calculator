@@ -55,13 +55,13 @@ export function useRoundVoting(contest: Contest | null, roundId: string | null) 
     // Fetch existing votes for pre-fill
     if (contest?.id && userId) {
       contestApi.getScoresForUser(contest.id, userId)
-        .then((scores: ScoreEntry[]) => {
+        .then((result) => {
+          const scores: ScoreEntry[] = result.success ? result.data ?? [] : [];
           if (!scores.length) {
             setScores(defaults);
             return;
           }
 
-          // Filter to entries in this round and build score map
           const roundEntryIds = new Set(drinkIds);
           const roundScores = scores.filter((s) => roundEntryIds.has(s.entryId));
           const existing = buildScoresFromEntries(roundScores, categoryIds, config);
@@ -122,7 +122,6 @@ export function useRoundVoting(contest: Contest | null, roundId: string | null) 
         allVotes.map(({ entryId, breakdown }) =>
           contestApi.submitScore(contest.id, {
             entryId,
-            userId,
             userName: session?.profile.displayName ?? 'Guest',
             userRole: role ?? 'voter',
             breakdown,
@@ -130,8 +129,9 @@ export function useRoundVoting(contest: Contest | null, roundId: string | null) 
         ),
       );
 
-      if (results.some((r) => r === null)) {
-        throw new Error('Failed to submit scores.');
+      const firstFailure = results.find((r) => !r.success);
+      if (firstFailure) {
+        throw new Error(firstFailure.error ?? 'Failed to submit scores.');
       }
 
       setStatus('success');

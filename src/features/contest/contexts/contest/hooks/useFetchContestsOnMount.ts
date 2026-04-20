@@ -41,8 +41,8 @@ export function useFetchContestsOnMount(
       }));
 
       const result = await contestApi.listContests();
-      if (result) {
-        const { contests } = result;
+      if (result.success && result.data) {
+        const { contests } = result.data;
         updateState((prev) => ({
           ...prev,
           contests,
@@ -54,7 +54,7 @@ export function useFetchContestsOnMount(
         updateState((prev) => ({
           ...prev,
           loading: false,
-          error: 'Failed to load contests from Firestore.',
+          error: result.error ?? 'Failed to load contests from the API.',
           lastUpdatedAt: Date.now(),
         }));
       }

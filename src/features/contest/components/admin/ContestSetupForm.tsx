@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { ContestConfigSetupForm } from './ContestConfigSetupForm';
 import type { AttributeConfig, ContestConfigItem } from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
-import { adminApi } from '../../lib/api/adminApi';
+import { contestApi } from '../../lib/api/contestApi';
 import {
   buildContestConfigFromDraft,
   buildContestConfigFromTemplate,
@@ -74,7 +74,7 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
 
   useEffect(() => {
     async function fetchConfigs() {
-      const result = await adminApi.listConfigs();
+      const result = await contestApi.listConfigs();
       if (!result.success) {
         setConfigsError(result.error ?? 'Failed to load configs');
         setConfigsLoading(false);
@@ -140,7 +140,7 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
       }
 
       if (configMode === 'custom' && saveAsTemplate) {
-        const configResult = await adminApi.createConfig({
+        const configResult = await contestApi.createConfig({
           topic: config.topic,
           attributes: config.attributes,
           entryLabel: config.entryLabel,
@@ -152,7 +152,7 @@ export function ContestSetupForm({ onSuccess }: ContestSetupFormProps) {
         }
       }
 
-      const createResult = await adminApi.createContest({
+      const createResult = await contestApi.createContest({
         name: name.trim(),
         slug: slug.trim(),
         phase: 'set',

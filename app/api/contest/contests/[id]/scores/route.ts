@@ -1,21 +1,11 @@
-import { jsonError, jsonSuccess, readJsonBody } from '../../../_lib/http';
-import { getContestByParam } from '../../../_lib/provider';
-import type { Entry, ScoreBreakdown, UserRole } from '@/contest/contexts/contest/contestTypes';
+import { jsonError, jsonSuccess, parseBody } from '../../../_lib/http';
+import { getContestByParam } from '@/contest/lib/backend/serverProvider';
+import { requireAuth } from '../../../_lib/requireAuth';
+import { SubmitScoreBodySchema } from '@/contest/lib/schemas';
+import type { Entry, ScoreBreakdown } from '@/contest/contexts/contest/contestTypes';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
-}
-
-interface ScoreSubmitBody {
-  entryId?: string;
-  userId?: string;
-  userName?: string;
-  userRole?: UserRole;
-  categoryId?: string;
-  value?: number;
-  breakdown?: Partial<ScoreBreakdown>;
-  round?: string;
-  notes?: string;
 }
 
 export async function GET(request: Request, { params }: RouteParams) {
@@ -52,23 +42,28 @@ export async function GET(request: Request, { params }: RouteParams) {
 }
 
 export async function POST(request: Request, { params }: RouteParams) {
+  const auth = await requireAuth(request);
+  if (auth.response) {
+    return auth.response;
+  }
+
   const { id } = await params;
   const { provider, contest, error } = await getContestByParam(id);
   if (!contest) {
     return jsonError(error ?? 'Contest not found', 404);
   }
 
-  const bodyResult = await readJsonBody<ScoreSubmitBody>(request);
+  const bodyResult = await parseBody(request, SubmitScoreBodySchema);
   if (!bodyResult.ok) {
     return bodyResult.response;
   }
 
   const body = bodyResult.data;
-  const entryId = body.entryId?.trim();
-  const userId = body.userId?.trim();
+  const entryId = body.entryId.trim();
+  const userId = auth.user.uid;
 
-  if (!entryId || !userId) {
-    return jsonError('entryId and userId are required.', 400);
+  if (!entryId) {
+    return jsonError('entryId is required.', 400);
   }
 
   const entries: Entry[] = contest.entries;
@@ -81,8 +76,8 @@ export async function POST(request: Request, { params }: RouteParams) {
   if (!voters.some((voter) => voter.id === userId)) {
     await provider.voters.create(contest.id, {
       id: userId,
-      displayName: body.userName?.trim() || 'Guest',
-      role: body.userRole ?? 'voter',
+      displayName: body.userName?.trim() || auth.user.displayName || 'Guest',
+      role: body.userRole ?? auth.user.role ?? 'voter',
     });
   }
 

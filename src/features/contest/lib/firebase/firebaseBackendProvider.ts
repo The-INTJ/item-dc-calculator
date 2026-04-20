@@ -21,6 +21,7 @@ import { createFirebaseEntriesProvider } from './providers/entriesProvider';
 import { createFirebaseVotersProvider } from './providers/votersProvider';
 import { createFirebaseScoresProvider } from './providers/scoresProvider';
 import { createFirebaseConfigsProvider } from './providers/configsProvider';
+import { createFirebaseProfilesProvider } from './providers/profilesProvider';
 import { seedDefaultConfigs } from './seedDefaultConfigs';
 
 const isServer = typeof window === 'undefined';
@@ -42,6 +43,7 @@ export function createFirebaseBackendProvider(): BackendProvider {
     voters: createFirebaseVotersProvider(adapter),
     scores: createFirebaseScoresProvider(adapter),
     configs: createFirebaseConfigsProvider(adapter),
+    profiles: createFirebaseProfilesProvider(adapter),
 
     async initialize() {
       if (isServer) {

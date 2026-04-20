@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server';
 import { requireAuth } from './requireAuth';
 
 function allowLegacyAdminHeader(request: Request): boolean {
-  const role = request.headers.get('x-contest-role');
-  const allowLegacy =
-    process.env.CONTEST_ALLOW_ADMIN_HEADER === 'true' || process.env.NODE_ENV !== 'production';
+  if (process.env.CONTEST_ALLOW_ADMIN_HEADER !== 'true') {
+    return false;
+  }
 
-  if (!allowLegacy || role !== 'admin') {
+  if (request.headers.get('x-contest-role') !== 'admin') {
     return false;
   }
 

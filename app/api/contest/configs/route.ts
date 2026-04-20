@@ -1,7 +1,7 @@
-import { fromProviderResult, jsonError, readJsonBody } from '../_lib/http';
-import { loadProvider } from '../_lib/provider';
+import { fromProviderResult, jsonError, parseBody } from '../_lib/http';
+import { loadProvider } from '@/contest/lib/backend/serverProvider';
 import { requireAdmin } from '../_lib/requireAdmin';
-import type { ContestConfigItem } from '@/contest/contexts/contest/contestTypes';
+import { CreateContestConfigBodySchema } from '@/contest/lib/schemas';
 
 export async function GET() {
   const provider = await loadProvider();
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     return adminError;
   }
 
-  const body = await readJsonBody<Omit<ContestConfigItem, 'id'> & { id?: string }>(request);
+  const body = await parseBody(request, CreateContestConfigBodySchema);
   if (!body.ok) {
     return body.response;
   }

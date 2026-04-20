@@ -1,8 +1,11 @@
 /**
  * Firebase auth provider implementation.
  *
- * Implements AuthProvider interface using Firebase Authentication
- * and Firestore for user data storage.
+ * Wraps the Firebase Auth SDK so the rest of the client code doesn't import
+ * `firebase/auth` directly. Intentionally DOES NOT touch Firestore — user
+ * profile documents are created/updated exclusively through the server-side
+ * API (`/api/contest/auth/*`). Only real-time subscriptions in lib/realtime/
+ * are allowed to read Firestore from the browser.
  */
 
 import {
@@ -15,19 +18,10 @@ import {
   GoogleAuthProvider,
   type User,
 } from 'firebase/auth';
-import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  serverTimestamp,
-} from 'firebase/firestore';
 
 import type { AuthProvider, AuthResult } from '../../contexts/auth/provider';
-import type { RegistrationData, LoginCredentials, UserProfile } from '../../contexts/auth/types';
+import type { RegistrationData, LoginCredentials } from '../../contexts/auth/types';
 import { initializeFirebase, isFirebaseConfigured } from './config';
-
-const USERS_COLLECTION = 'users';
 
 let currentUser: User | null = null;
 
@@ -47,7 +41,6 @@ export async function getAuthToken(): Promise<string | null> {
 
 export function createFirebaseAuthProvider(): AuthProvider {
   let auth: ReturnType<typeof initializeFirebase>['auth'];
-  let db: ReturnType<typeof initializeFirebase>['db'];
 
   return {
     name: 'firebase',
@@ -55,9 +48,8 @@ export function createFirebaseAuthProvider(): AuthProvider {
     async initialize(): Promise<void> {
       const firebase = initializeFirebase();
       auth = firebase.auth;
-      db = firebase.db;
 
-      if (!isFirebaseConfigured() || !auth || !db) {
+      if (!isFirebaseConfigured() || !auth) {
         console.warn('[FirebaseAuth] Firebase not configured');
         return;
       }
@@ -73,24 +65,14 @@ export function createFirebaseAuthProvider(): AuthProvider {
     },
 
     async register(data: RegistrationData): Promise<AuthResult> {
-      if (!isFirebaseConfigured() || !auth || !db) {
+      if (!isFirebaseConfigured() || !auth) {
         return { success: false, error: 'Firebase not configured' };
       }
 
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-        const user = userCredential.user;
-        currentUser = user;
-
-        await setDoc(doc(db, USERS_COLLECTION, user.uid), {
-          displayName: data.displayName,
-          email: data.email,
-          role: 'voter',
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
-
-        return { success: true, uid: user.uid };
+        currentUser = userCredential.user;
+        return { success: true, uid: userCredential.user.uid };
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Registration failed';
         return { success: false, error: message };
@@ -113,29 +95,15 @@ export function createFirebaseAuthProvider(): AuthProvider {
     },
 
     async loginWithGoogle(): Promise<AuthResult> {
-      if (!isFirebaseConfigured() || !auth || !db) {
+      if (!isFirebaseConfigured() || !auth) {
         return { success: false, error: 'Firebase not configured' };
       }
 
       try {
         const provider = new GoogleAuthProvider();
         const userCredential = await signInWithPopup(auth, provider);
-        const user = userCredential.user;
-        currentUser = user;
-
-        const userRef = doc(db, USERS_COLLECTION, user.uid);
-        const existing = await getDoc(userRef);
-        if (!existing.exists()) {
-          await setDoc(userRef, {
-            displayName: user.displayName ?? user.email?.split('@')[0] ?? 'Contest User',
-            email: user.email ?? undefined,
-            role: 'voter',
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-          });
-        }
-
-        return { success: true, uid: user.uid };
+        currentUser = userCredential.user;
+        return { success: true, uid: userCredential.user.uid };
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Google sign-in failed';
         return { success: false, error: message };
@@ -143,27 +111,14 @@ export function createFirebaseAuthProvider(): AuthProvider {
     },
 
     async loginAnonymously(): Promise<AuthResult> {
-      if (!isFirebaseConfigured() || !auth || !db) {
+      if (!isFirebaseConfigured() || !auth) {
         return { success: false, error: 'Firebase not configured' };
       }
 
       try {
         const userCredential = await signInAnonymously(auth);
-        const user = userCredential.user;
-        currentUser = user;
-
-        const userRef = doc(db, USERS_COLLECTION, user.uid);
-        const existing = await getDoc(userRef);
-        if (!existing.exists()) {
-          await setDoc(userRef, {
-            displayName: 'Anonymous',
-            role: 'voter',
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-          });
-        }
-
-        return { success: true, uid: user.uid };
+        currentUser = userCredential.user;
+        return { success: true, uid: userCredential.user.uid };
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Anonymous sign-in failed';
         return { success: false, error: message };
@@ -193,33 +148,12 @@ export function createFirebaseAuthProvider(): AuthProvider {
       return currentUser?.uid ?? null;
     },
 
-    async fetchUserData(uid: string): Promise<{ profile?: UserProfile } | null> {
-      if (!isFirebaseConfigured() || !db) return null;
-
-      try {
-        const userDoc = await getDoc(doc(db, USERS_COLLECTION, uid));
-        const profile = userDoc.exists() ? (userDoc.data() as UserProfile) : undefined;
-        return { profile };
-      } catch {
-        return null;
-      }
+    getCurrentEmail(): string | null {
+      return currentUser?.email ?? null;
     },
 
-    async updateProfile(uid: string, updates: Partial<UserProfile>): Promise<AuthResult> {
-      if (!isFirebaseConfigured() || !db) {
-        return { success: false, error: 'Firebase not configured' };
-      }
-
-      try {
-        await updateDoc(doc(db, USERS_COLLECTION, uid), {
-          ...updates,
-          updatedAt: serverTimestamp(),
-        });
-        return { success: true, uid };
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Update profile failed';
-        return { success: false, error: message };
-      }
+    getCurrentDisplayName(): string | null {
+      return currentUser?.displayName ?? null;
     },
 
     async getIdToken(): Promise<string | null> {

@@ -10,12 +10,13 @@
 
 import { FieldValue, type Firestore as AdminFirestore } from 'firebase-admin/firestore';
 import type { Contest, ContestConfigItem, Entry, ScoreBreakdown, ScoreEntry, Voter } from '../../contexts/contest/contestTypes';
-import type { ScoreUpdatePayload } from '../backend/types';
+import type { ScoreUpdatePayload, UserProfile } from '../backend/types';
 import type { FirestoreAdapter } from './firestoreAdapter';
 import { computeVoteTotal, docToScoreEntry, makeVoteDocId } from './scoreHelpers';
 
 const CONTESTS_COLLECTION = 'contests';
 const CONFIGS_COLLECTION = 'configs';
+const USERS_COLLECTION = 'users';
 const VOTES_SUBCOLLECTION = 'votes';
 
 function normalizeContestDoc(id: string, data: Record<string, unknown>): Contest {
@@ -346,6 +347,43 @@ export function createFirestoreAdminAdapter(getDb: () => AdminFirestore | null):
 
         transaction.delete(voteRef);
       });
+    },
+
+    // ---- User profiles ----
+
+    async getProfile(uid): Promise<UserProfile | null> {
+      const db = getDb();
+      if (!db) return null;
+
+      const snap = await db.collection(USERS_COLLECTION).doc(uid).get();
+      if (!snap.exists) return null;
+      return snap.data() as UserProfile;
+    },
+
+    async upsertProfile(uid, profile): Promise<UserProfile> {
+      const db = requireDb();
+      const ref = db.collection(USERS_COLLECTION).doc(uid);
+      const existing = await ref.get();
+      if (existing.exists) {
+        await ref.update({ ...profile, updatedAt: FieldValue.serverTimestamp() });
+      } else {
+        await ref.set({
+          ...profile,
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      }
+      const snap = await ref.get();
+      return snap.data() as UserProfile;
+    },
+
+    async updateProfile(uid, updates): Promise<UserProfile> {
+      const db = requireDb();
+      const ref = db.collection(USERS_COLLECTION).doc(uid);
+      await ref.update({ ...updates, updatedAt: FieldValue.serverTimestamp() });
+      const snap = await ref.get();
+      if (!snap.exists) throw new Error('Profile not found');
+      return snap.data() as UserProfile;
     },
   };
 }

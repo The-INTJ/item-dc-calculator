@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Contest, ContestConfig, ScoreEntry } from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
-import { adminApi } from '../../lib/api/adminApi';
 import { contestApi } from '../../lib/api/contestApi';
 import { getEntriesForRound, getRoundById, getRoundLabel } from '../../lib/domain/contestGetters';
 import { getEffectiveConfig } from '../../lib/domain/validation';
@@ -142,14 +141,14 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
         contest.entries.map((entry) => contestApi.getScoresForEntry(contest.id, entry.id)),
       );
 
-      setContestScores(scoreGroups.flat());
+      setContestScores(scoreGroups.flatMap((r) => (r.success ? r.data ?? [] : [])));
     };
 
     void fetchScores();
   }, [contest.id, contest.entries]);
 
   const handleSaveConfig = async (nextConfig: ContestConfig) => {
-    const result = await adminApi.updateContestConfig(contest.id, nextConfig);
+    const result = await contestApi.updateContestConfig(contest.id, nextConfig);
     if (!result.success || !result.data) {
       throw new Error(result.error ?? 'Failed to update config');
     }

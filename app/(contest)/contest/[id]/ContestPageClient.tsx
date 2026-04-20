@@ -45,7 +45,6 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
     setRegistering(true);
     await contestApi.registerAsContestant(
       contest.id,
-      userId,
       session?.profile.displayName ?? 'Guest',
       entryName.trim(),
     );

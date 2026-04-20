@@ -16,6 +16,7 @@ import { useAuthReducer } from './useAuthReducer';
 import { useAuthInit } from './useAuthInit';
 import { createFirebaseAuthProvider } from '../../lib/firebase/firebaseAuthProvider';
 import { isFirebaseConfigured } from '../../lib/firebase/config';
+import { contestApi } from '../../lib/api/contestApi';
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
@@ -37,14 +38,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useAuthInit({ provider, dispatch });
 
-  // Derived state
   const session = state.status === 'authenticated' || state.status === 'guest' ? state.session : null;
   const loading = state.status === 'loading';
   const error = state.status === 'error' ? state.message : null;
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Actions
-  // ─────────────────────────────────────────────────────────────────────────────
 
   async function startGuestSession(displayName: string): Promise<GuestSessionResult> {
     const trimmed = displayName.trim();
@@ -57,19 +53,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return { success: false, syncedToFirestore: false, error: result.error ?? 'Failed to create guest session' };
     }
 
-    try {
-      await provider.updateProfile(result.uid, { displayName: trimmed });
-      const guestSession = createSession({
-        firebaseUid: result.uid,
-        profile: { displayName: trimmed, role: 'voter' },
-        status: 'guest',
-      });
-      dispatch({ type: 'GUEST', session: guestSession });
-      return { success: true, syncedToFirestore: true };
-    } catch (err) {
-      console.error('[Auth] Guest session sync failed:', err);
-      return { success: true, syncedToFirestore: false, error: 'Cloud sync failed' };
-    }
+    const created = await contestApi.registerProfile({ displayName: trimmed });
+    const guestSession = createSession({
+      firebaseUid: result.uid,
+      profile: created.success && created.data
+        ? created.data
+        : { displayName: trimmed, role: 'voter' },
+      status: 'guest',
+    });
+    dispatch({ type: 'GUEST', session: guestSession });
+    return { success: true, syncedToFirestore: created.success };
   }
 
   async function register(data: RegistrationData): Promise<AuthResult> {
@@ -78,12 +71,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return { success: false, error: result.error };
     }
 
+    const created = await contestApi.registerProfile({
+      displayName: data.displayName,
+      email: data.email,
+    });
     const newSession = createSession({
       firebaseUid: result.uid,
-      profile: { displayName: data.displayName, email: data.email, role: 'voter' },
+      profile: created.success && created.data
+        ? created.data
+        : { displayName: data.displayName, email: data.email, role: 'voter' },
     });
     dispatch({ type: 'AUTHENTICATED', session: newSession });
     return { success: true };
+  }
+
+  async function resolveProfileOrCreate(
+    fallbackEmail?: string,
+    fallbackDisplayName?: string,
+  ): Promise<UserProfile> {
+    const existing = await contestApi.getProfile();
+    if (existing.success && existing.data) return existing.data;
+
+    const created = await contestApi.registerProfile({
+      displayName: fallbackDisplayName,
+      email: fallbackEmail,
+    });
+    if (created.success && created.data) return created.data;
+
+    return {
+      displayName: fallbackDisplayName ?? fallbackEmail?.split('@')[0] ?? 'Contest User',
+      email: fallbackEmail,
+      role: 'voter',
+    };
   }
 
   async function login(credentials: LoginCredentials): Promise<AuthResult> {
@@ -92,15 +111,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return { success: false, error: result.error };
     }
 
-    const userData = await provider.fetchUserData(result.uid);
-    const newSession = createSession({
-      firebaseUid: result.uid,
-      profile: userData?.profile ?? {
-        displayName: credentials.email.split('@')[0],
-        email: credentials.email,
-        role: 'voter',
-      },
-    });
+    const profile = await resolveProfileOrCreate(
+      credentials.email,
+      credentials.email.split('@')[0],
+    );
+    const newSession = createSession({ firebaseUid: result.uid, profile });
     dispatch({ type: 'AUTHENTICATED', session: newSession });
     return { success: true };
   }
@@ -111,11 +126,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return { success: false, error: result.error };
     }
 
-    const userData = await provider.fetchUserData(result.uid);
-    const newSession = createSession({
-      firebaseUid: result.uid,
-      profile: userData?.profile ?? { displayName: 'Google User', role: 'voter' },
-    });
+    const profile = await resolveProfileOrCreate(
+      provider.getCurrentEmail() ?? undefined,
+      provider.getCurrentDisplayName() ?? 'Google User',
+    );
+    const newSession = createSession({ firebaseUid: result.uid, profile });
     dispatch({ type: 'AUTHENTICATED', session: newSession });
     return { success: true };
   }
@@ -134,10 +149,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   async function updateProfile(updates: Partial<UserProfile>): Promise<void> {
     if (!session?.firebaseUid) return;
-    await provider.updateProfile(session.firebaseUid, updates);
+    const allowedUpdates: Partial<Pick<UserProfile, 'displayName' | 'avatarUrl'>> = {};
+    if (updates.displayName !== undefined) allowedUpdates.displayName = updates.displayName;
+    if (updates.avatarUrl !== undefined) allowedUpdates.avatarUrl = updates.avatarUrl;
+
+    const result = await contestApi.updateProfile(allowedUpdates);
     dispatch({
       type: 'UPDATE_SESSION',
-      session: { ...session, profile: { ...session.profile, ...updates }, updatedAt: Date.now() },
+      session: {
+        ...session,
+        profile: result.success && result.data ? result.data : { ...session.profile, ...allowedUpdates },
+        updatedAt: Date.now(),
+      },
     });
   }
 

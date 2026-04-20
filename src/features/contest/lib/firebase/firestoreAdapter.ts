@@ -25,11 +25,12 @@ import {
   type Firestore,
 } from 'firebase/firestore';
 import type { Contest, ContestConfigItem, Entry, ScoreBreakdown, ScoreEntry, Voter } from '../../contexts/contest/contestTypes';
-import type { ScoreUpdatePayload } from '../backend/types';
+import type { ScoreUpdatePayload, UserProfile } from '../backend/types';
 import { computeVoteTotal, docToScoreEntry, makeVoteDocId } from './scoreHelpers';
 
 const CONTESTS_COLLECTION = 'contests';
 const CONFIGS_COLLECTION = 'configs';
+const USERS_COLLECTION = 'users';
 const VOTES_SUBCOLLECTION = 'votes';
 
 function normalizeContestDoc(id: string, data: Record<string, unknown>): Contest {
@@ -71,6 +72,11 @@ export interface FirestoreAdapter {
   submitScore(contestId: string, input: Omit<ScoreEntry, 'id'>): Promise<ScoreEntry>;
   updateScore(contestId: string, scoreId: string, updates: ScoreUpdatePayload): Promise<ScoreEntry>;
   deleteScore(contestId: string, scoreId: string): Promise<void>;
+
+  // ---- User profiles ----
+  getProfile(uid: string): Promise<UserProfile | null>;
+  upsertProfile(uid: string, profile: UserProfile): Promise<UserProfile>;
+  updateProfile(uid: string, updates: Partial<UserProfile>): Promise<UserProfile>;
 }
 
 /**
@@ -392,6 +398,45 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
 
         transaction.delete(voteRef);
       });
+    },
+
+    // ---- User profiles ----
+
+    async getProfile(uid): Promise<UserProfile | null> {
+      const db = getDb();
+      if (!db) return null;
+
+      const snap = await getDoc(doc(db, USERS_COLLECTION, uid));
+      if (!snap.exists()) return null;
+      return snap.data() as UserProfile;
+    },
+
+    async upsertProfile(uid, profile): Promise<UserProfile> {
+      const db = requireDb();
+      const ref = doc(db, USERS_COLLECTION, uid);
+      const existing = await getDoc(ref);
+      if (existing.exists()) {
+        await updateDoc(ref, { ...profile, updatedAt: serverTimestamp() });
+      } else {
+        await setDoc(ref, {
+          ...profile,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+      }
+      const snap = await getDoc(ref);
+      return snap.data() as UserProfile;
+    },
+
+    async updateProfile(uid, updates): Promise<UserProfile> {
+      const db = requireDb();
+      await updateDoc(doc(db, USERS_COLLECTION, uid), {
+        ...updates,
+        updatedAt: serverTimestamp(),
+      });
+      const snap = await getDoc(doc(db, USERS_COLLECTION, uid));
+      if (!snap.exists()) throw new Error('Profile not found');
+      return snap.data() as UserProfile;
     },
   };
 }

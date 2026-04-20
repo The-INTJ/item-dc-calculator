@@ -1,19 +1,23 @@
+import 'server-only';
+
 /**
- * Server-side authentication utilities
+ * Server-side authentication utilities.
  *
- * Provides server-side functions to check authentication status.
- * For use in server components and API routes.
+ * Verifies Firebase ID tokens via the Admin SDK. Used by API route guards
+ * (`requireAuth`, `requireAdmin`) and by server components that need to
+ * resolve the current user. Never import from client code — the `server-only`
+ * import above will fail the build if you try.
  */
 
 import { cookies } from 'next/headers';
 import type { UserProfile } from '../../contexts/auth/types';
 import type { UserRole } from '../../contexts/contest/contestTypes';
+import { getFirebaseAdminAuth } from '../firebase/admin';
 
 /** Server-side user identity: profile data plus the Firebase UID from the verified token. */
 export interface ServerUser extends UserProfile {
   uid: string;
 }
-import { getFirebaseAdminAuth } from '../firebase/admin';
 
 const USER_ROLES: UserRole[] = ['admin', 'voter', 'competitor'];
 
