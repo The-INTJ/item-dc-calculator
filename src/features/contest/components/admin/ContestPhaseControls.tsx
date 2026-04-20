@@ -13,7 +13,7 @@ export function ContestPhaseControls({ contest }: ContestPhaseControlsProps) {
   const rounds = contest.rounds ?? [];
   const activeRoundIndex = rounds.findIndex((r) => r.id === contest.activeRoundId);
   const activeRound = getRoundById(contest, contest.activeRoundId);
-  const currentPhase = activeRound?.state ?? contest.phase;
+  const currentPhase = activeRound?.state ?? contest.phase ?? 'set';
   const label = phaseLabels[currentPhase];
 
   return (
@@ -24,7 +24,7 @@ export function ContestPhaseControls({ contest }: ContestPhaseControlsProps) {
           <p className="admin-detail-meta">
             Current: <strong>{label}</strong>
             {activeRound && (
-              <> (from Round {activeRoundIndex + 1}: {phaseLabels[activeRound.state]})</>
+              <> (from Round {activeRoundIndex + 1}: {phaseLabels[activeRound.state ?? 'set']})</>
             )}
           </p>
         </div>

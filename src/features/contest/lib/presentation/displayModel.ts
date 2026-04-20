@@ -166,7 +166,7 @@ export function buildDisplayModel(contest: Contest): DisplayModel {
     activeRoundName: getDisplayRoundName(contest, activeRoundId),
     nextRoundName: getDisplayRoundName(contest, futureRoundId),
     totalRounds: displayRounds.length,
-    phase: contest.phase,
+    phase: contest.phase ?? 'set',
     bracketStructure,
     isFinalRoundActive: activeRoundId != null && activeRoundId === lastRoundId,
   };

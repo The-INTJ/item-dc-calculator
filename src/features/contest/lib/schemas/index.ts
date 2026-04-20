@@ -29,9 +29,19 @@ function register<S extends z.ZodType>(name: string, schema: S): S {
 
 // ── Primitive enums ─────────────────────────────────────────────────────────
 
-export const ContestPhaseSchema = z
+export const MatchupPhaseSchema = z
   .enum(['set', 'shake', 'scored'])
-  .openapi('ContestPhase', { description: 'Contest lifecycle state', example: 'shake' });
+  .openapi('MatchupPhase', { description: 'Matchup lifecycle phase', example: 'shake' });
+
+/** @deprecated Alias of MatchupPhaseSchema for backward compatibility. */
+export const ContestPhaseSchema = MatchupPhaseSchema;
+
+export const RoundStatusSchema = z
+  .enum(['pending', 'upcoming', 'active', 'closed'])
+  .openapi('RoundStatus', {
+    description: 'Computed round status derived from constituent matchup phases',
+    example: 'active',
+  });
 
 export const UserRoleSchema = z
   .enum(['admin', 'voter', 'competitor'])
@@ -87,10 +97,15 @@ export const ScoreBreakdownSchema = z
 
 export const ScoreEntrySchema = z
   .object({
-    id: z.string().openapi({ example: 'user1_entry1' }),
+    id: z.string().openapi({ example: 'user1_matchup1_entry1' }),
     entryId: z.string().openapi({ example: 'entry-1' }),
     userId: z.string().openapi({ example: 'user-1' }),
-    round: z.string().openapi({ example: 'finals' }),
+    matchupId: z.string().optional().openapi({
+      description: 'Matchup this vote belongs to. Required for new votes.',
+      example: 'matchup-1',
+    }),
+    /** @deprecated Use matchupId. Kept for legacy vote docs during the matchup refactor. */
+    round: z.string().optional().openapi({ example: 'finals' }),
     breakdown: ScoreBreakdownSchema,
     notes: z.string().optional().openapi({ example: 'Excellent balance of flavors' }),
   })
@@ -99,6 +114,9 @@ export const ScoreEntrySchema = z
 export const SubmitScoreBodySchema = z
   .object({
     entryId: z.string().openapi({ description: 'Entry being scored' }),
+    matchupId: z.string().optional().openapi({
+      description: 'Matchup this score is cast against. Required starting in PR 4; optional now for backward compatibility.',
+    }),
     userName: z.string().optional().openapi({
       description: 'Display name for auto-registered voter (defaults to token display name)',
     }),
@@ -111,6 +129,7 @@ export const SubmitScoreBodySchema = z
       .record(z.string(), z.number())
       .optional()
       .openapi({ description: 'Partial or full ScoreBreakdown' }),
+    /** @deprecated Use matchupId. */
     round: z.string().optional(),
     notes: z.string().optional(),
   })
@@ -133,7 +152,8 @@ export const EntrySchema = z
     name: z.string().openapi({ example: 'Summer Sunset' }),
     slug: z.string().openapi({ example: 'summer-sunset' }),
     description: z.string().openapi({ example: 'A refreshing citrus cocktail with a hint of lavender' }),
-    round: z.string().openapi({ example: 'finals' }),
+    /** @deprecated Entries are contest-scoped; assignment is via Matchup.entryIds. Removed in PR 8. */
+    round: z.string().optional().openapi({ example: 'finals' }),
     submittedBy: z.string().openapi({ example: 'John Doe' }),
     sumScore: z.number().optional().openapi({
       description: 'Aggregate: sum of all vote totals for this entry',
@@ -158,9 +178,61 @@ export const ContestRoundSchema = z
     id: z.string(),
     name: z.string(),
     number: z.number().int().nullable().optional(),
-    state: ContestPhaseSchema,
+    /** @deprecated Computed from matchup phases; removed in PR 8. */
+    state: MatchupPhaseSchema.optional(),
+    adminOverride: z.enum(['active', 'closed']).nullable().optional().openapi({
+      description:
+        "Admin escape hatch. 'active' forces the round open; 'closed' forces it closed; null/undefined uses computed status.",
+    }),
   })
   .openapi('ContestRound');
+
+// ── Matchups ────────────────────────────────────────────────────────────────
+
+export const MatchupSchema = z
+  .object({
+    id: z.string().openapi({ example: 'matchup-1' }),
+    contestId: z.string().openapi({ example: 'contest-1' }),
+    roundId: z.string().openapi({ example: 'round-1' }),
+    slotIndex: z.number().int().openapi({ example: 0 }),
+    entryIds: z.array(z.string()).openapi({
+      description: 'Entries competing in this matchup (length 2 for 1v1).',
+      example: ['entry-1', 'entry-2'],
+    }),
+    phase: MatchupPhaseSchema,
+    winnerEntryId: z.string().nullable().optional(),
+    advancesToMatchupId: z.string().nullable().optional(),
+    advancesToSlot: z.number().int().nullable().optional(),
+  })
+  .openapi('Matchup', { description: 'A first-class matchup between entries within a round.' });
+
+export const CreateMatchupBodySchema = MatchupSchema.omit({ id: true, contestId: true })
+  .partial({ entryIds: true, phase: true })
+  .openapi('CreateMatchupBody');
+
+export const UpdateMatchupBodySchema = MatchupSchema.partial()
+  .omit({ id: true, contestId: true })
+  .openapi('UpdateMatchupBody');
+
+export const SeedRoundBodySchema = z
+  .object({
+    entryIdPairs: z
+      .array(z.tuple([z.string(), z.string()]))
+      .optional()
+      .openapi({
+        description:
+          'Explicit entry pairs for round-1 seeding. Omit for rounds > 1 (propagated from previous round winners).',
+      }),
+  })
+  .openapi('SeedRoundBody');
+
+export const UpdateRoundBodySchema = z
+  .object({
+    adminOverride: z.enum(['active', 'closed']).nullable().optional(),
+    name: z.string().optional(),
+    number: z.number().int().nullable().optional(),
+  })
+  .openapi('UpdateRoundBody');
 
 // ── Contests ────────────────────────────────────────────────────────────────
 
@@ -169,15 +241,19 @@ export const ContestSchema = z
     id: z.string().openapi({ example: 'contest-1' }),
     name: z.string().openapi({ example: 'Summer Mixoff 2024' }),
     slug: z.string().openapi({ example: 'summer-mixoff-2024' }),
-    phase: ContestPhaseSchema,
+    /** @deprecated Derive from active round's matchup phases. Removed in PR 8. */
+    phase: MatchupPhaseSchema.optional(),
     config: ContestConfigSchema.optional(),
     location: z.string().optional(),
     startTime: z.string().optional(),
+    /** @deprecated Vestigial. Removed in PR 8. */
     bracketRound: z.string().optional(),
     currentEntryId: z.string().optional(),
     defaultContest: z.boolean().optional(),
     rounds: z.array(ContestRoundSchema).optional(),
+    /** @deprecated Derived. Removed in PR 8. */
     activeRoundId: z.string().nullable().optional(),
+    /** @deprecated Derived. Removed in PR 8. */
     futureRoundId: z.string().nullable().optional(),
     entries: z.array(EntrySchema),
     voters: z.array(VoterSchema),
@@ -251,7 +327,10 @@ export const ErrorSchema = z
 // These replace the hand-written interfaces in contestTypes.ts / auth/types.ts
 // as new code is migrated. For now they coexist — the shapes are identical.
 
-export type ContestPhase = z.infer<typeof ContestPhaseSchema>;
+export type MatchupPhase = z.infer<typeof MatchupPhaseSchema>;
+/** @deprecated Use {@link MatchupPhase}. */
+export type ContestPhase = MatchupPhase;
+export type RoundStatus = z.infer<typeof RoundStatusSchema>;
 export type UserRole = z.infer<typeof UserRoleSchema>;
 export type AttributeConfig = z.infer<typeof AttributeConfigSchema>;
 export type ContestConfig = z.infer<typeof ContestConfigSchema>;
@@ -261,6 +340,11 @@ export type ScoreEntry = z.infer<typeof ScoreEntrySchema>;
 export type Voter = z.infer<typeof VoterSchema>;
 export type Entry = z.infer<typeof EntrySchema>;
 export type ContestRound = z.infer<typeof ContestRoundSchema>;
+export type Matchup = z.infer<typeof MatchupSchema>;
+export type CreateMatchupBody = z.infer<typeof CreateMatchupBodySchema>;
+export type UpdateMatchupBody = z.infer<typeof UpdateMatchupBodySchema>;
+export type SeedRoundBody = z.infer<typeof SeedRoundBodySchema>;
+export type UpdateRoundBody = z.infer<typeof UpdateRoundBodySchema>;
 export type Contest = z.infer<typeof ContestSchema>;
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 export type CreateContestBody = z.infer<typeof CreateContestBodySchema>;
@@ -279,7 +363,8 @@ export type RegisterContestantBody = z.infer<typeof RegisterContestantBodySchema
 // Registering schemas here (in addition to the .openapi() metadata calls above)
 // is what makes them appear in the generated components.schemas block.
 
-register('ContestPhase', ContestPhaseSchema);
+register('MatchupPhase', MatchupPhaseSchema);
+register('RoundStatus', RoundStatusSchema);
 register('UserRole', UserRoleSchema);
 register('AttributeConfig', AttributeConfigSchema);
 register('ContestConfig', ContestConfigSchema);
@@ -294,6 +379,11 @@ register('Entry', EntrySchema);
 register('CreateEntryBody', CreateEntryBodySchema);
 register('UpdateEntryBody', UpdateEntryBodySchema);
 register('ContestRound', ContestRoundSchema);
+register('Matchup', MatchupSchema);
+register('CreateMatchupBody', CreateMatchupBodySchema);
+register('UpdateMatchupBody', UpdateMatchupBodySchema);
+register('SeedRoundBody', SeedRoundBodySchema);
+register('UpdateRoundBody', UpdateRoundBodySchema);
 register('Contest', ContestSchema);
 register('CreateContestBody', CreateContestBodySchema);
 register('UpdateContestBody', UpdateContestBodySchema);

@@ -3,13 +3,24 @@
  */
 
 /**
- * Contest lifecycle states as defined in the Master Plan:
- * - set: Guests arriving and choosing roles
- * - shake: Entries being rated, timer running, voting OPEN
- * - scored: Voting CLOSED, tallying scores
+ * Matchup lifecycle phase.
+ * - set: Slot assigned, not yet open for scoring
+ * - shake: Scoring is OPEN (voting live)
+ * - scored: Scoring CLOSED (winner determined)
  */
-export type ContestPhase = 'set' | 'shake' | 'scored';
+export type MatchupPhase = 'set' | 'shake' | 'scored';
+
+/**
+ * @deprecated Use {@link MatchupPhase}. Kept as alias so old imports compile during the matchup refactor.
+ */
+export type ContestPhase = MatchupPhase;
+
 export type UserRole = 'admin' | 'voter' | 'competitor';
+
+/**
+ * Computed round status, derived from constituent matchup phases and admin override.
+ */
+export type RoundStatus = 'pending' | 'upcoming' | 'active' | 'closed';
 
 // ============================================================================
 // Contest Configuration (for extensible contest types)
@@ -74,7 +85,11 @@ export interface Entry {
   name: string;
   slug: string;
   description: string;
-  round: string;
+  /**
+   * @deprecated Entries are now contest-scoped. Round assignment is via `Matchup.entryIds`.
+   * Kept as optional during the matchup refactor; will be removed in PR 8.
+   */
+  round?: string;
   submittedBy: string;
   /** Aggregate: sum of per-user average scores */
   sumScore?: number;
@@ -94,33 +109,77 @@ export interface ScoreEntry {
   id: string;
   entryId: string;
   userId: string;
-  round: string;
+  /** Matchup this vote belongs to. Required for new votes. */
+  matchupId?: string;
+  /**
+   * @deprecated Use {@link matchupId}. Kept for legacy vote docs during the matchup refactor.
+   */
+  round?: string;
   breakdown: ScoreBreakdown;
   notes?: string;
+}
+
+/**
+ * A first-class matchup between entries within a round.
+ * Today always 1v1 (entryIds.length === 2); array shape leaves room for XvX later.
+ */
+export interface Matchup {
+  id: string;
+  contestId: string;
+  roundId: string;
+  /** Index within the round (0-based, stable across lifecycle). */
+  slotIndex: number;
+  /** Entries competing in this matchup. */
+  entryIds: string[];
+  /** Current lifecycle phase. */
+  phase: MatchupPhase;
+  /** Winner entry ID once phase becomes 'scored'. Null if tie or undecided. */
+  winnerEntryId?: string | null;
+  /** ID of the next-round matchup this feeds into. */
+  advancesToMatchupId?: string | null;
+  /** Slot index (0 or 1) of the downstream matchup that this winner fills. */
+  advancesToSlot?: number | null;
 }
 
 export interface ContestRound {
   id: string;
   name: string;
   number?: number | null;
-  /** Each round has its own state; the active round's state is the global state */
-  state: ContestPhase;
+  /**
+   * @deprecated Round status is now computed from its matchups' phases.
+   * Kept as optional during the matchup refactor; will be removed in PR 8.
+   */
+  state?: MatchupPhase;
+  /**
+   * Admin escape hatch. When set, overrides the computed round status.
+   * - 'active': force the round open even if all matchups are scored.
+   * - 'closed': force the round closed even if matchups are still in progress.
+   * - null/undefined: computed from matchup phases.
+   */
+  adminOverride?: 'active' | 'closed' | null;
 }
 
 export interface Contest {
   id: string;
   name: string;
   slug: string;
-  phase: ContestPhase;
+  /**
+   * @deprecated No longer authoritative; derive from active round's matchup phases.
+   * Optional during the matchup refactor; will be removed in PR 8.
+   */
+  phase?: MatchupPhase;
   /** Configuration defining contest type and scoring attributes */
   config?: ContestConfig;
   location?: string;
   startTime?: string;
+  /** @deprecated Vestigial label field. Will be removed in PR 8. */
   bracketRound?: string;
   currentEntryId?: string;
   defaultContest?: boolean;
   rounds?: ContestRound[];
+  /** @deprecated Derived from rounds' matchup phases. Will be removed in PR 8. */
   activeRoundId?: string | null;
+  /** @deprecated Derived from rounds' matchup phases. Will be removed in PR 8. */
   futureRoundId?: string | null;
   entries: Entry[];
   voters: Voter[];
@@ -148,9 +207,8 @@ export interface ContestActions {
   updateRound: (contestId: string, roundId: string, updates: Partial<ContestRound>) => Promise<boolean>;
   removeRound: (contestId: string, roundId: string) => Promise<boolean>;
   setActiveRound: (contestId: string, roundId: string) => Promise<boolean>;
-  setRoundState: (contestId: string, roundId: string, state: ContestPhase) => Promise<boolean>;
+  setRoundState: (contestId: string, roundId: string, state: MatchupPhase) => Promise<boolean>;
   addContestant: (contestId: string, contestant: { name: string; entryName: string; roundId: string }) => Promise<Entry | null>;
   updateContestant: (contestId: string, entryId: string, updates: Partial<Entry>) => Promise<Entry | null>;
   removeContestant: (contestId: string, entryId: string) => Promise<boolean>;
 }
-

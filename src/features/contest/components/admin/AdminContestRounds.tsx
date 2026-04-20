@@ -61,8 +61,8 @@ export function AdminContestRounds({ contest, config, selectedRoundId, onSelectR
                     {isActive ? 'Active' : ''}
                   </span>
                 </div>
-                <span className={`admin-round-badge admin-round-badge--${round.state}`}>
-                  {phaseLabels[round.state]}
+                <span className={`admin-round-badge admin-round-badge--${round.state ?? 'set'}`}>
+                  {phaseLabels[round.state ?? 'set']}
                 </span>
               </button>
 
