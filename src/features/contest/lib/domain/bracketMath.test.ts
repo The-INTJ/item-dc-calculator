@@ -3,6 +3,7 @@ import {
   computeBracketStructure,
   getBracketGridRowCount,
   getMatchupGridPlacement,
+  pairMatchupsAcrossRounds,
 } from './bracketMath';
 
 describe('computeBracketStructure', () => {
@@ -97,5 +98,32 @@ describe('getMatchupGridPlacement', () => {
     expect(getMatchupGridPlacement(2, 0)).toEqual({ rowStart: 1, rowSpan: 8 });
     // 4-round bracket: final spans 16 rows
     expect(getMatchupGridPlacement(3, 0)).toEqual({ rowStart: 1, rowSpan: 16 });
+  });
+});
+
+describe('pairMatchupsAcrossRounds', () => {
+  it('pairs slots 2k and 2k+1 into slot k of the next round', () => {
+    const from = [
+      { id: 'a', slotIndex: 0 },
+      { id: 'b', slotIndex: 1 },
+      { id: 'c', slotIndex: 2 },
+      { id: 'd', slotIndex: 3 },
+    ];
+    const to = [
+      { id: 'x', slotIndex: 0 },
+      { id: 'y', slotIndex: 1 },
+    ];
+    const pairs = pairMatchupsAcrossRounds(from, to);
+    expect(pairs.get('a')).toEqual({ advancesToMatchupId: 'x', advancesToSlot: 0 });
+    expect(pairs.get('b')).toEqual({ advancesToMatchupId: 'x', advancesToSlot: 1 });
+    expect(pairs.get('c')).toEqual({ advancesToMatchupId: 'y', advancesToSlot: 0 });
+    expect(pairs.get('d')).toEqual({ advancesToMatchupId: 'y', advancesToSlot: 1 });
+  });
+
+  it('skips sources whose target slot is missing', () => {
+    const from = [{ id: 'a', slotIndex: 0 }];
+    const to: { id: string; slotIndex: number }[] = [];
+    const pairs = pairMatchupsAcrossRounds(from, to);
+    expect(pairs.size).toBe(0);
   });
 });

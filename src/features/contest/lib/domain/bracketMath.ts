@@ -8,7 +8,7 @@
 
 export interface BracketSlot {
   roundIndex: number;
-  matchupIndex: number;
+  slotIndex: number;
   /** Indices of the two matchups from the previous round that feed into this one. null for round 0 (seeded). */
   sourceMatchups: [number, number] | null;
 }
@@ -52,7 +52,7 @@ export function computeBracketStructure(numRounds: number): BracketStructure {
     for (let j = 0; j < matchupCount; j++) {
       slots.push({
         roundIndex: i,
-        matchupIndex: j,
+        slotIndex: j,
         sourceMatchups: i === 0 ? null : [j * 2, j * 2 + 1],
       });
     }
@@ -85,4 +85,43 @@ export function getMatchupGridPlacement(roundIndex: number, slotIndex: number): 
  */
 export function getBracketGridRowCount(totalRounds: number): number {
   return totalRounds > 0 ? 2 ** totalRounds : 0;
+}
+
+export interface MatchupPairingInput {
+  id: string;
+  slotIndex: number;
+}
+
+export interface MatchupPairing {
+  /** ID of the downstream matchup this one's winner advances into. */
+  advancesToMatchupId: string;
+  /** Slot (0 or 1) of the downstream matchup the winner fills. */
+  advancesToSlot: number;
+}
+
+/**
+ * Given the matchups of round N and the matchups of round N+1 (both ordered by slotIndex),
+ * compute the advancement pointer (`advancesToMatchupId`, `advancesToSlot`) for each
+ * round-N matchup using the canonical bracket pairing (slot 2k and 2k+1 feed slot k).
+ *
+ * Returns a map keyed by the source matchup id.
+ */
+export function pairMatchupsAcrossRounds(
+  fromRound: MatchupPairingInput[],
+  toRound: MatchupPairingInput[],
+): Map<string, MatchupPairing> {
+  const bySlot = new Map<number, MatchupPairingInput>();
+  for (const m of toRound) bySlot.set(m.slotIndex, m);
+
+  const out = new Map<string, MatchupPairing>();
+  for (const source of fromRound) {
+    const targetSlot = Math.floor(source.slotIndex / 2);
+    const target = bySlot.get(targetSlot);
+    if (!target) continue;
+    out.set(source.id, {
+      advancesToMatchupId: target.id,
+      advancesToSlot: source.slotIndex % 2,
+    });
+  }
+  return out;
 }

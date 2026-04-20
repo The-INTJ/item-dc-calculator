@@ -1,2 +1,7 @@
 export { useContestSubscription } from './useContestSubscription';
-export { createPacedSubscription, type PacedSubscriptionOptions } from './firestoreSubscription';
+export {
+  createPacedSubscription,
+  createPacedCollectionSubscription,
+  subscribeToMatchups,
+  type PacedSubscriptionOptions,
+} from './firestoreSubscription';

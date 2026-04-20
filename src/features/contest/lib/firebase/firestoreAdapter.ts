@@ -22,16 +22,19 @@ import {
   where,
   runTransaction,
   serverTimestamp,
+  writeBatch,
   type Firestore,
 } from 'firebase/firestore';
-import type { Contest, ContestConfigItem, Entry, ScoreBreakdown, ScoreEntry, Voter } from '../../contexts/contest/contestTypes';
-import type { ScoreUpdatePayload, UserProfile } from '../backend/types';
+import type { Contest, ContestConfigItem, Entry, Matchup, ScoreBreakdown, ScoreEntry, Voter } from '../../contexts/contest/contestTypes';
+import type { MatchupCreateInput, ScoreUpdatePayload, UserProfile } from '../backend/types';
+import { generateId } from '../backend/providerUtils';
 import { computeVoteTotal, docToScoreEntry, makeVoteDocId } from './scoreHelpers';
 
 const CONTESTS_COLLECTION = 'contests';
 const CONFIGS_COLLECTION = 'configs';
 const USERS_COLLECTION = 'users';
 const VOTES_SUBCOLLECTION = 'votes';
+const MATCHUPS_SUBCOLLECTION = 'matchups';
 
 function normalizeContestDoc(id: string, data: Record<string, unknown>): Contest {
   // Strip Firestore Timestamps — they're class instances that break RSC
@@ -43,6 +46,15 @@ function normalizeContestDoc(id: string, data: Record<string, unknown>): Contest
     id,
     voters: (rest.voters ?? rest.judges ?? []) as Voter[],
   } as Contest;
+}
+
+function normalizeMatchupDoc(contestId: string, id: string, data: Record<string, unknown>): Matchup {
+  const { createdAt: _c, updatedAt: _u, ...rest } = data;
+  return {
+    ...rest,
+    id,
+    contestId,
+  } as Matchup;
 }
 
 /**
@@ -76,6 +88,15 @@ export interface FirestoreAdapter {
   submitScore(contestId: string, input: Omit<ScoreEntry, 'id'>): Promise<ScoreEntry>;
   updateScore(contestId: string, scoreId: string, updates: ScoreUpdatePayload): Promise<ScoreEntry>;
   deleteScore(contestId: string, scoreId: string): Promise<void>;
+
+  // ---- Matchups ----
+  listMatchups(contestId: string): Promise<Matchup[]>;
+  listMatchupsByRound(contestId: string, roundId: string): Promise<Matchup[]>;
+  getMatchup(contestId: string, matchupId: string): Promise<Matchup | null>;
+  createMatchup(contestId: string, matchup: MatchupCreateInput): Promise<Matchup>;
+  updateMatchup(contestId: string, matchupId: string, updates: Partial<Matchup>): Promise<Matchup>;
+  deleteMatchup(contestId: string, matchupId: string): Promise<void>;
+  batchCreateMatchups(contestId: string, matchups: MatchupCreateInput[]): Promise<Matchup[]>;
 
   // ---- User profiles ----
   getProfile(uid: string): Promise<UserProfile | null>;
@@ -257,21 +278,30 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
 
     async submitScore(contestId, input): Promise<ScoreEntry> {
       const db = requireDb();
-      const { userId, entryId } = input;
-      const voteDocId = makeVoteDocId(userId, entryId);
+      const { userId, entryId, matchupId } = input;
+      if (!matchupId) throw new Error('matchupId is required');
+      const voteDocId = makeVoteDocId(userId, matchupId, entryId);
 
       return runTransaction(db, async (transaction) => {
         const contestRef = doc(db, CONTESTS_COLLECTION, contestId);
+        const matchupRef = doc(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION, matchupId);
         const voteRef = doc(db, CONTESTS_COLLECTION, contestId, VOTES_SUBCOLLECTION, voteDocId);
 
-        const [contestSnap, voteSnap] = await Promise.all([
+        const [contestSnap, matchupSnap, voteSnap] = await Promise.all([
           transaction.get(contestRef),
+          transaction.get(matchupRef),
           transaction.get(voteRef),
         ]);
 
         if (!contestSnap.exists()) throw new Error('Contest not found');
-        const contest = { id: contestSnap.id, ...contestSnap.data() } as Contest;
+        if (!matchupSnap.exists()) throw new Error('Matchup not found');
 
+        const matchupData = matchupSnap.data() as Record<string, unknown>;
+        if (matchupData.phase !== 'shake') throw new Error('Matchup is not open for scoring');
+        const matchupEntryIds = (matchupData.entryIds as string[] | undefined) ?? [];
+        if (!matchupEntryIds.includes(entryId)) throw new Error('Entry is not part of this matchup');
+
+        const contest = { id: contestSnap.id, ...contestSnap.data() } as Contest;
         const entryIndex = contest.entries?.findIndex((e: Entry) => e.id === entryId);
         if (entryIndex === undefined || entryIndex === -1) throw new Error('Entry not found');
 
@@ -291,7 +321,7 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
         const voteData: Record<string, unknown> = {
           userId,
           entryId,
-          round: input.round ?? '',
+          matchupId,
           breakdown: input.breakdown,
           updatedAt: serverTimestamp(),
         };
@@ -309,7 +339,7 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
         return docToScoreEntry(voteDocId, {
           userId,
           entryId,
-          round: input.round ?? '',
+          matchupId,
           breakdown: input.breakdown,
         });
       });
@@ -402,6 +432,98 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
 
         transaction.delete(voteRef);
       });
+    },
+
+    // ---- Matchups ----
+
+    async listMatchups(contestId): Promise<Matchup[]> {
+      const db = getDb();
+      if (!db) return [];
+
+      const snapshot = await getDocs(
+        collection(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION),
+      );
+      return snapshot.docs.map((d) => normalizeMatchupDoc(contestId, d.id, d.data()));
+    },
+
+    async listMatchupsByRound(contestId, roundId): Promise<Matchup[]> {
+      const db = getDb();
+      if (!db) return [];
+
+      const q = query(
+        collection(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION),
+        where('roundId', '==', roundId),
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((d) => normalizeMatchupDoc(contestId, d.id, d.data()));
+    },
+
+    async getMatchup(contestId, matchupId): Promise<Matchup | null> {
+      const db = getDb();
+      if (!db) return null;
+
+      const snap = await getDoc(doc(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION, matchupId));
+      if (!snap.exists()) return null;
+      return normalizeMatchupDoc(contestId, snap.id, snap.data());
+    },
+
+    async createMatchup(contestId, input): Promise<Matchup> {
+      const db = requireDb();
+      const id = input.id ?? generateId('matchup');
+      const { id: _ignored, ...rest } = input;
+      void _ignored;
+
+      const ref = doc(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION, id);
+      await setDoc(ref, {
+        ...rest,
+        contestId,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      return { ...rest, id, contestId } as Matchup;
+    },
+
+    async updateMatchup(contestId, matchupId, updates): Promise<Matchup> {
+      const db = requireDb();
+      const ref = doc(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION, matchupId);
+
+      const { id: _ignoredId, contestId: _ignoredContestId, ...rest } = updates;
+      void _ignoredId;
+      void _ignoredContestId;
+
+      await updateDoc(ref, { ...rest, updatedAt: serverTimestamp() });
+      const snap = await getDoc(ref);
+      if (!snap.exists()) throw new Error('Matchup not found');
+      return normalizeMatchupDoc(contestId, snap.id, snap.data());
+    },
+
+    async deleteMatchup(contestId, matchupId): Promise<void> {
+      const db = requireDb();
+      await deleteDoc(doc(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION, matchupId));
+    },
+
+    async batchCreateMatchups(contestId, inputs): Promise<Matchup[]> {
+      const db = requireDb();
+      const batch = writeBatch(db);
+      const created: Matchup[] = [];
+
+      for (const input of inputs) {
+        const id = input.id ?? generateId('matchup');
+        const { id: _ignored, ...rest } = input;
+        void _ignored;
+        const ref = doc(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION, id);
+        batch.set(ref, {
+          ...rest,
+          contestId,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+        created.push({ ...rest, id, contestId } as Matchup);
+      }
+
+      await batch.commit();
+      return created;
     },
 
     // ---- User profiles ----

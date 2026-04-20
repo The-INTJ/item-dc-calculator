@@ -6,11 +6,11 @@
  * without changing frontend code.
  */
 
-import type { Contest, Entry, Voter, ScoreEntry, ScoreBreakdown, ContestConfigItem } from '../../contexts/contest/contestTypes';
+import type { Contest, Entry, Voter, ScoreEntry, ScoreBreakdown, ContestConfigItem, Matchup } from '../../contexts/contest/contestTypes';
 import type { UserProfile } from '../../contexts/auth/types';
 
 // Re-export core types for convenience
-export type { Contest, Entry, Voter, ScoreEntry, ScoreBreakdown, ContestConfigItem, UserProfile };
+export type { Contest, Entry, Voter, ScoreEntry, ScoreBreakdown, ContestConfigItem, Matchup, UserProfile };
 
 /**
  * Result wrapper for async operations
@@ -116,6 +116,30 @@ export interface ProfilesProvider {
 }
 
 /**
+ * Input shape for matchup creation. Server generates `id` and injects
+ * `contestId`, so callers only provide the fields that describe the matchup.
+ */
+export type MatchupCreateInput = Omit<Matchup, 'id' | 'contestId'> & { id?: string };
+
+/**
+ * Matchups provider interface — manages `contests/{contestId}/matchups/{matchupId}`
+ * subcollection documents.
+ *
+ * Matchups are the first-class unit of scoring. Round status is computed
+ * from the phases of its constituent matchups (see domain/matchupGetters.ts).
+ */
+export interface MatchupsProvider {
+  listByContest(contestId: string): Promise<ProviderResult<Matchup[]>>;
+  listByRound(contestId: string, roundId: string): Promise<ProviderResult<Matchup[]>>;
+  getById(contestId: string, matchupId: string): Promise<ProviderResult<Matchup | null>>;
+  create(contestId: string, matchup: MatchupCreateInput): Promise<ProviderResult<Matchup>>;
+  update(contestId: string, matchupId: string, updates: Partial<Matchup>): Promise<ProviderResult<Matchup>>;
+  delete(contestId: string, matchupId: string): Promise<ProviderResult<void>>;
+  /** Create multiple matchups in one batch (used when seeding a round). */
+  batchCreate(contestId: string, matchups: MatchupCreateInput[]): Promise<ProviderResult<Matchup[]>>;
+}
+
+/**
  * Combined backend provider - aggregates all sub-providers
  */
 export interface BackendProvider {
@@ -126,6 +150,7 @@ export interface BackendProvider {
   scores: ScoresProvider;
   configs: ConfigsProvider;
   profiles: ProfilesProvider;
+  matchups: MatchupsProvider;
 
   /**
    * Initialize the provider (connect to DB, load seed data, etc.)

@@ -1,15 +1,14 @@
-import type { ContestPhase } from '../../contexts/contest/contestTypes';
+/**
+ * @deprecated Import from `matchupPhases` instead. This file re-exports the
+ * matchup-phase symbols under their legacy names so older call sites still
+ * compile during the matchup refactor; it will be removed in PR 8.
+ */
+import {
+  MATCHUP_PHASE_VALUES,
+  matchupPhaseLabels,
+  matchupPhaseDescriptions,
+} from './matchupPhases';
 
-export const PHASE_VALUES: ContestPhase[] = ['set', 'shake', 'scored'];
-
-export const phaseLabels: Record<ContestPhase, string> = {
-  set: 'Set',
-  shake: 'Shake',
-  scored: 'Scored',
-};
-
-export const phaseDescriptions: Record<ContestPhase, string> = {
-  set: 'Preparation phase. Participants joining.',
-  shake: 'Active phase. Judging is open.',
-  scored: 'Scoring closed. Results are being tallied.',
-};
+export const PHASE_VALUES = MATCHUP_PHASE_VALUES;
+export const phaseLabels = matchupPhaseLabels;
+export const phaseDescriptions = matchupPhaseDescriptions;

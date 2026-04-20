@@ -9,8 +9,9 @@
  */
 
 import { FieldValue, type Firestore as AdminFirestore } from 'firebase-admin/firestore';
-import type { Contest, ContestConfigItem, Entry, ScoreBreakdown, ScoreEntry, Voter } from '../../contexts/contest/contestTypes';
-import type { ScoreUpdatePayload, UserProfile } from '../backend/types';
+import type { Contest, ContestConfigItem, Entry, Matchup, ScoreBreakdown, ScoreEntry, Voter } from '../../contexts/contest/contestTypes';
+import type { MatchupCreateInput, ScoreUpdatePayload, UserProfile } from '../backend/types';
+import { generateId } from '../backend/providerUtils';
 import type { FirestoreAdapter } from './firestoreAdapter';
 import { computeVoteTotal, docToScoreEntry, makeVoteDocId } from './scoreHelpers';
 
@@ -18,6 +19,7 @@ const CONTESTS_COLLECTION = 'contests';
 const CONFIGS_COLLECTION = 'configs';
 const USERS_COLLECTION = 'users';
 const VOTES_SUBCOLLECTION = 'votes';
+const MATCHUPS_SUBCOLLECTION = 'matchups';
 
 function normalizeContestDoc(id: string, data: Record<string, unknown>): Contest {
   // Strip Firestore Timestamps — they're class instances that break RSC
@@ -29,6 +31,15 @@ function normalizeContestDoc(id: string, data: Record<string, unknown>): Contest
     id,
     voters: (rest.voters ?? rest.judges ?? []) as Voter[],
   } as Contest;
+}
+
+function normalizeMatchupDoc(contestId: string, id: string, data: Record<string, unknown>): Matchup {
+  const { createdAt: _c, updatedAt: _u, ...rest } = data;
+  return {
+    ...rest,
+    id,
+    contestId,
+  } as Matchup;
 }
 
 export function createFirestoreAdminAdapter(getDb: () => AdminFirestore | null): FirestoreAdapter {
@@ -206,21 +217,30 @@ export function createFirestoreAdminAdapter(getDb: () => AdminFirestore | null):
 
     async submitScore(contestId, input): Promise<ScoreEntry> {
       const db = requireDb();
-      const { userId, entryId } = input;
-      const voteDocId = makeVoteDocId(userId, entryId);
+      const { userId, entryId, matchupId } = input;
+      if (!matchupId) throw new Error('matchupId is required');
+      const voteDocId = makeVoteDocId(userId, matchupId, entryId);
 
       return db.runTransaction(async (transaction) => {
         const contestRef = db.collection(CONTESTS_COLLECTION).doc(contestId);
+        const matchupRef = contestRef.collection(MATCHUPS_SUBCOLLECTION).doc(matchupId);
         const voteRef = contestRef.collection(VOTES_SUBCOLLECTION).doc(voteDocId);
 
-        const [contestSnap, voteSnap] = await Promise.all([
+        const [contestSnap, matchupSnap, voteSnap] = await Promise.all([
           transaction.get(contestRef),
+          transaction.get(matchupRef),
           transaction.get(voteRef),
         ]);
 
         if (!contestSnap.exists) throw new Error('Contest not found');
-        const contest = { id: contestSnap.id, ...contestSnap.data() } as Contest;
+        if (!matchupSnap.exists) throw new Error('Matchup not found');
 
+        const matchupData = matchupSnap.data() as Record<string, unknown>;
+        if (matchupData.phase !== 'shake') throw new Error('Matchup is not open for scoring');
+        const matchupEntryIds = (matchupData.entryIds as string[] | undefined) ?? [];
+        if (!matchupEntryIds.includes(entryId)) throw new Error('Entry is not part of this matchup');
+
+        const contest = { id: contestSnap.id, ...contestSnap.data() } as Contest;
         const entryIndex = contest.entries?.findIndex((e: Entry) => e.id === entryId);
         if (entryIndex === undefined || entryIndex === -1) throw new Error('Entry not found');
 
@@ -240,7 +260,7 @@ export function createFirestoreAdminAdapter(getDb: () => AdminFirestore | null):
         const voteData: Record<string, unknown> = {
           userId,
           entryId,
-          round: input.round ?? '',
+          matchupId,
           breakdown: input.breakdown,
           updatedAt: FieldValue.serverTimestamp(),
         };
@@ -258,7 +278,7 @@ export function createFirestoreAdminAdapter(getDb: () => AdminFirestore | null):
         return docToScoreEntry(voteDocId, {
           userId,
           entryId,
-          round: input.round ?? '',
+          matchupId,
           breakdown: input.breakdown,
         });
       });
@@ -351,6 +371,123 @@ export function createFirestoreAdminAdapter(getDb: () => AdminFirestore | null):
 
         transaction.delete(voteRef);
       });
+    },
+
+    // ---- Matchups ----
+
+    async listMatchups(contestId): Promise<Matchup[]> {
+      const db = getDb();
+      if (!db) return [];
+
+      const snapshot = await db
+        .collection(CONTESTS_COLLECTION)
+        .doc(contestId)
+        .collection(MATCHUPS_SUBCOLLECTION)
+        .get();
+      return snapshot.docs.map((d) => normalizeMatchupDoc(contestId, d.id, d.data() as Record<string, unknown>));
+    },
+
+    async listMatchupsByRound(contestId, roundId): Promise<Matchup[]> {
+      const db = getDb();
+      if (!db) return [];
+
+      const snapshot = await db
+        .collection(CONTESTS_COLLECTION)
+        .doc(contestId)
+        .collection(MATCHUPS_SUBCOLLECTION)
+        .where('roundId', '==', roundId)
+        .get();
+      return snapshot.docs.map((d) => normalizeMatchupDoc(contestId, d.id, d.data() as Record<string, unknown>));
+    },
+
+    async getMatchup(contestId, matchupId): Promise<Matchup | null> {
+      const db = getDb();
+      if (!db) return null;
+
+      const snap = await db
+        .collection(CONTESTS_COLLECTION)
+        .doc(contestId)
+        .collection(MATCHUPS_SUBCOLLECTION)
+        .doc(matchupId)
+        .get();
+      if (!snap.exists) return null;
+      return normalizeMatchupDoc(contestId, snap.id, snap.data() as Record<string, unknown>);
+    },
+
+    async createMatchup(contestId, input: MatchupCreateInput): Promise<Matchup> {
+      const db = requireDb();
+      const id = input.id ?? generateId('matchup');
+      const { id: _ignored, ...rest } = input;
+      void _ignored;
+
+      await db
+        .collection(CONTESTS_COLLECTION)
+        .doc(contestId)
+        .collection(MATCHUPS_SUBCOLLECTION)
+        .doc(id)
+        .set({
+          ...rest,
+          contestId,
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+
+      return { ...rest, id, contestId } as Matchup;
+    },
+
+    async updateMatchup(contestId, matchupId, updates): Promise<Matchup> {
+      const db = requireDb();
+      const ref = db
+        .collection(CONTESTS_COLLECTION)
+        .doc(contestId)
+        .collection(MATCHUPS_SUBCOLLECTION)
+        .doc(matchupId);
+
+      const { id: _ignoredId, contestId: _ignoredContestId, ...rest } = updates;
+      void _ignoredId;
+      void _ignoredContestId;
+
+      await ref.update({ ...rest, updatedAt: FieldValue.serverTimestamp() });
+      const snap = await ref.get();
+      if (!snap.exists) throw new Error('Matchup not found');
+      return normalizeMatchupDoc(contestId, snap.id, snap.data() as Record<string, unknown>);
+    },
+
+    async deleteMatchup(contestId, matchupId): Promise<void> {
+      const db = requireDb();
+      await db
+        .collection(CONTESTS_COLLECTION)
+        .doc(contestId)
+        .collection(MATCHUPS_SUBCOLLECTION)
+        .doc(matchupId)
+        .delete();
+    },
+
+    async batchCreateMatchups(contestId, inputs: MatchupCreateInput[]): Promise<Matchup[]> {
+      const db = requireDb();
+      const batch = db.batch();
+      const created: Matchup[] = [];
+
+      for (const input of inputs) {
+        const id = input.id ?? generateId('matchup');
+        const { id: _ignored, ...rest } = input;
+        void _ignored;
+        const ref = db
+          .collection(CONTESTS_COLLECTION)
+          .doc(contestId)
+          .collection(MATCHUPS_SUBCOLLECTION)
+          .doc(id);
+        batch.set(ref, {
+          ...rest,
+          contestId,
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+        created.push({ ...rest, id, contestId } as Matchup);
+      }
+
+      await batch.commit();
+      return created;
     },
 
     // ---- User profiles ----

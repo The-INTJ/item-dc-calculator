@@ -8,8 +8,15 @@ export function computeVoteTotal(breakdown: ScoreBreakdown): number {
   return values.reduce((sum, v) => sum + v, 0) / values.length;
 }
 
-export function makeVoteDocId(userId: string, entryId: string): string {
-  return `${userId}_${entryId}`;
+/**
+ * Deterministic vote doc id: `{userId}_{matchupId}_{entryId}`.
+ *
+ * The matchup segment makes "one vote per voter, per entry, per matchup" the
+ * natural uniqueness constraint — which matters once an entry can appear in
+ * multiple matchups over a tournament's rounds.
+ */
+export function makeVoteDocId(userId: string, matchupId: string, entryId: string): string {
+  return `${userId}_${matchupId}_${entryId}`;
 }
 
 export function docToScoreEntry(docId: string, data: Record<string, unknown>): ScoreEntry {
@@ -17,6 +24,7 @@ export function docToScoreEntry(docId: string, data: Record<string, unknown>): S
     id: docId,
     entryId: (data.entryId as string) ?? '',
     userId: (data.userId as string) ?? '',
+    ...(data.matchupId ? { matchupId: data.matchupId as string } : {}),
     round: (data.round as string) ?? '',
     breakdown: (data.breakdown as ScoreBreakdown) ?? {},
     ...(data.notes ? { notes: data.notes as string } : {}),

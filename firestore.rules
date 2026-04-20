@@ -53,6 +53,13 @@ service cloud.firestore {
         allow read: if signedIn();
         allow write: if false;
       }
+
+      // Matchups subcollection: clients subscribe for live phase updates;
+      // writes are server-only via API routes.
+      match /matchups/{matchupId} {
+        allow read: if signedIn();
+        allow write: if false;
+      }
     }
 
     // Deny everything else
