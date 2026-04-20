@@ -20,10 +20,14 @@ const USERS_COLLECTION = 'users';
 const VOTES_SUBCOLLECTION = 'votes';
 
 function normalizeContestDoc(id: string, data: Record<string, unknown>): Contest {
+  // Strip Firestore Timestamps — they're class instances that break RSC
+  // serialization when contests are passed from server components to
+  // client components, and the Contest type doesn't expose them anyway.
+  const { createdAt: _c, updatedAt: _u, ...rest } = data;
   return {
-    ...data,
+    ...rest,
     id,
-    voters: (data.voters ?? data.judges ?? []) as Voter[],
+    voters: (rest.voters ?? rest.judges ?? []) as Voter[],
   } as Contest;
 }
 

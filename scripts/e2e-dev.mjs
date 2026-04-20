@@ -2,13 +2,40 @@
  * E2E dev orchestration — called by Playwright's webServer.
  *
  * Starts Firebase emulators (auth + firestore), seeds test accounts,
- * then runs `next dev --env-file .env.emulators`. One process tree —
- * when Playwright stops the webServer, emulators and dev die together.
+ * then runs `next dev` with .env.emulators loaded into the child's env
+ * (Next's CLI doesn't accept --env-file — that flag is node's). One
+ * process tree — when Playwright stops the webServer, emulators and
+ * dev die together.
  */
 
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
+import { readFileSync, rmSync } from 'node:fs';
 import waitOn from 'wait-on';
+
+// Stale lock from a prior Next dev that didn't exit cleanly blocks startup.
+// Safe to remove — Playwright's webServer guarantees we're the only dev on 3000.
+try { rmSync('.next/dev/lock', { force: true }); } catch {}
+
+function loadEnvFile(path) {
+  const out = {};
+  for (const raw of readFileSync(path, 'utf-8').split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+    const eq = line.indexOf('=');
+    if (eq === -1) continue;
+    const key = line.slice(0, eq).trim();
+    let value = line.slice(eq + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    out[key] = value;
+  }
+  return out;
+}
 
 const PROJECT_ID = 'playground-69cbc';
 // Use tcp: resources — the Firestore emulator returns 404 on GET / so
@@ -32,8 +59,12 @@ process.on('uncaughtException', (err) => {
   cleanup(1);
 });
 
-function spawnChild(cmd, args) {
-  return spawn(cmd, args, { stdio: 'inherit', shell: true });
+function spawnChild(cmd, args, env) {
+  return spawn(cmd, args, {
+    stdio: 'inherit',
+    shell: true,
+    env: env ? { ...process.env, ...env } : process.env,
+  });
 }
 
 try {
@@ -68,13 +99,8 @@ try {
   }
 
   console.log('[e2e-dev] Starting Next dev server on port 3000...');
-  devServer = spawnChild('npx', [
-    '--no-install',
-    'next',
-    'dev',
-    '--env-file',
-    '.env.emulators',
-  ]);
+  const emuEnv = loadEnvFile('.env.emulators');
+  devServer = spawnChild('npx', ['--no-install', 'next', 'dev'], emuEnv);
   devServer.on('exit', (code) => {
     console.log(`[e2e-dev] Next dev exited (code ${code})`);
     cleanup(code ?? 0);

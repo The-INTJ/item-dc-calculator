@@ -99,22 +99,22 @@ export async function createContest(
   });
 
   try {
-    const contestBody = {
-      name,
-      slug,
-      phase,
-      config: {
-        topic: 'Mixology',
-        entryLabel: 'Drink',
-        entryLabelPlural: 'Drinks',
-        attributes,
+    // Step 1 — POST creates with name/slug/phase/config (the admin UI sends
+    // phase:'set' here, then uses the phase-progression UI to advance).
+    // The POST provider hardcodes phase to 'set' anyway.
+    const contestRes = await api.post('/api/contest/contests', {
+      data: {
+        name,
+        slug,
+        phase: 'set',
+        config: {
+          topic: 'Mixology',
+          entryLabel: 'Drink',
+          entryLabelPlural: 'Drinks',
+          attributes,
+        },
       },
-      rounds: [{ id: activeRoundId, name: roundName, number: 1, state: phase }],
-      activeRoundId,
-      futureRoundId: null,
-    };
-
-    const contestRes = await api.post('/api/contest/contests', { data: contestBody });
+    });
     if (!contestRes.ok()) {
       throw new Error(
         `createContest POST /contests: ${contestRes.status()} ${await contestRes.text()}`,
@@ -125,6 +125,22 @@ export async function createContest(
     const contestId: string | undefined = contest?.id;
     if (!contestId) {
       throw new Error(`createContest: missing id in response: ${JSON.stringify(contestEnvelope)}`);
+    }
+
+    // Step 2 — PATCH sets phase, rounds, and active round. This mirrors the
+    // admin UI flow (create contest, then configure rounds & phase).
+    const patchRes = await api.patch(`/api/contest/contests/${contestId}`, {
+      data: {
+        phase,
+        rounds: [{ id: activeRoundId, name: roundName, number: 1, state: phase }],
+        activeRoundId,
+        futureRoundId: null,
+      },
+    });
+    if (!patchRes.ok()) {
+      throw new Error(
+        `createContest PATCH /contests/${contestId}: ${patchRes.status()} ${await patchRes.text()}`,
+      );
     }
 
     const entries: Array<{ id: string; name: string }> = [];
