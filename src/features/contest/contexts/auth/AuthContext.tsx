@@ -14,6 +14,7 @@ import type { AuthProvider as AuthProviderContract } from './provider';
 import { createSession } from './storage';
 import { useAuthReducer } from './useAuthReducer';
 import { useAuthInit } from './useAuthInit';
+import { clearSessionCookie } from './sessionSync';
 import { createFirebaseAuthProvider } from '../../lib/firebase/firebaseAuthProvider';
 import { isFirebaseConfigured } from '../../lib/firebase/config';
 import { contestApi } from '../../lib/api/contestApi';
@@ -136,12 +137,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function logout(): Promise<void> {
+    // Clear the server-side session cookie before tearing down the client auth
+    // state — once Firebase signs the user out, `fetchWithAuth` won't have a
+    // Bearer token to authenticate the DELETE.
+    await clearSessionCookie();
     await provider.logout();
     dispatch({ type: 'LOGOUT' });
   }
 
   async function resetSessionForNewAccount(): Promise<void> {
     if (provider.isAuthenticated()) {
+      await clearSessionCookie();
       await provider.logout();
     }
     dispatch({ type: 'LOGOUT' });

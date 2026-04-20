@@ -15,11 +15,17 @@ import {
   signInWithPopup,
   signOut,
   onAuthStateChanged,
+  onIdTokenChanged,
   GoogleAuthProvider,
   type User,
 } from 'firebase/auth';
 
-import type { AuthProvider, AuthResult } from '../../contexts/auth/provider';
+import type {
+  AuthProvider,
+  AuthResult,
+  IdTokenChange,
+  UnsubscribeFn,
+} from '../../contexts/auth/provider';
 import type { RegistrationData, LoginCredentials } from '../../contexts/auth/types';
 import { initializeFirebase, isFirebaseConfigured } from './config';
 
@@ -163,6 +169,27 @@ export function createFirebaseAuthProvider(): AuthProvider {
       } catch {
         return null;
       }
+    },
+
+    onIdTokenChanged(listener: (change: IdTokenChange) => void): UnsubscribeFn {
+      if (!isFirebaseConfigured() || !auth) {
+        return () => {};
+      }
+      return onIdTokenChanged(auth, async (user) => {
+        // Keep the module-level `currentUser` in sync so getAuthToken() and
+        // getIdToken() reflect the latest state regardless of who registered first.
+        currentUser = user;
+        if (!user) {
+          listener({ uid: null, idToken: null });
+          return;
+        }
+        try {
+          const idToken = await user.getIdToken();
+          listener({ uid: user.uid, idToken });
+        } catch {
+          listener({ uid: user.uid, idToken: null });
+        }
+      });
     },
   };
 }

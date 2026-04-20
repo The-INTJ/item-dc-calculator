@@ -3,6 +3,11 @@
  *
  * Firebase Auth state comes from the SDK; the user's profile document is
  * fetched from the server via the API (never from Firestore directly).
+ *
+ * Also owns the session-cookie bridge: every ID token change (sign-in,
+ * hourly refresh, sign-out) is mirrored to `POST /api/contest/auth/session`
+ * so server-rendered pages (e.g. `/admin`) can authenticate the user via
+ * the `__session` cookie.
  */
 
 import { useEffect } from 'react';
@@ -10,6 +15,7 @@ import type { AuthAction } from './types';
 import type { AuthProvider } from './provider';
 import { createSession } from './storage';
 import { contestApi } from '../../lib/api/contestApi';
+import { syncSessionCookie } from './sessionSync';
 
 interface UseAuthInitOptions {
   provider: AuthProvider;
@@ -26,6 +32,15 @@ export function useAuthInit({ provider, dispatch }: UseAuthInitOptions) {
         if (!uid) {
           dispatch({ type: 'LOGOUT' });
           return;
+        }
+
+        // Create the session cookie as early as possible so a subsequent
+        // navigation to a server-rendered page (e.g. /admin) sees us as
+        // authenticated. We don't await this below so the UI isn't blocked —
+        // but we do kick it off before the profile fetch for minimum latency.
+        const initialToken = await provider.getIdToken();
+        if (initialToken) {
+          void syncSessionCookie(initialToken);
         }
 
         const existing = await contestApi.getProfile();
@@ -52,4 +67,17 @@ export function useAuthInit({ provider, dispatch }: UseAuthInitOptions) {
 
     init();
   }, [provider, dispatch]);
+
+  // Refresh the session cookie whenever the Firebase SDK rotates the ID token
+  // (hourly, or after a fresh sign-in). This keeps `__session` aligned with
+  // current custom claims — e.g., after a role promotion the next refresh
+  // picks up the new role without requiring a logout/login cycle.
+  useEffect(() => {
+    const unsubscribe = provider.onIdTokenChanged(({ idToken }) => {
+      if (idToken) {
+        void syncSessionCookie(idToken);
+      }
+    });
+    return unsubscribe;
+  }, [provider]);
 }

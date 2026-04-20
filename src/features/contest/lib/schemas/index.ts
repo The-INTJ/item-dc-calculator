@@ -221,6 +221,17 @@ export const RegisterProfileBodySchema = z
   })
   .openapi('RegisterProfileBody');
 
+export const CreateSessionBodySchema = z
+  .object({
+    idToken: z.string().min(1).openapi({
+      description: 'Firebase ID token obtained client-side via `user.getIdToken()`',
+    }),
+  })
+  .openapi('CreateSessionBody', {
+    description:
+      'Payload for POST /auth/session. The server exchanges the ID token for a long-lived session cookie so server-rendered pages can authenticate the user.',
+  });
+
 // ── Register contestant ─────────────────────────────────────────────────────
 
 export const RegisterContestantBodySchema = z
@@ -260,6 +271,7 @@ export type SubmitScoreBody = z.infer<typeof SubmitScoreBodySchema>;
 export type CreateContestConfigBody = z.infer<typeof CreateContestConfigBodySchema>;
 export type UpdateContestConfigBody = z.infer<typeof UpdateContestConfigBodySchema>;
 export type RegisterProfileBody = z.infer<typeof RegisterProfileBodySchema>;
+export type CreateSessionBody = z.infer<typeof CreateSessionBodySchema>;
 export type UpdateProfileBody = z.infer<typeof UpdateProfileBodySchema>;
 export type RegisterContestantBody = z.infer<typeof RegisterContestantBodySchema>;
 
@@ -288,5 +300,6 @@ register('UpdateContestBody', UpdateContestBodySchema);
 register('UserProfile', UserProfileSchema);
 register('UpdateProfileBody', UpdateProfileBodySchema);
 register('RegisterProfileBody', RegisterProfileBodySchema);
+register('CreateSessionBody', CreateSessionBodySchema);
 register('RegisterContestantBody', RegisterContestantBodySchema);
 register('Error', ErrorSchema);

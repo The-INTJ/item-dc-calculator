@@ -697,6 +697,20 @@
           }
         }
       },
+      "CreateSessionBody": {
+        "type": "object",
+        "properties": {
+          "idToken": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Firebase ID token obtained client-side via `user.getIdToken()`"
+          }
+        },
+        "required": [
+          "idToken"
+        ],
+        "description": "Payload for POST /auth/session. The server exchanges the ID token for a long-lived session cookie so server-rendered pages can authenticate the user."
+      },
       "RegisterContestantBody": {
         "type": "object",
         "properties": {
@@ -2215,6 +2229,111 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/session": {
+      "post": {
+        "summary": "Exchange an ID token for a session cookie",
+        "description": "Called by the client after login and on ID token refresh. The server verifies the ID token and issues a long-lived (7 day) `__session` cookie so server-rendered pages (e.g. `/admin`) can authenticate the user. API routes continue to use the short-lived `Authorization: Bearer <idToken>` header; this cookie is specifically for same-origin server navigation.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSessionBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session cookie created. Response includes `Set-Cookie: __session=...; HttpOnly; Path=/; SameSite=Lax; Max-Age=604800` (and `Secure` in production).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ID token is invalid or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Firebase Admin SDK is not configured on the server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Clear the session cookie (logout)",
+        "description": "Clears the `__session` cookie. Requires auth so an unauthenticated caller cannot clear a cookie they do not own.",
+        "tags": [
+          "Auth"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session cookie cleared",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  }
                 }
               }
             }

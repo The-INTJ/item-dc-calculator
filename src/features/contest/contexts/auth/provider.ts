@@ -13,6 +13,17 @@ export interface AuthResult {
   uid?: string;
 }
 
+/** Event fired when the Firebase ID token changes (sign-in, sign-out, refresh). */
+export interface IdTokenChange {
+  /** Current uid, or null if signed out. */
+  uid: string | null;
+  /** Freshly refreshed ID token, or null if signed out. */
+  idToken: string | null;
+}
+
+/** Unsubscribe function returned from `onIdTokenChanged`. */
+export type UnsubscribeFn = () => void;
+
 export interface AuthProvider {
   readonly name: string;
   initialize(): Promise<void>;
@@ -26,4 +37,9 @@ export interface AuthProvider {
   getCurrentEmail(): string | null;
   getCurrentDisplayName(): string | null;
   getIdToken(): Promise<string | null>;
+  /**
+   * Subscribe to ID token changes (sign-in / sign-out / hourly refresh).
+   * Used by the session-cookie bridge to keep the `__session` cookie fresh.
+   */
+  onIdTokenChanged(listener: (change: IdTokenChange) => void): UnsubscribeFn;
 }

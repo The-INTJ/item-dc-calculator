@@ -13,6 +13,7 @@ import { cookies } from 'next/headers';
 import type { UserProfile } from '../../contexts/auth/types';
 import type { UserRole } from '../../contexts/contest/contestTypes';
 import { getFirebaseAdminAuth } from '../firebase/admin';
+import { loadProvider } from '../backend/serverProvider';
 
 /** Server-side user identity: profile data plus the Firebase UID from the verified token. */
 export interface ServerUser extends UserProfile {
@@ -35,6 +36,29 @@ function resolveRoleFromClaims(claims: Record<string, unknown>): UserRole {
   return 'voter';
 }
 
+/**
+ * Resolve the user's role from the Firestore profile document (same source of
+ * truth the client uses in `useAuth()`). Falls back to custom claims when the
+ * profile hasn't been created yet or the Firestore read fails.
+ *
+ * Why both sources: today, role is written to the profile doc via the admin
+ * UI but custom claims are only set for users seeded by `seed-emulator.mjs`.
+ * Reading from Firestore keeps server and client auth aligned; falling back
+ * to claims preserves the seed-only path while a profile is being created.
+ */
+async function resolveRole(uid: string, claims: Record<string, unknown>): Promise<UserRole> {
+  try {
+    const provider = await loadProvider();
+    const result = await provider.profiles.get(uid);
+    if (result.success && result.data) {
+      return result.data.role;
+    }
+  } catch (error) {
+    console.warn('[ServerAuth] Profile lookup failed, using custom claims:', error);
+  }
+  return resolveRoleFromClaims(claims);
+}
+
 async function buildServerUser(uid: string, claims: Record<string, unknown>): Promise<ServerUser | null> {
   const adminAuth = getFirebaseAdminAuth();
 
@@ -42,13 +66,16 @@ async function buildServerUser(uid: string, claims: Record<string, unknown>): Pr
     return null;
   }
 
-  const userRecord = await adminAuth.getUser(uid);
+  const [userRecord, role] = await Promise.all([
+    adminAuth.getUser(uid),
+    resolveRole(uid, claims),
+  ]);
 
   return {
     uid,
     displayName: userRecord.displayName ?? 'User',
     email: userRecord.email ?? undefined,
-    role: resolveRoleFromClaims(claims),
+    role,
     avatarUrl: userRecord.photoURL ?? undefined,
   };
 }
