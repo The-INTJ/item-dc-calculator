@@ -1,70 +1,75 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/auth/AuthContext';
-import { getEntriesForRound } from '../domain/contestGetters';
 import { getEffectiveConfig } from '../domain/validation';
+import { getEntriesInMatchup } from '../domain/matchupGetters';
 import {
   buildScoreDefaults,
-  mergeScoreMaps,
   buildScoresFromEntries,
   isBreakdownKey,
+  mergeScoreMaps,
 } from '../domain/scoreUtils';
 import { buildEntrySummaries } from '../presentation/uiMappings';
-import type { Contest, ScoreBreakdown, ScoreEntry } from '../../contexts/contest/contestTypes';
+import type {
+  Contest,
+  Matchup,
+  ScoreBreakdown,
+  ScoreEntry,
+} from '../../contexts/contest/contestTypes';
 import { buildAutoVoteScores } from '../domain/autoVote';
 import { contestApi } from '../api/contestApi';
 
-type ScoreByDrinkId = Record<string, Record<string, number>>;
+type ScoreByEntryId = Record<string, Record<string, number>>;
 export type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error';
 
 /**
- * Self-contained hook for voting on entries within a specific contest round.
- * Manages local score state, submission to the API, and status tracking.
- * Pre-fills scores from the user's existing votes when available.
+ * Self-contained hook for voting on the entries in a single matchup. Manages
+ * local score state, submission to the API (with `matchupId` attached), and
+ * status tracking. Pre-fills scores from the user's existing votes for this
+ * matchup when available.
  */
-export function useRoundVoting(contest: Contest | null, roundId: string | null) {
+export function useMatchupVoting(contest: Contest | null, matchup: Matchup | null) {
   const { session, role, loading: authLoading } = useAuth();
-  const [scores, setScores] = useState<ScoreByDrinkId>({});
+  const [scores, setScores] = useState<ScoreByEntryId>({});
   const [status, setStatus] = useState<SubmitStatus>('idle');
   const [message, setMessage] = useState<string | null>(null);
 
   const config = contest ? getEffectiveConfig(contest) : undefined;
   const categories = config?.attributes ?? [];
   const categoryIds = categories.map((a) => a.id);
-  const entries = contest && roundId ? getEntriesForRound(contest, roundId) : [];
+  const entries = contest && matchup ? getEntriesInMatchup(matchup, contest) : [];
   const drinks = buildEntrySummaries(entries);
   const userId = session?.firebaseUid ?? session?.sessionId;
   const categoryKey = categoryIds.join('|');
-  const drinkKey = entries.map((entry) => entry.id).join('|');
+  const entryKey = entries.map((entry) => entry.id).join('|');
+  const matchupId = matchup?.id ?? null;
 
   useEffect(() => {
-    if (authLoading) {
-      return;
-    }
+    if (authLoading) return;
 
-    const drinkIds = entries.map((e) => e.id);
-    if (drinkIds.length === 0 || categoryIds.length === 0) {
+    const entryIds = entries.map((e) => e.id);
+    if (entryIds.length === 0 || categoryIds.length === 0) {
       setScores({});
       return;
     }
 
-    // Start with defaults
-    const defaults = buildScoreDefaults(drinkIds, categoryIds);
+    const defaults = buildScoreDefaults(entryIds, categoryIds);
 
-    // Fetch existing votes for pre-fill
     if (contest?.id && userId) {
       contestApi.getScoresForUser(contest.id, userId)
         .then((result) => {
-          const scores: ScoreEntry[] = result.success ? result.data ?? [] : [];
-          if (!scores.length) {
+          const userScores: ScoreEntry[] = result.success ? result.data ?? [] : [];
+          if (!userScores.length) {
             setScores(defaults);
             return;
           }
 
-          const roundEntryIds = new Set(drinkIds);
-          const roundScores = scores.filter((s) => roundEntryIds.has(s.entryId));
-          const existing = buildScoresFromEntries(roundScores, categoryIds, config);
+          const matchupEntryIds = new Set(entryIds);
+          const matchupScores = userScores.filter(
+            (s) => matchupEntryIds.has(s.entryId) && (!matchupId || s.matchupId === matchupId || !s.matchupId),
+          );
+          const existing = buildScoresFromEntries(matchupScores, categoryIds, config);
           setScores(mergeScoreMaps(defaults, existing));
         })
         .catch(() => setScores(defaults));
@@ -74,19 +79,19 @@ export function useRoundVoting(contest: Contest | null, roundId: string | null) 
 
     setStatus('idle');
     setMessage(null);
-  }, [authLoading, categoryKey, contest?.id, drinkKey, roundId, userId]);
+  }, [authLoading, categoryKey, contest?.id, entryKey, matchupId, userId]);
 
-  const updateScore = (drinkId: string, categoryId: string, value: number) => {
+  const updateScore = (entryId: string, categoryId: string, value: number) => {
     setScores((prev) => ({
       ...prev,
-      [drinkId]: { ...(prev[drinkId] ?? {}), [categoryId]: value },
+      [entryId]: { ...(prev[entryId] ?? {}), [categoryId]: value },
     }));
   };
 
   const submit = async () => {
-    if (!contest?.id || !userId || !config) {
+    if (!contest?.id || !matchup?.id || !userId || !config) {
       setStatus('error');
-      setMessage('No active contest or session.');
+      setMessage('No active matchup or session.');
       return;
     }
 
@@ -108,7 +113,6 @@ export function useRoundVoting(contest: Contest | null, roundId: string | null) 
       return;
     }
 
-    // Auto-vote: fill in midpoint scores for unscored entries in this round
     const scoredIds = voteEntries.map((e) => e.entryId);
     const allEntryIds = entries.map((e) => e.id);
     const autoVotes = buildAutoVoteScores(allEntryIds, scoredIds, config);
@@ -122,6 +126,7 @@ export function useRoundVoting(contest: Contest | null, roundId: string | null) 
         allVotes.map(({ entryId, breakdown }) =>
           contestApi.submitScore(contest.id, {
             entryId,
+            matchupId: matchup.id,
             userName: session?.profile.displayName ?? 'Guest',
             userRole: role ?? 'voter',
             breakdown,
@@ -130,9 +135,7 @@ export function useRoundVoting(contest: Contest | null, roundId: string | null) 
       );
 
       const firstFailure = results.find((r) => !r.success);
-      if (firstFailure) {
-        throw new Error(firstFailure.error ?? 'Failed to submit scores.');
-      }
+      if (firstFailure) throw new Error(firstFailure.error ?? 'Failed to submit scores.');
 
       setStatus('success');
       setMessage('Scores submitted!');

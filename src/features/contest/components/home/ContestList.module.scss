@@ -51,22 +51,8 @@
   color: $color-text-dark;
 }
 
-.phaseBadge {
+.meta {
   @include status-badge;
-  
-  // Phase specific colors
-  &[data-phase='set'] {
-    background: $color-gray-200;
-    color: $color-text-dark;
-  }
-
-  &[data-phase='shake'] {
-    @include warning-surface; // Or a specific active color
-    border: none; // Override warning border if cleaner
-  }
-
-  &[data-phase='scored'] {
-    background: $color-success-50;
-    color: $color-text-dark;
-  }
+  background: $color-gray-200;
+  color: $color-text-dark;
 }

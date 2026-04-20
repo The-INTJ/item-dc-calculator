@@ -36,8 +36,8 @@ export default function ContestList({ featuredContestId }: ContestListProps) {
           <li key={contest.id}>
             <Link href={`/contest/${contest.id}`} className={styles.item}>
               <span className={styles.contestName}>{contest.name}</span>
-              <span className={styles.phaseBadge} data-phase={contest.phase}>
-                {contest.phase}
+              <span className={styles.meta}>
+                {(contest.rounds?.length ?? 0)} rounds · {(contest.entries?.length ?? 0)} entries
               </span>
             </Link>
           </li>

@@ -1,33 +1,58 @@
 'use client';
 
-import type { Contest, ContestConfig, ContestPhase } from '../../contexts/contest/contestTypes';
+import { useMemo, useState } from 'react';
+import type {
+  Contest,
+  ContestConfig,
+  Matchup,
+  MatchupPhase,
+} from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
-import { getEntriesForRound } from '../../lib/domain/contestGetters';
 import {
-  PHASE_VALUES,
-  phaseLabels,
-} from '../../lib/domain/contestPhases';
+  getComputedRoundStatus,
+  getMatchupsForRound,
+} from '../../lib/domain/matchupGetters';
+import { getEntryScore } from '../../lib/domain/contestGetters';
+import {
+  MATCHUP_PHASE_VALUES,
+  matchupPhaseLabels,
+} from '../../lib/domain/matchupPhases';
 
 interface AdminContestRoundsProps {
   contest: Contest;
   config: ContestConfig;
+  matchups: Matchup[];
   selectedRoundId: string | null;
   onSelectRound: (roundId: string) => void;
 }
 
-export function AdminContestRounds({ contest, config, selectedRoundId, onSelectRound }: AdminContestRoundsProps) {
-  const { addRound, removeRound, setActiveRound, setRoundState } = useContestStore();
+function statusLabel(status: ReturnType<typeof getComputedRoundStatus>): string {
+  switch (status) {
+    case 'active': return 'Active';
+    case 'closed': return 'Closed';
+    case 'upcoming': return 'Upcoming';
+    case 'pending': return 'Not seeded';
+  }
+}
+
+export function AdminContestRounds({
+  contest,
+  config,
+  matchups,
+  selectedRoundId,
+  onSelectRound,
+}: AdminContestRoundsProps) {
+  const { addRound, removeRound, setRoundOverride, updateMatchup, seedRound } = useContestStore();
 
   const rounds = contest.rounds ?? [];
   const maxScore = config.attributes.reduce((sum, a) => sum + (a.max ?? 10), 0);
 
-  const handleAddRound = () => {
-    void addRound(contest.id);
-  };
+  const entriesById = useMemo(
+    () => new Map(contest.entries.map((e) => [e.id, e])),
+    [contest.entries],
+  );
 
-  const handleStateChange = (roundId: string, newState: ContestPhase) => {
-    void setRoundState(contest.id, roundId, newState);
-  };
+  const handleAddRound = () => void addRound(contest.id);
 
   return (
     <section className="admin-details-section">
@@ -37,16 +62,21 @@ export function AdminContestRounds({ contest, config, selectedRoundId, onSelectR
 
       <ul className="admin-detail-list admin-rounds-list">
         {rounds.map((round, index) => {
-          const isActive = round.id === contest.activeRoundId;
+          const roundMatchups = getMatchupsForRound(matchups, round.id).sort(
+            (a, b) => a.slotIndex - b.slotIndex,
+          );
+          const status = getComputedRoundStatus(round, matchups);
           const isSelected = round.id === selectedRoundId;
-          const entries = getEntriesForRound(contest, round.id);
+          const canSeed = index === 0
+            ? contest.entries.length >= 2
+            : roundMatchups.length === 0;
 
           return (
             <li
               key={round.id}
               className={[
                 'admin-round-item',
-                isActive ? 'admin-round-item--active' : '',
+                status === 'active' ? 'admin-round-item--active' : '',
                 isSelected ? 'admin-round-item--selected' : '',
               ].join(' ')}
             >
@@ -58,77 +88,85 @@ export function AdminContestRounds({ contest, config, selectedRoundId, onSelectR
                 <div className="admin-round-item__info">
                   <strong>Round {index + 1}</strong>
                   <span className="admin-detail-meta">
-                    {isActive ? 'Active' : ''}
+                    {roundMatchups.length} matchup{roundMatchups.length === 1 ? '' : 's'}
                   </span>
                 </div>
-                <span className={`admin-round-badge admin-round-badge--${round.state ?? 'set'}`}>
-                  {phaseLabels[round.state ?? 'set']}
+                <span className={`admin-round-badge admin-round-badge--${status}`}>
+                  {statusLabel(status)}
                 </span>
               </button>
 
               {isSelected && (
                 <div className="admin-round-state-controls">
                   <div className="admin-round-actions">
-                    {!isActive && (
+                    {round.adminOverride == null ? (
+                      <>
+                        <button
+                          type="button"
+                          className="button-secondary"
+                          onClick={() => void setRoundOverride(contest.id, round.id, 'active')}
+                        >
+                          Force open
+                        </button>
+                        <button
+                          type="button"
+                          className="button-secondary"
+                          onClick={() => void setRoundOverride(contest.id, round.id, 'closed')}
+                        >
+                          Force close
+                        </button>
+                      </>
+                    ) : (
                       <button
                         type="button"
                         className="button-secondary"
-                        onClick={() => void setActiveRound(contest.id, round.id)}
+                        onClick={() => void setRoundOverride(contest.id, round.id, null)}
                       >
-                        Make active
+                        Clear override ({round.adminOverride})
+                      </button>
+                    )}
+                    {canSeed && (
+                      <button
+                        type="button"
+                        className="button-secondary"
+                        onClick={() =>
+                          void (async () => {
+                            if (index === 0) {
+                              const pairs = autoPairEntries(contest.entries.map((e) => e.id));
+                              if (pairs.length === 0) return;
+                              await seedRound(contest.id, round.id, pairs);
+                            } else {
+                              await seedRound(contest.id, round.id);
+                            }
+                          })()
+                        }
+                      >
+                        {roundMatchups.length > 0 ? 'Reseed round' : 'Seed round'}
                       </button>
                     )}
                   </div>
-                  <div className="admin-phase-controls__grid admin-phase-controls__grid--compact">
-                    {PHASE_VALUES.map((stateOption) => {
-                      const isCurrentState = stateOption === round.state;
-                      return (
-                        <button
-                          key={stateOption}
-                          type="button"
-                          className={`admin-phase-button admin-phase-button--compact ${isCurrentState ? 'admin-phase-button--active' : ''}`}
-                          onClick={() => handleStateChange(round.id, stateOption)}
-                          aria-pressed={isCurrentState}
-                        >
-                          <span className="admin-phase-button__label">
-                            {phaseLabels[stateOption]}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
                 </div>
               )}
 
-              {/* Inline entries for this round */}
-              {isSelected && entries.length > 0 && (
+              {isSelected && roundMatchups.length > 0 && (
                 <div className="admin-round-entries">
-                  {entries.map((entry) => {
-                    const hasVotes = (entry.voteCount ?? 0) > 0;
-                    const avgScore = hasVotes
-                      ? Math.round((entry.sumScore ?? 0) / entry.voteCount!)
-                      : null;
-
-                    return (
-                      <div key={entry.id} className="admin-round-entry">
-                        <div className="admin-round-entry__contestant">
-                          <strong>{entry.submittedBy}</strong>
-                          <span className="admin-round-entry__name">
-                            {entry.name || 'Not submitted!'}
-                          </span>
-                        </div>
-                        <span className="admin-round-entry__score">
-                          {avgScore !== null ? `${avgScore}/${maxScore}` : 'No votes'}
-                        </span>
-                      </div>
-                    );
-                  })}
+                  {roundMatchups.map((matchup) => (
+                    <MatchupRow
+                      key={matchup.id}
+                      matchup={matchup}
+                      maxScore={maxScore}
+                      entriesById={entriesById}
+                      onPhaseChange={(phase) =>
+                        void updateMatchup(contest.id, matchup.id, { phase })
+                      }
+                    />
+                  ))}
                 </div>
               )}
 
-              {isSelected && entries.length === 0 && (
+              {isSelected && roundMatchups.length === 0 && (
                 <p className="admin-detail-meta" style={{ padding: '0.5rem' }}>
-                  No entries in this round.
+                  No matchups yet. {canSeed ? 'Use "Seed round" to create them.' : 'Waiting on previous round to score.'}
                 </p>
               )}
 
@@ -136,7 +174,7 @@ export function AdminContestRounds({ contest, config, selectedRoundId, onSelectR
                 type="button"
                 className="button-secondary admin-round-item__remove"
                 onClick={() => void removeRound(contest.id, round.id)}
-                disabled={isActive}
+                disabled={status === 'active'}
               >
                 Remove
               </button>
@@ -152,4 +190,69 @@ export function AdminContestRounds({ contest, config, selectedRoundId, onSelectR
       </div>
     </section>
   );
+}
+
+function MatchupRow({
+  matchup,
+  maxScore,
+  entriesById,
+  onPhaseChange,
+}: {
+  matchup: Matchup;
+  maxScore: number;
+  entriesById: Map<string, Contest['entries'][number]>;
+  onPhaseChange: (phase: MatchupPhase) => void;
+}) {
+  const [isBusy, setIsBusy] = useState(false);
+  const entries = matchup.entryIds.map((id) => entriesById.get(id) ?? null);
+
+  const handleChange = async (phase: MatchupPhase) => {
+    setIsBusy(true);
+    try {
+      await onPhaseChange(phase);
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  return (
+    <div className="admin-round-entry">
+      <div className="admin-round-entry__contestant">
+        <strong>Matchup {matchup.slotIndex + 1}</strong>
+        <span className="admin-round-entry__name">
+          {entries.map((e, i) => {
+            const label = e?.name || e?.submittedBy || 'TBD';
+            const score = e ? getEntryScore(e) : null;
+            const scoreSuffix = score !== null ? ` (${score}/${maxScore})` : '';
+            return `${i === 0 ? '' : ' vs '}${label}${scoreSuffix}`;
+          }).join('')}
+        </span>
+      </div>
+      <div className="admin-phase-controls__grid admin-phase-controls__grid--compact">
+        {MATCHUP_PHASE_VALUES.map((phaseOption) => {
+          const isCurrent = phaseOption === matchup.phase;
+          return (
+            <button
+              key={phaseOption}
+              type="button"
+              className={`admin-phase-button admin-phase-button--compact ${isCurrent ? 'admin-phase-button--active' : ''}`}
+              onClick={() => void handleChange(phaseOption)}
+              disabled={isBusy}
+              aria-pressed={isCurrent}
+            >
+              <span className="admin-phase-button__label">{matchupPhaseLabels[phaseOption]}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function autoPairEntries(entryIds: string[]): Array<[string, string]> {
+  const pairs: Array<[string, string]> = [];
+  for (let i = 0; i + 1 < entryIds.length; i += 2) {
+    pairs.push([entryIds[i], entryIds[i + 1]]);
+  }
+  return pairs;
 }

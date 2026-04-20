@@ -1,15 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/contest/contexts/auth/AuthContext';
 import { ContestRoundNavigator } from '@/contest/components/ui/ContestRoundNavigator';
 import { ContestantCta } from '@/contest/components/ui/ContestantCta';
 import { VoteModal } from '@/contest/components/ui/VoteModal';
 import { useResolvedContest } from '@/contest/lib/hooks/useResolvedContest';
 import { getContestantLabel, getEntryLabel } from '@/contest/lib/domain/contestLabels';
-import { getActiveRoundId } from '@/contest/lib/domain/contestGetters';
 import { getUserContestRole } from '@/contest/lib/domain/userContestState';
+import { getActiveRoundIdFromMatchups } from '@/contest/lib/domain/matchupGetters';
 import { buildBracketRoundsFromContest } from '@/contest/lib/presentation/buildBracketRoundsFromContest';
 import type { Contest } from '@/contest/contexts/contest/contestTypes';
 
@@ -20,19 +20,22 @@ interface ContestPageClientProps {
 
 export default function ContestPageClient({ contestId, initialContest }: ContestPageClientProps) {
   const { session } = useAuth();
-  const { contest: liveContest } = useResolvedContest(contestId);
+  const { contest: liveContest, matchups } = useResolvedContest(contestId);
   const contest = liveContest ?? initialContest;
 
-  const rounds = buildBracketRoundsFromContest(contest);
-  const activeRoundId = getActiveRoundId(contest);
+  const rounds = useMemo(
+    () => buildBracketRoundsFromContest(contest, matchups),
+    [contest, matchups],
+  );
+  const activeRoundId = useMemo(
+    () => getActiveRoundIdFromMatchups(contest.rounds ?? [], matchups),
+    [contest.rounds, matchups],
+  );
   const fallbackRoundId = activeRoundId ?? rounds[0]?.id ?? null;
 
   const [viewedRoundId, setViewedRoundId] = useState<string | null>(fallbackRoundId);
-  const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null);
+  const [selectedMatchupId, setSelectedMatchupId] = useState<string | null>(null);
 
-  // If the active round changes server-side while the page is open (or we
-  // previously defaulted before rounds loaded), keep the viewer in sync with
-  // a sensible default.
   useEffect(() => {
     if (!fallbackRoundId) return;
     setViewedRoundId((prev) => {
@@ -46,6 +49,17 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
   const contestantLabel = getContestantLabel(contest.config);
   const entryLabel = getEntryLabel(contest.config);
   const showContestantButton = userId && contestRole !== 'contestant';
+
+  const selectedMatchup = selectedMatchupId
+    ? matchups.find((m) => m.id === selectedMatchupId) ?? null
+    : null;
+
+  const handleVoteRound = (roundId: string) => {
+    const firstShake = matchups
+      .filter((m) => m.roundId === roundId && m.phase === 'shake')
+      .sort((a, b) => a.slotIndex - b.slotIndex)[0];
+    if (firstShake) setSelectedMatchupId(firstShake.id);
+  };
 
   return (
     <div className="contest-landing">
@@ -64,7 +78,7 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
         activeRoundId={activeRoundId}
         viewedRoundId={viewedRoundId}
         onViewRound={setViewedRoundId}
-        onVoteRound={setSelectedRoundId}
+        onVoteRound={handleVoteRound}
       />
 
       {showContestantButton && userId && (
@@ -82,12 +96,12 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
         </section>
       )}
 
-      {selectedRoundId && (
+      {selectedMatchup && (
         <VoteModal
           open
-          onClose={() => setSelectedRoundId(null)}
+          onClose={() => setSelectedMatchupId(null)}
           contest={contest}
-          roundId={selectedRoundId}
+          matchup={selectedMatchup}
         />
       )}
     </div>

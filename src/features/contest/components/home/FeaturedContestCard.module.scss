@@ -27,23 +27,10 @@
   margin: 0;
 }
 
-.phaseBadge {
+.meta {
   @include status-badge;
-
-  &[data-phase='set'] {
-    background: $color-gray-200;
-    color: $color-text-dark;
-  }
-
-  &[data-phase='shake'] {
-    @include warning-surface;
-    border: none;
-  }
-
-  &[data-phase='scored'] {
-    background: $color-success-50;
-    color: $color-text-dark;
-  }
+  background: $color-gray-200;
+  color: $color-text-dark;
 }
 
 .cta {

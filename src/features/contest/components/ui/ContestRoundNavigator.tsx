@@ -19,12 +19,14 @@ interface ContestRoundNavigatorProps {
 function statusLabel(status: BracketRoundStatus): string {
   if (status === 'active') return 'Now voting';
   if (status === 'closed') return 'Closed';
+  if (status === 'pending') return 'Not seeded';
   return 'Upcoming';
 }
 
 function shortStatusLabel(status: BracketRoundStatus): string {
   if (status === 'active') return 'Active';
   if (status === 'closed') return 'Closed';
+  if (status === 'pending') return 'Pending';
   return 'Upcoming';
 }
 

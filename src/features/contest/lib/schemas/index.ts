@@ -114,8 +114,8 @@ export const ScoreEntrySchema = z
 export const SubmitScoreBodySchema = z
   .object({
     entryId: z.string().openapi({ description: 'Entry being scored' }),
-    matchupId: z.string().optional().openapi({
-      description: 'Matchup this score is cast against. Required starting in PR 4; optional now for backward compatibility.',
+    matchupId: z.string().openapi({
+      description: 'Matchup this score is cast against. Required.',
     }),
     userName: z.string().optional().openapi({
       description: 'Display name for auto-registered voter (defaults to token display name)',
@@ -129,8 +129,6 @@ export const SubmitScoreBodySchema = z
       .record(z.string(), z.number())
       .optional()
       .openapi({ description: 'Partial or full ScoreBreakdown' }),
-    /** @deprecated Use matchupId. */
-    round: z.string().optional(),
     notes: z.string().optional(),
   })
   .openapi('SubmitScoreBody');

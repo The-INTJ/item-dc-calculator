@@ -1,10 +1,5 @@
 'use client';
 
-/**
- * ContestCard - Displays a single contest in the admin overview
- * Conforms to dev standards: < 80 lines, uses theme variables.
- */
-
 import type { Contest } from '../../contexts/contest/contestTypes';
 
 interface ContestCardProps {
@@ -13,19 +8,12 @@ interface ContestCardProps {
   isSelected: boolean;
 }
 
-function getPhaseColor(phase: Contest['phase']): string {
-  switch (phase) {
-    case 'shake':
-      return 'var(--phase-shake, #22c55e)';
-    case 'scored':
-      return 'var(--phase-scored, #f59e0b)';
-    case 'set':
-    default:
-      return 'var(--phase-set, #3b82f6)';
-  }
-}
-
 export function ContestCard({ contest, onSelect, isSelected }: ContestCardProps) {
+  const roundCount = contest.rounds?.length ?? 0;
+  const entryCount = contest.entries?.length ?? 0;
+  const voterCount = contest.voters?.length ?? 0;
+  const voteCount = contest.entries?.reduce((sum, e) => sum + (e.voteCount ?? 0), 0) ?? 0;
+
   return (
     <button
       type="button"
@@ -34,18 +22,13 @@ export function ContestCard({ contest, onSelect, isSelected }: ContestCardProps)
     >
       <div className="admin-contest-card__header">
         <h3 className="admin-contest-card__name">{contest.name}</h3>
-        <span
-          className="admin-contest-card__phase"
-          style={{ backgroundColor: getPhaseColor(contest.phase) }}
-        >
-          {contest.phase}
-        </span>
+        <span className="admin-contest-card__phase">{roundCount} rounds</span>
       </div>
       <p className="admin-contest-card__location">{contest.location ?? 'No location set'}</p>
       <div className="admin-contest-card__stats">
-        <span>{contest.entries?.length} entries</span>
-        <span>{contest.voters?.length} voters</span>
-        <span>{contest.entries?.reduce((sum, e) => sum + (e.voteCount ?? 0), 0)} votes</span>
+        <span>{entryCount} entries</span>
+        <span>{voterCount} voters</span>
+        <span>{voteCount} votes</span>
       </div>
       {contest.defaultContest && (
         <span className="admin-contest-card__default">Current Default</span>

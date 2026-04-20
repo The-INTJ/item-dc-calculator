@@ -191,6 +191,8 @@ export interface Contest {
 
 export interface ContestContextState {
   contests: Contest[];
+  /** Matchups keyed by contestId; populated by the matchup subscription. */
+  matchupsByContestId: Record<string, Matchup[]>;
   loading: boolean;
   error: string | null;
   lastUpdatedAt: number | null;
@@ -206,9 +208,29 @@ export interface ContestActions {
   addRound: (contestId: string) => Promise<boolean>;
   updateRound: (contestId: string, roundId: string, updates: Partial<ContestRound>) => Promise<boolean>;
   removeRound: (contestId: string, roundId: string) => Promise<boolean>;
-  setActiveRound: (contestId: string, roundId: string) => Promise<boolean>;
-  setRoundState: (contestId: string, roundId: string, state: MatchupPhase) => Promise<boolean>;
-  addContestant: (contestId: string, contestant: { name: string; entryName: string; roundId: string }) => Promise<Entry | null>;
+  /** Admin override for a round's status. Pass null to clear. */
+  setRoundOverride: (
+    contestId: string,
+    roundId: string,
+    override: 'active' | 'closed' | null,
+  ) => Promise<boolean>;
+  addContestant: (
+    contestId: string,
+    contestant: { name: string; entryName: string },
+  ) => Promise<Entry | null>;
   updateContestant: (contestId: string, entryId: string, updates: Partial<Entry>) => Promise<Entry | null>;
   removeContestant: (contestId: string, entryId: string) => Promise<boolean>;
+  /** Replace the cached matchups for a contest (used by the realtime subscription). */
+  setMatchupsForContest: (contestId: string, matchups: Matchup[]) => void;
+  updateMatchup: (
+    contestId: string,
+    matchupId: string,
+    updates: Partial<Matchup>,
+  ) => Promise<Matchup | null>;
+  /** Seed (or reseed) a round's matchups. For round 0 pass pairs; for N>0 derives from winners. */
+  seedRound: (
+    contestId: string,
+    roundId: string,
+    pairs?: Array<[string, string]>,
+  ) => Promise<Matchup[] | null>;
 }

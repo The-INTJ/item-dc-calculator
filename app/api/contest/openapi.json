@@ -21,15 +21,26 @@
       }
     },
     "schemas": {
-      "ContestPhase": {
+      "MatchupPhase": {
         "type": "string",
         "enum": [
           "set",
           "shake",
           "scored"
         ],
-        "description": "Contest lifecycle state",
+        "description": "Matchup lifecycle phase",
         "example": "shake"
+      },
+      "RoundStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "upcoming",
+          "active",
+          "closed"
+        ],
+        "description": "Computed round status derived from constituent matchup phases",
+        "example": "active"
       },
       "UserRole": {
         "type": "string",
@@ -199,7 +210,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "example": "user1_entry1"
+            "example": "user1_matchup1_entry1"
           },
           "entryId": {
             "type": "string",
@@ -208,6 +219,11 @@
           "userId": {
             "type": "string",
             "example": "user-1"
+          },
+          "matchupId": {
+            "type": "string",
+            "description": "Matchup this vote belongs to. Required for new votes.",
+            "example": "matchup-1"
           },
           "round": {
             "type": "string",
@@ -225,7 +241,6 @@
           "id",
           "entryId",
           "userId",
-          "round",
           "breakdown"
         ]
       },
@@ -235,6 +250,10 @@
           "entryId": {
             "type": "string",
             "description": "Entry being scored"
+          },
+          "matchupId": {
+            "type": "string",
+            "description": "Matchup this score is cast against. Required."
           },
           "userName": {
             "type": "string",
@@ -258,15 +277,13 @@
             },
             "description": "Partial or full ScoreBreakdown"
           },
-          "round": {
-            "type": "string"
-          },
           "notes": {
             "type": "string"
           }
         },
         "required": [
-          "entryId"
+          "entryId",
+          "matchupId"
         ]
       },
       "Voter": {
@@ -337,7 +354,6 @@
           "name",
           "slug",
           "description",
-          "round",
           "submittedBy"
         ],
         "description": "A contest entry (drink, chili, cosplay, performance, etc.)"
@@ -380,7 +396,6 @@
           "name",
           "slug",
           "description",
-          "round",
           "submittedBy"
         ]
       },
@@ -435,14 +450,226 @@
             ]
           },
           "state": {
-            "$ref": "#/components/schemas/ContestPhase"
+            "$ref": "#/components/schemas/MatchupPhase"
+          },
+          "adminOverride": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "active",
+              "closed",
+              null
+            ],
+            "description": "Admin escape hatch. 'active' forces the round open; 'closed' forces it closed; null/undefined uses computed status."
           }
         },
         "required": [
           "id",
-          "name",
-          "state"
+          "name"
         ]
+      },
+      "Matchup": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "matchup-1"
+          },
+          "contestId": {
+            "type": "string",
+            "example": "contest-1"
+          },
+          "roundId": {
+            "type": "string",
+            "example": "round-1"
+          },
+          "slotIndex": {
+            "type": "integer",
+            "example": 0
+          },
+          "entryIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Entries competing in this matchup (length 2 for 1v1).",
+            "example": [
+              "entry-1",
+              "entry-2"
+            ]
+          },
+          "phase": {
+            "$ref": "#/components/schemas/MatchupPhase"
+          },
+          "winnerEntryId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "advancesToMatchupId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "advancesToSlot": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "contestId",
+          "roundId",
+          "slotIndex",
+          "entryIds",
+          "phase"
+        ],
+        "description": "A first-class matchup between entries within a round."
+      },
+      "CreateMatchupBody": {
+        "type": "object",
+        "properties": {
+          "roundId": {
+            "type": "string",
+            "example": "round-1"
+          },
+          "slotIndex": {
+            "type": "integer",
+            "example": 0
+          },
+          "entryIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Entries competing in this matchup (length 2 for 1v1).",
+            "example": [
+              "entry-1",
+              "entry-2"
+            ]
+          },
+          "phase": {
+            "$ref": "#/components/schemas/MatchupPhase"
+          },
+          "winnerEntryId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "advancesToMatchupId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "advancesToSlot": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "roundId",
+          "slotIndex"
+        ]
+      },
+      "UpdateMatchupBody": {
+        "type": "object",
+        "properties": {
+          "roundId": {
+            "type": "string",
+            "example": "round-1"
+          },
+          "slotIndex": {
+            "type": "integer",
+            "example": 0
+          },
+          "entryIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Entries competing in this matchup (length 2 for 1v1).",
+            "example": [
+              "entry-1",
+              "entry-2"
+            ]
+          },
+          "phase": {
+            "$ref": "#/components/schemas/MatchupPhase"
+          },
+          "winnerEntryId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "advancesToMatchupId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "advancesToSlot": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        }
+      },
+      "SeedRoundBody": {
+        "type": "object",
+        "properties": {
+          "entryIdPairs": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Explicit entry pairs for round-1 seeding. Omit for rounds > 1 (propagated from previous round winners)."
+          }
+        }
+      },
+      "UpdateRoundBody": {
+        "type": "object",
+        "properties": {
+          "adminOverride": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "active",
+              "closed",
+              null
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "number": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        }
       },
       "Contest": {
         "type": "object",
@@ -460,7 +687,7 @@
             "example": "summer-mixoff-2024"
           },
           "phase": {
-            "$ref": "#/components/schemas/ContestPhase"
+            "$ref": "#/components/schemas/MatchupPhase"
           },
           "config": {
             "$ref": "#/components/schemas/ContestConfig"
@@ -515,7 +742,6 @@
           "id",
           "name",
           "slug",
-          "phase",
           "entries",
           "voters"
         ]
@@ -532,7 +758,7 @@
             "example": "summer-mixoff-2024"
           },
           "phase": {
-            "$ref": "#/components/schemas/ContestPhase"
+            "$ref": "#/components/schemas/MatchupPhase"
           },
           "config": {
             "$ref": "#/components/schemas/ContestConfig"
@@ -573,8 +799,7 @@
         },
         "required": [
           "name",
-          "slug",
-          "phase"
+          "slug"
         ]
       },
       "UpdateContestBody": {
@@ -593,7 +818,7 @@
             "example": "summer-mixoff-2024"
           },
           "phase": {
-            "$ref": "#/components/schemas/ContestPhase"
+            "$ref": "#/components/schemas/MatchupPhase"
           },
           "config": {
             "$ref": "#/components/schemas/ContestConfig"
@@ -870,9 +1095,6 @@
                   "slug": {
                     "type": "string"
                   },
-                  "phase": {
-                    "$ref": "#/components/schemas/ContestPhase"
-                  },
                   "location": {
                     "type": "string"
                   },
@@ -1024,9 +1246,6 @@
                   },
                   "slug": {
                     "type": "string"
-                  },
-                  "phase": {
-                    "$ref": "#/components/schemas/ContestPhase"
                   },
                   "location": {
                     "type": "string"
@@ -1543,6 +1762,10 @@
                     "type": "string",
                     "description": "Entry being scored"
                   },
+                  "matchupId": {
+                    "type": "string",
+                    "description": "Matchup this score is cast against. The matchup must be in the 'shake' phase and must include entryId."
+                  },
                   "userName": {
                     "type": "string",
                     "description": "Display name for auto-registered voter (defaults to token display name)"
@@ -1561,16 +1784,13 @@
                   "breakdown": {
                     "$ref": "#/components/schemas/ScoreBreakdown"
                   },
-                  "round": {
-                    "type": "string",
-                    "description": "Round ID (defaults to entry's round)"
-                  },
                   "notes": {
                     "type": "string"
                   }
                 },
                 "required": [
-                  "entryId"
+                  "entryId",
+                  "matchupId"
                 ]
               },
               "examples": {
@@ -1578,6 +1798,7 @@
                   "summary": "Submit full score breakdown",
                   "value": {
                     "entryId": "entry-1",
+                    "matchupId": "matchup-1",
                     "breakdown": {
                       "aroma": 8,
                       "balance": 7,
@@ -1592,6 +1813,7 @@
                   "summary": "Submit single category score",
                   "value": {
                     "entryId": "entry-1",
+                    "matchupId": "matchup-1",
                     "categoryId": "overall",
                     "value": 8
                   }
@@ -1752,6 +1974,457 @@
           },
           "500": {
             "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contests/{id}/matchups": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Contest ID or slug",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List matchups in a contest",
+        "description": "Returns all matchups for a contest, optionally filtered by roundId.",
+        "tags": [
+          "Matchups"
+        ],
+        "parameters": [
+          {
+            "name": "roundId",
+            "in": "query",
+            "required": false,
+            "description": "Return only matchups belonging to this round",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of matchups",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "matchups": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Matchup"
+                      }
+                    }
+                  },
+                  "required": [
+                    "matchups"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a matchup",
+        "description": "Creates a new matchup within a round. Admin only.",
+        "tags": [
+          "Matchups"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMatchupBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Matchup created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Matchup"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contests/{id}/matchups/{matchupId}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Contest ID or slug",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "matchupId",
+          "in": "path",
+          "required": true,
+          "description": "Matchup ID",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get a matchup",
+        "tags": [
+          "Matchups"
+        ],
+        "responses": {
+          "200": {
+            "description": "Matchup details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Matchup"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Matchup not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update a matchup",
+        "description": "Updates a matchup's phase, entries, winner, or advancement pointers. Admin only.",
+        "tags": [
+          "Matchups"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMatchupBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Matchup updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Matchup"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Matchup not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a matchup",
+        "tags": [
+          "Matchups"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Matchup deleted"
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Matchup not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contests/{id}/rounds/{roundId}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Contest ID or slug",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "roundId",
+          "in": "path",
+          "required": true,
+          "description": "Round ID",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "patch": {
+        "summary": "Update a round",
+        "description": "Updates name, number, or adminOverride on a round. Round status itself is computed from matchup phases; use adminOverride to force-open or force-close. Admin only.",
+        "tags": [
+          "Rounds"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoundBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Round updated (returns the full contest)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contest"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest or round not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contests/{id}/rounds/{roundId}/seed": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Contest ID or slug",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "roundId",
+          "in": "path",
+          "required": true,
+          "description": "Round ID",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Seed a round with matchups",
+        "description": "Seeds a round. For round 1, the admin supplies explicit entry pairs; for rounds N>1, pairs are derived from previous-round winners (all must be scored). Replaces any existing matchups for the round and backfills advancement pointers on the previous round. Admin only.",
+        "tags": [
+          "Rounds"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeedRoundBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Round seeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "matchups": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Matchup"
+                      }
+                    }
+                  },
+                  "required": [
+                    "matchups"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or invalid previous-round state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest or round not found",
             "content": {
               "application/json": {
                 "schema": {

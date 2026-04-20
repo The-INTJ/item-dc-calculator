@@ -1,11 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Contest, ContestConfig, ScoreEntry } from '../../contexts/contest/contestTypes';
+import type {
+  Contest,
+  ContestConfig,
+  Matchup,
+  ScoreEntry,
+} from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
+import { useMatchupsSubscription } from '../../lib/realtime';
 import { contestApi } from '../../lib/api/contestApi';
-import { getEntriesForRound, getRoundById, getRoundLabel } from '../../lib/domain/contestGetters';
+import { getRoundLabel } from '../../lib/domain/contestGetters';
+import {
+  getActiveRoundIdFromMatchups,
+  getMatchupsForRound,
+} from '../../lib/domain/matchupGetters';
 import { getEffectiveConfig } from '../../lib/domain/validation';
 import { AdminContestants } from './AdminContestants';
 import { AdminContestRounds } from './AdminContestRounds';
@@ -28,19 +38,24 @@ interface Participant {
 
 function buildParticipants(
   contest: Contest,
+  matchups: Matchup[],
   contestScores: ScoreEntry[],
   selectedRoundId: string | null,
 ): Participant[] {
-  const roundId = selectedRoundId ?? contest.activeRoundId;
-  const round = contest.rounds?.find((r) => r.id === roundId);
-  const roundEntries = roundId ? getEntriesForRound(contest, roundId) : [];
-  const roundContestantNames = new Set(roundEntries.map((e) => e.submittedBy?.toLowerCase()));
-  const isShakeOrScored = round?.state === 'shake' || round?.state === 'scored';
+  const roundMatchups = selectedRoundId ? getMatchupsForRound(matchups, selectedRoundId) : [];
+  const roundEntryIds = new Set(roundMatchups.flatMap((m) => m.entryIds));
+  const roundEntries = (contest.entries ?? []).filter((e) => roundEntryIds.has(e.id));
+  const roundContestantNames = new Set(
+    roundEntries.map((e) => e.submittedBy?.toLowerCase()).filter(Boolean),
+  );
+  const isShakeOrScored = roundMatchups.some(
+    (m) => m.phase === 'shake' || m.phase === 'scored',
+  );
 
-  const roundEntryIds = new Set(roundEntries.map((e) => e.id));
+  const matchupIdsForRound = new Set(roundMatchups.map((m) => m.id));
   const voterScoreCounts = new Map<string, number>();
   for (const score of contestScores) {
-    if (roundEntryIds.has(score.entryId)) {
+    if (roundEntryIds.has(score.entryId) && (!score.matchupId || matchupIdsForRound.has(score.matchupId))) {
       voterScoreCounts.set(score.userId, (voterScoreCounts.get(score.userId) ?? 0) + 1);
     }
   }
@@ -48,7 +63,6 @@ function buildParticipants(
   const seen = new Set<string>();
   const participants: Participant[] = [];
 
-  // Add registered voters (contest members)
   for (const voter of contest.voters ?? []) {
     seen.add(voter.displayName.toLowerCase());
     const isContestant = roundContestantNames.has(voter.displayName.toLowerCase());
@@ -63,7 +77,6 @@ function buildParticipants(
     });
   }
 
-  // Add contestants not already in voters (from selected round entries only)
   for (const entry of roundEntries) {
     const name = entry.submittedBy;
     if (!name || seen.has(name.toLowerCase())) continue;
@@ -82,10 +95,6 @@ function buildParticipants(
   return participants;
 }
 
-function getRoleBadgeLabel(role: Participant['role']) {
-  return role;
-}
-
 function ParticipantItem({ participant }: { participant: Participant }) {
   const voteStatus = participant.autoMax
     ? 'Auto max'
@@ -98,7 +107,7 @@ function ParticipantItem({ participant }: { participant: Participant }) {
       <div className="admin-participant-item__info">
         <strong>{participant.displayName}</strong>
         <span className={`admin-role-badge admin-role-badge--${participant.role}`}>
-          {getRoleBadgeLabel(participant.role)}
+          {participant.role}
         </span>
       </div>
       <span className={`admin-vote-status admin-vote-status--${participant.autoMax ? 'auto' : participant.votedCount > 0 ? 'voted' : 'pending'}`}>
@@ -110,37 +119,43 @@ function ParticipantItem({ participant }: { participant: Participant }) {
 
 export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProps) {
   const router = useRouter();
-  const { deleteContest } = useContestStore();
+  const { deleteContest, matchupsByContestId } = useContestStore();
+  useMatchupsSubscription(contest.id);
+  const matchups = matchupsByContestId[contest.id] ?? [];
+
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [contestScores, setContestScores] = useState<ScoreEntry[]>([]);
-  const [selectedRoundId, setSelectedRoundId] = useState<string | null>(
-    contest.activeRoundId ?? null,
+
+  const rounds = contest.rounds ?? [];
+  const activeRoundId = useMemo(
+    () => getActiveRoundIdFromMatchups(rounds, matchups),
+    [rounds, matchups],
   );
 
-  // Keep selectedRoundId in sync when contest changes
-  useEffect(() => {
-    if (selectedRoundId && !contest.rounds?.some((r) => r.id === selectedRoundId)) {
-      setSelectedRoundId(contest.activeRoundId ?? null);
-    }
-  }, [contest.rounds, contest.activeRoundId, selectedRoundId]);
+  const [selectedRoundId, setSelectedRoundId] = useState<string | null>(activeRoundId);
 
-  const activeRoundLabel = getRoundLabel(contest, contest.activeRoundId);
+  useEffect(() => {
+    if (selectedRoundId && !rounds.some((r) => r.id === selectedRoundId)) {
+      setSelectedRoundId(activeRoundId);
+    } else if (!selectedRoundId && activeRoundId) {
+      setSelectedRoundId(activeRoundId);
+    }
+  }, [rounds, activeRoundId, selectedRoundId]);
+
+  const activeRoundLabel = getRoundLabel(contest, activeRoundId);
   const selectedRoundLabel = getRoundLabel(contest, selectedRoundId);
   const config = getEffectiveConfig(contest);
   const hasScores = contest.entries.some((e) => (e.voteCount ?? 0) > 0);
-  const participants = buildParticipants(contest, contestScores, selectedRoundId);
+  const participants = buildParticipants(contest, matchups, contestScores, selectedRoundId);
 
   useEffect(() => {
-    if (!contest.id) {
-      return;
-    }
+    if (!contest.id) return;
 
     const fetchScores = async () => {
       const scoreGroups = await Promise.all(
         contest.entries.map((entry) => contestApi.getScoresForEntry(contest.id, entry.id)),
       );
-
       setContestScores(scoreGroups.flatMap((r) => (r.success ? r.data ?? [] : [])));
     };
 
@@ -152,7 +167,6 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
     if (!result.success || !result.data) {
       throw new Error(result.error ?? 'Failed to update config');
     }
-
     onContestUpdated(result.data);
   };
 
@@ -160,16 +174,12 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
     const confirmed = window.confirm(
       `Are you sure you want to delete "${contest.name}"?\n\nThis will permanently delete:\n- All rounds\n- All entries\n- All scores\n\nThis action cannot be undone.`,
     );
-
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     setIsDeleting(true);
     setDeleteError(null);
 
     const success = await deleteContest(contest.id);
-
     if (success) {
       router.push('/admin');
       return;
@@ -208,10 +218,11 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
       <AdminContestRounds
         contest={contest}
         config={config}
+        matchups={matchups}
         selectedRoundId={selectedRoundId}
         onSelectRound={setSelectedRoundId}
       />
-      <AdminContestants contest={contest} selectedRoundId={selectedRoundId} />
+      <AdminContestants contest={contest} matchups={matchups} />
 
       <section className="admin-details-section">
         <h3>Participants ({participants.length})</h3>

@@ -1,9 +1,9 @@
 'use client';
 
 import { Dialog, DialogActions, DialogContent, DialogTitle, IconButton } from '@mui/material';
-import type { Contest } from '../../contexts/contest/contestTypes';
+import type { Contest, Matchup } from '../../contexts/contest/contestTypes';
 import { getRoundLabel } from '../../lib/domain/contestGetters';
-import { useRoundVoting } from '../../lib/hooks/useRoundVoting';
+import { useMatchupVoting } from '../../lib/hooks/useMatchupVoting';
 import { VoteActions } from '../votePage/VoteActions';
 import { VoteScorePanel } from './VoteScorePanel';
 
@@ -11,13 +11,13 @@ interface VoteModalProps {
   open: boolean;
   onClose: () => void;
   contest: Contest;
-  roundId: string;
+  matchup: Matchup;
 }
 
-export function VoteModal({ open, onClose, contest, roundId }: VoteModalProps) {
-  const roundName = getRoundLabel(contest, roundId);
+export function VoteModal({ open, onClose, contest, matchup }: VoteModalProps) {
+  const roundName = getRoundLabel(contest, matchup.roundId);
   const { drinks, categories, scores, updateScore, submit, status, message, isSubmitting } =
-    useRoundVoting(contest, roundId);
+    useMatchupVoting(contest, matchup);
 
   const canSubmit = drinks.length > 0 && categories.length > 0 && !isSubmitting;
 
@@ -36,7 +36,7 @@ export function VoteModal({ open, onClose, contest, roundId }: VoteModalProps) {
 
       <DialogContent dividers>
         {drinks.length === 0 ? (
-          <p>No entries in this round yet.</p>
+          <p>No entries assigned to this matchup yet.</p>
         ) : (
           <VoteScorePanel
             drinks={drinks}

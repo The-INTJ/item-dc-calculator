@@ -60,16 +60,28 @@ export async function POST(request: Request, { params }: RouteParams) {
 
   const body = bodyResult.data;
   const entryId = body.entryId.trim();
+  const matchupId = body.matchupId.trim();
   const userId = auth.user.uid;
 
-  if (!entryId) {
-    return jsonError('entryId is required.', 400);
-  }
+  if (!entryId) return jsonError('entryId is required.', 400);
+  if (!matchupId) return jsonError('matchupId is required.', 400);
 
   const entries: Entry[] = contest.entries;
   const entry = entries.find((candidate) => candidate.id === entryId);
   if (!entry) {
     return jsonError('Entry not found.', 404);
+  }
+
+  const matchupResult = await provider.matchups.getById(contest.id, matchupId);
+  if (!matchupResult.success || !matchupResult.data) {
+    return jsonError(matchupResult.error ?? 'Matchup not found.', 404);
+  }
+  const matchup = matchupResult.data;
+  if (matchup.phase !== 'shake') {
+    return jsonError('Matchup is not open for scoring.', 400);
+  }
+  if (!matchup.entryIds.includes(entryId)) {
+    return jsonError('Entry is not part of this matchup.', 400);
   }
 
   const voters = contest.voters ?? [];
@@ -98,11 +110,10 @@ export async function POST(request: Request, { params }: RouteParams) {
     return jsonError('Score breakdown or categoryId + value is required.', 400);
   }
 
-  const round = body.round?.trim() || entry.round || '';
   const submitResult = await provider.scores.submit(contest.id, {
     entryId,
     userId,
-    round,
+    matchupId,
     breakdown: breakdownUpdates as ScoreBreakdown,
     ...(body.notes ? { notes: body.notes } : {}),
   });

@@ -34,8 +34,37 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return body.response;
   }
 
+  const rejection = rejectDeprecatedFields(body.data);
+  if (rejection) {
+    return jsonError(rejection, 400);
+  }
+
   const result = await provider.contests.update(contest.id, body.data);
   return fromProviderResult(result, { failureStatus: 404 });
+}
+
+const DEPRECATED_CONTEST_FIELDS = [
+  'phase',
+  'activeRoundId',
+  'futureRoundId',
+  'bracketRound',
+] as const;
+
+function rejectDeprecatedFields(body: Record<string, unknown>): string | null {
+  for (const field of DEPRECATED_CONTEST_FIELDS) {
+    if (field in body) {
+      return `Field "${field}" is no longer writable. Round status is computed from matchup phases.`;
+    }
+  }
+  const rounds = body.rounds;
+  if (Array.isArray(rounds)) {
+    for (const round of rounds) {
+      if (round && typeof round === 'object' && 'state' in round) {
+        return 'Round.state is no longer writable. Use adminOverride or per-matchup phase instead.';
+      }
+    }
+  }
+  return null;
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {

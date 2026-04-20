@@ -1,21 +1,22 @@
 'use client';
 
-import { useState } from 'react';
-import type { Contest, Entry } from '../../contexts/contest/contestTypes';
+import { useMemo, useState } from 'react';
+import type { Contest, Entry, Matchup } from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
-import { getEntriesForRound, getRoundLabel } from '../../lib/domain/contestGetters';
 
 interface AdminContestantsProps {
   contest: Contest;
-  selectedRoundId: string | null;
+  matchups: Matchup[];
 }
 
 function ContestantRow({
   entry,
+  placedLabel,
   onUpdate,
   onRemove,
 }: {
   entry: Entry;
+  placedLabel: string;
   onUpdate: (updates: Partial<Entry>) => Promise<void>;
   onRemove: () => Promise<void>;
 }) {
@@ -43,32 +44,62 @@ function ContestantRow({
         placeholder="Entry name"
         disabled={updating || removing}
       />
-      <button type="button" className="button-secondary" onClick={handleRemove} disabled={updating || removing}>
+      <span className="admin-detail-meta">{placedLabel}</span>
+      <button
+        type="button"
+        className="button-secondary"
+        onClick={handleRemove}
+        disabled={updating || removing}
+      >
         {removing ? 'Removing...' : 'Remove'}
       </button>
     </li>
   );
 }
 
-export function AdminContestants({ contest, selectedRoundId }: AdminContestantsProps) {
+type Filter = 'all' | 'unplaced' | string;
+
+export function AdminContestants({ contest, matchups }: AdminContestantsProps) {
   const { addContestant, updateContestant, removeContestant } = useContestStore();
   const [selectedVoterId, setSelectedVoterId] = useState('');
   const [entryName, setEntryName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<Filter>('all');
 
-  const roundId = selectedRoundId ?? contest.activeRoundId ?? '';
-  const roundLabel = getRoundLabel(contest, roundId);
-  const roundEntries = roundId ? getEntriesForRound(contest, roundId) : [];
+  const rounds = contest.rounds ?? [];
 
-  // Voters already assigned to this round (by matching submittedBy to voter displayName)
-  const assignedNames = new Set(roundEntries.map((e) => e.submittedBy?.toLowerCase()));
+  const placementByEntryId = useMemo(() => {
+    const map = new Map<string, { roundId: string; roundIndex: number }>();
+    for (const matchup of matchups) {
+      const roundIndex = rounds.findIndex((r) => r.id === matchup.roundId);
+      for (const entryId of matchup.entryIds) {
+        map.set(entryId, { roundId: matchup.roundId, roundIndex });
+      }
+    }
+    return map;
+  }, [matchups, rounds]);
+
+  const entries = contest.entries ?? [];
+  const filteredEntries = useMemo(() => {
+    if (filter === 'all') return entries;
+    if (filter === 'unplaced') return entries.filter((e) => !placementByEntryId.has(e.id));
+    return entries.filter((e) => placementByEntryId.get(e.id)?.roundId === filter);
+  }, [entries, filter, placementByEntryId]);
+
+  const placedLabel = (entryId: string) => {
+    const placement = placementByEntryId.get(entryId);
+    if (!placement) return 'Unplaced';
+    return `Round ${placement.roundIndex + 1}`;
+  };
+
+  const assignedNames = new Set(entries.map((e) => e.submittedBy?.toLowerCase()));
   const availableVoters = (contest.voters ?? []).filter(
     (v) => !assignedNames.has(v.displayName.toLowerCase()),
   );
 
   const handleAdd = async () => {
-    if (!selectedVoterId || !roundId) return;
+    if (!selectedVoterId) return;
 
     const voter = contest.voters?.find((v) => v.id === selectedVoterId);
     if (!voter) return;
@@ -79,7 +110,6 @@ export function AdminContestants({ contest, selectedRoundId }: AdminContestantsP
     const result = await addContestant(contest.id, {
       name: voter.displayName,
       entryName: entryName.trim(),
-      roundId,
     });
 
     if (result) {
@@ -95,9 +125,6 @@ export function AdminContestants({ contest, selectedRoundId }: AdminContestantsP
   return (
     <section className="admin-details-section">
       <h3>Contestants & Entries</h3>
-      <p className="admin-detail-meta" style={{ marginTop: '-0.5rem', marginBottom: '0.75rem' }}>
-        {roundLabel}
-      </p>
 
       <div className="admin-contestant-add">
         <select
@@ -120,21 +147,42 @@ export function AdminContestants({ contest, selectedRoundId }: AdminContestantsP
           onChange={(event) => setEntryName(event.target.value)}
           disabled={loading}
         />
-        <button type="button" className="button-secondary" onClick={handleAdd} disabled={loading || !selectedVoterId}>
+        <button
+          type="button"
+          className="button-secondary"
+          onClick={handleAdd}
+          disabled={loading || !selectedVoterId}
+        >
           {loading ? 'Assigning...' : 'Assign'}
         </button>
       </div>
 
       {error && <p className="admin-phase-controls__message--error">{error}</p>}
 
-      {roundEntries.length === 0 ? (
-        <p className="admin-empty">No contestants in this round.</p>
+      <div className="admin-contestant-filters">
+        <label>
+          Filter:&nbsp;
+          <select value={filter} onChange={(e) => setFilter(e.target.value as Filter)}>
+            <option value="all">All contestants</option>
+            <option value="unplaced">Unplaced</option>
+            {rounds.map((r, i) => (
+              <option key={r.id} value={r.id}>
+                Placed in Round {i + 1}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      {filteredEntries.length === 0 ? (
+        <p className="admin-empty">No contestants match this filter.</p>
       ) : (
         <ul className="admin-detail-list">
-          {roundEntries.map((entry) => (
+          {filteredEntries.map((entry) => (
             <ContestantRow
               key={entry.id}
               entry={entry}
+              placedLabel={placedLabel(entry.id)}
               onUpdate={async (updates) => {
                 await updateContestant(contest.id, entry.id, updates);
               }}

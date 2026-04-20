@@ -14,6 +14,7 @@ const ContestContext = createContext<ContestContextValue | undefined>(undefined)
 export function ContestProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<ContestContextState>({
     contests: [],
+    matchupsByContestId: {},
     loading: true,
     error: null,
     lastUpdatedAt: null,
@@ -34,6 +35,7 @@ export function ContestProvider({ children }: { children: React.ReactNode }) {
 
   const value: ContestContextValue = {
     contests: state.contests,
+    matchupsByContestId: state.matchupsByContestId,
     loading: state.loading,
     error: state.error,
     lastUpdatedAt: state.lastUpdatedAt,
