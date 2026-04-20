@@ -41,6 +41,24 @@ const TEST_USERS = [
     displayName: 'Test Voter',
     role: 'voter',
   },
+  {
+    email: 'voter1@test.com',
+    password: 'voter123',
+    displayName: 'Test Voter 1',
+    role: 'voter',
+  },
+  {
+    email: 'voter2@test.com',
+    password: 'voter123',
+    displayName: 'Test Voter 2',
+    role: 'voter',
+  },
+  {
+    email: 'voter3@test.com',
+    password: 'voter123',
+    displayName: 'Test Voter 3',
+    role: 'voter',
+  },
 ];
 
 for (const user of TEST_USERS) {
@@ -81,7 +99,10 @@ for (const user of TEST_USERS) {
 }
 
 console.log('\nTest accounts ready:');
-console.log('  Admin: admin@test.com / admin123');
-console.log('  Voter: voter@test.com / voter123');
+console.log('  Admin:  admin@test.com  / admin123');
+console.log('  Voter:  voter@test.com  / voter123');
+console.log('  Voter1: voter1@test.com / voter123');
+console.log('  Voter2: voter2@test.com / voter123');
+console.log('  Voter3: voter3@test.com / voter123');
 
 await deleteApp(app);

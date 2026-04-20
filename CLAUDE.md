@@ -7,8 +7,11 @@
 - `npm run build` -- Production build
 - `npm run lint` -- ESLint with zero warnings allowed (`--max-warnings=0`)
 - `npm run type-check` -- TypeScript type checking (`tsc --noEmit`)
-- `npm test` -- Run all tests once (vitest)
-- `npm run test:watch` -- Run tests in watch mode
+- `npm test` -- Run all unit tests once (vitest)
+- `npm run test:watch` -- Run unit tests in watch mode
+- `npm run test:e2e` -- Run Playwright E2E suite (spins up emulator + dev server; see `e2e/README.md`)
+- `npm run test:e2e:ui` -- Playwright UI mode for authoring/debugging specs
+- `npm run test:e2e:install` -- One-time: install the chromium binary
 - `npm run docs:validate` -- Validate OpenAPI spec at `app/api/contest/openapi.json`
 
 ## Tech Stack
@@ -98,10 +101,26 @@ Import restriction: `@/src/*` imports are banned by ESLint. Use the aliases abov
 
 ### Testing
 
-- Vitest with jsdom environment. Tests live next to source files as `*.test.ts` / `*.test.tsx`.
+Two tiers:
+
+**Unit (`npm test`)** — Vitest + jsdom, in-process.
+- Tests live next to source files as `*.test.ts` / `*.test.tsx`.
 - API route tests mock `loadProvider` and `requireAdmin` via `vi.mock()`, then call route handlers directly.
 - Domain logic tests are pure unit tests with no mocking needed.
-- Test files exist in both `src/` and `app/` directories.
+
+**E2E (`npm run test:e2e`)** — Playwright + real Firebase emulator + real browser.
+- Specs under `e2e/specs/`. Fixtures under `e2e/fixtures/`. See `e2e/README.md` for run instructions and trace viewer usage.
+- `scripts/e2e-dev.mjs` orchestrates emulator + seed + `next dev --env-file .env.emulators` as one process tree.
+- Auth state for seeded users is captured by `e2e/global-setup.ts` and loaded per-role via `browser.newContext({ storageState })`.
+
+**The no-drift rule** — tests must drive the app through the same surfaces a real user uses:
+- ✅ Setup may call real admin APIs (e.g., `createContest` fixture hitting `POST /api/contest/contests`). Emulator-level data reset is fine.
+- ❌ **No test-only endpoints.** If the real admin UI can't do it, neither can a test.
+- ❌ **No direct provider calls from specs.** Never import `firestoreAdminAdapter` or call `contestApi.submitScore` from a spec body — votes go through clicks, phase transitions go through clicks.
+- ❌ **No mocked internals in E2E.** Real Firestore (emulator), real API, real React, real MUI.
+- ❌ **No hidden test-only controls.** If adding a `data-testid` to make a selector stable, the element must remain a normal user-facing control — never add an invisible shortcut for tests.
+
+This applies doubly for agentic automation: any hook added to enable AI-driven testing must mimic user surfaces (clicks, form fills, keyboard), not invoke path-critical methods directly.
 
 ### Styling
 
