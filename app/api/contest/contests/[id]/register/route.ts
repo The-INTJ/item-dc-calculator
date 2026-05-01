@@ -56,7 +56,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       name: entryName,
       slug,
       description: '',
-      submittedBy: userId,
+      submittedBy: displayName,
     });
     if (!entryResult.success) {
       return jsonError(entryResult.error ?? 'Registered but failed to create entry', 500);
