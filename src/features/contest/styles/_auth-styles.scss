@@ -1,299 +1,234 @@
 @use './index' as *;
 
-/**
- * Auth component styles
- * Uses SASS variables for consistent theming
- */
-
-/* Auth Form Base */
-.auth-form {
+.auth-form,
+.guest-prompt,
+.user-menu {
   display: flex;
   flex-direction: column;
-  gap: $space-gap-normal;
-  max-width: 400px;
+  gap: var(--gap-stack);
   width: 100%;
 }
 
-.auth-form h2 {
-  @include type-large;
-  margin: 0 0 $space-sm;
-  text-align: center;
+.auth-form,
+.guest-prompt {
+  max-width: 28rem;
+}
+
+.auth-form h2,
+.guest-prompt h1,
+.guest-prompt h2 {
+  font: var(--t-h2);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+.guest-prompt {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-1);
+  margin: 0 auto;
+  padding: var(--pad-card);
+}
+
+.guest-prompt > p,
+.auth-switch,
+.guest-note,
+.confirm-modal p {
+  color: var(--text-muted);
+  margin: 0;
 }
 
 .auth-field {
   display: flex;
   flex-direction: column;
-  gap: $space-sm;
+  gap: 0.4rem;
+  text-align: left;
 }
 
 .auth-field label {
-  @include type-normal;
-  font-weight: $font-weight-semibold;
-  color: $color-text-dark;
+  color: var(--text-default);
+  font-size: 0.875rem;
+  font-weight: 700;
 }
 
-.auth-field input {
-  @include input-base;
-  transition: border-color $transition-base, box-shadow $transition-base;
-
-  &:focus {
-    @include focus-ring;
-  }
+.auth-error,
+.auth-warning {
+  border-radius: var(--r-card);
+  font-size: 0.875rem;
+  padding: 0.75rem 1rem;
 }
 
 .auth-error {
-  @include error-surface;
-  @include type-normal;
+  background: var(--status-danger-bg);
+  border: 1px solid color-mix(in oklab, var(--c-red-500) 25%, transparent);
+  color: var(--text-danger);
 }
 
 .auth-warning {
-  @include warning-surface;
-  @include type-normal;
-}
-
-.auth-switch {
-  color: $color-text-dark;
-  @include type-normal;
-  margin: 0;
-  text-align: center;
-  opacity: 0.8;
+  background: var(--status-active-bg);
+  border: 1px solid color-mix(in oklab, var(--c-amber-500) 25%, transparent);
+  color: var(--text-special);
 }
 
 .auth-link {
-  @include link-interactive;
-  color: $color-text-link;
-  font-size: inherit;
+  background: none;
+  border: 0;
+  color: var(--text-link);
+  cursor: pointer;
   padding: 0;
-
-  &:hover {
-    color: $color-text-special;
-  }
+  text-decoration: underline;
 }
 
-/* Guest Prompt */
-.guest-prompt {
+.guest-form,
+.guest-actions {
   display: flex;
   flex-direction: column;
-  gap: $space-gap-normal;
-  max-width: 400px;
-  text-align: center;
-  width: 100%;
-}
-
-.guest-prompt h2 {
-  @include type-large;
-  margin: 0;
-}
-
-.guest-prompt > p {
-  color: $color-text-dark;
-  margin: 0;
-  opacity: 0.8;
-}
-
-.guest-form {
-  display: flex;
-  flex-direction: column;
-  gap: $space-gap-normal;
-}
-
-.guest-form .auth-field {
-  text-align: left;
+  gap: 0.75rem;
 }
 
 .guest-divider {
   align-items: center;
-  color: $color-text-dark;
+  color: var(--text-muted);
   display: flex;
-  @include type-normal;
-  gap: $space-gap-normal;
-  opacity: 0.7;
-
-  &::before,
-  &::after {
-    @include divider;
-  }
+  gap: 0.75rem;
+  font-size: 0.875rem;
 }
 
-.guest-actions {
-  display: flex;
-  gap: $space-lg;
-  justify-content: center;
-}
-
-.guest-actions .button-secondary {
-  background: $color-surface;
-  border: 1px solid $color-border;
-  color: $color-text-dark;
-  text-shadow: none;
+.guest-divider::before,
+.guest-divider::after {
+  background: var(--border-subtle);
+  content: '';
   flex: 1;
-
-  &:hover {
-    background: $color-surface-hover;
-  }
+  height: 1px;
 }
 
-.guest-note {
-  color: $color-text-dark;
-  @include type-small;
-  margin: $space-sm 0 0;
-  opacity: 0.7;
-}
-
-/* User Menu */
 .user-menu {
-  background: $color-surface;
-  border: 1px solid $color-border;
-  border-radius: $radius-lg;
-  display: flex;
-  flex-direction: column;
-  gap: $space-lg;
-  padding: $space-padding-md;
-
-  &--guest {
-    flex-direction: row;
-    gap: $space-base;
-    padding: $space-base;
-  }
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-1);
+  padding: var(--pad-card);
 }
 
-.user-menu__action {
-  @include button-interactive;
-  background: none;
-  border: 1px solid $color-border;
-  border-radius: $radius-button;
-  color: $color-text-dark;
-  cursor: pointer;
-  @include type-normal;
-  padding: $space-base $space-padding-md;
+.user-menu--guest {
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 
 .user-menu__info {
-  display: flex;
   align-items: center;
-  gap: $space-base;
+  display: flex;
+  gap: 0.75rem;
   justify-content: space-between;
 }
 
 .user-menu__name {
-  font-weight: $font-weight-semibold;
+  font-weight: 700;
 }
 
 .user-menu__status {
-  background: $color-success-50;
-  border-radius: $radius-pill;
-  color: $color-text-dark;
-  @include type-small;
-  padding: 0.25rem $space-base;
+  background: var(--status-success-bg);
+  border-radius: var(--r-badge);
+  color: var(--status-success-text);
+  font: var(--t-label);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0.35rem 0.625rem;
+  text-transform: uppercase;
 }
 
 .user-menu--guest .user-menu__status {
-  background: $color-guest-100;
-  color: $color-text-dark;
+  background: var(--status-active-bg);
+  color: var(--status-active-text);
 }
 
-.user-menu__upgrade {
+.user-menu__action,
+.user-menu__sync,
+.user-menu__logout {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-button);
+  color: var(--text-strong);
+  min-height: 44px;
+  padding: 0 1rem;
+}
+
+.user-menu__upgrade,
+.user-menu__stats {
   display: flex;
-  gap: $space-base;
-}
-
-.user-menu__upgrade .button-secondary {
-  flex: 1;
-}
-
-.user-menu__sync {
-  background: $color-warning-100;
-  border: none;
-  border-radius: $radius-button;
-  color: $color-text-dark;
-  cursor: pointer;
-  @include type-normal;
-  padding: $space-base;
-
-  &:hover {
-    background: $color-warning-200;
-  }
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .user-menu__logout {
-  background: none;
-  border: none;
-  color: $color-text-dark;
-  cursor: pointer;
-  @include type-normal;
-  padding: 0.25rem;
+  border-color: transparent;
+  color: var(--text-muted);
+  justify-content: flex-start;
+  padding: 0;
   text-align: left;
-  opacity: 0.7;
-
-  &:hover {
-    color: $color-text-dark;
-    opacity: 1;
-  }
 }
 
 .user-menu__stats {
-  border-top: 1px solid $color-divider;
-  color: $color-text-dark;
-  display: flex;
-  @include type-small;
-  gap: $space-base;
-  padding-top: $space-lg;
-  opacity: 0.75;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  padding-top: 0.75rem;
 }
 
 .user-menu__pending {
-  color: $color-text-special;
-  opacity: 1;
+  color: var(--text-special);
 }
 
-/* Auth Modal */
 .auth-modal-backdrop {
-  @include modal-backdrop;
+  align-items: center;
+  background: var(--bg-overlay);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 1rem;
+  position: fixed;
+  z-index: var(--z-modal);
 }
 
 .auth-modal {
-  @include modal-surface;
+  background: var(--bg-surface);
+  border-radius: var(--r-modal);
+  box-shadow: var(--shadow-modal);
+  max-width: 28rem;
+  padding: var(--pad-card);
+  position: relative;
+  width: 100%;
 }
 
 .auth-modal__close {
-  background: none;
-  border: none;
-  color: $color-text-dark;
-  cursor: pointer;
-  font-size: $font-size-large;
-  line-height: 1;
-  padding: $space-base;
+  background: var(--bg-surface-sunken);
+  border: 0;
+  border-radius: 999px;
+  color: var(--text-muted);
+  height: 2rem;
   position: absolute;
-  right: $space-base;
-  top: $space-base;
-  opacity: 0.7;
-
-  &:hover {
-    color: $color-text-dark;
-    opacity: 1;
-  }
+  right: 0.75rem;
+  top: 0.75rem;
+  width: 2rem;
 }
 
-/* Confirm Modal */
 .confirm-modal {
   display: flex;
   flex-direction: column;
-  gap: $space-gap-normal;
+  gap: 1rem;
 }
 
 .confirm-modal h2 {
-  @include type-large;
+  font: var(--t-h3);
+  font-weight: 700;
   margin: 0;
-}
-
-.confirm-modal p {
-  color: $color-text-dark;
-  margin: 0;
-  opacity: 0.8;
 }
 
 .confirm-modal__actions {
   display: flex;
-  gap: $space-lg;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   justify-content: flex-end;
 }

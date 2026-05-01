@@ -20,7 +20,10 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <Link href="/contests" className={styles.homeLink}>
-        Home
+        <span className="site-header__brand">
+          <span className="site-header__logo" aria-hidden="true">C</span>
+          <span className="site-header__title">Home</span>
+        </span>
       </Link>
       <NavBar />
       {showAuthBanner ? (

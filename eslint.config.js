@@ -12,6 +12,7 @@ export default [
       'node_modules/**',
       'dist/**',
       'coverage/**',
+      'TEMP-new-designs/**',
       '*.tsbuildinfo',
       'scripts/**',
     ],

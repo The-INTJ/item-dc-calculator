@@ -61,15 +61,20 @@ async function submitVoteInUI(page: Page, scores: VoteScores): Promise<void> {
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
 
-  for (const [drinkName, target] of Object.entries(scores)) {
-    const card = dialog.locator('.contest-entry-card', { hasText: drinkName });
+  const entries = Object.entries(scores);
+  for (const [index, [drinkName, target]] of entries.entries()) {
+    const card = dialog.locator('.vote-sheet__entry-card', { hasText: drinkName });
     await expect(card).toBeVisible();
-    const slider = card.getByRole('slider').first();
+    const slider = dialog.locator('.contest-vote-slider').first().getByRole('slider');
     await setSliderValue(slider, target);
+
+    if (index < entries.length - 1) {
+      await dialog.getByRole('button', { name: /next entry/i }).click();
+    }
   }
 
   await dialog.getByRole('button', { name: /submit scores/i }).click();
-  await expect(dialog.getByText(/scores submitted/i)).toBeVisible();
+  await expect(dialog.getByText(/scores submitted/i)).toBeVisible({ timeout: 20_000 });
   await dialog.getByRole('button', { name: /close/i }).click();
   await expect(dialog).toBeHidden();
 }

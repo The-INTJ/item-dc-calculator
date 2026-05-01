@@ -1,3 +1,13 @@
 // Layout tokens.
-// TODO: define layout widths and gutters.
-$layout: () !default;
+
+$layout-page-pad-mobile: 1rem;
+$layout-page-pad-desktop: 2rem;
+$layout-content-max: 1180px;
+$layout-narrow-max: 720px;
+
+$layout: (
+  page-pad-mobile: $layout-page-pad-mobile,
+  page-pad-desktop: $layout-page-pad-desktop,
+  content-max: $layout-content-max,
+  narrow-max: $layout-narrow-max,
+) !default;

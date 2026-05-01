@@ -1,82 +1,95 @@
 @use '@/contest/styles/index' as *;
 
-/**
- * Account page styles
- */
-
 .account-page {
   display: flex;
   flex-direction: column;
-  gap: $space-gap-xl;
-  max-width: 800px;
+  gap: var(--gap-stack);
   margin: 0 auto;
+  max-width: 46rem;
 }
 
 .account-page h1 {
-  margin: 0 0 $space-sm;
+  font: var(--t-h1);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
 }
 
 .account-page > p {
-  color: $color-text-dark;
+  color: var(--text-muted);
   margin: 0;
-  opacity: 0.8;
 }
 
 .account-section {
-  @include card-surface;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-1);
+  display: grid;
+  gap: 0.875rem;
+  padding: var(--pad-card);
 }
 
 .account-section h2 {
-  @include type-large;
-  margin: 0 0 $space-gap-normal;
+  font: var(--t-h3);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+.account-section p {
+  color: var(--text-muted);
+  margin: 0;
 }
 
 .account-section--warning {
-  background: $color-warning-50;
-  border-color: $color-warning-200;
+  background: var(--status-active-bg);
+  border-color: color-mix(in oklab, var(--c-amber-500) 25%, transparent);
 }
 
 .account-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: $space-lg;
+  gap: 0.5rem;
 }
 
 .account-debug {
-  background: $color-code-bg;
-  border-radius: $radius-button;
-  font-family: $font-family-mono;
-  @include type-normal;
-  padding: $space-padding-md;
-}
-
-.account-debug > div {
-  padding: 0.25rem 0;
+  background: var(--bg-surface-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-card);
+  color: var(--text-default);
+  display: grid;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding: 0.875rem;
 }
 
 .account-votes {
   list-style: none;
-  margin: 0 0 $space-gap-normal;
+  margin: 0;
   padding: 0;
 }
 
 .account-votes li {
   align-items: center;
-  border-bottom: 1px solid $color-divider;
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
-  gap: $space-base;
+  gap: 0.5rem;
   justify-content: space-between;
-  padding: $space-base 0;
+  padding: 0.5rem 0;
 
   &:last-child {
     border-bottom: none;
   }
 }
 
-.vote-time {
-  color: $color-text-dark;
-  @include type-small;
-  opacity: 0.7;
+.vote-time,
+.account-hint,
+.account-loading {
+  color: var(--text-muted);
+  font-size: 0.875rem;
 }
 
 .account-notes {
@@ -85,19 +98,11 @@
 }
 
 .account-notes li {
-  line-height: $line-height-relaxed;
-  margin-bottom: $space-base;
-}
-
-.account-hint {
-  color: $color-text-special;
-  @include type-normal;
-  margin: $space-base 0 0;
+  line-height: 1.55;
+  margin-bottom: 0.5rem;
 }
 
 .account-loading {
-  color: $color-text-dark;
-  padding: $space-gap-xl;
+  padding: 2rem;
   text-align: center;
-  opacity: 0.8;
 }

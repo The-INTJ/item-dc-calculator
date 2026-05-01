@@ -3,79 +3,187 @@
 .admin-dashboard {
   display: flex;
   flex-direction: column;
-  gap: $space-gap-loose;
+  gap: var(--gap-stack);
 }
 
 .admin-dashboard__header {
-  background: linear-gradient(135deg, $color-dark-900, $color-dark-800);
-  border-radius: $radius-lg;
-  color: $color-text-light;
-  padding: $space-padding-lg;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-1);
+  color: var(--text-strong);
+  display: grid;
+  gap: 0.75rem;
+  padding: var(--pad-card);
 }
 
 .admin-dashboard__header h1 {
-  @include type-massive;
-  margin-bottom: $space-sm;
+  font: var(--t-h1);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
 }
 
 .admin-dashboard__header p {
-  color: $color-text-light;
-  margin-bottom: $space-gap-normal;
-  opacity: 0.8;
+  color: var(--text-muted);
+  margin: 0;
+  max-width: 52rem;
 }
 
 .admin-dashboard__layout {
   display: grid;
-  gap: $space-gap-loose;
+  gap: var(--gap-stack);
   grid-template-columns: 1fr;
 }
 
-@include respond-to-md {
-  .admin-dashboard__layout {
-    grid-template-columns: 320px 1fr;
-  }
-}
-
 .admin-sidebar {
-  background: $color-dark-950;
-  border-radius: $radius-lg;
-  padding: $space-padding-md;
+  background: var(--bg-shell);
+  border-radius: var(--r-card);
+  color: #ffffff;
+  padding: 0.75rem;
   position: relative;
-}
-
-.admin-sidebar h2 {
-  color: $color-text-light;
-  @include type-large;
-  margin-bottom: $space-gap-normal;
 }
 
 .admin-sidebar__toggle {
   align-items: center;
-  background: $color-dark-900;
-  border: 0;
-  border-radius: $radius-button;
-  color: $color-text-light;
-  cursor: pointer;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--r-button);
+  color: #ffffff;
   display: flex;
-  font: inherit;
-  @include type-large;
-  font-weight: $font-weight-semibold;
-  gap: $space-base;
+  font: var(--t-body);
+  font-weight: 700;
+  gap: 0.5rem;
   justify-content: space-between;
-  margin-bottom: $space-lg;
-  padding: $space-padding-sm $space-padding-md;
+  margin-bottom: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0 0.875rem;
   position: sticky;
-  top: 0;
+  top: 0.5rem;
   width: 100%;
-  z-index: 10;
+  z-index: var(--z-sticky);
 }
 
 .admin-sidebar__chevron {
-  @include type-small;
-  opacity: 0.6;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.75rem;
 }
 
-@include respond-to-md {
+.admin-contest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-contest-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--r-card);
+  color: #ffffff;
+  cursor: pointer;
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.875rem;
+  text-align: left;
+  transition: background var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast);
+  width: 100%;
+}
+
+.admin-contest-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(103, 232, 249, 0.38);
+}
+
+.admin-contest-card--selected {
+  background: rgba(6, 182, 212, 0.16);
+  border-color: rgba(103, 232, 249, 0.72);
+}
+
+.admin-contest-card__header {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.admin-contest-card__name {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.admin-contest-card__location,
+.admin-contest-card__stats {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.8125rem;
+  margin: 0;
+}
+
+.admin-contest-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.admin-contest-card__default {
+  background: var(--status-scoring-bg);
+  border-radius: var(--r-badge);
+  color: var(--c-cyan-200);
+  display: inline-flex;
+  font: var(--t-label);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0.35rem 0.625rem;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.admin-main {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-1);
+  min-height: 400px;
+  padding: var(--pad-card);
+}
+
+.admin-placeholder,
+.admin-loading,
+.admin-error {
+  align-items: center;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  justify-content: center;
+  min-height: 200px;
+  text-align: center;
+}
+
+.admin-error {
+  color: var(--text-danger);
+}
+
+.admin-add-contest {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+}
+
+.admin-add-contest .button-primary {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .admin-dashboard__layout {
+    align-items: start;
+    grid-template-columns: minmax(17rem, 20rem) minmax(0, 1fr);
+  }
+
   .admin-sidebar__toggle {
     display: none;
   }
@@ -84,134 +192,4 @@
   .admin-sidebar--collapsed .admin-add-contest {
     display: flex;
   }
-}
-
-.admin-contest-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-lg;
-}
-
-.admin-contest-card {
-  background: $color-dark-900;
-  border: 2px solid transparent;
-  border-radius: $radius-lg;
-  color: $color-text-light;
-  cursor: pointer;
-  padding: $space-padding-md;
-  text-align: left;
-  transition: border-color $transition-base, transform $transition-fast;
-  width: 100%;
-}
-
-.admin-contest-card:hover {
-  border-color: $color-info-600;
-  transform: translateY(-2px);
-}
-
-.admin-contest-card--selected {
-  border-color: $color-primary;
-  background: #1e3a5f;
-}
-
-.admin-contest-card__header {
-  align-items: center;
-  display: flex;
-  gap: $space-base;
-  justify-content: space-between;
-  margin-bottom: $space-base;
-}
-
-.admin-contest-card__name {
-  @include type-large;
-  font-weight: $font-weight-semibold;
-  margin: 0;
-}
-
-.admin-contest-card__phase {
-  @include status-badge;
-  color: $color-text-light;
-}
-
-.admin-contest-card__location {
-  color: $color-text-light;
-  @include type-normal;
-  margin: 0 0 $space-base;
-  opacity: 0.8;
-}
-
-.admin-contest-card__stats {
-  color: $color-text-light;
-  display: flex;
-  flex-wrap: wrap;
-  @include type-small;
-  gap: $space-lg;
-  opacity: 0.8;
-}
-
-.admin-contest-card__default {
-  background: $color-primary;
-  border-radius: $radius-xs;
-  color: $color-text-dark;
-  display: inline-block;
-  @include type-label;
-  margin-top: $space-base;
-  padding: 0.2rem $space-base;
-}
-
-.admin-main {
-  background: $color-light-50;
-  border-radius: $radius-lg;
-  min-height: 400px;
-  padding: $space-padding-lg;
-}
-
-.admin-placeholder {
-  align-items: center;
-  color: $color-text-dark;
-  display: flex;
-  height: 100%;
-  justify-content: center;
-  min-height: 300px;
-  opacity: 0.75;
-}
-
-.admin-add-contest {
-  border-top: 1px solid $color-border;
-  display: flex;
-  flex-wrap: wrap;
-  gap: $space-base;
-  margin-top: $space-lg;
-  padding-top: $space-lg;
-}
-
-.admin-add-contest__input {
-  background: transparent;
-  border: 1px solid $color-border;
-  border-radius: $radius-button;
-  color: inherit;
-  flex: 1;
-  min-width: 150px;
-  padding: $space-md;
-}
-
-.admin-loading,
-.admin-error {
-  align-items: center;
-  display: flex;
-  flex-direction: column;
-  gap: $space-gap-normal;
-  justify-content: center;
-  min-height: 200px;
-  text-align: center;
-}
-
-.admin-error {
-  color: $color-text-special;
-}
-
-.admin-empty {
-  color: $color-text-dark;
-  font-style: italic;
-  opacity: 0.7;
 }

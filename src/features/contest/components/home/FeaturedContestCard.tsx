@@ -14,12 +14,11 @@ export default function FeaturedContestCard({ contest }: FeaturedContestCardProp
 
   return (
     <div className={styles.card}>
+      <p className={styles.eyebrow}>Featured contest</p>
       <h1 className={styles.name}>{contest.name}</h1>
-      {contest.config?.topic && (
-        <p className={styles.topic}>{contest.config.topic}</p>
-      )}
+      {contest.config?.topic && <p className={styles.topic}>{contest.config.topic}</p>}
       <span className={styles.meta}>
-        {entryCount} contestants · {roundCount} rounds
+        {entryCount} entries / {roundCount} rounds
       </span>
       <Link href={`/contest/${contest.id}`} className={styles.cta}>
         View Contest

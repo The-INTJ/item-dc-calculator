@@ -3,210 +3,119 @@
 .admin-contest-details {
   display: flex;
   flex-direction: column;
-  gap: $space-gap-loose;
+  gap: var(--gap-stack);
 }
 
-.admin-contest-details__header {
+.admin-contest-details__header,
+.admin-participants-header,
+.admin-rounds-header,
+.admin-contest-activation {
   align-items: flex-start;
   display: flex;
   flex-wrap: wrap;
-  gap: $space-lg;
+  gap: 0.75rem;
   justify-content: space-between;
-  margin-bottom: $space-gap-normal;
 }
 
-.admin-contest-details__header h2 {
-  @include type-large;
-  margin-bottom: 0.25rem;
+.admin-contest-details__header h2,
+.admin-details-section h3,
+.admin-participants-header h3,
+.admin-rounds-header h3 {
+  font: var(--t-h3);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0;
 }
 
 .admin-detail-meta {
-  color: $color-gray-600;
-  @include type-normal;
+  color: var(--text-muted);
+  font-size: 0.875rem;
 }
 
 .admin-details-section {
-  border-top: 1px solid $color-border;
-  padding-top: $space-padding-md;
+  border-top: 1px solid var(--border-subtle);
+  display: grid;
+  gap: 0.875rem;
+  padding-top: 1rem;
 }
 
-.admin-details-section h3 {
-  @include type-large;
-  margin-bottom: $space-lg;
-}
-
-.admin-detail-list {
+.admin-detail-list,
+.admin-participants-list,
+.admin-entry-list,
+.admin-round-vote-list {
   display: flex;
   flex-direction: column;
-  gap: $space-base;
+  gap: 0.75rem;
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+.admin-detail-item,
+.admin-participant-card,
+.admin-entry-row,
+.admin-round-vote-row,
+.admin-score-item {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-card);
+  color: var(--text-strong);
 }
 
 .admin-detail-item {
   align-items: center;
-  background: #fff;
-  border: 1px solid $color-border;
-  border-radius: $radius-button;
   display: flex;
   flex-wrap: wrap;
-  gap: $space-base;
-  padding: $space-padding-sm $space-padding-md;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
 }
 
-.admin-contest-activation {
+.admin-category-form,
+.admin-participants-filter {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: $space-gap-normal;
-  justify-content: space-between;
-}
-
-.admin-category-form {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: $space-lg;
-  margin-bottom: $space-base;
-}
-
-.admin-category-form__select {
-  background: transparent;
-  border: 1px solid currentColor;
-  border-radius: $radius-button;
-  color: inherit;
-  padding: $space-md 0.6rem;
-}
-
-.admin-category-form__message {
-  @include type-normal;
-  color: $color-text-dark;
-  margin: 0 0 $space-base;
-  opacity: 0.75;
-
-  &--error {
-    color: $color-text-special;
-    font-weight: $font-weight-semibold;
-    opacity: 0.95;
-  }
-}
-
-.admin-role-badge {
-  @include status-badge;
-}
-
-.admin-role-badge--admin {
-  background: $color-error-600;
-  color: $color-text-light;
-}
-
-.admin-role-badge--voter {
-  background: $color-info-600;
-  color: $color-text-light;
-}
-
-.admin-role-badge--competitor {
-  background: $color-gray-600;
-  color: $color-text-light;
-}
-
-.admin-role-badge--contestant {
-  background: $color-warning-700;
-  color: $color-text-light;
-}
-
-.admin-score-item {
-  align-items: stretch;
-  flex-direction: column;
-}
-
-.admin-score-item__header {
-  align-items: baseline;
-  display: flex;
-  flex-wrap: wrap;
-  gap: $space-base;
-}
-
-.admin-score-item__breakdown {
-  display: flex;
-  flex-wrap: wrap;
-  @include type-normal;
-  gap: $space-lg;
-  margin-top: $space-base;
-}
-
-.admin-score-item__notes {
-  background: $color-light-100;
-  border-radius: $radius-xs;
-  color: $color-text-dark;
-  @include type-normal;
-  font-style: italic;
-  margin: $space-base 0 0;
-  opacity: 0.8;
-  padding: $space-base;
-}
-
-// ─── Participants ──────────────────────────────────────────────────────────
-.admin-participants-header {
-  align-items: flex-start;
-  display: flex;
-  flex-direction: column;
-  gap: $space-base;
-  margin-bottom: $space-lg;
-}
-
-.admin-participants-header h3 {
-  margin: 0;
-}
-
-@include respond-to-sm {
-  .admin-participants-header {
-    align-items: center;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: $space-lg;
-    justify-content: space-between;
-  }
+  gap: 0.75rem;
 }
 
 .admin-participants-filter {
-  align-items: center;
-  color: $color-text-dark;
-  display: flex;
-  @include type-normal;
-  font-weight: $font-weight-semibold;
-  gap: $space-base;
+  color: var(--text-default);
+  font-weight: 600;
+}
 
-  select {
-    background: #fff;
-    border: 1px solid $color-input-border;
-    border-radius: $radius-button;
-    color: $color-text-dark;
-    font-weight: $font-weight-regular;
-    padding: $space-base $space-md;
+.admin-category-form__select,
+.admin-participants-filter select {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-input);
+  color: var(--text-strong);
+  min-height: 44px;
+  padding: 0 0.75rem;
+}
+
+.admin-category-form__message,
+.admin-phase-controls__message {
+  color: var(--text-muted);
+  margin: 0;
+
+  &--error {
+    color: var(--text-danger);
+    font-weight: 600;
+  }
+
+  &--success {
+    color: var(--text-success);
+    font-weight: 600;
   }
 }
 
-.admin-participants-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-base;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
 .admin-participant-card {
-  background: #fff;
-  border: 1px solid $color-border;
-  border-radius: $radius-button;
   overflow: hidden;
-  transition: border-color $transition-base, box-shadow $transition-base;
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
 
   &--expanded {
-    border-color: $color-border-hover;
-    box-shadow: $shadow-sm;
+    border-color: var(--border-default);
+    box-shadow: var(--shadow-1);
   }
 }
 
@@ -214,32 +123,21 @@
   align-items: flex-start;
   background: transparent;
   border: 0;
-  color: $color-text-dark;
-  cursor: pointer;
+  color: var(--text-strong);
   display: flex;
   flex-direction: column;
-  font: inherit;
-  gap: $space-base;
-  padding: $space-padding-sm $space-padding-md;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
   text-align: left;
   width: 100%;
 
   &:hover {
-    background: rgba($color-dark-950, 0.03);
+    background: var(--bg-surface-alt);
   }
 
   &:focus-visible {
-    outline: 2px solid $color-primary;
-    outline-offset: -2px;
-  }
-}
-
-@include respond-to-sm {
-  .admin-participant-card__header {
-    align-items: center;
-    flex-direction: row;
-    gap: $space-lg;
-    justify-content: space-between;
+    box-shadow: inset 0 0 0 2px var(--border-focus);
+    outline: none;
   }
 }
 
@@ -248,126 +146,82 @@
   display: flex;
   flex: 1;
   flex-wrap: wrap;
-  gap: $space-base;
+  gap: 0.5rem;
   min-width: 0;
 }
 
 .admin-participant-card__name {
-  @include type-normal;
-  color: $color-text-dark;
-  font-weight: $font-weight-semibold;
+  font-size: 0.9375rem;
+  font-weight: 700;
 }
 
 .admin-participant-card__badges {
   display: flex;
   flex-wrap: wrap;
-  gap: $space-xs;
+  gap: 0.35rem;
 }
 
 .admin-participant-card__summary {
   align-items: center;
-  color: $color-gray-600;
+  color: var(--text-muted);
   display: flex;
   flex-wrap: wrap;
-  gap: $space-lg;
+  gap: 1rem;
   justify-content: space-between;
   width: 100%;
 }
 
-@include respond-to-sm {
-  .admin-participant-card__summary {
-    flex-shrink: 0;
-    justify-content: flex-end;
-    width: auto;
-  }
-}
-
 .admin-participant-card__chevron {
-  color: $color-gray-500;
-  font-size: $font-size-small;
+  color: var(--text-subtle);
+  font-size: 0.75rem;
 }
 
 .admin-participant-card__body {
-  background: rgba($color-light-100, 0.65);
-  border-top: 1px solid $color-border;
+  background: var(--bg-surface-sunken);
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
-  gap: $space-gap-normal;
-  padding: $space-padding-md;
+  gap: 1rem;
+  padding: 1rem;
 }
 
 .admin-participant-section {
   display: flex;
   flex-direction: column;
-  gap: $space-base;
+  gap: 0.75rem;
 }
 
 .admin-participant-section h4 {
-  @include type-normal;
-  color: $color-text-dark;
-  font-weight: $font-weight-semibold;
+  color: var(--text-strong);
+  font-size: 0.9375rem;
+  font-weight: 700;
   margin: 0;
 }
 
-.admin-participant-section__header {
+.admin-participant-section__header,
+.admin-participant-section__toggle {
   align-items: baseline;
   display: flex;
   flex-wrap: wrap;
-  gap: $space-base $space-lg;
+  gap: 0.75rem;
   justify-content: space-between;
 }
 
 .admin-participant-section__toggle {
-  align-items: center;
   background: transparent;
   border: 0;
   color: inherit;
-  cursor: pointer;
-  display: flex;
-  font: inherit;
-  gap: $space-lg;
-  justify-content: space-between;
   padding: 0;
   text-align: left;
   width: 100%;
-
-  &:hover h4 {
-    color: $color-info-600;
-  }
-
-  &:focus-visible {
-    outline: 2px solid $color-primary;
-    outline-offset: 2px;
-  }
-}
-
-// Entry list (inside participant card)
-.admin-entry-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-base;
-  list-style: none;
-  margin: 0;
-  padding: 0;
 }
 
 .admin-entry-row {
   align-items: stretch;
-  background: #fff;
-  border: 1px solid $color-border;
-  border-radius: $radius-button;
   display: flex;
   flex-direction: column;
-  gap: $space-base;
-  padding: $space-base $space-padding-sm;
-}
-
-@include respond-to-sm {
-  .admin-entry-row {
-    align-items: center;
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
+  gap: 0.75rem;
+  padding: 0.75rem;
 }
 
 .admin-entry-row__name {
@@ -376,9 +230,9 @@
 }
 
 .admin-entry-row__placement {
-  @include type-small;
-  color: $color-gray-600;
-  font-weight: $font-weight-semibold;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -386,142 +240,118 @@
   align-items: stretch;
   display: flex;
   flex-direction: column;
-  gap: $space-base;
-  margin-top: $space-xs;
+  gap: 0.75rem;
 }
 
-@include respond-to-sm {
+.admin-inline-button--primary {
+  background: var(--action-accent-bg);
+  border-color: var(--action-accent-bg);
+  color: var(--action-accent-text);
+
+  &:hover:not(:disabled) {
+    background: var(--action-accent-bg-hover);
+    border-color: var(--action-accent-bg-hover);
+  }
+}
+
+.admin-round-vote-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0.75rem;
+}
+
+.admin-round-vote-row__label,
+.admin-round-vote-row__detail {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-inline-chip {
+  border-radius: var(--r-badge);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0.25rem 0.5rem;
+  text-transform: uppercase;
+
+  &--competitor {
+    background: var(--role-competitor-bg);
+    color: var(--role-competitor-text);
+  }
+}
+
+.admin-vote-status {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-vote-status--voted {
+  color: var(--text-success);
+}
+
+.admin-vote-status--partial,
+.admin-vote-status--auto {
+  color: var(--text-special);
+}
+
+.admin-vote-status--pending {
+  color: var(--text-muted);
+}
+
+.admin-score-item {
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  padding: 0.875rem;
+}
+
+.admin-score-item__header,
+.admin-score-item__breakdown {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.admin-score-item__breakdown {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-top: 0.75rem;
+}
+
+.admin-score-item__notes {
+  background: var(--bg-surface-sunken);
+  border-radius: var(--r-md);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-style: italic;
+  margin: 0.75rem 0 0;
+  padding: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .admin-participant-card__header {
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .admin-participant-card__summary {
+    flex-shrink: 0;
+    justify-content: flex-end;
+    width: auto;
+  }
+
+  .admin-entry-row,
   .admin-entry-add {
     align-items: center;
     flex-direction: row;
     flex-wrap: wrap;
   }
-}
-
-.admin-entry-add .admin-contestant-input {
-  flex: 1;
-  min-width: 0;
-}
-
-// Inline action button with proper contrast for admin light surfaces
-.admin-inline-button {
-  background: #fff;
-  border: 1px solid $color-gray-400;
-  border-radius: $radius-button;
-  color: $color-text-dark;
-  cursor: pointer;
-  font-size: $font-size-normal;
-  font-weight: $font-weight-semibold;
-  padding: $space-base $space-padding-sm;
-  transition: background $transition-fast, border-color $transition-fast, color $transition-fast;
-  white-space: nowrap;
-
-  &:hover:not(:disabled) {
-    background: $color-light-100;
-    border-color: $color-gray-600;
-  }
-
-  &:focus-visible {
-    outline: 2px solid $color-primary;
-    outline-offset: 1px;
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-
-  &--primary {
-    background: $color-info-600;
-    border-color: $color-info-600;
-    color: $color-text-light;
-
-    &:hover:not(:disabled) {
-      background: $color-dark-900;
-      border-color: $color-dark-900;
-      color: $color-text-light;
-    }
-  }
-
-  &--danger {
-    border-color: $color-error-200;
-    color: $color-error-700;
-
-    &:hover:not(:disabled) {
-      background: $color-error-50;
-      border-color: $color-error-600;
-      color: $color-error-700;
-    }
-  }
-}
-
-// Per-round voting list
-.admin-round-vote-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-xs;
-  list-style: none;
-  margin: $space-xs 0 0;
-  padding: 0;
-}
-
-.admin-round-vote-row {
-  align-items: center;
-  background: #fff;
-  border: 1px solid $color-border;
-  border-radius: $radius-xs;
-  display: flex;
-  flex-wrap: wrap;
-  gap: $space-base;
-  justify-content: space-between;
-  padding: $space-base $space-padding-sm;
-}
-
-.admin-round-vote-row__label {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: $space-base;
-}
-
-.admin-round-vote-row__detail {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: $space-lg;
-}
-
-.admin-inline-chip {
-  border-radius: $radius-xs;
-  @include type-small;
-  font-weight: $font-weight-semibold;
-  padding: 0.15rem 0.4rem;
-  text-transform: uppercase;
-
-  &--competitor {
-    background: rgba($color-warning-700, 0.15);
-    color: $color-warning-900;
-  }
-}
-
-.admin-vote-status {
-  @include type-small;
-  font-weight: $font-weight-semibold;
-  white-space: nowrap;
-}
-
-.admin-vote-status--voted {
-  color: $color-success-600;
-}
-
-.admin-vote-status--partial {
-  color: $color-warning-700;
-}
-
-.admin-vote-status--pending {
-  color: $color-gray-600;
-}
-
-.admin-vote-status--auto {
-  color: $color-warning-900;
 }

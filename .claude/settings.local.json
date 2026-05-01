@@ -3,14 +3,12 @@
     "allow": [
       "Bash(find E:/Coding/item-dc-calculator -type f \\\\\\(-name *.test.* -o -name *.spec.* \\\\\\))",
       "Bash(ls E:/Coding/item-dc-calculator/eslint* E:/Coding/item-dc-calculator/.prettier* E:/Coding/item-dc-calculator/prettier*)",
-      "Bash(npx gitnexus:*)",
       "Bash(gh pr:*)",
       "Bash(where gh:*)",
       "Bash(winget list:*)",
       "mcp__Claude_Preview__preview_start",
       "Skill(update-config)",
       "Skill(update-config:*)",
-      "mcp__plugin_gitnexus_gitnexus__impact",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:9099)"
     ]
   }

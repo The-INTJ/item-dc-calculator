@@ -112,7 +112,7 @@ export function AdminDashboard() {
             onClick={() => setSidebarCollapsed((prev) => !prev)}
           >
             <span>Contests ({contests.length})</span>
-            <span className="admin-sidebar__chevron">{sidebarCollapsed ? '▼' : '▲'}</span>
+            <span className="admin-sidebar__chevron">{sidebarCollapsed ? 'v' : '^'}</span>
           </button>
           {!sidebarCollapsed && (
             <>

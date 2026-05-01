@@ -32,7 +32,7 @@ export function UserMenu({ onLogin, onRegister }: UserMenuProps) {
       <div className="user-menu__info">
         <span className="user-menu__name">{session.profile.displayName}</span>
         <span className="user-menu__status">
-          {isAuthenticated ? '✓ Synced' : isGuest ? 'Guest' : 'Offline'}
+          {isAuthenticated ? 'Synced' : isGuest ? 'Guest' : 'Offline'}
         </span>
       </div>
 

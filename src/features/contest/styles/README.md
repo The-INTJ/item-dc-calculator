@@ -15,3 +15,4 @@ This folder owns contest-specific styling.
 - Keep app-shell globals out of this folder unless a style is truly contest-wide.
 - Prefer tokens and mixins over new one-off values.
 - Shared primitives that are identical across contest and DC calculator code should live under `src/styles/system/`.
+- See the root `DESIGN_SYSTEM.md` for the contest design-system handoff and current spec-gap inventory.

@@ -1,3 +1,15 @@
 // Z-index tokens.
-// TODO: define layering scale.
-$z-layers: () !default;
+
+$z-shell: 10;
+$z-sticky: 20;
+$z-overlay: 100;
+$z-modal: 200;
+$z-toast: 300;
+
+$z-layers: (
+  shell: $z-shell,
+  sticky: $z-sticky,
+  overlay: $z-overlay,
+  modal: $z-modal,
+  toast: $z-toast,
+) !default;

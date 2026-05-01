@@ -283,39 +283,63 @@ function DisplayFaceOff({ round }: { round: DisplayRound }) {
   );
 }
 
+function matchupTitle(matchup: DisplayMatchup | null) {
+  if (!matchup) return 'Waiting for active round';
+  return matchup.contestantA.name;
+}
+
+function matchupSubtitle(matchup: DisplayMatchup | null) {
+  if (!matchup) return 'No matchup currently scoring';
+  return `vs ${matchup.contestantB.name}`;
+}
+
+function firstMatchup(round: DisplayRound | null | undefined) {
+  return round?.matchups[0] ?? null;
+}
+
 export function DisplayBracket({ model }: DisplayBracketProps) {
   const bracketRounds = model.isFinalRoundActive ? model.rounds.slice(0, -1) : model.rounds;
   const faceOffRound = model.isFinalRoundActive
     ? model.rounds[model.rounds.length - 1]
     : null;
+  const activeRound = model.rounds.find((round) => round.id === model.activeRoundId) ?? null;
+  const activeRoundIndex = activeRound
+    ? model.rounds.findIndex((round) => round.id === activeRound.id)
+    : -1;
+  const nextRound = activeRoundIndex >= 0 ? model.rounds[activeRoundIndex + 1] ?? null : null;
+  const activeMatchup = firstMatchup(activeRound);
+  const nextMatchup = firstMatchup(nextRound);
 
   return (
-    <section className="contest-display">
+    <section className="contest-display" data-theme="broadcast">
       <header className="contest-display__hero">
         <div>
           <Link
             href={`/contest/${model.contestId}`}
             className="contest-display__eyebrow contest-display__eyebrow--link"
           >
-            Display Mode
+            <span className="live-dot" aria-hidden="true" />
+            On Air / {model.activeRoundName ?? 'Waiting'}
           </Link>
           <h1 className="contest-display__title">{model.contestName}</h1>
           <p className="contest-display__meta">
-            {formatLabel(model.phase)} phase · {model.totalRounds} rounds · Live updates
+            {formatLabel(model.phase)} phase / {model.totalRounds} rounds / Live updates
           </p>
         </div>
         <div className="contest-display__ticker">
           <section className="contest-display__panel">
-            <span className="contest-display__label">Now Playing</span>
-            <strong className="contest-display__value">
-              {model.activeRoundName ?? 'Waiting for active round'}
-            </strong>
+            <span className="contest-display__label">Now Scoring</span>
+            <strong className="contest-display__value">{matchupTitle(activeMatchup)}</strong>
+            <span className="contest-display__panel-sub">{matchupSubtitle(activeMatchup)}</span>
           </section>
           <section className="contest-display__panel">
             <span className="contest-display__label">Up Next</span>
             <strong className="contest-display__value">
-              {model.nextRoundName ?? 'No next round queued'}
+              {nextMatchup ? matchupTitle(nextMatchup) : model.nextRoundName ?? 'No next round queued'}
             </strong>
+            <span className="contest-display__panel-sub">
+              {nextMatchup ? matchupSubtitle(nextMatchup) : 'Awaiting bracket advance'}
+            </span>
           </section>
         </div>
       </header>
@@ -330,6 +354,18 @@ export function DisplayBracket({ model }: DisplayBracketProps) {
           {faceOffRound && <DisplayFaceOff round={faceOffRound} />}
         </>
       )}
+
+      <footer className="contest-display__feed">
+        <span className="contest-display__feed-label">
+          <span aria-hidden="true" />
+          Vote feed
+        </span>
+        <span>
+          {model.activeRoundName
+            ? `${model.activeRoundName} is live. Scores update from cached entry aggregates.`
+            : 'Waiting for the host to open a live round.'}
+        </span>
+      </footer>
     </section>
   );
 }

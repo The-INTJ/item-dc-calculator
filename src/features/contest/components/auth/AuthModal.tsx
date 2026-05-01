@@ -30,7 +30,7 @@ export function AuthModal({ initialView = 'guest', onClose, onSuccess }: AuthMod
       <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
         {onClose && (
           <button type="button" className="auth-modal__close" onClick={onClose}>
-            ×
+            X
           </button>
         )}
 

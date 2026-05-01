@@ -49,6 +49,9 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
   const contestantLabel = getContestantLabel(contest.config);
   const entryLabel = getEntryLabel(contest.config);
   const showContestantButton = userId && contestRole !== 'contestant';
+  const topic = contest.config?.topic ?? 'Contest';
+  const entryCount = contest.entries?.length ?? 0;
+  const roundCount = contest.rounds?.length ?? 0;
 
   const selectedMatchup = selectedMatchupId
     ? matchups.find((m) => m.id === selectedMatchupId) ?? null
@@ -62,12 +65,20 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
   };
 
   return (
-    <div className="contest-landing">
-      <section className="contest-hero">
+    <div className="contest-detail-page">
+      <section className="contest-detail-header">
+        <div className="contest-detail-header__meta">
+          <span className="eyebrow">{topic}</span>
+          <span aria-hidden="true">/</span>
+          <span className="muted">Live updates</span>
+        </div>
         <h1>{contest.name}</h1>
+        <p>
+          {roundCount} rounds / {entryCount} {entryCount === 1 ? entryLabel.toLowerCase() : `${entryLabel.toLowerCase()}s`}
+        </p>
         <Link
           href={`/contest/${contestId}/display`}
-          className="button-secondary contest-hero__display-link"
+          className="btn btn--secondary btn--sm contest-hero__display-link"
         >
           Display mode
         </Link>
@@ -95,6 +106,31 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
           <p className="contest-role-badge">You are a {contestantLabel}</p>
         </section>
       )}
+
+      <section className="contest-entry-preview" aria-label={`${entryLabel} preview`}>
+        <div className="contest-entry-preview__header">
+          <h2>{entryCount === 1 ? entryLabel : `${entryLabel}s`}</h2>
+          <span className="muted">{entryCount}</span>
+        </div>
+        {contest.entries.length === 0 ? (
+          <p className="contest-empty">No {entryLabel.toLowerCase()}s have been submitted yet.</p>
+        ) : (
+          <div className="contest-entry-preview__list">
+            {contest.entries.slice(0, 6).map((entry) => (
+              <div key={entry.id} className="contest-entry-row">
+                <span className="contest-entry-row__image" aria-hidden="true" />
+                <span className="contest-entry-row__body">
+                  <strong>{entry.name || 'Unnamed entry'}</strong>
+                  <span>by {entry.submittedBy}</span>
+                </span>
+                <span className="badge badge--pending">
+                  {(entry.voteCount ?? 0) > 0 ? `${entry.voteCount} votes` : 'Unscored'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {selectedMatchup && (
         <VoteModal

@@ -124,6 +124,7 @@ export function ContestRoundNavigator({
                 key={round.id}
                 type="button"
                 role="tab"
+                id={`contest-round-tab-${round.id}`}
                 aria-selected={isViewed}
                 aria-controls={`contest-round-panel-${round.id}`}
                 tabIndex={isViewed ? 0 : -1}

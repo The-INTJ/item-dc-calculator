@@ -1,52 +1,66 @@
-@use '@/contest/styles/mixins/surface' as *;
-@use '@/contest/styles/mixins/typography' as *;
-@use '@/contest/styles/mixins/interactive' as *;
 @use '@/contest/styles/mixins/tokens' as *;
 
 .card {
-  @include card-surface;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-1);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: $space-padding-lg;
-  text-align: center;
-  padding: $space-padding-xl;
+  gap: 0.75rem;
+  padding: var(--pad-card);
+}
+
+.eyebrow {
+  color: var(--text-special);
+  font: var(--t-label);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  margin: 0;
+  text-transform: uppercase;
 }
 
 .name {
-  @include type-massive;
-  font-weight: $font-weight-bold;
-  color: $color-text-dark;
+  color: var(--text-strong);
+  font: var(--t-h1);
+  font-weight: 700;
+  letter-spacing: -0.02em;
   margin: 0;
 }
 
 .topic {
-  @include type-large;
-  color: $color-text-dark;
-  opacity: 0.75;
+  color: var(--text-muted);
+  font: var(--t-body);
   margin: 0;
 }
 
 .meta {
-  @include status-badge;
-  background: $color-gray-200;
-  color: $color-text-dark;
+  background: var(--status-pending-bg);
+  border-radius: var(--r-badge);
+  color: var(--status-pending-text);
+  display: inline-flex;
+  font: var(--t-label);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0.35rem 0.625rem;
+  text-transform: uppercase;
+  width: fit-content;
 }
 
 .cta {
-  @include interactive-button;
-  background: $color-text-special;
-  color: white;
-  border: none;
-  padding: $space-padding-md $space-padding-xl;
-  font-size: $font-size-large;
+  align-items: center;
+  background: var(--action-primary-bg);
+  border-radius: var(--r-button);
+  color: var(--action-primary-text);
+  display: inline-flex;
   font-weight: $font-weight-semibold;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 1rem;
   text-decoration: none;
-  border-radius: $radius-card;
-  transition: all $transition-base;
+  width: fit-content;
 
   &:hover {
-    opacity: 0.9;
-    transform: translateY(-2px);
+    background: var(--action-primary-bg-hover);
   }
 }

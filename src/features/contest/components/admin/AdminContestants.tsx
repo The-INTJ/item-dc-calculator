@@ -223,7 +223,7 @@ function ParticipantCard({
           <span className="admin-detail-meta">{entrySummary}</span>
           <span className="admin-detail-meta">{voteSummary}</span>
           <span className="admin-participant-card__chevron" aria-hidden="true">
-            {expanded ? '▲' : '▼'}
+            {expanded ? '^' : 'v'}
           </span>
         </div>
       </button>
@@ -273,7 +273,7 @@ function ParticipantCard({
                 <h4>Voting</h4>
                 <span className="admin-detail-meta">{voteSummary}</span>
                 <span className="admin-participant-card__chevron" aria-hidden="true">
-                  {votesOpen ? '▲' : '▼'}
+                  {votesOpen ? '^' : 'v'}
                 </span>
               </button>
               {votesOpen && (

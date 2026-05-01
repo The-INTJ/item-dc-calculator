@@ -2,12 +2,12 @@
 // Durations and easing curves for animations and transitions.
 
 // Durations
-$motion-duration-fast: 0.15s;
-$motion-duration-base: 0.2s;
-$motion-duration-slow: 0.3s;
+$motion-duration-fast: 120ms;
+$motion-duration-base: 180ms;
+$motion-duration-slow: 280ms;
 
 // Easing curves
-$motion-easing-ease: ease;
+$motion-easing-ease: cubic-bezier(0.2, 0.7, 0.3, 1);
 $motion-easing-ease-in: ease-in;
 $motion-easing-ease-out: ease-out;
 $motion-easing-ease-in-out: ease-in-out;

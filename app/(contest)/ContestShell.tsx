@@ -14,8 +14,14 @@ export function ContestShell({ children }: { children: ReactNode }) {
   return (
     <AuthProvider>
       <ContestProvider>
-        <SiteHeader />
-        <main className={mainClassName}>{children}</main>
+        <div
+          className={`contest-app${isDisplayMode ? ' contest-app--display' : ''}`}
+          data-density="compact"
+          data-theme={isDisplayMode ? 'broadcast' : 'light'}
+        >
+          <SiteHeader />
+          <main className={mainClassName}>{children}</main>
+        </div>
       </ContestProvider>
     </AuthProvider>
   );

@@ -1,100 +1,119 @@
 @use './index' as *;
 
-.site-main--display {
-  min-height: 100dvh;
-  padding: 0;
-}
-
 .contest-display-page {
   background:
-    radial-gradient(circle at top left, rgba(34, 211, 238, 0.16), transparent 34%),
-    radial-gradient(circle at top right, rgba(37, 99, 235, 0.2), transparent 28%),
-    linear-gradient(160deg, $color-dark-950 0%, #09111f 100%);
-  color: $color-text-light;
+    radial-gradient(1200px 600px at 20% -10%, rgba(34, 211, 238, 0.18), transparent 60%),
+    radial-gradient(900px 600px at 110% 110%, rgba(245, 158, 11, 0.12), transparent 55%),
+    #020617;
+  color: #ffffff;
   min-height: 100dvh;
-  padding: clamp(1rem, 2vw, 2rem);
 }
 
 .contest-display-page__state {
-  @include flex-center;
+  align-items: center;
+  display: flex;
+  justify-content: center;
   min-height: 100dvh;
+  padding: 2rem;
 }
 
 .contest-display-page__card {
-  @include card-elevated;
-  background: rgba(15, 23, 42, 0.92);
-  border-color: rgba(148, 163, 184, 0.24);
-  color: $color-text-light;
-  font-size: $font-size-large;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+  color: #ffffff;
+  font: var(--t-h3);
+  padding: 2rem;
   text-align: center;
 }
 
 .contest-display {
-  display: grid;
-  gap: $space-gap-xl;
-  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-display);
+  gap: clamp(1rem, 3vw, 1.75rem);
+  min-height: 100dvh;
+  overflow: hidden;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
 }
 
 .contest-display__hero {
-  display: grid;
-  gap: $space-gap-loose;
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 3vw, 2rem);
+  justify-content: space-between;
 }
 
 .contest-display__eyebrow,
 .contest-display__label {
-  @include type-label;
-  color: $color-text-special;
-  display: block;
-  margin: 0 0 $space-base;
+  color: var(--c-amber-300);
+  display: inline-flex;
+  font-size: 0.75rem;
+  font-weight: 800;
+  gap: 0.5rem;
+  letter-spacing: 0.14em;
+  margin: 0 0 0.875rem;
+  text-transform: uppercase;
 }
 
 .contest-display__eyebrow--link {
-  color: $color-text-special;
+  align-items: center;
   cursor: pointer;
   text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
 }
 
 .contest-display__title {
-  font-size: $font-size-massive;
+  font-size: clamp(3rem, 8vw, 6.25rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
   line-height: 1;
   margin: 0;
 }
 
 .contest-display__meta {
-  color: $color-text-light;
-  font-size: $font-size-large;
-  margin: $space-lg 0 0;
-  opacity: 0.8;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: clamp(1rem, 2.2vw, 1.625rem);
+  letter-spacing: -0.005em;
+  margin: 0.75rem 0 0;
 }
 
 .contest-display__ticker {
   display: grid;
-  gap: $space-gap-normal;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.875rem;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  width: 100%;
 }
 
 .contest-display__panel {
-  background: rgba(15, 23, 42, 0.78);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: $radius-card;
-  padding: $space-padding-lg;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.875rem;
+  display: grid;
+  min-height: 9rem;
+  padding: clamp(1rem, 2vw, 1.25rem);
 }
 
 .contest-display__value {
-  font-size: $font-size-large;
+  color: #ffffff;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 
-/* =====================================================================
- * Tournament bracket canvas — columns + SVG connector overlay
- * ===================================================================== */
+.contest-display__panel-sub {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.9375rem;
+  margin-top: 0.25rem;
+}
 
 .contest-display__canvas {
+  flex: 1;
+  min-height: 0;
   overflow-x: auto;
-  padding-bottom: $space-base;
+  padding-bottom: 0.5rem;
   position: relative;
 }
 
@@ -107,7 +126,7 @@
 
 .contest-display__connector {
   fill: none;
-  stroke: rgba(148, 163, 184, 0.4);
+  stroke: rgba(148, 163, 184, 0.42);
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2;
@@ -115,14 +134,14 @@
 
 .contest-display__connector--feeds-active {
   animation: contest-display-connector-pulse 2.8s infinite ease-in-out;
-  stroke: rgba(34, 211, 238, 0.7);
+  stroke: rgba(245, 158, 11, 0.72);
   stroke-width: 2.5;
 }
 
 .contest-display__columns {
   display: grid;
-  gap: $space-gap-xl;
-  grid-template-columns: repeat(var(--total-rounds), minmax(16rem, 1fr));
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  grid-template-columns: repeat(var(--total-rounds), minmax(19rem, 1fr));
   min-width: min-content;
   position: relative;
   z-index: 1;
@@ -131,7 +150,7 @@
 .contest-display__column {
   display: flex;
   flex-direction: column;
-  gap: $space-gap-normal;
+  gap: 0.875rem;
   min-height: 100%;
 }
 
@@ -139,15 +158,18 @@
   align-items: baseline;
   display: flex;
   flex-wrap: wrap;
-  gap: $space-base $space-lg;
-  padding: 0 $space-base;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0 0.25rem;
 }
 
 .contest-display__column-title {
-  color: $color-text-light;
-  font-size: $font-size-large;
-  margin: 0;
+  color: #ffffff;
   flex: 1;
+  font-size: clamp(1.625rem, 3vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
   min-width: 0;
 }
 
@@ -159,176 +181,213 @@
 
 .contest-display__matchup {
   align-self: center;
-  background: rgba(15, 23, 42, 0.82);
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: $radius-card;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
   box-sizing: border-box;
   display: grid;
-  gap: $space-base;
-  padding: $space-padding-md;
-  transition: border-color $transition-base, box-shadow $transition-base, transform $transition-base;
+  gap: 0.875rem;
+  padding: 1.125rem;
+  position: relative;
+  transition: border-color var(--dur-base), box-shadow var(--dur-base), transform var(--dur-base);
   width: 100%;
 }
 
 .contest-display__matchup--active {
-  animation: contest-display-pulse 2.8s infinite;
-  border-color: rgba(34, 211, 238, 0.55);
-  box-shadow: $shadow-2xl, 0 0 0 1px rgba(34, 211, 238, 0.3);
-  transform: translateY(-2px);
+  animation: contest-display-pulse 2.4s ease-out infinite;
+  background: rgba(245, 158, 11, 0.06);
+  border-color: rgba(245, 158, 11, 0.35);
 }
 
 .contest-display__status {
-  @include type-label;
-  border-radius: $radius-pill;
-  padding: $space-xs $space-lg;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  padding: 0.35rem 0.75rem;
+  text-transform: uppercase;
 }
 
 .contest-display__status--active {
-  background: rgba(34, 211, 238, 0.16);
-  color: $color-text-special;
+  background: rgba(245, 158, 11, 0.16);
+  color: var(--c-amber-300);
 }
 
 .contest-display__status--closed {
   background: rgba(16, 185, 129, 0.16);
-  color: $color-text-light;
+  color: #d1fae5;
 }
 
-.contest-display__status--upcoming {
-  background: rgba(148, 163, 184, 0.16);
-  color: $color-text-light;
-  opacity: 0.8;
+.contest-display__status--upcoming,
+.contest-display__status--pending {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.58);
 }
 
 .contest-display__team {
   align-items: center;
   display: flex;
-  gap: $space-lg;
+  gap: 0.875rem;
   justify-content: space-between;
-  font-size: $font-size-normal;
 }
 
 .contest-display__team--winner {
-  color: $color-text-special;
-  font-weight: $font-weight-bold;
+  color: var(--c-amber-300);
+  font-weight: 800;
 }
 
 .contest-display__name {
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .contest-display__score {
-  font-size: $font-size-large;
-  font-weight: $font-weight-bold;
+  color: inherit;
+  font-family: var(--font-mono);
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
   min-width: 2ch;
   text-align: right;
 }
 
 .contest-display__badge {
-  @include type-label;
-  color: $color-text-special;
+  color: var(--c-amber-300);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .contest-display__empty {
-  color: $color-text-light;
-  font-size: $font-size-normal;
-  opacity: 0.8;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  margin: 0;
 }
 
-/* =====================================================================
- * Display face-off (final round hero)
- * ===================================================================== */
-
 .contest-display__face-off {
-  background: rgba(15, 23, 42, 0.78);
-  border: 2px solid rgba(34, 211, 238, 0.4);
-  border-radius: $radius-card;
+  animation: contest-display-pulse 2.4s ease-out infinite;
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 1rem;
   display: grid;
-  gap: $space-gap-normal;
-  padding: $space-padding-xl;
+  gap: 1rem;
+  padding: clamp(1.25rem, 4vw, 2rem);
   text-align: center;
-  animation: contest-display-pulse 2.8s infinite;
 }
 
 .contest-display__fo-header {
   display: grid;
-  gap: $space-base;
+  gap: 0.5rem;
   justify-items: center;
 }
 
 .contest-display__fo-title {
-  font-size: $font-size-massive;
+  font-size: clamp(2rem, 6vw, 4rem);
   margin: 0;
 }
 
 .contest-display__fo-matchup {
   align-items: center;
   display: grid;
-  gap: $space-gap-loose;
+  gap: 1rem;
   grid-template-columns: 1fr auto 1fr;
-  padding: $space-padding-lg 0;
 }
 
 .contest-display__fo-contestant {
   display: grid;
-  gap: $space-base;
+  gap: 0.5rem;
   justify-items: center;
-  padding: $space-padding-lg;
 }
 
 .contest-display__fo-contestant--leader {
-  color: $color-text-special;
-  font-weight: $font-weight-bold;
+  color: var(--c-amber-300);
 }
 
 .contest-display__fo-name {
-  font-size: $font-size-large;
+  font-size: clamp(1.25rem, 3vw, 2rem);
   margin: 0;
 }
 
 .contest-display__fo-score {
-  font-size: $font-size-massive;
-  font-weight: $font-weight-bold;
+  font-family: var(--font-mono);
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  font-weight: 800;
   line-height: 1;
 }
 
 .contest-display__fo-vs {
-  @include type-label;
-  color: $color-text-light;
-  font-size: $font-size-large;
-  opacity: 0.5;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
 }
 
-@include respond-to-lg {
-  .contest-display-page {
-    padding: clamp(1.5rem, 2vw, 2.75rem);
+.contest-display__feed {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.875rem;
+  color: rgba(255, 255, 255, 0.72);
+  display: flex;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+}
+
+.contest-display__feed-label {
+  align-items: center;
+  color: var(--c-cyan-300);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  gap: 0.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.contest-display__feed-label span {
+  background: var(--c-cyan-400);
+  border-radius: 999px;
+  height: 0.5rem;
+  width: 0.5rem;
+}
+
+@media (min-width: 960px) {
+  .contest-display__hero {
+    flex-direction: row;
   }
 
-  .contest-display__hero {
-    align-items: end;
-    grid-template-columns: minmax(0, 1.8fr) minmax(320px, 1fr);
+  .contest-display__ticker {
+    flex: 0 0 min(42rem, 42vw);
   }
 }
 
 @keyframes contest-display-pulse {
-  0%,
-  100% {
-    box-shadow: $shadow-2xl, 0 0 0 1px rgba(34, 211, 238, 0.18);
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
   }
 
-  50% {
-    box-shadow: $shadow-2xl, 0 0 0 1px rgba(34, 211, 238, 0.42), 0 0 40px rgba(34, 211, 238, 0.22);
+  70% {
+    box-shadow: 0 0 0 14px rgba(245, 158, 11, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
   }
 }
 
 @keyframes contest-display-connector-pulse {
   0%,
   100% {
-    stroke: rgba(34, 211, 238, 0.55);
+    stroke: rgba(245, 158, 11, 0.55);
   }
 
   50% {
-    stroke: rgba(34, 211, 238, 0.95);
+    stroke: rgba(245, 158, 11, 0.95);
   }
 }

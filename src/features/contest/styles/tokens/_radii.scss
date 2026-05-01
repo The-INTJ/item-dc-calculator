@@ -3,13 +3,14 @@
 
 $radius-xs: 4px;
 $radius-sm: 8px;
-$radius-md: 10px;
+$radius-md: 8px;
 $radius-lg: 12px;
 $radius-xl: 16px;
+$radius-2xl: 20px;
 $radius-full: 999px; // pill/circle shape
 
 // Semantic aliases
-$radius-button: $radius-sm;
+$radius-button: $radius-md;
 $radius-card: $radius-lg;
 $radius-modal: $radius-xl;
 $radius-pill: $radius-full;

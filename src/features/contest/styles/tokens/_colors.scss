@@ -1,79 +1,85 @@
-// Primitive color tokens.
-// Extracted from mixology component styles.
+// Primitive and semantic color tokens for the contest app refresh.
 
-// Primary colors
-$color-primary: #22d3ee;
-$color-primary-hover: #06b6d4;
+// Brand
+$color-primary: #06b6d4;
+$color-primary-hover: #0891b2;
+$color-primary-soft: #cffafe;
 
-// Dark colors
-$color-dark-950: #0f172a;
-$color-dark-900: #1e293b;
-$color-dark-800: #334155;
+// Slate scale
+$color-dark-950: #020617;
+$color-dark-900: #0f172a;
+$color-dark-800: #1e293b;
+$color-dark-700: #334155;
 
-// Light colors
 $color-light-50: #f8fafc;
 $color-light-100: #f1f5f9;
+$color-light-200: #e2e8f0;
 
-// Gray scale
+$color-gray-700: #334155;
 $color-gray-600: #475569;
 $color-gray-500: #64748b;
 $color-gray-400: #94a3b8;
 $color-gray-300: #cbd5e1;
 $color-gray-200: #e2e8f0;
 
-// Semantic colors - error
+// Semantic colors
 $color-error-900: #7f1d1d;
 $color-error-700: #b91c1c;
 $color-error-600: #dc2626;
+$color-error-500: #ef4444;
 $color-error-200: #fecaca;
 $color-error-50: #fef2f2;
 
-// Semantic colors - warning
 $color-warning-900: #92400e;
 $color-warning-700: #d97706;
+$color-warning-600: #d97706;
+$color-warning-500: #f59e0b;
+$color-warning-300: #fcd34d;
 $color-warning-200: #fde68a;
 $color-warning-100: #fef3c7;
 $color-warning-50: #fffbeb;
 
-// Semantic colors - success
+$color-success-700: #047857;
 $color-success-600: #059669;
 $color-success-500: #10b981;
-$color-success-700: #059669;
+$color-success-400: #34d399;
 $color-success-50: #ecfdf5;
 
-// Semantic colors - info
-$color-info-600: #2563eb;
+$color-info-600: $color-primary;
 
-// Guest colors
-$color-guest-700: #d97706;
-$color-guest-100: #fef3c7;
+// Guest and phase aliases
+$color-guest-700: $color-warning-700;
+$color-guest-100: $color-warning-100;
 
-// Phase colors
 $color-phase-setup: #3b82f6;
-$color-phase-active: #22c55e;
-$color-phase-judging: #f59e0b;
-$color-phase-closed: #94a3b8;
+$color-phase-active: $color-success-500;
+$color-phase-judging: $color-warning-500;
+$color-phase-closed: $color-gray-400;
 
-// Canonical text colors
-$color-text-dark: $color-dark-950;
-$color-text-light: $color-light-50;
-$color-text-link: $color-primary;
-$color-text-special: $color-warning-700;
+// Text semantics
+$color-text-dark: $color-dark-900;
+$color-text-light: #ffffff;
+$color-text-link: $color-primary-hover;
+$color-text-special: $color-warning-600;
+$color-text-muted-real: $color-gray-600;
+$color-text-subtle: $color-gray-500;
+$color-text-danger: $color-error-600;
+$color-text-success: $color-success-600;
 
-// Legacy aliases kept for compatibility while the styles continue to converge
-// on the four tokens above.
+// Compatibility aliases
 $color-text-primary: $color-text-dark;
-$color-text-secondary: $color-text-dark;
-$color-text-muted: $color-text-dark;
+$color-text-secondary: $color-gray-700;
+$color-text-muted: $color-gray-600;
 $color-text-tertiary: $color-text-special;
 
 $color-surface: #ffffff;
 $color-surface-hover: $color-light-100;
+$color-surface-sunken: $color-light-100;
 
 $color-border: $color-gray-200;
 $color-border-hover: $color-gray-300;
 
-$color-input-bg: $color-light-50;
+$color-input-bg: #ffffff;
 $color-input-border: $color-gray-300;
 
 $color-code-bg: $color-light-100;
