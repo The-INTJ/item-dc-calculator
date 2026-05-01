@@ -197,10 +197,18 @@ export interface ContestActions {
     matchupId: string,
     updates: Partial<Matchup>,
   ) => Promise<Matchup | null>;
-  /** Seed (or reseed) a round's matchups. For round 0 pass pairs; for N>0 derives from winners. */
+  /**
+   * Seed (or reseed) a round's matchups. For round 0 pass pairs; for N>0 derives from winners.
+   * Pairs may be `[a, b]` (regular matchup) or `[a]` (bye / auto-advance).
+   */
   seedRound: (
     contestId: string,
     roundId: string,
-    pairs?: Array<[string, string]>,
-  ) => Promise<Matchup[] | null>;
+    pairs?: Array<[string, string] | [string]>,
+  ) => Promise<{ matchups: Matchup[] | null; error: string | null }>;
+  createMatchup: (
+    contestId: string,
+    matchup: { roundId: string; slotIndex: number; entryIds: string[]; phase?: MatchupPhase; winnerEntryId?: string | null },
+  ) => Promise<Matchup | null>;
+  deleteMatchup: (contestId: string, matchupId: string) => Promise<boolean>;
 }

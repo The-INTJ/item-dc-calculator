@@ -225,7 +225,7 @@ export const contestApi = {
   async seedRound(
     contestId: string,
     roundId: string,
-    body: { entryIdPairs?: Array<[string, string]> } = {},
+    body: { entryIdPairs?: Array<[string, string] | [string]> } = {},
   ): Promise<ProviderResult<{ matchups: Matchup[] }>> {
     return fetchProviderResult<{ matchups: Matchup[] }>(
       `${API}/contests/${encodeURIComponent(contestId)}/rounds/${encodeURIComponent(roundId)}/seed`,

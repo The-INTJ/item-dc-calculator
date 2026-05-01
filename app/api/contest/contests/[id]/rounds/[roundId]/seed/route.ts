@@ -4,6 +4,9 @@ import { requireAdmin } from '../../../../../_lib/requireAdmin';
 import { SeedRoundBodySchema } from '@/contest/lib/schemas';
 import type { MatchupCreateInput } from '@/contest/lib/backend/types';
 import type { Matchup } from '@/contest/contexts/contest/contestTypes';
+import { pairWithByes } from '@/contest/lib/domain/bracketMath';
+
+type SeedSlot = [string, string] | [string];
 
 interface RouteParams {
   params: Promise<{ id: string; roundId: string }>;
@@ -32,21 +35,23 @@ export async function POST(request: Request, { params }: RouteParams) {
     return jsonError('Round not found', 404);
   }
 
-  const pairs = await resolveEntryPairs({
+  const resolved = await resolveSeedSlots({
     contestId: contest.id,
     rounds,
     roundIndex,
     provider,
-    providedPairs: body.data.entryIdPairs ?? null,
+    providedPairs: (body.data.entryIdPairs as SeedSlot[] | undefined) ?? null,
   });
-  if (!pairs.ok) {
-    return jsonError(pairs.error, pairs.status);
+  if (!resolved.ok) {
+    return jsonError(resolved.error, resolved.status);
   }
 
   const entryIdSet = new Set(contest.entries.map((entry) => entry.id));
-  for (const [a, b] of pairs.pairs) {
-    if (!entryIdSet.has(a) || !entryIdSet.has(b)) {
-      return jsonError('Entry in pair is not part of the contest.', 400);
+  for (const slot of resolved.slots) {
+    for (const id of slot) {
+      if (!entryIdSet.has(id)) {
+        return jsonError('Entry in pair is not part of the contest.', 400);
+      }
     }
   }
 
@@ -61,12 +66,23 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
   }
 
-  const inputs: MatchupCreateInput[] = pairs.pairs.map(([a, b], slotIndex) => ({
-    roundId,
-    slotIndex,
-    entryIds: [a, b],
-    phase: 'set',
-  }));
+  const inputs: MatchupCreateInput[] = resolved.slots.map((slot, slotIndex) => {
+    if (slot.length === 1) {
+      return {
+        roundId,
+        slotIndex,
+        entryIds: [slot[0]],
+        phase: 'scored',
+        winnerEntryId: slot[0],
+      };
+    }
+    return {
+      roundId,
+      slotIndex,
+      entryIds: [slot[0], slot[1]],
+      phase: 'set',
+    };
+  });
 
   const createdResult = await provider.matchups.batchCreate(contest.id, inputs);
   if (!createdResult.success || !createdResult.data) {
@@ -94,15 +110,15 @@ export async function POST(request: Request, { params }: RouteParams) {
 }
 
 type ResolveResult =
-  | { ok: true; pairs: Array<[string, string]> }
+  | { ok: true; slots: SeedSlot[] }
   | { ok: false; error: string; status: number };
 
-async function resolveEntryPairs(args: {
+async function resolveSeedSlots(args: {
   contestId: string;
   rounds: Array<{ id: string }>;
   roundIndex: number;
   provider: Awaited<ReturnType<typeof getContestByParam>>['provider'];
-  providedPairs: Array<[string, string]> | null;
+  providedPairs: SeedSlot[] | null;
 }): Promise<ResolveResult> {
   const { contestId, rounds, roundIndex, provider, providedPairs } = args;
 
@@ -114,7 +130,7 @@ async function resolveEntryPairs(args: {
         error: 'entryIdPairs is required for seeding the first round.',
       };
     }
-    return { ok: true, pairs: providedPairs };
+    return { ok: true, slots: providedPairs };
   }
 
   if (providedPairs) {
@@ -144,19 +160,10 @@ async function resolveEntryPairs(args: {
   }
 
   const winners = prevMatchups.map((m) => m.winnerEntryId as string);
-  if (winners.length % 2 !== 0) {
-    return {
-      ok: false,
-      status: 400,
-      error: 'Previous round has an odd number of matchups; cannot pair winners.',
-    };
-  }
-
-  const pairs: Array<[string, string]> = [];
-  for (let i = 0; i < winners.length; i += 2) {
-    pairs.push([winners[i], winners[i + 1]]);
-  }
-  return { ok: true, pairs };
+  const { pairs, byeId } = pairWithByes(winners);
+  const slots: SeedSlot[] = [...pairs];
+  if (byeId) slots.push([byeId]);
+  return { ok: true, slots };
 }
 
 function isScoredWithWinner(matchup: Matchup): boolean {

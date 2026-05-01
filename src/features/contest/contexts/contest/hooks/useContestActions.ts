@@ -237,11 +237,13 @@ export function useContestActions(
     async (
       contestId: string,
       roundId: string,
-      pairs?: Array<[string, string]>,
-    ): Promise<Matchup[] | null> => {
+      pairs?: Array<[string, string] | [string]>,
+    ): Promise<{ matchups: Matchup[] | null; error: string | null }> => {
       const body = pairs ? { entryIdPairs: pairs } : {};
       const result = await contestApi.seedRound(contestId, roundId, body);
-      if (!result.success || !result.data) return null;
+      if (!result.success || !result.data) {
+        return { matchups: null, error: result.error ?? 'Failed to seed round' };
+      }
 
       updateState((prev) => {
         const existing = prev.matchupsByContestId[contestId] ?? [];
@@ -254,7 +256,52 @@ export function useContestActions(
           },
         };
       });
-      return result.data.matchups;
+      return { matchups: result.data.matchups, error: null };
+    },
+    [updateState],
+  );
+
+  const createMatchup = useCallback<ContestActions['createMatchup']>(
+    async (contestId, input) => {
+      const result = await contestApi.createMatchup(contestId, {
+        roundId: input.roundId,
+        slotIndex: input.slotIndex,
+        entryIds: input.entryIds,
+        phase: input.phase ?? 'set',
+        ...(input.winnerEntryId !== undefined ? { winnerEntryId: input.winnerEntryId } : {}),
+      });
+      if (!result.success || !result.data) return null;
+      const created = result.data;
+      updateState((prev) => {
+        const existing = prev.matchupsByContestId[contestId] ?? [];
+        return {
+          ...prev,
+          matchupsByContestId: {
+            ...prev.matchupsByContestId,
+            [contestId]: [...existing, created],
+          },
+        };
+      });
+      return created;
+    },
+    [updateState],
+  );
+
+  const deleteMatchup = useCallback<ContestActions['deleteMatchup']>(
+    async (contestId, matchupId) => {
+      const result = await contestApi.deleteMatchup(contestId, matchupId);
+      if (!result.success) return false;
+      updateState((prev) => {
+        const existing = prev.matchupsByContestId[contestId] ?? [];
+        return {
+          ...prev,
+          matchupsByContestId: {
+            ...prev.matchupsByContestId,
+            [contestId]: existing.filter((m) => m.id !== matchupId),
+          },
+        };
+      });
+      return true;
     },
     [updateState],
   );
@@ -274,5 +321,7 @@ export function useContestActions(
     setMatchupsForContest,
     updateMatchup,
     seedRound,
+    createMatchup,
+    deleteMatchup,
   };
 }

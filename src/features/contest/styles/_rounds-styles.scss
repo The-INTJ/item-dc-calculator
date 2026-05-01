@@ -182,6 +182,17 @@
   font-weight: 700;
 }
 
+.contest-rounds__matchup--bye {
+  border-style: dashed;
+}
+
+.contest-rounds__bye-label {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-style: italic;
+  margin: 0;
+}
+
 .contest-rounds__matchup-name {
   margin: 0;
   overflow: hidden;

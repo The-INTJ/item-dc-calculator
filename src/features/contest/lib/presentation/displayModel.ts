@@ -38,6 +38,8 @@ export interface DisplayMatchup {
   matchupId?: string;
   /** Matchup lifecycle phase (present when a stored matchup drives this slot). */
   phase?: MatchupPhase;
+  /** True when this is a single-entry bye (auto-advance). */
+  isBye?: boolean;
 }
 
 export interface DisplayRound {
@@ -154,7 +156,9 @@ export function buildDisplayModel(contest: Contest, matchups: Matchup[]): Displa
         winnerId: winnerId ?? null,
         sourceMatchups,
         slotIndex,
-        ...(matchup ? { matchupId: matchup.id, phase: matchup.phase } : {}),
+        ...(matchup
+          ? { matchupId: matchup.id, phase: matchup.phase, isBye: matchup.entryIds.length === 1 }
+          : {}),
       });
     }
 

@@ -4,6 +4,7 @@ import {
   getBracketGridRowCount,
   getMatchupGridPlacement,
   pairMatchupsAcrossRounds,
+  pairWithByes,
 } from './bracketMath';
 
 describe('computeBracketStructure', () => {
@@ -125,5 +126,31 @@ describe('pairMatchupsAcrossRounds', () => {
     const to: { id: string; slotIndex: number }[] = [];
     const pairs = pairMatchupsAcrossRounds(from, to);
     expect(pairs.size).toBe(0);
+  });
+});
+
+describe('pairWithByes', () => {
+  it('pairs evenly when count is even', () => {
+    const result = pairWithByes(['a', 'b', 'c', 'd']);
+    expect(result.pairs).toEqual([['a', 'b'], ['c', 'd']]);
+    expect(result.byeId).toBeNull();
+  });
+
+  it('gives the last entry a bye when count is odd', () => {
+    const result = pairWithByes(['a', 'b', 'c']);
+    expect(result.pairs).toEqual([['a', 'b']]);
+    expect(result.byeId).toBe('c');
+  });
+
+  it('handles a single entry as a pure bye', () => {
+    const result = pairWithByes(['a']);
+    expect(result.pairs).toEqual([]);
+    expect(result.byeId).toBe('a');
+  });
+
+  it('returns no pairs and no bye for an empty list', () => {
+    const result = pairWithByes([]);
+    expect(result.pairs).toEqual([]);
+    expect(result.byeId).toBeNull();
   });
 });

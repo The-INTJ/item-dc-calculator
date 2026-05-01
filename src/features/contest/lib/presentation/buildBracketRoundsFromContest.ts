@@ -24,6 +24,8 @@ export interface BracketMatchup {
   matchupId?: string;
   /** Matchup lifecycle phase. */
   phase?: MatchupPhase;
+  /** True when this is a single-entry bye (auto-advance). */
+  isBye?: boolean;
 }
 
 export interface BracketRound {
@@ -67,6 +69,7 @@ export function buildBracketRoundsFromContest(
         winnerId: matchup.winnerEntryId ?? null,
         matchupId: matchup.id,
         phase: matchup.phase,
+        isBye: matchup.entryIds.length === 1,
       };
     });
 

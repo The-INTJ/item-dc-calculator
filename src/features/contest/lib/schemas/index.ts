@@ -206,11 +206,16 @@ export const UpdateMatchupBodySchema = MatchupSchema.partial()
 export const SeedRoundBodySchema = z
   .object({
     entryIdPairs: z
-      .array(z.tuple([z.string(), z.string()]))
+      .array(
+        z.union([
+          z.tuple([z.string(), z.string()]),
+          z.tuple([z.string()]),
+        ]),
+      )
       .optional()
       .openapi({
         description:
-          'Explicit entry pairs for round-1 seeding. Omit for rounds > 1 (propagated from previous round winners).',
+          'Explicit entry pairs for round-1 seeding. A 2-tuple is a regular matchup; a 1-tuple is a bye (auto-advance). Omit for rounds > 1 (propagated from previous round winners).',
       }),
   })
   .openapi('SeedRoundBody');

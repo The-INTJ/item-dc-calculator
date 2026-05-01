@@ -60,8 +60,14 @@ function BracketMatchupCard({
       data-matchup-key={key}
     >
       <ContestantRow contestant={matchup.contestantA} />
-      <ContestantRow contestant={matchup.contestantB} />
-      {matchup.winnerId ? <span className="contest-display__badge">Leader</span> : null}
+      {matchup.isBye ? (
+        <p className="contest-display__bye-label">Bye</p>
+      ) : (
+        <ContestantRow contestant={matchup.contestantB} />
+      )}
+      {matchup.winnerId && !matchup.isBye ? (
+        <span className="contest-display__badge">Leader</span>
+      ) : null}
     </article>
   );
 }

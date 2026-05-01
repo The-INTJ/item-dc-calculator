@@ -87,6 +87,23 @@ export function getBracketGridRowCount(totalRounds: number): number {
   return totalRounds > 0 ? 2 ** totalRounds : 0;
 }
 
+/**
+ * Pair entries for a round, leaving one bye if the count is odd.
+ * The last entry gets the bye (caller can shuffle/order the input first if random byes are desired).
+ */
+export function pairWithByes(entryIds: string[]): {
+  pairs: Array<[string, string]>;
+  byeId: string | null;
+} {
+  const pairs: Array<[string, string]> = [];
+  const evenCount = entryIds.length - (entryIds.length % 2);
+  for (let i = 0; i < evenCount; i += 2) {
+    pairs.push([entryIds[i], entryIds[i + 1]]);
+  }
+  const byeId = entryIds.length % 2 === 1 ? entryIds[entryIds.length - 1] : null;
+  return { pairs, byeId };
+}
+
 export interface MatchupPairingInput {
   id: string;
   slotIndex: number;

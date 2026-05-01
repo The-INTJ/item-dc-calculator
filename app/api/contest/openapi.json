@@ -614,17 +614,29 @@
           "entryIdPairs": {
             "type": "array",
             "items": {
-              "type": "array",
-              "prefixItems": [
+              "anyOf": [
                 {
-                  "type": "string"
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
                 },
                 {
-                  "type": "string"
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "string"
+                    }
+                  ]
                 }
               ]
             },
-            "description": "Explicit entry pairs for round-1 seeding. Omit for rounds > 1 (propagated from previous round winners)."
+            "description": "Explicit entry pairs for round-1 seeding. A 2-tuple is a regular matchup; a 1-tuple is a bye (auto-advance). Omit for rounds > 1 (propagated from previous round winners)."
           }
         }
       },

@@ -50,6 +50,14 @@ function MatchupRow({ contestant, winnerId }: { contestant: BracketContestant; w
 }
 
 function HeroMatchup({ matchup }: { matchup: BracketMatchup }) {
+  if (matchup.isBye) {
+    return (
+      <li className="contest-rounds__matchup contest-rounds__matchup--bye">
+        <MatchupRow contestant={matchup.contestantA} winnerId={matchup.winnerId} />
+        <p className="contest-rounds__bye-label">Bye — auto-advances</p>
+      </li>
+    );
+  }
   return (
     <li className="contest-rounds__matchup">
       <MatchupRow contestant={matchup.contestantA} winnerId={matchup.winnerId} />
@@ -71,6 +79,11 @@ export function ContestRoundNavigator({
     if (!viewedRoundId) return rounds[0] ?? null;
     return rounds.find((round) => round.id === viewedRoundId) ?? rounds[0] ?? null;
   }, [rounds, viewedRoundId]);
+
+  const hasLiveMatchup = useMemo(
+    () => Boolean(viewedRound?.matchups.some((m) => m.phase === 'shake')),
+    [viewedRound],
+  );
 
   // Scroll the viewed tab into view when it changes (helpful on mobile).
   useEffect(() => {
@@ -165,7 +178,7 @@ export function ContestRoundNavigator({
             </ol>
           )}
 
-          {viewedRound.status === 'active' && (
+          {hasLiveMatchup && (
             <button
               type="button"
               className="contest-rounds__vote-cta"
@@ -173,6 +186,12 @@ export function ContestRoundNavigator({
             >
               Vote this round
             </button>
+          )}
+
+          {viewedRound.status === 'active' && !hasLiveMatchup && (
+            <p className="contest-rounds__hint">
+              Next matchup is being set up — voting opens shortly.
+            </p>
           )}
 
           {viewedRound.status === 'upcoming' && activeRoundId && activeRoundId !== viewedRound.id && (

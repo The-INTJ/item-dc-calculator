@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/contest/contexts/auth/AuthContext';
+import { setRecentContest } from '@/contest/lib/hooks/useRecentContest';
 import { ContestRoundNavigator } from '@/contest/components/ui/ContestRoundNavigator';
 import { ContestantCta } from '@/contest/components/ui/ContestantCta';
 import { VoteModal } from '@/contest/components/ui/VoteModal';
@@ -33,16 +34,17 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
   );
   const fallbackRoundId = activeRoundId ?? rounds[0]?.id ?? null;
 
-  const [viewedRoundId, setViewedRoundId] = useState<string | null>(fallbackRoundId);
+  const [userPickedRoundId, setUserPickedRoundId] = useState<string | null>(null);
   const [selectedMatchupId, setSelectedMatchupId] = useState<string | null>(null);
 
+  const viewedRoundId =
+    userPickedRoundId && rounds.some((r) => r.id === userPickedRoundId)
+      ? userPickedRoundId
+      : fallbackRoundId;
+
   useEffect(() => {
-    if (!fallbackRoundId) return;
-    setViewedRoundId((prev) => {
-      if (prev && rounds.some((round) => round.id === prev)) return prev;
-      return fallbackRoundId;
-    });
-  }, [fallbackRoundId, rounds]);
+    setRecentContest({ id: contest.id, name: contest.name });
+  }, [contest.id, contest.name]);
 
   const userId = session?.firebaseUid ?? session?.sessionId ?? null;
   const contestRole = getUserContestRole(userId, contest);
@@ -88,7 +90,7 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
         rounds={rounds}
         activeRoundId={activeRoundId}
         viewedRoundId={viewedRoundId}
-        onViewRound={setViewedRoundId}
+        onViewRound={setUserPickedRoundId}
         onVoteRound={handleVoteRound}
       />
 
