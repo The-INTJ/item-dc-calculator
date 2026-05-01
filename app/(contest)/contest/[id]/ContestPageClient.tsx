@@ -66,6 +66,10 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
     if (firstShake) setSelectedMatchupId(firstShake.id);
   };
 
+  const handleVoteMatchup = (matchupId: string) => {
+    setSelectedMatchupId(matchupId);
+  };
+
   return (
     <div className="contest-detail-page">
       <section className="contest-detail-header">
@@ -92,6 +96,7 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
         viewedRoundId={viewedRoundId}
         onViewRound={setUserPickedRoundId}
         onVoteRound={handleVoteRound}
+        onVoteMatchup={handleVoteMatchup}
       />
 
       {showContestantButton && userId && (

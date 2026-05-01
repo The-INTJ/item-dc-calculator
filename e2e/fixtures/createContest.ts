@@ -61,18 +61,36 @@ export interface MatchupInput {
   submittedBy?: [string, string];
 }
 
+export interface ContestRoundInput {
+  id: string;
+  name: string;
+  number?: number;
+}
+
+export interface ContestConfigInput {
+  topic: string;
+  entryLabel?: string;
+  entryLabelPlural?: string;
+  contestantLabel?: string;
+  contestantLabelPlural?: string;
+  attributes: Array<{ id: string; label: string; min?: number; max?: number; description?: string }>;
+}
+
 export interface CreateContestOptions {
   name?: string;
   slug?: string;
   roundId?: string;
   roundName?: string;
+  rounds?: ContestRoundInput[];
   matchups?: MatchupInput[];
+  config?: ContestConfigInput;
   attributes?: Array<{ id: string; label: string; min?: number; max?: number }>;
 }
 
 export interface CreatedContest {
   contestId: string;
   roundId: string;
+  roundIds: string[];
   entries: Array<{ id: string; name: string }>;
   matchups: Array<{ id: string; entryIds: [string, string]; phase: Phase }>;
 }
@@ -93,12 +111,20 @@ export async function createContest(
   const name = opts.name ?? `E2E Contest ${suffix}`;
   const roundId = opts.roundId ?? 'round-1';
   const roundName = opts.roundName ?? 'Round 1';
+  const rounds = opts.rounds ?? [{ id: roundId, name: roundName, number: 1 }];
+  const firstRoundId = rounds[0]?.id ?? roundId;
   const matchupInputs: MatchupInput[] = opts.matchups ?? [
     { entryNames: ['Paloma', 'Margarita'], phase: 'shake' },
   ];
   const attributes = opts.attributes ?? [
     { id: 'taste', label: 'Taste', min: 1, max: 10 },
   ];
+  const config = opts.config ?? {
+    topic: 'Mixology',
+    entryLabel: 'Drink',
+    entryLabelPlural: 'Drinks',
+    attributes,
+  };
 
   const idToken = await getAdminIdToken();
   const api = await request.newContext({
@@ -112,12 +138,7 @@ export async function createContest(
       data: {
         name,
         slug,
-        config: {
-          topic: 'Mixology',
-          entryLabel: 'Drink',
-          entryLabelPlural: 'Drinks',
-          attributes,
-        },
+        config,
       },
     });
     if (!contestRes.ok()) {
@@ -135,13 +156,23 @@ export async function createContest(
     // Step 2 — add the round (no state; rounds are lightweight now).
     const patchRes = await api.patch(`/api/contest/contests/${contestId}`, {
       data: {
-        rounds: [{ id: roundId, name: roundName, number: 1 }],
+        rounds,
       },
     });
     if (!patchRes.ok()) {
       throw new Error(
         `createContest PATCH /contests/${contestId}: ${patchRes.status()} ${await patchRes.text()}`,
       );
+    }
+
+    if (matchupInputs.length === 0) {
+      return {
+        contestId,
+        roundId: firstRoundId,
+        roundIds: rounds.map((round) => round.id),
+        entries: [],
+        matchups: [],
+      };
     }
 
     // Step 3 — create entries (flat; no round assignment at the entry level).
@@ -184,12 +215,12 @@ export async function createContest(
     });
 
     const seedRes = await api.post(
-      `/api/contest/contests/${contestId}/rounds/${roundId}/seed`,
+      `/api/contest/contests/${contestId}/rounds/${firstRoundId}/seed`,
       { data: { entryIdPairs } },
     );
     if (!seedRes.ok()) {
       throw new Error(
-        `createContest POST /rounds/${roundId}/seed: ${seedRes.status()} ${await seedRes.text()}`,
+        `createContest POST /rounds/${firstRoundId}/seed: ${seedRes.status()} ${await seedRes.text()}`,
       );
     }
     const seedEnvelope = await seedRes.json();
@@ -232,7 +263,8 @@ export async function createContest(
 
     return {
       contestId,
-      roundId,
+      roundId: firstRoundId,
+      roundIds: rounds.map((round) => round.id),
       entries: Array.from(entriesByName.values()),
       matchups: resolvedMatchups,
     };

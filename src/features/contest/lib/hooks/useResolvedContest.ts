@@ -6,6 +6,8 @@ import type { Matchup } from '../../contexts/contest/contestTypes';
 
 export type ResolvedContestStatus = 'loading' | 'ready' | 'missing';
 
+const EMPTY_MATCHUPS: Matchup[] = [];
+
 export function useResolvedContest(contestId: string | null) {
   const { contests, matchupsByContestId, loading } = useContestStore();
 
@@ -16,7 +18,7 @@ export function useResolvedContest(contestId: string | null) {
   useContestSubscription(contest?.id ?? null);
   useMatchupsSubscription(contest?.id ?? null);
 
-  const matchups: Matchup[] = contest ? matchupsByContestId[contest.id] ?? [] : [];
+  const matchups: Matchup[] = contest ? matchupsByContestId[contest.id] ?? EMPTY_MATCHUPS : EMPTY_MATCHUPS;
 
   const status: ResolvedContestStatus = loading
     ? 'loading'

@@ -208,6 +208,19 @@
   text-align: right;
 }
 
+.contest-rounds__matchup-vote {
+  background: var(--action-secondary-bg, var(--bg-surface));
+  border: 1px solid var(--border-default);
+  color: var(--text-strong);
+  justify-self: start;
+  min-height: 2.5rem;
+  padding: 0 0.875rem;
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-focus);
+  }
+}
+
 .contest-rounds__empty,
 .contest-rounds__hint {
   color: var(--text-muted);

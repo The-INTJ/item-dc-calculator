@@ -4,6 +4,7 @@
  * Creates:
  *  - admin@test.com / admin123  (role: admin)
  *  - voter@test.com / voter123  (role: voter)
+ *  - voter1@test.com ... voter5@test.com / voter123  (role: voter)
  *
  * Usage: node scripts/seed-emulator.mjs
  * Requires: Firebase emulators running on default ports
@@ -59,6 +60,18 @@ const TEST_USERS = [
     displayName: 'Test Voter 3',
     role: 'voter',
   },
+  {
+    email: 'voter4@test.com',
+    password: 'voter123',
+    displayName: 'Test Voter 4',
+    role: 'voter',
+  },
+  {
+    email: 'voter5@test.com',
+    password: 'voter123',
+    displayName: 'Test Voter 5',
+    role: 'voter',
+  },
 ];
 
 for (const user of TEST_USERS) {
@@ -104,5 +117,7 @@ console.log('  Voter:  voter@test.com  / voter123');
 console.log('  Voter1: voter1@test.com / voter123');
 console.log('  Voter2: voter2@test.com / voter123');
 console.log('  Voter3: voter3@test.com / voter123');
+console.log('  Voter4: voter4@test.com / voter123');
+console.log('  Voter5: voter5@test.com / voter123');
 
 await deleteApp(app);

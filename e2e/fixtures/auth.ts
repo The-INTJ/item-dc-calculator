@@ -20,12 +20,18 @@ const storageStateFor = (role: string) => path.join(AUTH_DIR, `${role}.json`);
 interface RoleFixtures {
   adminContext: BrowserContext;
   adminPage: Page;
+  voterContext: BrowserContext;
+  voterPage: Page;
   voter1Context: BrowserContext;
   voter1Page: Page;
   voter2Context: BrowserContext;
   voter2Page: Page;
   voter3Context: BrowserContext;
   voter3Page: Page;
+  voter4Context: BrowserContext;
+  voter4Page: Page;
+  voter5Context: BrowserContext;
+  voter5Page: Page;
 }
 
 export const test = base.extend<RoleFixtures>({
@@ -36,6 +42,15 @@ export const test = base.extend<RoleFixtures>({
   },
   adminPage: async ({ adminContext }, use) => {
     const page = await adminContext.newPage();
+    await use(page);
+  },
+  voterContext: async ({ browser }, use) => {
+    const ctx = await browser.newContext({ storageState: storageStateFor('voter') });
+    await use(ctx);
+    await ctx.close();
+  },
+  voterPage: async ({ voterContext }, use) => {
+    const page = await voterContext.newPage();
     await use(page);
   },
   voter1Context: async ({ browser }, use) => {
@@ -63,6 +78,24 @@ export const test = base.extend<RoleFixtures>({
   },
   voter3Page: async ({ voter3Context }, use) => {
     const page = await voter3Context.newPage();
+    await use(page);
+  },
+  voter4Context: async ({ browser }, use) => {
+    const ctx = await browser.newContext({ storageState: storageStateFor('voter4') });
+    await use(ctx);
+    await ctx.close();
+  },
+  voter4Page: async ({ voter4Context }, use) => {
+    const page = await voter4Context.newPage();
+    await use(page);
+  },
+  voter5Context: async ({ browser }, use) => {
+    const ctx = await browser.newContext({ storageState: storageStateFor('voter5') });
+    await use(ctx);
+    await ctx.close();
+  },
+  voter5Page: async ({ voter5Context }, use) => {
+    const page = await voter5Context.newPage();
     await use(page);
   },
 });

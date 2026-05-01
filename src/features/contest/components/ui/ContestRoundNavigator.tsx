@@ -14,6 +14,7 @@ interface ContestRoundNavigatorProps {
   viewedRoundId: string | null;
   onViewRound: (roundId: string) => void;
   onVoteRound: (roundId: string) => void;
+  onVoteMatchup: (matchupId: string) => void;
 }
 
 function statusLabel(status: BracketRoundStatus): string {
@@ -49,19 +50,49 @@ function MatchupRow({ contestant, winnerId }: { contestant: BracketContestant; w
   );
 }
 
-function HeroMatchup({ matchup }: { matchup: BracketMatchup }) {
+function matchupLabel(matchup: BracketMatchup): string {
+  if (matchup.isBye) return matchup.contestantA.name;
+  return `${matchup.contestantA.name} vs ${matchup.contestantB.name}`;
+}
+
+function HeroMatchup({
+  matchup,
+  index,
+  onVoteMatchup,
+}: {
+  matchup: BracketMatchup;
+  index: number;
+  onVoteMatchup: (matchupId: string) => void;
+}) {
+  const matchupNumber = index + 1;
+  const label = matchupLabel(matchup);
+  const canVote = matchup.phase === 'shake' && !matchup.isBye && matchup.matchupId;
+
   if (matchup.isBye) {
     return (
-      <li className="contest-rounds__matchup contest-rounds__matchup--bye">
+      <li
+        className="contest-rounds__matchup contest-rounds__matchup--bye"
+        aria-label={`Matchup ${matchupNumber}: ${label}`}
+      >
         <MatchupRow contestant={matchup.contestantA} winnerId={matchup.winnerId} />
         <p className="contest-rounds__bye-label">Bye — auto-advances</p>
       </li>
     );
   }
   return (
-    <li className="contest-rounds__matchup">
+    <li className="contest-rounds__matchup" aria-label={`Matchup ${matchupNumber}: ${label}`}>
       <MatchupRow contestant={matchup.contestantA} winnerId={matchup.winnerId} />
       <MatchupRow contestant={matchup.contestantB} winnerId={matchup.winnerId} />
+      {canVote && (
+        <button
+          type="button"
+          className="contest-rounds__matchup-vote"
+          onClick={() => onVoteMatchup(matchup.matchupId!)}
+          aria-label={`Vote matchup ${matchupNumber}: ${label}`}
+        >
+          Vote matchup {matchupNumber}
+        </button>
+      )}
     </li>
   );
 }
@@ -72,6 +103,7 @@ export function ContestRoundNavigator({
   viewedRoundId,
   onViewRound,
   onVoteRound,
+  onVoteMatchup,
 }: ContestRoundNavigatorProps) {
   const tabListRef = useRef<HTMLDivElement>(null);
 
@@ -172,8 +204,13 @@ export function ContestRoundNavigator({
             <p className="contest-rounds__empty">No matchups have been set for this round yet.</p>
           ) : (
             <ol className="contest-rounds__matchups">
-              {viewedRound.matchups.map((matchup) => (
-                <HeroMatchup key={matchup.id} matchup={matchup} />
+              {viewedRound.matchups.map((matchup, index) => (
+                <HeroMatchup
+                  key={matchup.id}
+                  matchup={matchup}
+                  index={index}
+                  onVoteMatchup={onVoteMatchup}
+                />
               ))}
             </ol>
           )}

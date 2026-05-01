@@ -24,9 +24,12 @@ const BASE_URL = 'http://127.0.0.1:3000';
 
 const USERS = [
   { label: 'admin', email: 'admin@test.com', password: 'admin123' },
+  { label: 'voter', email: 'voter@test.com', password: 'voter123' },
   { label: 'voter1', email: 'voter1@test.com', password: 'voter123' },
   { label: 'voter2', email: 'voter2@test.com', password: 'voter123' },
   { label: 'voter3', email: 'voter3@test.com', password: 'voter123' },
+  { label: 'voter4', email: 'voter4@test.com', password: 'voter123' },
+  { label: 'voter5', email: 'voter5@test.com', password: 'voter123' },
 ];
 
 interface SignInResponse {

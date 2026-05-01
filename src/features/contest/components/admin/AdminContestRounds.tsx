@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type {
   Contest,
   ContestConfig,
@@ -186,11 +186,9 @@ export function AdminContestRounds({
                       maxScore={maxScore}
                       entries={contest.entries}
                       entriesById={entriesById}
-                      onPhaseChange={(phase) =>
-                        void updateMatchup(contest.id, matchup.id, { phase })
-                      }
+                      onMatchupUpdate={(updates) => updateMatchup(contest.id, matchup.id, updates)}
                       onEntriesChange={(entryIds) =>
-                        void updateMatchup(contest.id, matchup.id, { entryIds })
+                        updateMatchup(contest.id, matchup.id, { entryIds })
                       }
                       onDelete={() => {
                         if (window.confirm('Remove this matchup?')) {
@@ -240,12 +238,33 @@ export function AdminContestRounds({
   );
 }
 
+function getLeadingEntryId(entries: Array<Contest['entries'][number] | null>): string | null {
+  let leaderId: string | null = null;
+  let leaderScore = Number.NEGATIVE_INFINITY;
+  let tied = false;
+
+  for (const entry of entries) {
+    if (!entry) continue;
+    const score = getEntryScore(entry);
+    if (score == null) continue;
+    if (score > leaderScore) {
+      leaderId = entry.id;
+      leaderScore = score;
+      tied = false;
+    } else if (score === leaderScore) {
+      tied = true;
+    }
+  }
+
+  return tied ? null : leaderId;
+}
+
 function MatchupRow({
   matchup,
   maxScore,
   entries: allEntries,
   entriesById,
-  onPhaseChange,
+  onMatchupUpdate,
   onEntriesChange,
   onDelete,
 }: {
@@ -253,7 +272,7 @@ function MatchupRow({
   maxScore: number;
   entries: Contest['entries'];
   entriesById: Map<string, Contest['entries'][number]>;
-  onPhaseChange: (phase: MatchupPhase) => void;
+  onMatchupUpdate: (updates: Partial<Matchup>) => void | Promise<unknown>;
   onEntriesChange: (entryIds: string[]) => void | Promise<unknown>;
   onDelete: () => void;
 }) {
@@ -261,13 +280,46 @@ function MatchupRow({
   const [isEditing, setIsEditing] = useState(false);
   const [draftA, setDraftA] = useState(matchup.entryIds[0] ?? '');
   const [draftB, setDraftB] = useState(matchup.entryIds[1] ?? '');
+  const [draftWinnerId, setDraftWinnerId] = useState(matchup.winnerEntryId ?? '');
   const [editError, setEditError] = useState<string | null>(null);
+  const [phaseError, setPhaseError] = useState<string | null>(null);
   const entries = matchup.entryIds.map((id) => entriesById.get(id) ?? null);
+  const leadingEntryId = getLeadingEntryId(entries);
+  const matchupNumber = matchup.slotIndex + 1;
+
+  useEffect(() => {
+    setDraftA(matchup.entryIds[0] ?? '');
+    setDraftB(matchup.entryIds[1] ?? '');
+  }, [matchup.id, matchup.entryIds]);
+
+  useEffect(() => {
+    setDraftWinnerId(matchup.winnerEntryId ?? leadingEntryId ?? '');
+  }, [matchup.id, matchup.winnerEntryId, leadingEntryId]);
 
   const handlePhase = async (phase: MatchupPhase) => {
+    const winnerEntryId = phase === 'scored' ? draftWinnerId || leadingEntryId : null;
+    if (phase === 'scored' && !winnerEntryId) {
+      setPhaseError('Choose a winner before closing this matchup.');
+      return;
+    }
+
+    setIsBusy(true);
+    setPhaseError(null);
+    try {
+      await onMatchupUpdate({ phase, winnerEntryId });
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const handleWinnerChange = async (winnerEntryId: string) => {
+    setDraftWinnerId(winnerEntryId);
+    setPhaseError(null);
+    if (matchup.phase !== 'scored') return;
+
     setIsBusy(true);
     try {
-      await onPhaseChange(phase);
+      await onMatchupUpdate({ winnerEntryId });
     } finally {
       setIsBusy(false);
     }
@@ -309,10 +361,10 @@ function MatchupRow({
   };
 
   return (
-    <div className="admin-round-entry">
+    <div className="admin-round-entry" role="group" aria-label={`Matchup ${matchupNumber}`}>
       <div className="admin-round-entry__contestant">
         <strong>
-          Matchup {matchup.slotIndex + 1}
+          Matchup {matchupNumber}
           {isBye && <span className="admin-round-bye-badge"> Bye</span>}
         </strong>
         {isEditing ? (
@@ -380,23 +432,50 @@ function MatchupRow({
         )}
       </div>
       {!isBye && !isEditing && (
-        <div className="admin-phase-controls__grid admin-phase-controls__grid--compact">
-          {MATCHUP_PHASE_VALUES.map((phaseOption) => {
-            const isCurrent = phaseOption === matchup.phase;
-            return (
-              <button
-                key={phaseOption}
-                type="button"
-                className={`admin-phase-button admin-phase-button--compact ${isCurrent ? 'admin-phase-button--active' : ''}`}
-                onClick={() => void handlePhase(phaseOption)}
-                disabled={isBusy}
-                aria-pressed={isCurrent}
-              >
-                <span className="admin-phase-button__label">{matchupPhaseLabels[phaseOption]}</span>
-              </button>
-            );
-          })}
-        </div>
+        <>
+          <label className="admin-round-entry__winner">
+            <span>Winner</span>
+            <select
+              aria-label={`Winner for matchup ${matchupNumber}`}
+              value={draftWinnerId}
+              onChange={(e) => void handleWinnerChange(e.target.value)}
+              disabled={isBusy}
+            >
+              <option value="">Select winner</option>
+              {entries.map((entry) => (
+                entry ? (
+                  <option key={entry.id} value={entry.id}>
+                    {entry.name || entry.submittedBy || entry.id}
+                  </option>
+                ) : null
+              ))}
+            </select>
+          </label>
+          <div className="admin-phase-controls__grid admin-phase-controls__grid--compact">
+            {MATCHUP_PHASE_VALUES.map((phaseOption) => {
+              const isCurrent = phaseOption === matchup.phase;
+              const disabled = isBusy || (phaseOption === 'scored' && !(draftWinnerId || leadingEntryId));
+              return (
+                <button
+                  key={phaseOption}
+                  type="button"
+                  className={`admin-phase-button admin-phase-button--compact ${isCurrent ? 'admin-phase-button--active' : ''}`}
+                  onClick={() => void handlePhase(phaseOption)}
+                  disabled={disabled}
+                  aria-label={`Mark matchup ${matchupNumber} as ${matchupPhaseLabels[phaseOption]}`}
+                  aria-pressed={isCurrent}
+                >
+                  <span className="admin-phase-button__label">{matchupPhaseLabels[phaseOption]}</span>
+                </button>
+              );
+            })}
+          </div>
+          {phaseError && (
+            <p className="admin-round-error" role="alert">
+              {phaseError}
+            </p>
+          )}
+        </>
       )}
       {!isEditing && (
         <div className="admin-round-entry__actions">

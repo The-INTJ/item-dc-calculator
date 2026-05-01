@@ -44,11 +44,9 @@ export function UserMenu({ onLogin, onRegister }: UserMenuProps) {
         </div>
       )}
 
-      {isAuthenticated && (
-        <button type="button" onClick={logout} className="user-menu__logout">
-          Sign Out
-        </button>
-      )}
+      <button type="button" onClick={logout} className="user-menu__logout">
+        Sign Out
+      </button>
     </div>
   );
 }

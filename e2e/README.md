@@ -55,8 +55,8 @@ path-critical methods directly.
 
 ## Auth
 
-`e2e/global-setup.ts` signs in each seeded user (admin, voter1, voter2,
-voter3) against the Firebase Auth emulator's REST endpoint, writes the
+`e2e/global-setup.ts` signs in each seeded user (admin, voter,
+voter1 through voter5) against the Firebase Auth emulator's REST endpoint, writes the
 resulting auth record into IndexedDB via `page.addInitScript`, and saves the
 context `storageState({ indexedDB: true })` to `e2e/.auth/<role>.json`. Specs
 then load that state into `browser.newContext` via the `auth.ts` fixture.
@@ -64,14 +64,17 @@ then load that state into `browser.newContext` via the `auth.ts` fixture.
 Seeded accounts are defined in `scripts/seed-emulator.mjs`:
 
 - `admin@test.com` / `admin123` — role `admin`
+- `voter@test.com` / `voter123` — role `voter`
 - `voter1@test.com` / `voter123` — role `voter`
 - `voter2@test.com` / `voter123` — role `voter`
 - `voter3@test.com` / `voter123` — role `voter`
+- `voter4@test.com` / `voter123` — role `voter`
+- `voter5@test.com` / `voter123` — role `voter`
 
 ## Fixtures
 
 - `fixtures/auth.ts` — extends Playwright's `test` with `adminPage`,
-  `voter1Page`, `voter2Page`, `voter3Page` — each a fresh `Page` in its own
+  `voterPage`, and `voter1Page` through `voter5Page` — each a fresh `Page` in its own
   pre-authenticated `BrowserContext`.
 - `fixtures/createContest.ts` — admin-authenticated contest + entries factory.
   Call from `beforeEach` or top-of-test setup.

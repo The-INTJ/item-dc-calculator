@@ -47,6 +47,21 @@ describe('useResolvedContest', () => {
     expect(result.current.matchups).toEqual([]);
   });
 
+  it('keeps the empty matchup snapshot stable between renders', () => {
+    useContestStoreMock.mockReturnValue({
+      contests: [contest],
+      matchupsByContestId: {},
+      loading: false,
+    });
+
+    const { result, rerender } = renderHook(() => useResolvedContest('contest-1'));
+    const firstMatchups = result.current.matchups;
+
+    rerender();
+
+    expect(result.current.matchups).toBe(firstMatchups);
+  });
+
   it('returns loading while the contest store is still fetching', () => {
     useContestStoreMock.mockReturnValue({
       contests: [],
