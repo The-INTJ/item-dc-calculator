@@ -103,7 +103,7 @@ export function VoteModal({ open, onClose, contest, matchup }: VoteModalProps) {
                 className={`vote-sheet__entry-chip${index === activeEntryIndex ? ' vote-sheet__entry-chip--active' : ''}`}
                 onClick={() => setActiveEntryIndex(index)}
               >
-                {index + 1}. {entry.name ?? 'Unnamed entry'}
+                {index + 1}. {entry.name ?? entry.creatorName}
               </button>
             ))}
           </nav>
@@ -111,7 +111,7 @@ export function VoteModal({ open, onClose, contest, matchup }: VoteModalProps) {
           <section className="vote-sheet__entry-card">
             <span className="vote-sheet__entry-art" aria-hidden="true" />
             <span className="vote-sheet__entry-copy">
-              <strong>{activeEntry.name ?? 'Unnamed entry'}</strong>
+              <strong>{activeEntry.displayName}</strong>
               <span>
                 by {activeEntry.creatorName}
                 {isSelfEntry && <em className="vote-sheet__self-badge"> · Your entry</em>}

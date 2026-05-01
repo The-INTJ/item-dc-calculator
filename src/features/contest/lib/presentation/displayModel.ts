@@ -13,6 +13,7 @@ import {
   getEntryScore,
   getRoundById,
 } from '../domain/contestGetters';
+import { getEntryDisplayName } from '../domain/entryLabels';
 import {
   getActiveRoundIdFromMatchups,
   getComputedRoundStatus,
@@ -87,13 +88,13 @@ function buildDisplayContestant(
 ): DisplayContestant {
   const score = entry ? getEntryScore(entry) : null;
   const id = entry?.id ?? fallbackId;
-  const contestantName = entry ? contestantsById.get(entry.contestantId)?.displayName : null;
+  const contestant = entry ? contestantsById.get(entry.contestantId) ?? null : null;
   const drinkName = entry?.name?.trim();
   const displayName = drinkName
-    ? contestantName
-      ? `${drinkName} — ${contestantName}`
+    ? contestant?.displayName
+      ? `${drinkName} — ${contestant.displayName}`
       : drinkName
-    : contestantName ?? 'TBD';
+    : getEntryDisplayName(entry, contestant) ?? 'TBD';
   const scoreSignature = entry
     ? `${entry.id}:${entry.sumScore ?? 0}:${entry.voteCount ?? 0}`
     : `${fallbackId}:empty`;

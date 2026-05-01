@@ -69,6 +69,16 @@
   font-size: 0.75rem;
 }
 
+.admin-sidebar__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-sidebar--collapsed .admin-sidebar__body {
+  display: none;
+}
+
 .admin-contest-list {
   display: flex;
   flex-direction: column;
@@ -188,8 +198,7 @@
     display: none;
   }
 
-  .admin-sidebar--collapsed .admin-contest-list,
-  .admin-sidebar--collapsed .admin-add-contest {
+  .admin-sidebar--collapsed .admin-sidebar__body {
     display: flex;
   }
 }

@@ -25,10 +25,11 @@ import {
   writeBatch,
   type Firestore,
 } from 'firebase/firestore';
-import type { Contest, ContestConfigItem, Entry, Matchup, ScoreBreakdown, ScoreEntry, Voter } from '../../contexts/contest/contestTypes';
+import type { Contest, ContestConfigItem, Entry, Matchup, ScoreBreakdown, ScoreEntry } from '../../contexts/contest/contestTypes';
 import type { MatchupCreateInput, ScoreUpdatePayload, UserProfile } from '../backend/types';
 import { generateId as makeId } from '../backend/providerUtils';
 import { generateId } from '../backend/providerUtils';
+import { normalizeContest } from '../domain/normalizeContest';
 import { computeVoteTotal, docToScoreEntry, makeVoteDocId } from './scoreHelpers';
 
 const CONTESTS_COLLECTION = 'contests';
@@ -36,19 +37,6 @@ const CONFIGS_COLLECTION = 'configs';
 const USERS_COLLECTION = 'users';
 const VOTES_SUBCOLLECTION = 'votes';
 const MATCHUPS_SUBCOLLECTION = 'matchups';
-
-function normalizeContestDoc(id: string, data: Record<string, unknown>): Contest {
-  // Strip Firestore Timestamps — they're class instances that break RSC
-  // serialization when contests are passed from server components to
-  // client components, and the Contest type doesn't expose them anyway.
-  const { createdAt: _c, updatedAt: _u, ...rest } = data;
-  return {
-    ...rest,
-    id,
-    contestants: (rest.contestants ?? []) as Contest['contestants'],
-    voters: (rest.voters ?? rest.judges ?? []) as Voter[],
-  } as Contest;
-}
 
 function normalizeMatchupDoc(contestId: string, id: string, data: Record<string, unknown>): Matchup {
   const { createdAt: _c, updatedAt: _u, ...rest } = data;
@@ -155,7 +143,7 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
       const docSnap = await getDoc(doc(db, CONTESTS_COLLECTION, contestId));
       if (!docSnap.exists()) return null;
 
-      return normalizeContestDoc(docSnap.id, docSnap.data());
+      return normalizeContest(docSnap.id, docSnap.data());
     },
 
     async getContestBySlug(slug): Promise<Contest | null> {
@@ -167,7 +155,7 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
       if (snapshot.empty) return null;
 
       const docSnap = snapshot.docs[0];
-      return normalizeContestDoc(docSnap.id, docSnap.data());
+      return normalizeContest(docSnap.id, docSnap.data());
     },
 
     async getDefaultContest(): Promise<Contest | null> {
@@ -179,7 +167,7 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
       if (snapshot.empty) return null;
 
       const docSnap = snapshot.docs[0];
-      return normalizeContestDoc(docSnap.id, docSnap.data());
+      return normalizeContest(docSnap.id, docSnap.data());
     },
 
     async listContests(): Promise<Contest[]> {
@@ -187,7 +175,7 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
       if (!db) return [];
 
       const snapshot = await getDocs(collection(db, CONTESTS_COLLECTION));
-      return snapshot.docs.map((docSnap) => normalizeContestDoc(docSnap.id, docSnap.data()));
+      return snapshot.docs.map((docSnap) => normalizeContest(docSnap.id, docSnap.data()));
     },
 
     async createContest(id, data): Promise<void> {

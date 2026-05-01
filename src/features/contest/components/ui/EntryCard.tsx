@@ -26,7 +26,7 @@ export function EntryCard({
   className,
   children,
 }: EntryCardProps) {
-  const name = entry.name ?? 'Unnamed Entry';
+  const name = entry.displayName;
 
   return (
     <div className={`contest-card contest-entry-card contest-entry-card--${variant} ${className ?? ''}`.trim()}>

@@ -9,9 +9,10 @@
  */
 
 import { FieldValue, type Firestore as AdminFirestore } from 'firebase-admin/firestore';
-import type { Contest, ContestConfigItem, Entry, Matchup, ScoreBreakdown, ScoreEntry, Voter } from '../../contexts/contest/contestTypes';
+import type { Contest, ContestConfigItem, Entry, Matchup, ScoreBreakdown, ScoreEntry } from '../../contexts/contest/contestTypes';
 import type { MatchupCreateInput, ScoreUpdatePayload, UserProfile } from '../backend/types';
 import { generateId } from '../backend/providerUtils';
+import { normalizeContest } from '../domain/normalizeContest';
 import type { FirestoreAdapter } from './firestoreAdapter';
 import { buildInlineEntriesFromContestantIds } from './firestoreAdapter';
 import { computeVoteTotal, docToScoreEntry, makeVoteDocId } from './scoreHelpers';
@@ -21,19 +22,6 @@ const CONFIGS_COLLECTION = 'configs';
 const USERS_COLLECTION = 'users';
 const VOTES_SUBCOLLECTION = 'votes';
 const MATCHUPS_SUBCOLLECTION = 'matchups';
-
-function normalizeContestDoc(id: string, data: Record<string, unknown>): Contest {
-  // Strip Firestore Timestamps — they're class instances that break RSC
-  // serialization when contests are passed from server components to
-  // client components, and the Contest type doesn't expose them anyway.
-  const { createdAt: _c, updatedAt: _u, ...rest } = data;
-  return {
-    ...rest,
-    id,
-    contestants: (rest.contestants ?? []) as Contest['contestants'],
-    voters: (rest.voters ?? rest.judges ?? []) as Voter[],
-  } as Contest;
-}
 
 function normalizeMatchupDoc(contestId: string, id: string, data: Record<string, unknown>): Matchup {
   const { createdAt: _c, updatedAt: _u, ...rest } = data;
@@ -66,7 +54,7 @@ export function createFirestoreAdminAdapter(getDb: () => AdminFirestore | null):
       const snap = await db.collection(CONTESTS_COLLECTION).doc(contestId).get();
       if (!snap.exists) return null;
 
-      return normalizeContestDoc(snap.id, snap.data() as Record<string, unknown>);
+      return normalizeContest(snap.id, snap.data() as Record<string, unknown>);
     },
 
     async getContestBySlug(slug): Promise<Contest | null> {
@@ -77,7 +65,7 @@ export function createFirestoreAdminAdapter(getDb: () => AdminFirestore | null):
       if (snapshot.empty) return null;
 
       const docSnap = snapshot.docs[0];
-      return normalizeContestDoc(docSnap.id, docSnap.data() as Record<string, unknown>);
+      return normalizeContest(docSnap.id, docSnap.data() as Record<string, unknown>);
     },
 
     async getDefaultContest(): Promise<Contest | null> {
@@ -88,7 +76,7 @@ export function createFirestoreAdminAdapter(getDb: () => AdminFirestore | null):
       if (snapshot.empty) return null;
 
       const docSnap = snapshot.docs[0];
-      return normalizeContestDoc(docSnap.id, docSnap.data() as Record<string, unknown>);
+      return normalizeContest(docSnap.id, docSnap.data() as Record<string, unknown>);
     },
 
     async listContests(): Promise<Contest[]> {
@@ -96,7 +84,7 @@ export function createFirestoreAdminAdapter(getDb: () => AdminFirestore | null):
       if (!db) return [];
 
       const snapshot = await db.collection(CONTESTS_COLLECTION).get();
-      return snapshot.docs.map((docSnap) => normalizeContestDoc(docSnap.id, docSnap.data() as Record<string, unknown>));
+      return snapshot.docs.map((docSnap) => normalizeContest(docSnap.id, docSnap.data() as Record<string, unknown>));
     },
 
     async createContest(id, data): Promise<void> {

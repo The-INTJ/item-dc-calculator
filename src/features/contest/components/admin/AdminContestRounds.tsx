@@ -20,6 +20,7 @@ import {
   matchupPhaseLabels,
 } from '../../lib/domain/matchupPhases';
 import { pairWithByes } from '../../lib/domain/bracketMath';
+import { getEntryDisplayName } from '../../lib/domain/entryLabels';
 
 interface AdminContestRoundsProps {
   contest: Contest;
@@ -41,7 +42,8 @@ function statusLabel(status: ReturnType<typeof getComputedRoundStatus>): string 
 function formatEntryDisplay(entry: Entry, contestant: Contestant | null): string {
   const drink = entry.name?.trim();
   const name = contestant?.displayName ?? 'TBD';
-  return drink ? `${name}: ${drink}` : `${name} (no entry yet)`;
+  if (drink) return `${name}: ${drink}`;
+  return `${name} — ${getEntryDisplayName(entry, contestant) ?? 'no entry yet'}`;
 }
 
 export function AdminContestRounds({
@@ -291,11 +293,6 @@ function MatchupRow({
   }, [matchup.id, matchup.winnerEntryId, leadingEntryId]);
 
   const handlePhase = async (phase: MatchupPhase) => {
-    if (phase === 'shake' && !allEntriesNamed) {
-      setPhaseError(`Waiting on ${missingEntryCount} contestant${missingEntryCount === 1 ? '' : 's'} to name their entry.`);
-      return;
-    }
-
     const winnerEntryId = phase === 'scored' ? draftWinnerId || leadingEntryId : null;
     if (phase === 'scored' && !winnerEntryId) {
       setPhaseError('Choose a winner before closing this matchup.');
@@ -341,7 +338,7 @@ function MatchupRow({
         </span>
         {!isBye && !allEntriesNamed && (
           <p className="admin-detail-meta" role="status">
-            Waiting on {missingEntryCount} contestant{missingEntryCount === 1 ? '' : 's'} to name their entry.
+            {missingEntryCount} contestant{missingEntryCount === 1 ? '' : 's'} still need to name their entry — voters will see a placeholder until they do.
           </p>
         )}
       </div>

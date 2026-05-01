@@ -1,8 +1,12 @@
 import type { Contestant, Entry } from '../../contexts/contest/contestTypes';
+import { getMissingEntryQuip } from '../domain/entryLabels';
 
 export interface EntrySummary {
   id: string;
+  /** The contestant's chosen entry name when set; otherwise null. */
   name: string | null;
+  /** Always populated — falls back to the teasing quip when name is missing. */
+  displayName: string;
   creatorName: string;
   contestantId: string;
   imageUrl?: string;
@@ -16,10 +20,13 @@ export interface VoteTotals {
 }
 
 export function buildEntrySummary(entry: Entry, contestant: Contestant | null): EntrySummary {
+  const trimmed = entry.name?.trim() || null;
+  const creatorName = contestant?.displayName ?? 'Unknown';
   return {
     id: entry.id,
-    name: entry.name || null,
-    creatorName: contestant?.displayName ?? 'Unknown',
+    name: trimmed,
+    displayName: trimmed ?? getMissingEntryQuip(contestant?.displayName ?? null),
+    creatorName,
     contestantId: entry.contestantId,
   };
 }

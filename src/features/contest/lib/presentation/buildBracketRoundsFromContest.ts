@@ -6,6 +6,7 @@ import type {
   RoundStatus,
 } from '../../contexts/contest/contestTypes';
 import { getContestRounds, getEntryScore } from '../domain/contestGetters';
+import { getEntryDisplayName } from '../domain/entryLabels';
 import { getComputedRoundStatus, getMatchupsForRound } from '../domain/matchupGetters';
 
 export type BracketRoundStatus = RoundStatus;
@@ -49,13 +50,13 @@ export function buildBracketRoundsFromContest(
 
   function buildContestant(entry: Entry | undefined, fallbackId: string): BracketContestant {
     if (!entry) return { id: fallbackId, name: 'TBD', score: null };
-    const contestantName = contestantsById.get(entry.contestantId)?.displayName ?? null;
+    const contestant = contestantsById.get(entry.contestantId) ?? null;
     const drink = entry.name?.trim();
     const label = drink
-      ? contestantName
-        ? `${drink} — ${contestantName}`
+      ? contestant?.displayName
+        ? `${drink} — ${contestant.displayName}`
         : drink
-      : contestantName ?? 'TBD';
+      : getEntryDisplayName(entry, contestant) ?? 'TBD';
     return { id: entry.id, name: label, score: getEntryScore(entry) };
   }
 

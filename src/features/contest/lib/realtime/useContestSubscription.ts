@@ -4,16 +4,8 @@ import { useEffect } from 'react';
 import { initializeFirebase } from '../firebase/config';
 import { useContestStore } from '../../contexts/contest/ContestContext';
 import { useAuth } from '../../contexts/auth/AuthContext';
+import { normalizeContest } from '../domain/normalizeContest';
 import { createPacedSubscription } from './firestoreSubscription';
-import type { Contest, Voter } from '../../contexts/contest/contestTypes';
-
-function contestFromSnapshot(id: string, data: Record<string, unknown>): Contest {
-  return {
-    ...data,
-    id,
-    voters: ((data.voters ?? data.judges ?? []) as Voter[]),
-  } as Contest;
-}
 
 /**
  * Subscribes to real-time updates for a single contest document.
@@ -37,7 +29,7 @@ export function useContestSubscription(contestId: string | null) {
       db,
       'contests',
       contestId,
-      contestFromSnapshot,
+      normalizeContest,
       upsertContest,
     );
   }, [contestId, firebaseUid, upsertContest]);

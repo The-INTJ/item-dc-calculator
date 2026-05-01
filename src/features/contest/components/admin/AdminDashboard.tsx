@@ -121,29 +121,27 @@ export function AdminDashboard() {
             <span>Contests ({contests.length})</span>
             <span className="admin-sidebar__chevron">{sidebarCollapsed ? 'v' : '^'}</span>
           </button>
-          {!sidebarCollapsed && (
-            <>
-              {!contests || contests.length === 0 ? (
-                <p className="admin-empty">No contests found.</p>
-              ) : (
-                <div className="admin-contest-list">
-                  {contests.map((contest) => (
-                    <ContestCard
-                      key={contest.id}
-                      contest={contest}
-                      onSelect={handleSelectContest}
-                      isSelected={selectedContest?.id === contest.id}
-                    />
-                  ))}
-                </div>
-              )}
-              <div className="admin-add-contest">
-                <Link href="/admin/contest-setup" className="button-primary">
-                  Create New Contest
-                </Link>
+          <div className="admin-sidebar__body">
+            {!contests || contests.length === 0 ? (
+              <p className="admin-empty">No contests found.</p>
+            ) : (
+              <div className="admin-contest-list">
+                {contests.map((contest) => (
+                  <ContestCard
+                    key={contest.id}
+                    contest={contest}
+                    onSelect={handleSelectContest}
+                    isSelected={selectedContest?.id === contest.id}
+                  />
+                ))}
               </div>
-            </>
-          )}
+            )}
+            <div className="admin-add-contest">
+              <Link href="/admin/contest-setup" className="button-primary">
+                Create New Contest
+              </Link>
+            </div>
+          </div>
         </aside>
 
         <main className="admin-main">
