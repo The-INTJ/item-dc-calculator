@@ -42,9 +42,13 @@ describe('buildDisplayModel', () => {
 
     const model = buildDisplayModel(contest, matchups);
 
+    expect(model.contestKind).toBe('generic');
     expect(model.activeRoundId).toBe('r1');
     expect(model.activeRoundName).toBe('Semifinal');
     expect(model.nextRoundName).toBe('Final');
+    expect(model.activeShakeMatchup?.matchupId).toBe('m-2');
+    expect(model.featuredMatchup?.matchupId).toBe('m-2');
+    expect(model.featuredMatchupMode).toBe('shake');
     expect(model.totalRounds).toBe(2);
     expect(model.rounds[0].status).toBe('active');
     expect(model.rounds[0].matchups).toHaveLength(2);
@@ -52,7 +56,7 @@ describe('buildDisplayModel', () => {
       matchupId: 'm-1',
       phase: 'scored',
       winnerId: 'e1',
-      contestantA: { id: 'e1', score: 10, isWinner: true },
+      contestantA: { id: 'e1', score: 10, scoreSignature: 'e1:20:2', isWinner: true },
       contestantB: { id: 'e2', score: 5, isWinner: false },
       slotIndex: 0,
     });
@@ -106,5 +110,44 @@ describe('buildDisplayModel', () => {
     const model = buildDisplayModel(contest, matchups);
     expect(model.activeRoundId).toBe('r2');
     expect(model.isFinalRoundActive).toBe(true);
+  });
+
+  it('uses mixology kind and standby featured mode when no matchup is shaking', () => {
+    const contest: Contest = {
+      id: 'contest-s',
+      name: 'Standby Bar',
+      slug: 'standby-bar',
+      config: {
+        topic: 'Mixology',
+        entryLabel: 'Drink',
+        entryLabelPlural: 'Drinks',
+        contestantLabel: 'Mixologist',
+        contestantLabelPlural: 'Mixologists',
+        attributes: [],
+      },
+      rounds: [{ id: 'r1', name: 'Round 1' }],
+      entries: [
+        { id: 'e1', name: 'Spritz', slug: 'spritz', description: '', submittedBy: 'A' },
+        { id: 'e2', name: 'Sour', slug: 'sour', description: '', submittedBy: 'B' },
+      ],
+      voters: [],
+    };
+    const matchups: Matchup[] = [
+      {
+        id: 'm-1',
+        contestId: 'contest-s',
+        roundId: 'r1',
+        slotIndex: 0,
+        entryIds: ['e1', 'e2'],
+        phase: 'set',
+      },
+    ];
+
+    const model = buildDisplayModel(contest, matchups);
+
+    expect(model.contestKind).toBe('mixology');
+    expect(model.activeShakeMatchup).toBeNull();
+    expect(model.featuredMatchup?.matchupId).toBe('m-1');
+    expect(model.featuredMatchupMode).toBe('standby');
   });
 });

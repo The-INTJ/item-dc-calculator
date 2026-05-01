@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import '@fontsource-variable/material-symbols-rounded/wght.css';
 import './contest.scss';
 import { ContestShell } from './ContestShell';
 
