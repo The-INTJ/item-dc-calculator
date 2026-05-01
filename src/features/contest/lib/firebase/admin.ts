@@ -12,6 +12,7 @@ let cachedApp: App | null = null;
 let cachedAuth: Auth | null = null;
 let cachedFirestore: Firestore | null = null;
 let initAttempted = false;
+let serviceAccountParseWarningLogged = false;
 
 function isEmulatorMode(): boolean {
   return (
@@ -51,7 +52,10 @@ function loadServiceAccountFromEnv(): ServiceAccountConfig | null {
         privateKey: normalizePrivateKey(privateKey),
       };
     } catch (error) {
-      console.error('[FirebaseAdmin] Unable to parse FIREBASE_ADMIN_SERVICE_ACCOUNT.', error);
+      if (!serviceAccountParseWarningLogged) {
+        serviceAccountParseWarningLogged = true;
+        console.error('[FirebaseAdmin] Unable to parse FIREBASE_ADMIN_SERVICE_ACCOUNT.', error);
+      }
       return null;
     }
   }
@@ -108,9 +112,10 @@ function ensureAdminApp(): App | null {
   }
 
   initAttempted = true;
-  const config = loadServiceAccountFromEnv();
+  const emulatorMode = isEmulatorMode();
+  const config = emulatorMode ? null : loadServiceAccountFromEnv();
 
-  if (!config && !isEmulatorMode()) {
+  if (!config && !emulatorMode) {
     return null;
   }
 
