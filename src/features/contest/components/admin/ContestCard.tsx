@@ -10,9 +10,8 @@ interface ContestCardProps {
 
 export function ContestCard({ contest, onSelect, isSelected }: ContestCardProps) {
   const roundCount = contest.rounds?.length ?? 0;
-  const entryCount = contest.entries?.length ?? 0;
+  const contestantCount = contest.contestants?.length ?? 0;
   const voterCount = contest.voters?.length ?? 0;
-  const voteCount = contest.entries?.reduce((sum, e) => sum + (e.voteCount ?? 0), 0) ?? 0;
 
   return (
     <button
@@ -26,9 +25,8 @@ export function ContestCard({ contest, onSelect, isSelected }: ContestCardProps)
       </div>
       <p className="admin-contest-card__location">{contest.location ?? 'No location set'}</p>
       <div className="admin-contest-card__stats">
-        <span>{entryCount} entries</span>
+        <span>{contestantCount} contestants</span>
         <span>{voterCount} voters</span>
-        <span>{voteCount} votes</span>
       </div>
       {contest.defaultContest && (
         <span className="admin-contest-card__default">Current Default</span>

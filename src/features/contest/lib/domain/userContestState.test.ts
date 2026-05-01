@@ -7,7 +7,7 @@ function makeContest(voters: Contest['voters'] = []): Contest {
     id: 'c1',
     name: 'Test',
     slug: 'test',
-    entries: [],
+    contestants: [],
     voters,
   };
 }

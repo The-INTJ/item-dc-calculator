@@ -23,7 +23,7 @@ interface ContestConfigEditorProps {
 
 export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProps) {
   const effectiveConfig = getEffectiveConfig(contest);
-  const hasScores = contest.entries.some((entry) => (entry.voteCount ?? 0) > 0);
+  const hasScores = false;
   const defaultDraft = createContestConfigDraft(effectiveConfig);
 
   const [isEditing, setIsEditing] = useState(false);

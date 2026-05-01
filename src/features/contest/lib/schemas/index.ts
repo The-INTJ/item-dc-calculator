@@ -139,28 +139,54 @@ export const VoterSchema = z
   })
   .openapi('Voter');
 
+export const ContestantSchema = z
+  .object({
+    id: z.string().openapi({ example: 'contestant-1' }),
+    displayName: z.string().openapi({ example: 'Jane Smith' }),
+    userId: z.string().optional().openapi({ example: 'firebase-uid-abc' }),
+    contact: z.string().optional().openapi({ example: 'jane@example.com' }),
+  })
+  .openapi('Contestant', {
+    description: 'A registered contestant. Identity record; per-game entries live on Matchups.',
+  });
+
+export const CreateContestantBodySchema = ContestantSchema.omit({ id: true }).openapi(
+  'CreateContestantBody',
+);
+export const UpdateContestantBodySchema = ContestantSchema.partial()
+  .omit({ id: true })
+  .openapi('UpdateContestantBody');
+
 export const EntrySchema = z
   .object({
     id: z.string().openapi({ example: 'entry-1' }),
-    name: z.string().openapi({ example: 'Summer Sunset' }),
-    slug: z.string().openapi({ example: 'summer-sunset' }),
-    description: z.string().openapi({ example: 'A refreshing citrus cocktail with a hint of lavender' }),
-    submittedBy: z.string().openapi({ example: 'John Doe' }),
+    contestantId: z.string().openapi({ example: 'contestant-1' }),
+    matchupId: z.string().openapi({ example: 'matchup-1' }),
+    name: z.string().openapi({
+      description: 'Per-game name (e.g. drink name); empty string until contestant submits.',
+      example: 'Summer Sunset',
+    }),
+    description: z.string().optional().openapi({ example: 'Citrus + lavender' }),
+    slug: z.string().optional().openapi({ example: 'summer-sunset' }),
     sumScore: z.number().optional().openapi({
-      description: 'Aggregate: sum of all vote totals for this entry',
+      description: 'Aggregate: sum of all vote totals for this matchup entry',
       example: 42.5,
     }),
     voteCount: z.number().int().optional().openapi({
-      description: 'Aggregate: number of distinct voters',
+      description: 'Aggregate: number of distinct voters for this matchup entry',
       example: 5,
     }),
   })
-  .openapi('Entry', { description: 'A contest entry (drink, chili, cosplay, performance, etc.)' });
+  .openapi('Entry', {
+    description: 'A per-matchup entry submitted by a contestant for one specific game.',
+  });
 
-export const CreateEntryBodySchema = EntrySchema.omit({ id: true }).openapi('CreateEntryBody');
-export const UpdateEntryBodySchema = EntrySchema.partial()
-  .omit({ id: true })
-  .openapi('UpdateEntryBody');
+export const SetMatchupEntryNameBodySchema = z
+  .object({
+    name: z.string().min(1).max(80).openapi({ example: 'Summer Sunset' }),
+    description: z.string().max(280).optional(),
+  })
+  .openapi('SetMatchupEntryNameBody');
 
 // ── Contest rounds ──────────────────────────────────────────────────────────
 
@@ -184,19 +210,24 @@ export const MatchupSchema = z
     contestId: z.string().openapi({ example: 'contest-1' }),
     roundId: z.string().openapi({ example: 'round-1' }),
     slotIndex: z.number().int().openapi({ example: 0 }),
-    entryIds: z.array(z.string()).openapi({
-      description: 'Entries competing in this matchup (length 2 for 1v1).',
-      example: ['entry-1', 'entry-2'],
+    entries: z.array(EntrySchema).openapi({
+      description: 'Per-contestant entries inline on this matchup (length 2 for 1v1).',
     }),
     phase: MatchupPhaseSchema,
     winnerEntryId: z.string().nullable().optional(),
     advancesToMatchupId: z.string().nullable().optional(),
     advancesToSlot: z.number().int().nullable().optional(),
   })
-  .openapi('Matchup', { description: 'A first-class matchup between entries within a round.' });
+  .openapi('Matchup', { description: 'A first-class matchup between contestants within a round.' });
 
-export const CreateMatchupBodySchema = MatchupSchema.omit({ id: true, contestId: true })
-  .partial({ entryIds: true, phase: true })
+export const CreateMatchupBodySchema = z
+  .object({
+    roundId: z.string(),
+    slotIndex: z.number().int(),
+    contestantIds: z.array(z.string()).min(1).max(2),
+    phase: MatchupPhaseSchema.optional(),
+    winnerEntryId: z.string().nullable().optional(),
+  })
   .openapi('CreateMatchupBody');
 
 export const UpdateMatchupBodySchema = MatchupSchema.partial()
@@ -215,7 +246,7 @@ export const SeedRoundBodySchema = z
       .optional()
       .openapi({
         description:
-          'Explicit entry pairs for round-1 seeding. A 2-tuple is a regular matchup; a 1-tuple is a bye (auto-advance). Omit for rounds > 1 (propagated from previous round winners).',
+          'Explicit contestant-id pairs for round-1 seeding. A 2-tuple is a regular matchup; a 1-tuple is a bye (auto-advance). Omit for rounds > 1 (propagated from previous round winners).',
       }),
   })
   .openapi('SeedRoundBody');
@@ -241,14 +272,14 @@ export const ContestSchema = z
     currentEntryId: z.string().optional(),
     defaultContest: z.boolean().optional(),
     rounds: z.array(ContestRoundSchema).optional(),
-    entries: z.array(EntrySchema),
+    contestants: z.array(ContestantSchema),
     voters: z.array(VoterSchema),
   })
   .openapi('Contest');
 
 export const CreateContestBodySchema = ContestSchema.omit({
   id: true,
-  entries: true,
+  contestants: true,
   voters: true,
 }).openapi('CreateContestBody');
 
@@ -299,7 +330,7 @@ export const CreateSessionBodySchema = z
 export const RegisterContestantBodySchema = z
   .object({
     displayName: z.string().optional(),
-    entryName: z.string().optional(),
+    contact: z.string().optional(),
   })
   .openapi('RegisterContestantBody');
 
@@ -322,7 +353,11 @@ export type ContestConfigItem = z.infer<typeof ContestConfigItemSchema>;
 export type ScoreBreakdown = z.infer<typeof ScoreBreakdownSchema>;
 export type ScoreEntry = z.infer<typeof ScoreEntrySchema>;
 export type Voter = z.infer<typeof VoterSchema>;
+export type Contestant = z.infer<typeof ContestantSchema>;
+export type CreateContestantBody = z.infer<typeof CreateContestantBodySchema>;
+export type UpdateContestantBody = z.infer<typeof UpdateContestantBodySchema>;
 export type Entry = z.infer<typeof EntrySchema>;
+export type SetMatchupEntryNameBody = z.infer<typeof SetMatchupEntryNameBodySchema>;
 export type ContestRound = z.infer<typeof ContestRoundSchema>;
 export type Matchup = z.infer<typeof MatchupSchema>;
 export type CreateMatchupBody = z.infer<typeof CreateMatchupBodySchema>;
@@ -333,8 +368,6 @@ export type Contest = z.infer<typeof ContestSchema>;
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 export type CreateContestBody = z.infer<typeof CreateContestBodySchema>;
 export type UpdateContestBody = z.infer<typeof UpdateContestBodySchema>;
-export type CreateEntryBody = z.infer<typeof CreateEntryBodySchema>;
-export type UpdateEntryBody = z.infer<typeof UpdateEntryBodySchema>;
 export type SubmitScoreBody = z.infer<typeof SubmitScoreBodySchema>;
 export type CreateContestConfigBody = z.infer<typeof CreateContestConfigBodySchema>;
 export type UpdateContestConfigBody = z.infer<typeof UpdateContestConfigBodySchema>;
@@ -359,9 +392,11 @@ register('ScoreBreakdown', ScoreBreakdownSchema);
 register('ScoreEntry', ScoreEntrySchema);
 register('SubmitScoreBody', SubmitScoreBodySchema);
 register('Voter', VoterSchema);
+register('Contestant', ContestantSchema);
+register('CreateContestantBody', CreateContestantBodySchema);
+register('UpdateContestantBody', UpdateContestantBodySchema);
 register('Entry', EntrySchema);
-register('CreateEntryBody', CreateEntryBodySchema);
-register('UpdateEntryBody', UpdateEntryBodySchema);
+register('SetMatchupEntryNameBody', SetMatchupEntryNameBodySchema);
 register('ContestRound', ContestRoundSchema);
 register('Matchup', MatchupSchema);
 register('CreateMatchupBody', CreateMatchupBodySchema);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Dialog, Slider } from '@mui/material';
+import { Dialog, Slider, useMediaQuery, useTheme } from '@mui/material';
 import type { Contest, Matchup } from '../../contexts/contest/contestTypes';
 import { getRoundLabel } from '../../lib/domain/contestGetters';
 import { useMatchupVoting } from '../../lib/hooks/useMatchupVoting';
@@ -15,24 +15,42 @@ interface VoteModalProps {
 
 export function VoteModal({ open, onClose, contest, matchup }: VoteModalProps) {
   const roundName = getRoundLabel(contest, matchup.roundId);
-  const { drinks, categories, scores, updateScore, submit, status, message, isSubmitting } =
-    useMatchupVoting(contest, matchup);
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const {
+    drinks,
+    categories,
+    scores,
+    updateScore,
+    submit,
+    status,
+    message,
+    isSubmitting,
+    selfEntryId,
+  } = useMatchupVoting(contest, matchup);
   const [activeEntryIndex, setActiveEntryIndex] = useState(0);
 
   useEffect(() => {
     setActiveEntryIndex(0);
   }, [matchup.id, drinks.length]);
 
+  useEffect(() => {
+    if (!open || status !== 'success') return;
+    const timer = setTimeout(onClose, 1500);
+    return () => clearTimeout(timer);
+  }, [open, status, onClose]);
+
   const activeEntry = drinks[activeEntryIndex] ?? drinks[0] ?? null;
+  const isSelfEntry = activeEntry?.id === selfEntryId;
   const activeScores = activeEntry ? scores[activeEntry.id] ?? {} : {};
-  const total = useMemo(
-    () => categories.reduce((sum, category) => sum + (activeScores[category.id] ?? category.min ?? 0), 0),
-    [activeScores, categories],
-  );
   const maxTotal = useMemo(
     () => categories.reduce((sum, category) => sum + (category.max ?? 10), 0),
     [categories],
   );
+  const total = useMemo(() => {
+    if (isSelfEntry) return maxTotal;
+    return categories.reduce((sum, category) => sum + (activeScores[category.id] ?? category.min ?? 0), 0);
+  }, [activeScores, categories, isSelfEntry, maxTotal]);
 
   const canSubmit = drinks.length > 0 && categories.length > 0 && !isSubmitting;
   const isLastEntry = activeEntryIndex >= drinks.length - 1;
@@ -53,6 +71,7 @@ export function VoteModal({ open, onClose, contest, matchup }: VoteModalProps) {
       className="vote-sheet"
       fullWidth
       maxWidth="sm"
+      fullScreen={fullScreen}
       aria-labelledby="vote-sheet-title"
       slotProps={{
         paper: { className: 'vote-sheet__paper' },
@@ -93,15 +112,24 @@ export function VoteModal({ open, onClose, contest, matchup }: VoteModalProps) {
             <span className="vote-sheet__entry-art" aria-hidden="true" />
             <span className="vote-sheet__entry-copy">
               <strong>{activeEntry.name ?? 'Unnamed entry'}</strong>
-              <span>by {activeEntry.creatorName}</span>
+              <span>
+                by {activeEntry.creatorName}
+                {isSelfEntry && <em className="vote-sheet__self-badge"> · Your entry</em>}
+              </span>
             </span>
           </section>
+
+          {isSelfEntry && (
+            <p className="vote-sheet__self-notice">
+              You can't score your own entry — it auto-records the maximum.
+            </p>
+          )}
 
           <div className="vote-sheet__scores">
             {categories.map((category) => {
               const min = category.min ?? 0;
               const max = category.max ?? 10;
-              const value = activeScores[category.id] ?? min;
+              const value = isSelfEntry ? max : activeScores[category.id] ?? min;
               return (
                 <div key={category.id} className="contest-vote-slider">
                   <div className="contest-vote-slider__label-row">
@@ -121,7 +149,9 @@ export function VoteModal({ open, onClose, contest, matchup }: VoteModalProps) {
                     step={1}
                     value={value}
                     valueLabelDisplay="auto"
+                    disabled={isSelfEntry}
                     onChange={(_, nextValue) => {
+                      if (isSelfEntry) return;
                       const normalized = Array.isArray(nextValue) ? nextValue[0] : nextValue;
                       updateScore(activeEntry.id, category.id, normalized);
                     }}

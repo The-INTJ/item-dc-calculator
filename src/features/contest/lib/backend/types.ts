@@ -6,11 +6,11 @@
  * without changing frontend code.
  */
 
-import type { Contest, Entry, Voter, ScoreEntry, ScoreBreakdown, ContestConfigItem, Matchup } from '../../contexts/contest/contestTypes';
+import type { Contest, Contestant, Entry, Voter, ScoreEntry, ScoreBreakdown, ContestConfigItem, Matchup } from '../../contexts/contest/contestTypes';
 import type { UserProfile } from '../../contexts/auth/types';
 
 // Re-export core types for convenience
-export type { Contest, Entry, Voter, ScoreEntry, ScoreBreakdown, ContestConfigItem, Matchup, UserProfile };
+export type { Contest, Contestant, Entry, Voter, ScoreEntry, ScoreBreakdown, ContestConfigItem, Matchup, UserProfile };
 
 /**
  * Result wrapper for async operations
@@ -31,21 +31,27 @@ export interface ContestsProvider {
   getDefault(): Promise<ProviderResult<Contest | null>>;
 
   // Write operations
-  create(contest: Omit<Contest, 'id' | 'entries' | 'voters'>): Promise<ProviderResult<Contest>>;
+  create(contest: Omit<Contest, 'id' | 'contestants' | 'voters'>): Promise<ProviderResult<Contest>>;
   update(id: string, updates: Partial<Contest>): Promise<ProviderResult<Contest>>;
   delete(id: string): Promise<ProviderResult<void>>;
   setDefault(id: string): Promise<ProviderResult<Contest>>;
 }
 
 /**
- * Entries provider interface - manage entries within contests
+ * Contestants provider interface — manages the `contest.contestants` array
+ * stored on each contest document. Contestants are the identity record for
+ * a participant; their per-game Entry records live on each Matchup.
  */
-export interface EntriesProvider {
-  listByContest(contestId: string): Promise<ProviderResult<Entry[]>>;
-  getById(contestId: string, entryId: string): Promise<ProviderResult<Entry | null>>;
-  create(contestId: string, entry: Omit<Entry, 'id'>): Promise<ProviderResult<Entry>>;
-  update(contestId: string, entryId: string, updates: Partial<Entry>): Promise<ProviderResult<Entry>>;
-  delete(contestId: string, entryId: string): Promise<ProviderResult<void>>;
+export interface ContestantsProvider {
+  listByContest(contestId: string): Promise<ProviderResult<Contestant[]>>;
+  getById(contestId: string, contestantId: string): Promise<ProviderResult<Contestant | null>>;
+  create(contestId: string, contestant: Omit<Contestant, 'id'> & { id?: string }): Promise<ProviderResult<Contestant>>;
+  update(
+    contestId: string,
+    contestantId: string,
+    updates: Partial<Contestant>,
+  ): Promise<ProviderResult<Contestant>>;
+  delete(contestId: string, contestantId: string): Promise<ProviderResult<void>>;
 }
 
 /**
@@ -118,8 +124,14 @@ export interface ProfilesProvider {
 /**
  * Input shape for matchup creation. Server generates `id` and injects
  * `contestId`, so callers only provide the fields that describe the matchup.
+ * `entries` may be supplied pre-built (e.g. by the seed route), or omitted
+ * and built from `contestantIds`.
  */
-export type MatchupCreateInput = Omit<Matchup, 'id' | 'contestId'> & { id?: string };
+export type MatchupCreateInput = Omit<Matchup, 'id' | 'contestId' | 'entries'> & {
+  id?: string;
+  entries?: Entry[];
+  contestantIds?: string[];
+};
 
 /**
  * Matchups provider interface — manages `contests/{contestId}/matchups/{matchupId}`
@@ -137,6 +149,13 @@ export interface MatchupsProvider {
   delete(contestId: string, matchupId: string): Promise<ProviderResult<void>>;
   /** Create multiple matchups in one batch (used when seeding a round). */
   batchCreate(contestId: string, matchups: MatchupCreateInput[]): Promise<ProviderResult<Matchup[]>>;
+  /** Update one inline entry's name/description on a matchup. */
+  setEntryName(
+    contestId: string,
+    matchupId: string,
+    entryId: string,
+    payload: { name: string; description?: string },
+  ): Promise<ProviderResult<Matchup>>;
 }
 
 /**
@@ -145,7 +164,7 @@ export interface MatchupsProvider {
 export interface BackendProvider {
   readonly name: string;
   contests: ContestsProvider;
-  entries: EntriesProvider;
+  contestants: ContestantsProvider;
   voters: VotersProvider;
   scores: ScoresProvider;
   configs: ConfigsProvider;

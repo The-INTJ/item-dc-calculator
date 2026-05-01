@@ -13,7 +13,6 @@ interface ContestRoundNavigatorProps {
   activeRoundId: string | null;
   viewedRoundId: string | null;
   onViewRound: (roundId: string) => void;
-  onVoteRound: (roundId: string) => void;
   onVoteMatchup: (matchupId: string) => void;
 }
 
@@ -102,7 +101,6 @@ export function ContestRoundNavigator({
   activeRoundId,
   viewedRoundId,
   onViewRound,
-  onVoteRound,
   onVoteMatchup,
 }: ContestRoundNavigatorProps) {
   const tabListRef = useRef<HTMLDivElement>(null);
@@ -112,10 +110,11 @@ export function ContestRoundNavigator({
     return rounds.find((round) => round.id === viewedRoundId) ?? rounds[0] ?? null;
   }, [rounds, viewedRoundId]);
 
-  const hasLiveMatchup = useMemo(
-    () => Boolean(viewedRound?.matchups.some((m) => m.phase === 'shake')),
+  const liveMatchup = useMemo(
+    () => viewedRound?.matchups.find((m) => m.phase === 'shake' && !m.isBye && m.matchupId) ?? null,
     [viewedRound],
   );
+  const hasLiveMatchup = Boolean(liveMatchup);
 
   // Scroll the viewed tab into view when it changes (helpful on mobile).
   useEffect(() => {
@@ -215,13 +214,13 @@ export function ContestRoundNavigator({
             </ol>
           )}
 
-          {hasLiveMatchup && (
+          {liveMatchup && (
             <button
               type="button"
               className="contest-rounds__vote-cta"
-              onClick={() => onVoteRound(viewedRound.id)}
+              onClick={() => onVoteMatchup(liveMatchup.matchupId!)}
             >
-              Vote this round
+              Vote this matchup
             </button>
           )}
 

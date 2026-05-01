@@ -3,7 +3,7 @@ import { getContestByParam } from '@/contest/lib/backend/serverProvider';
 import { requireAdmin } from '../../../../../_lib/requireAdmin';
 import { SeedRoundBodySchema } from '@/contest/lib/schemas';
 import type { MatchupCreateInput } from '@/contest/lib/backend/types';
-import type { Matchup } from '@/contest/contexts/contest/contestTypes';
+import type { Contest, Entry, Matchup } from '@/contest/contexts/contest/contestTypes';
 import { pairWithByes } from '@/contest/lib/domain/bracketMath';
 
 type SeedSlot = [string, string] | [string];
@@ -36,7 +36,7 @@ export async function POST(request: Request, { params }: RouteParams) {
   }
 
   const resolved = await resolveSeedSlots({
-    contestId: contest.id,
+    contest,
     rounds,
     roundIndex,
     provider,
@@ -46,11 +46,11 @@ export async function POST(request: Request, { params }: RouteParams) {
     return jsonError(resolved.error, resolved.status);
   }
 
-  const entryIdSet = new Set(contest.entries.map((entry) => entry.id));
+  const contestantIdSet = new Set(contest.contestants.map((c) => c.id));
   for (const slot of resolved.slots) {
-    for (const id of slot) {
-      if (!entryIdSet.has(id)) {
-        return jsonError('Entry in pair is not part of the contest.', 400);
+    for (const slotContestantId of slot) {
+      if (!contestantIdSet.has(slotContestantId)) {
+        return jsonError(`Contestant ${slotContestantId} is not part of the contest.`, 400);
       }
     }
   }
@@ -71,15 +71,14 @@ export async function POST(request: Request, { params }: RouteParams) {
       return {
         roundId,
         slotIndex,
-        entryIds: [slot[0]],
+        contestantIds: [slot[0]],
         phase: 'scored',
-        winnerEntryId: slot[0],
       };
     }
     return {
       roundId,
       slotIndex,
-      entryIds: [slot[0], slot[1]],
+      contestantIds: [slot[0], slot[1]],
       phase: 'set',
     };
   });
@@ -89,6 +88,19 @@ export async function POST(request: Request, { params }: RouteParams) {
     return jsonError(createdResult.error ?? 'Failed to create matchups', 500);
   }
   const created = createdResult.data;
+
+  // For byes the auto-advance must reference a real entry id; mark the lone
+  // entry as winner now that ids are known.
+  for (const matchup of created) {
+    if (matchup.phase === 'scored' && matchup.entries.length === 1 && !matchup.winnerEntryId) {
+      const update = await provider.matchups.update(contest.id, matchup.id, {
+        winnerEntryId: matchup.entries[0].id,
+      });
+      if (update.success && update.data) {
+        matchup.winnerEntryId = update.data.winnerEntryId;
+      }
+    }
+  }
 
   if (roundIndex > 0) {
     const prevRoundId = rounds[roundIndex - 1].id;
@@ -114,13 +126,13 @@ type ResolveResult =
   | { ok: false; error: string; status: number };
 
 async function resolveSeedSlots(args: {
-  contestId: string;
+  contest: Contest;
   rounds: Array<{ id: string }>;
   roundIndex: number;
   provider: Awaited<ReturnType<typeof getContestByParam>>['provider'];
   providedPairs: SeedSlot[] | null;
 }): Promise<ResolveResult> {
-  const { contestId, rounds, roundIndex, provider, providedPairs } = args;
+  const { contest, rounds, roundIndex, provider, providedPairs } = args;
 
   if (roundIndex === 0) {
     if (!providedPairs || providedPairs.length === 0) {
@@ -142,7 +154,7 @@ async function resolveSeedSlots(args: {
   }
 
   const prevRoundId = rounds[roundIndex - 1].id;
-  const prevResult = await provider.matchups.listByRound(contestId, prevRoundId);
+  const prevResult = await provider.matchups.listByRound(contest.id, prevRoundId);
   if (!prevResult.success || !prevResult.data) {
     return { ok: false, status: 500, error: prevResult.error ?? 'Failed to load previous round' };
   }
@@ -151,21 +163,99 @@ async function resolveSeedSlots(args: {
   if (prevMatchups.length === 0) {
     return { ok: false, status: 400, error: 'Previous round has no matchups.' };
   }
-  if (!prevMatchups.every(isScoredWithWinner)) {
+
+  const winnerContestantByMatchupId = new Map<string, string>();
+  const problems: string[] = [];
+
+  for (const matchup of prevMatchups) {
+    const slotLabel = `Matchup ${matchup.slotIndex + 1}`;
+
+    if (matchup.phase !== 'scored') {
+      problems.push(`${slotLabel}: phase is '${matchup.phase}', expected 'scored'.`);
+      continue;
+    }
+
+    let resolvedWinnerEntryId = matchup.winnerEntryId ?? null;
+    if (typeof resolvedWinnerEntryId !== 'string' || resolvedWinnerEntryId.length === 0) {
+      const healed = healWinnerFromScores(matchup);
+      if (healed.ok) {
+        resolvedWinnerEntryId = healed.winnerEntryId;
+        void provider.matchups.update(contest.id, matchup.id, {
+          winnerEntryId: healed.winnerEntryId,
+        });
+      } else {
+        problems.push(`${slotLabel}: ${healed.reason}`);
+        continue;
+      }
+    }
+
+    const winnerEntry = matchup.entries.find((e) => e.id === resolvedWinnerEntryId);
+    if (!winnerEntry) {
+      problems.push(`${slotLabel}: winnerEntryId points to an unknown entry on this matchup.`);
+      continue;
+    }
+
+    winnerContestantByMatchupId.set(matchup.id, winnerEntry.contestantId);
+  }
+
+  if (problems.length > 0) {
+    const shown = problems.slice(0, 3).join(' ');
+    const more = problems.length > 3 ? ` (+${problems.length - 3} more)` : '';
     return {
       ok: false,
       status: 400,
-      error: 'All previous-round matchups must be scored with a winner before seeding.',
+      error: `Cannot seed: ${shown}${more}`,
     };
   }
 
-  const winners = prevMatchups.map((m) => m.winnerEntryId as string);
+  const winners = prevMatchups.map((m) => winnerContestantByMatchupId.get(m.id) as string);
   const { pairs, byeId } = pairWithByes(winners);
   const slots: SeedSlot[] = [...pairs];
   if (byeId) slots.push([byeId]);
   return { ok: true, slots };
 }
 
-function isScoredWithWinner(matchup: Matchup): boolean {
-  return matchup.phase === 'scored' && typeof matchup.winnerEntryId === 'string';
+type HealResult =
+  | { ok: true; winnerEntryId: string }
+  | { ok: false; reason: string };
+
+/**
+ * Self-heal a 'scored' matchup with a missing winnerEntryId by picking the
+ * leading entry by aggregate score (sumScore / voteCount). Returns ok:false
+ * when scores are tied or missing — admin still needs to choose.
+ */
+function healWinnerFromScores(matchup: Matchup): HealResult {
+  const entries = matchup.entries ?? [];
+  if (entries.length === 0) {
+    return { ok: false, reason: 'no winner set and matchup has no entries to derive from.' };
+  }
+
+  let leaderId: string | null = null;
+  let leaderScore = Number.NEGATIVE_INFINITY;
+  let tied = false;
+
+  for (const entry of entries) {
+    const score = getEntryAverage(entry);
+    if (score == null) continue;
+    if (score > leaderScore) {
+      leaderId = entry.id;
+      leaderScore = score;
+      tied = false;
+    } else if (score === leaderScore) {
+      tied = true;
+    }
+  }
+
+  if (leaderId == null) {
+    return { ok: false, reason: 'no winner set and no scores recorded yet.' };
+  }
+  if (tied) {
+    return { ok: false, reason: 'no winner set and scores are tied — pick a winner manually.' };
+  }
+  return { ok: true, winnerEntryId: leaderId };
+}
+
+function getEntryAverage(entry: Entry): number | null {
+  if (!entry.voteCount || entry.voteCount === 0) return null;
+  return Math.round((entry.sumScore ?? 0) / entry.voteCount);
 }

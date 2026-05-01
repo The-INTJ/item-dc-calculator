@@ -1,0 +1,109 @@
+@use './index' as *;
+
+.matchup-entry-banner {
+  align-items: center;
+  background: var(--c-amber-100, #fef3c7);
+  border: 1px solid var(--c-amber-300);
+  border-radius: var(--r-card);
+  color: var(--text-strong);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 1rem 0;
+  padding: 0.875rem 1rem;
+  text-align: center;
+}
+
+.matchup-entry-banner strong {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.matchup-entry-banner span {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.matchup-entry-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.matchup-entry-section h2 {
+  font: var(--t-h3);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+.matchup-entry-section__list {
+  display: grid;
+  gap: 0.875rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.matchup-entry-form {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 1rem;
+}
+
+.matchup-entry-form__header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0.25rem 0 0;
+}
+
+.matchup-entry-form__header .eyebrow {
+  color: var(--text-special);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.matchup-entry-form__label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  gap: 0.25rem;
+}
+
+.matchup-entry-form__label input,
+.matchup-entry-form__label textarea {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-input, 8px);
+  color: var(--text-strong);
+  font: inherit;
+  font-weight: 400;
+  padding: 0.5rem 0.625rem;
+  width: 100%;
+}
+
+.matchup-entry-form__label input:focus,
+.matchup-entry-form__label textarea:focus {
+  border-color: var(--c-cyan-500);
+  outline: none;
+}
+
+.matchup-entry-form__actions {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.matchup-entry-form__message {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  margin: 0;
+}

@@ -20,7 +20,7 @@ const contest: Contest = {
   id: 'contest-1',
   name: 'Bracket Bash',
   slug: 'bracket-bash',
-  entries: [],
+  contestants: [],
   voters: [],
 };
 

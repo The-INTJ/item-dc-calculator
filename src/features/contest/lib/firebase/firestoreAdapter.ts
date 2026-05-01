@@ -27,6 +27,7 @@ import {
 } from 'firebase/firestore';
 import type { Contest, ContestConfigItem, Entry, Matchup, ScoreBreakdown, ScoreEntry, Voter } from '../../contexts/contest/contestTypes';
 import type { MatchupCreateInput, ScoreUpdatePayload, UserProfile } from '../backend/types';
+import { generateId as makeId } from '../backend/providerUtils';
 import { generateId } from '../backend/providerUtils';
 import { computeVoteTotal, docToScoreEntry, makeVoteDocId } from './scoreHelpers';
 
@@ -44,6 +45,7 @@ function normalizeContestDoc(id: string, data: Record<string, unknown>): Contest
   return {
     ...rest,
     id,
+    contestants: (rest.contestants ?? []) as Contest['contestants'],
     voters: (rest.voters ?? rest.judges ?? []) as Voter[],
   } as Contest;
 }
@@ -54,7 +56,26 @@ function normalizeMatchupDoc(contestId: string, id: string, data: Record<string,
     ...rest,
     id,
     contestId,
+    entries: ((rest.entries as Entry[] | undefined) ?? []) as Entry[],
   } as Matchup;
+}
+
+/**
+ * Build inline matchup entries from contestant ids. Entry ids are stable so
+ * vote docs can reference them and aggregate updates can find the slot.
+ */
+export function buildInlineEntriesFromContestantIds(
+  matchupId: string,
+  contestantIds: string[],
+): Entry[] {
+  return contestantIds.map((contestantId) => ({
+    id: makeId('entry'),
+    contestantId,
+    matchupId,
+    name: '',
+    sumScore: 0,
+    voteCount: 0,
+  }));
 }
 
 /**
@@ -97,6 +118,12 @@ export interface FirestoreAdapter {
   updateMatchup(contestId: string, matchupId: string, updates: Partial<Matchup>): Promise<Matchup>;
   deleteMatchup(contestId: string, matchupId: string): Promise<void>;
   batchCreateMatchups(contestId: string, matchups: MatchupCreateInput[]): Promise<Matchup[]>;
+  setMatchupEntryName(
+    contestId: string,
+    matchupId: string,
+    entryId: string,
+    payload: { name: string; description?: string },
+  ): Promise<Matchup>;
 
   // ---- User profiles ----
   getProfile(uid: string): Promise<UserProfile | null>;
@@ -283,27 +310,21 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
       const voteDocId = makeVoteDocId(userId, matchupId, entryId);
 
       return runTransaction(db, async (transaction) => {
-        const contestRef = doc(db, CONTESTS_COLLECTION, contestId);
         const matchupRef = doc(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION, matchupId);
         const voteRef = doc(db, CONTESTS_COLLECTION, contestId, VOTES_SUBCOLLECTION, voteDocId);
 
-        const [contestSnap, matchupSnap, voteSnap] = await Promise.all([
-          transaction.get(contestRef),
+        const [matchupSnap, voteSnap] = await Promise.all([
           transaction.get(matchupRef),
           transaction.get(voteRef),
         ]);
 
-        if (!contestSnap.exists()) throw new Error('Contest not found');
         if (!matchupSnap.exists()) throw new Error('Matchup not found');
 
         const matchupData = matchupSnap.data() as Record<string, unknown>;
         if (matchupData.phase !== 'shake') throw new Error('Matchup is not open for scoring');
-        const matchupEntryIds = (matchupData.entryIds as string[] | undefined) ?? [];
-        if (!matchupEntryIds.includes(entryId)) throw new Error('Entry is not part of this matchup');
-
-        const contest = { id: contestSnap.id, ...contestSnap.data() } as Contest;
-        const entryIndex = contest.entries?.findIndex((e: Entry) => e.id === entryId);
-        if (entryIndex === undefined || entryIndex === -1) throw new Error('Entry not found');
+        const entries = ((matchupData.entries as Entry[] | undefined) ?? []).map((e) => ({ ...e }));
+        const entryIndex = entries.findIndex((e) => e.id === entryId);
+        if (entryIndex === -1) throw new Error('Entry is not part of this matchup');
 
         const newTotal = computeVoteTotal(input.breakdown);
         let delta: number;
@@ -328,13 +349,11 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
         if (isNewVote) voteData.createdAt = serverTimestamp();
         transaction.set(voteRef, voteData, { merge: true });
 
-        const entries = [...contest.entries];
-        const entry = { ...entries[entryIndex] };
+        const entry = entries[entryIndex];
         entry.sumScore = (entry.sumScore ?? 0) + delta;
         entry.voteCount = (entry.voteCount ?? 0) + (isNewVote ? 1 : 0);
-        entries[entryIndex] = entry;
 
-        transaction.update(contestRef, { entries, updatedAt: serverTimestamp() });
+        transaction.update(matchupRef, { entries, updatedAt: serverTimestamp() });
 
         return docToScoreEntry(voteDocId, {
           userId,
@@ -350,19 +369,13 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
 
       return runTransaction(db, async (transaction) => {
         const voteRef = doc(db, CONTESTS_COLLECTION, contestId, VOTES_SUBCOLLECTION, scoreId);
-        const contestRef = doc(db, CONTESTS_COLLECTION, contestId);
 
-        const [voteSnap, contestSnap] = await Promise.all([
-          transaction.get(voteRef),
-          transaction.get(contestRef),
-        ]);
-
+        const voteSnap = await transaction.get(voteRef);
         if (!voteSnap.exists()) throw new Error('Vote not found');
-        if (!contestSnap.exists()) throw new Error('Contest not found');
 
         const existingData = voteSnap.data();
-        const contest = { id: contestSnap.id, ...contestSnap.data() } as Contest;
         const entryId = existingData.entryId as string;
+        const matchupId = existingData.matchupId as string | undefined;
 
         const oldBreakdown = (existingData.breakdown ?? {}) as ScoreBreakdown;
         const newBreakdown: ScoreBreakdown = { ...oldBreakdown };
@@ -381,13 +394,19 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
         if (updates.notes !== undefined) voteUpdate.notes = updates.notes;
         transaction.set(voteRef, voteUpdate, { merge: true });
 
-        const entryIndex = contest.entries?.findIndex((e: Entry) => e.id === entryId);
-        if (entryIndex !== undefined && entryIndex !== -1) {
-          const entries = [...contest.entries];
-          const entry = { ...entries[entryIndex] };
-          entry.sumScore = (entry.sumScore ?? 0) + delta;
-          entries[entryIndex] = entry;
-          transaction.update(contestRef, { entries, updatedAt: serverTimestamp() });
+        if (matchupId) {
+          const matchupRef = doc(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION, matchupId);
+          const matchupSnap = await transaction.get(matchupRef);
+          if (matchupSnap.exists()) {
+            const entries = (((matchupSnap.data().entries as Entry[] | undefined) ?? []).map((e) => ({
+              ...e,
+            })) as Entry[]);
+            const entryIndex = entries.findIndex((e) => e.id === entryId);
+            if (entryIndex !== -1) {
+              entries[entryIndex].sumScore = (entries[entryIndex].sumScore ?? 0) + delta;
+              transaction.update(matchupRef, { entries, updatedAt: serverTimestamp() });
+            }
+          }
         }
 
         return docToScoreEntry(scoreId, {
@@ -403,31 +422,30 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
 
       await runTransaction(db, async (transaction) => {
         const voteRef = doc(db, CONTESTS_COLLECTION, contestId, VOTES_SUBCOLLECTION, scoreId);
-        const contestRef = doc(db, CONTESTS_COLLECTION, contestId);
 
-        const [voteSnap, contestSnap] = await Promise.all([
-          transaction.get(voteRef),
-          transaction.get(contestRef),
-        ]);
-
+        const voteSnap = await transaction.get(voteRef);
         if (!voteSnap.exists()) throw new Error('Vote not found');
-        if (!contestSnap.exists()) throw new Error('Contest not found');
 
         const voteData = voteSnap.data();
         const entryId = voteData.entryId as string;
+        const matchupId = voteData.matchupId as string | undefined;
         const oldBreakdown = (voteData.breakdown ?? {}) as ScoreBreakdown;
         const oldTotal = computeVoteTotal(oldBreakdown);
 
-        const contest = { id: contestSnap.id, ...contestSnap.data() } as Contest;
-        const entryIndex = contest.entries?.findIndex((e: Entry) => e.id === entryId);
-
-        if (entryIndex !== undefined && entryIndex !== -1) {
-          const entries = [...contest.entries];
-          const entry = { ...entries[entryIndex] };
-          entry.sumScore = (entry.sumScore ?? 0) - oldTotal;
-          entry.voteCount = Math.max(0, (entry.voteCount ?? 0) - 1);
-          entries[entryIndex] = entry;
-          transaction.update(contestRef, { entries, updatedAt: serverTimestamp() });
+        if (matchupId) {
+          const matchupRef = doc(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION, matchupId);
+          const matchupSnap = await transaction.get(matchupRef);
+          if (matchupSnap.exists()) {
+            const entries = (((matchupSnap.data().entries as Entry[] | undefined) ?? []).map((e) => ({
+              ...e,
+            })) as Entry[]);
+            const entryIndex = entries.findIndex((e) => e.id === entryId);
+            if (entryIndex !== -1) {
+              entries[entryIndex].sumScore = (entries[entryIndex].sumScore ?? 0) - oldTotal;
+              entries[entryIndex].voteCount = Math.max(0, (entries[entryIndex].voteCount ?? 0) - 1);
+              transaction.update(matchupRef, { entries, updatedAt: serverTimestamp() });
+            }
+          }
         }
 
         transaction.delete(voteRef);
@@ -470,18 +488,22 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
     async createMatchup(contestId, input): Promise<Matchup> {
       const db = requireDb();
       const id = input.id ?? generateId('matchup');
-      const { id: _ignored, ...rest } = input;
+      const { id: _ignored, contestantIds, entries: providedEntries, ...rest } = input;
       void _ignored;
+
+      const entries = providedEntries
+        ?? (contestantIds ? buildInlineEntriesFromContestantIds(id, contestantIds) : []);
 
       const ref = doc(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION, id);
       await setDoc(ref, {
         ...rest,
+        entries,
         contestId,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
 
-      return { ...rest, id, contestId } as Matchup;
+      return { ...rest, entries, id, contestId } as Matchup;
     },
 
     async updateMatchup(contestId, matchupId, updates): Promise<Matchup> {
@@ -510,20 +532,43 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
 
       for (const input of inputs) {
         const id = input.id ?? generateId('matchup');
-        const { id: _ignored, ...rest } = input;
+        const { id: _ignored, contestantIds, entries: providedEntries, ...rest } = input;
         void _ignored;
+        const entries = providedEntries
+          ?? (contestantIds ? buildInlineEntriesFromContestantIds(id, contestantIds) : []);
         const ref = doc(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION, id);
         batch.set(ref, {
           ...rest,
+          entries,
           contestId,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
-        created.push({ ...rest, id, contestId } as Matchup);
+        created.push({ ...rest, entries, id, contestId } as Matchup);
       }
 
       await batch.commit();
       return created;
+    },
+
+    async setMatchupEntryName(contestId, matchupId, entryId, payload): Promise<Matchup> {
+      const db = requireDb();
+      const ref = doc(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION, matchupId);
+
+      return runTransaction(db, async (transaction) => {
+        const snap = await transaction.get(ref);
+        if (!snap.exists()) throw new Error('Matchup not found');
+        const data = snap.data();
+        const entries = ((data.entries as Entry[] | undefined) ?? []).map((e) => ({ ...e }));
+        const idx = entries.findIndex((e) => e.id === entryId);
+        if (idx === -1) throw new Error('Entry not found on matchup');
+        entries[idx].name = payload.name;
+        if (payload.description !== undefined) {
+          entries[idx].description = payload.description;
+        }
+        transaction.update(ref, { entries, updatedAt: serverTimestamp() });
+        return normalizeMatchupDoc(contestId, matchupId, { ...data, entries });
+      });
     },
 
     // ---- User profiles ----

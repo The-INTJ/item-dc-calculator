@@ -15,10 +15,8 @@ type ContestStatus = 'active' | 'pending' | 'closed';
 
 function getContestStatus(contest: Contest): ContestStatus {
   if (contest.defaultContest || contest.currentEntryId) return 'active';
-  if ((contest.entries?.length ?? 0) === 0 || (contest.rounds?.length ?? 0) === 0) return 'pending';
-
-  const voteCount = contest.entries.reduce((sum, entry) => sum + (entry.voteCount ?? 0), 0);
-  return voteCount > 0 ? 'closed' : 'pending';
+  if ((contest.contestants?.length ?? 0) === 0 || (contest.rounds?.length ?? 0) === 0) return 'pending';
+  return 'pending';
 }
 
 function statusLabel(status: ContestStatus) {
@@ -58,7 +56,7 @@ export default function ContestList({ featuredContestId, user }: ContestListProp
 
   const liveContest = contests.find((contest) => getContestStatus(contest) === 'active') ?? contests[0] ?? null;
   const liveRoundCount = liveContest?.rounds?.length ?? 0;
-  const liveEntryCount = liveContest?.entries?.length ?? 0;
+  const liveEntryCount = liveContest?.contestants?.length ?? 0;
 
   return (
     <div className="contest-home">
@@ -125,7 +123,7 @@ export default function ContestList({ featuredContestId, user }: ContestListProp
                     <span className="contest-list-row__body">
                       <span className="contest-list-row__name">{contest.name}</span>
                       <span className="contest-list-row__meta">
-                        {(contest.rounds?.length ?? 0)} rounds / {(contest.entries?.length ?? 0)} entries
+                        {(contest.rounds?.length ?? 0)} rounds / {(contest.contestants?.length ?? 0)} contestants
                       </span>
                     </span>
                     <span className={`contest-status-badge contest-status-badge--${status}`}>

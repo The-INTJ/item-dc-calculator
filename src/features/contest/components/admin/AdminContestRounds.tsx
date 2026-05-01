@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import type {
   Contest,
+  Contestant,
   ContestConfig,
+  Entry,
   Matchup,
   MatchupPhase,
 } from '../../contexts/contest/contestTypes';
@@ -36,6 +38,12 @@ function statusLabel(status: ReturnType<typeof getComputedRoundStatus>): string 
   }
 }
 
+function formatEntryDisplay(entry: Entry, contestant: Contestant | null): string {
+  const drink = entry.name?.trim();
+  const name = contestant?.displayName ?? 'TBD';
+  return drink ? `${name}: ${drink}` : `${name} (no entry yet)`;
+}
+
 export function AdminContestRounds({
   contest,
   config,
@@ -56,9 +64,9 @@ export function AdminContestRounds({
   const rounds = contest.rounds ?? [];
   const maxScore = config.attributes.reduce((sum, a) => sum + (a.max ?? 10), 0);
 
-  const entriesById = useMemo(
-    () => new Map(contest.entries.map((e) => [e.id, e])),
-    [contest.entries],
+  const contestantsById = useMemo(
+    () => new Map(contest.contestants.map((c) => [c.id, c])),
+    [contest.contestants],
   );
 
   const [seedErrorByRound, setSeedErrorByRound] = useState<Record<string, string>>({});
@@ -90,7 +98,7 @@ export function AdminContestRounds({
           const status = getComputedRoundStatus(round, matchups);
           const isSelected = round.id === selectedRoundId;
           const canSeed = index === 0
-            ? contest.entries.length >= 2
+            ? contest.contestants.length >= 2
             : roundMatchups.length === 0;
 
           return (
@@ -158,7 +166,7 @@ export function AdminContestRounds({
                               ? await seedRound(
                                   contest.id,
                                   round.id,
-                                  autoPairEntries(contest.entries.map((e) => e.id)),
+                                  autoPairContestants(contest.contestants.map((c) => c.id)),
                                 )
                               : await seedRound(contest.id, round.id);
                             if (result.error) setSeedError(round.id, result.error);
@@ -184,12 +192,8 @@ export function AdminContestRounds({
                       key={matchup.id}
                       matchup={matchup}
                       maxScore={maxScore}
-                      entries={contest.entries}
-                      entriesById={entriesById}
+                      contestantsById={contestantsById}
                       onMatchupUpdate={(updates) => updateMatchup(contest.id, matchup.id, updates)}
-                      onEntriesChange={(entryIds) =>
-                        updateMatchup(contest.id, matchup.id, { entryIds })
-                      }
                       onDelete={() => {
                         if (window.confirm('Remove this matchup?')) {
                           void deleteMatchup(contest.id, matchup.id);
@@ -208,7 +212,7 @@ export function AdminContestRounds({
 
               {isSelected && (
                 <AddMatchupForm
-                  entries={contest.entries}
+                  contestants={contest.contestants}
                   nextSlotIndex={roundMatchups.length}
                   onSubmit={(input) =>
                     createMatchup(contest.id, { roundId: round.id, ...input })
@@ -238,13 +242,12 @@ export function AdminContestRounds({
   );
 }
 
-function getLeadingEntryId(entries: Array<Contest['entries'][number] | null>): string | null {
+function getLeadingEntryId(entries: Entry[]): string | null {
   let leaderId: string | null = null;
   let leaderScore = Number.NEGATIVE_INFINITY;
   let tied = false;
 
   for (const entry of entries) {
-    if (!entry) continue;
     const score = getEntryScore(entry);
     if (score == null) continue;
     if (score > leaderScore) {
@@ -262,41 +265,37 @@ function getLeadingEntryId(entries: Array<Contest['entries'][number] | null>): s
 function MatchupRow({
   matchup,
   maxScore,
-  entries: allEntries,
-  entriesById,
+  contestantsById,
   onMatchupUpdate,
-  onEntriesChange,
   onDelete,
 }: {
   matchup: Matchup;
   maxScore: number;
-  entries: Contest['entries'];
-  entriesById: Map<string, Contest['entries'][number]>;
+  contestantsById: Map<string, Contestant>;
   onMatchupUpdate: (updates: Partial<Matchup>) => void | Promise<unknown>;
-  onEntriesChange: (entryIds: string[]) => void | Promise<unknown>;
   onDelete: () => void;
 }) {
   const [isBusy, setIsBusy] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [draftA, setDraftA] = useState(matchup.entryIds[0] ?? '');
-  const [draftB, setDraftB] = useState(matchup.entryIds[1] ?? '');
   const [draftWinnerId, setDraftWinnerId] = useState(matchup.winnerEntryId ?? '');
-  const [editError, setEditError] = useState<string | null>(null);
   const [phaseError, setPhaseError] = useState<string | null>(null);
-  const entries = matchup.entryIds.map((id) => entriesById.get(id) ?? null);
+  const entries = matchup.entries ?? [];
   const leadingEntryId = getLeadingEntryId(entries);
   const matchupNumber = matchup.slotIndex + 1;
-
-  useEffect(() => {
-    setDraftA(matchup.entryIds[0] ?? '');
-    setDraftB(matchup.entryIds[1] ?? '');
-  }, [matchup.id, matchup.entryIds]);
+  const isBye = entries.length === 1;
+  const isScored = matchup.phase === 'scored';
+  const allEntriesNamed = entries.every((e) => e.name?.trim());
+  const missingEntryCount = entries.filter((e) => !e.name?.trim()).length;
 
   useEffect(() => {
     setDraftWinnerId(matchup.winnerEntryId ?? leadingEntryId ?? '');
   }, [matchup.id, matchup.winnerEntryId, leadingEntryId]);
 
   const handlePhase = async (phase: MatchupPhase) => {
+    if (phase === 'shake' && !allEntriesNamed) {
+      setPhaseError(`Waiting on ${missingEntryCount} contestant${missingEntryCount === 1 ? '' : 's'} to name their entry.`);
+      return;
+    }
+
     const winnerEntryId = phase === 'scored' ? draftWinnerId || leadingEntryId : null;
     if (phase === 'scored' && !winnerEntryId) {
       setPhaseError('Choose a winner before closing this matchup.');
@@ -325,41 +324,6 @@ function MatchupRow({
     }
   };
 
-  const isBye = matchup.entryIds.length === 1;
-  const isScored = matchup.phase === 'scored';
-
-  const startEdit = () => {
-    setDraftA(matchup.entryIds[0] ?? '');
-    setDraftB(matchup.entryIds[1] ?? '');
-    setEditError(null);
-    setIsEditing(true);
-  };
-
-  const cancelEdit = () => {
-    setEditError(null);
-    setIsEditing(false);
-  };
-
-  const saveEdit = async () => {
-    if (!draftA) {
-      setEditError('Entry A is required.');
-      return;
-    }
-    if (draftB && draftA === draftB) {
-      setEditError('Entries must be different.');
-      return;
-    }
-    setIsBusy(true);
-    try {
-      const next = draftB ? [draftA, draftB] : [draftA];
-      await onEntriesChange(next);
-      setIsEditing(false);
-      setEditError(null);
-    } finally {
-      setIsBusy(false);
-    }
-  };
-
   return (
     <div className="admin-round-entry" role="group" aria-label={`Matchup ${matchupNumber}`}>
       <div className="admin-round-entry__contestant">
@@ -367,71 +331,21 @@ function MatchupRow({
           Matchup {matchupNumber}
           {isBye && <span className="admin-round-bye-badge"> Bye</span>}
         </strong>
-        {isEditing ? (
-          <div className="admin-round-entry__edit">
-            <select
-              value={draftA}
-              onChange={(e) => setDraftA(e.target.value)}
-              disabled={isBusy}
-            >
-              <option value="">— Select entry A —</option>
-              {allEntries.map((entry) => (
-                <option key={entry.id} value={entry.id}>
-                  {entry.name || entry.submittedBy || entry.id}
-                </option>
-              ))}
-            </select>
-            <span className="admin-round-entry__vs">vs</span>
-            <select
-              value={draftB}
-              onChange={(e) => setDraftB(e.target.value)}
-              disabled={isBusy}
-            >
-              <option value="">— None (bye) —</option>
-              {allEntries.map((entry) => (
-                <option key={entry.id} value={entry.id}>
-                  {entry.name || entry.submittedBy || entry.id}
-                </option>
-              ))}
-            </select>
-            <div className="admin-round-entry__edit-actions">
-              <button
-                type="button"
-                className="button-primary"
-                onClick={() => void saveEdit()}
-                disabled={isBusy}
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                className="button-secondary"
-                onClick={cancelEdit}
-                disabled={isBusy}
-              >
-                Cancel
-              </button>
-            </div>
-            {editError && (
-              <p className="admin-round-error" role="alert">
-                {editError}
-              </p>
-            )}
-          </div>
-        ) : (
-          <span className="admin-round-entry__name">
-            {isBye
-              ? `${entries[0]?.name || entries[0]?.submittedBy || 'TBD'} (auto-advance)`
-              : entries.map((e, i) => {
-                  const label = e?.name || e?.submittedBy || 'TBD';
-                  const score = e ? getEntryScore(e) : null;
-                  const scoreSuffix = score !== null ? ` (${score}/${maxScore})` : '';
-                  return `${i === 0 ? '' : ' vs '}${label}${scoreSuffix}`;
-                }).join('')}
-          </span>
+        <span className="admin-round-entry__name">
+          {entries.map((entry, i) => {
+            const label = formatEntryDisplay(entry, contestantsById.get(entry.contestantId) ?? null);
+            const score = getEntryScore(entry);
+            const scoreSuffix = score !== null ? ` (${score}/${maxScore})` : '';
+            return `${i === 0 ? '' : ' vs '}${label}${scoreSuffix}`;
+          }).join('')}
+        </span>
+        {!isBye && !allEntriesNamed && (
+          <p className="admin-detail-meta" role="status">
+            Waiting on {missingEntryCount} contestant{missingEntryCount === 1 ? '' : 's'} to name their entry.
+          </p>
         )}
       </div>
-      {!isBye && !isEditing && (
+      {!isBye && (
         <>
           <label className="admin-round-entry__winner">
             <span>Winner</span>
@@ -443,18 +357,16 @@ function MatchupRow({
             >
               <option value="">Select winner</option>
               {entries.map((entry) => (
-                entry ? (
-                  <option key={entry.id} value={entry.id}>
-                    {entry.name || entry.submittedBy || entry.id}
-                  </option>
-                ) : null
+                <option key={entry.id} value={entry.id}>
+                  {formatEntryDisplay(entry, contestantsById.get(entry.contestantId) ?? null)}
+                </option>
               ))}
             </select>
           </label>
           <div className="admin-phase-controls__grid admin-phase-controls__grid--compact">
             {MATCHUP_PHASE_VALUES.map((phaseOption) => {
               const isCurrent = phaseOption === matchup.phase;
-              const disabled = isBusy || (phaseOption === 'scored' && !(draftWinnerId || leadingEntryId));
+              const disabled = isBusy;
               return (
                 <button
                   key={phaseOption}
@@ -477,47 +389,37 @@ function MatchupRow({
           )}
         </>
       )}
-      {!isEditing && (
-        <div className="admin-round-entry__actions">
-          <button
-            type="button"
-            className="button-secondary"
-            onClick={startEdit}
-            disabled={isBusy || isScored}
-          >
-            Edit entries
-          </button>
-          <button
-            type="button"
-            className="button-secondary"
-            onClick={onDelete}
-            disabled={isBusy || isScored}
-          >
-            Remove
-          </button>
-        </div>
-      )}
+      <div className="admin-round-entry__actions">
+        <button
+          type="button"
+          className="button-secondary"
+          onClick={onDelete}
+          disabled={isBusy || isScored}
+        >
+          Remove
+        </button>
+      </div>
     </div>
   );
 }
 
 function AddMatchupForm({
-  entries,
+  contestants,
   nextSlotIndex,
   onSubmit,
 }: {
-  entries: Contest['entries'];
+  contestants: Contestant[];
   nextSlotIndex: number;
   onSubmit: (input: {
     slotIndex: number;
-    entryIds: string[];
+    contestantIds: string[];
     phase?: MatchupPhase;
     winnerEntryId?: string | null;
   }) => Promise<Matchup | null>;
 }) {
   const [open, setOpen] = useState(false);
-  const [entryA, setEntryA] = useState('');
-  const [entryB, setEntryB] = useState('');
+  const [contestantA, setContestantA] = useState('');
+  const [contestantB, setContestantB] = useState('');
   const [isBye, setIsBye] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
@@ -529,13 +431,13 @@ function AddMatchupForm({
           type="button"
           className="button-secondary"
           onClick={() => {
-            setEntryA('');
-            setEntryB('');
+            setContestantA('');
+            setContestantB('');
             setIsBye(false);
             setError(null);
             setOpen(true);
           }}
-          disabled={entries.length === 0}
+          disabled={contestants.length === 0}
         >
           Add matchup
         </button>
@@ -545,16 +447,16 @@ function AddMatchupForm({
 
   const submit = async () => {
     setError(null);
-    if (!entryA) {
-      setError('Entry A is required.');
+    if (!contestantA) {
+      setError('Contestant A is required.');
       return;
     }
-    if (!isBye && !entryB) {
-      setError('Pick a second entry, or check "Bye".');
+    if (!isBye && !contestantB) {
+      setError('Pick a second contestant, or check "Bye".');
       return;
     }
-    if (!isBye && entryA === entryB) {
-      setError('Entries must be different.');
+    if (!isBye && contestantA === contestantB) {
+      setError('Contestants must be different.');
       return;
     }
     setIsBusy(true);
@@ -562,13 +464,12 @@ function AddMatchupForm({
       const result = isBye
         ? await onSubmit({
             slotIndex: nextSlotIndex,
-            entryIds: [entryA],
+            contestantIds: [contestantA],
             phase: 'scored',
-            winnerEntryId: entryA,
           })
         : await onSubmit({
             slotIndex: nextSlotIndex,
-            entryIds: [entryA, entryB],
+            contestantIds: [contestantA, contestantB],
             phase: 'set',
           });
       if (!result) {
@@ -585,27 +486,27 @@ function AddMatchupForm({
     <div className="admin-round-add-matchup admin-round-add-matchup--open">
       <div className="admin-round-add-matchup__row">
         <select
-          value={entryA}
-          onChange={(e) => setEntryA(e.target.value)}
+          value={contestantA}
+          onChange={(e) => setContestantA(e.target.value)}
           disabled={isBusy}
         >
-          <option value="">— Select entry —</option>
-          {entries.map((entry) => (
-            <option key={entry.id} value={entry.id}>
-              {entry.name || entry.submittedBy || entry.id}
+          <option value="">— Select contestant —</option>
+          {contestants.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.displayName}
             </option>
           ))}
         </select>
         <span className="admin-round-entry__vs">vs</span>
         <select
-          value={entryB}
-          onChange={(e) => setEntryB(e.target.value)}
+          value={contestantB}
+          onChange={(e) => setContestantB(e.target.value)}
           disabled={isBusy || isBye}
         >
-          <option value="">— Select entry —</option>
-          {entries.map((entry) => (
-            <option key={entry.id} value={entry.id}>
-              {entry.name || entry.submittedBy || entry.id}
+          <option value="">— Select contestant —</option>
+          {contestants.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.displayName}
             </option>
           ))}
         </select>
@@ -616,7 +517,7 @@ function AddMatchupForm({
           checked={isBye}
           onChange={(e) => {
             setIsBye(e.target.checked);
-            if (e.target.checked) setEntryB('');
+            if (e.target.checked) setContestantB('');
           }}
           disabled={isBusy}
         />
@@ -652,8 +553,8 @@ function AddMatchupForm({
   );
 }
 
-function autoPairEntries(entryIds: string[]): Array<[string, string] | [string]> {
-  const { pairs, byeId } = pairWithByes(entryIds);
+function autoPairContestants(contestantIds: string[]): Array<[string, string] | [string]> {
+  const { pairs, byeId } = pairWithByes(contestantIds);
   const slots: Array<[string, string] | [string]> = [...pairs];
   if (byeId) slots.push([byeId]);
   return slots;

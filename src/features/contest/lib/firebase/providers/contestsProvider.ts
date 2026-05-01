@@ -42,7 +42,7 @@ export function createFirebaseContestsProvider(adapter: FirestoreAdapter): Conte
           name: typedInput.name,
           slug: typedInput.slug,
           config: typedInput.config,
-          entries: [],
+          contestants: [],
           voters: [],
         };
 

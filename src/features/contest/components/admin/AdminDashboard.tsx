@@ -12,6 +12,10 @@ import { useContestStore } from '../../contexts/contest/ContestContext';
 import type { Contest } from '../../contexts/contest/contestTypes';
 import { ContestCard } from './ContestCard';
 import { ContestDetails } from './ContestDetails';
+import {
+  setLastAdminContest,
+  useLastAdminContest,
+} from '../../lib/hooks/useLastAdminContest';
 
 export function AdminDashboard() {
   const { role, loading: authLoading, isAuthenticated } = useAuth();
@@ -23,14 +27,16 @@ export function AdminDashboard() {
     updateContest,
   } = useContestStore();
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const lastAdminContest = useLastAdminContest();
 
   useEffect(() => {
-    if (!selectedContest && contests.length > 0) {
-      const fallback = contests[0];
-      setSelectedContest(fallback);
-    }
-  }, [contests, selectedContest]);
+    if (selectedContest || contests.length === 0) return;
+    const remembered = lastAdminContest
+      ? contests.find((c) => c.id === lastAdminContest.id)
+      : null;
+    setSelectedContest(remembered ?? contests[0]);
+  }, [contests, selectedContest, lastAdminContest]);
 
   useEffect(() => {
     if (!selectedContest) return;
@@ -83,6 +89,7 @@ export function AdminDashboard() {
 
   const handleSelectContest = (contest: Contest) => {
     setSelectedContest(contest);
+    setLastAdminContest({ id: contest.id, name: contest.name });
   };
 
   const handleContestUpdated = (contest: Contest) => {

@@ -1,9 +1,9 @@
 import type {
   Contest,
+  Contestant,
   ContestConfig,
   ContestConfigItem,
   ContestRound,
-  Entry,
   Matchup,
   ScoreBreakdown,
   ScoreEntry,
@@ -57,7 +57,7 @@ export const contestApi = {
   },
 
   async createContest(
-    data: Omit<Contest, 'id' | 'entries' | 'voters'>,
+    data: Omit<Contest, 'id' | 'contestants' | 'voters'>,
   ): Promise<ProviderResult<Contest>> {
     return fetchProviderResult<Contest>(`${API}/contests`, {
       method: 'POST',
@@ -82,41 +82,56 @@ export const contestApi = {
     return contestApi.updateContest(id, { config });
   },
 
-  // ── Entries ─────────────────────────────────────────────────────────────
-  async listEntries(contestId: string): Promise<ProviderResult<Entry[]>> {
-    return fetchProviderResult<Entry[]>(
-      `${API}/contests/${encodeURIComponent(contestId)}/entries`,
+  // ── Contestants ─────────────────────────────────────────────────────────
+  async listContestants(contestId: string): Promise<ProviderResult<Contestant[]>> {
+    return fetchProviderResult<Contestant[]>(
+      `${API}/contests/${encodeURIComponent(contestId)}/contestants`,
     );
   },
 
-  async getEntry(contestId: string, entryId: string): Promise<ProviderResult<Entry>> {
-    return fetchProviderResult<Entry>(
-      `${API}/contests/${encodeURIComponent(contestId)}/entries/${encodeURIComponent(entryId)}`,
+  async getContestant(contestId: string, contestantId: string): Promise<ProviderResult<Contestant>> {
+    return fetchProviderResult<Contestant>(
+      `${API}/contests/${encodeURIComponent(contestId)}/contestants/${encodeURIComponent(contestantId)}`,
     );
   },
 
-  async createEntry(contestId: string, entry: Omit<Entry, 'id'>): Promise<ProviderResult<Entry>> {
-    return fetchProviderResult<Entry>(
-      `${API}/contests/${encodeURIComponent(contestId)}/entries`,
-      { method: 'POST', body: JSON.stringify(entry) },
-    );
-  },
-
-  async updateEntry(
+  async createContestant(
     contestId: string,
-    entryId: string,
-    updates: Partial<Entry>,
-  ): Promise<ProviderResult<Entry>> {
-    return fetchProviderResult<Entry>(
-      `${API}/contests/${encodeURIComponent(contestId)}/entries/${encodeURIComponent(entryId)}`,
+    contestant: Omit<Contestant, 'id'>,
+  ): Promise<ProviderResult<Contestant>> {
+    return fetchProviderResult<Contestant>(
+      `${API}/contests/${encodeURIComponent(contestId)}/contestants`,
+      { method: 'POST', body: JSON.stringify(contestant) },
+    );
+  },
+
+  async updateContestant(
+    contestId: string,
+    contestantId: string,
+    updates: Partial<Contestant>,
+  ): Promise<ProviderResult<Contestant>> {
+    return fetchProviderResult<Contestant>(
+      `${API}/contests/${encodeURIComponent(contestId)}/contestants/${encodeURIComponent(contestantId)}`,
       { method: 'PATCH', body: JSON.stringify(updates) },
     );
   },
 
-  async deleteEntry(contestId: string, entryId: string): Promise<ProviderResult<void>> {
+  async deleteContestant(contestId: string, contestantId: string): Promise<ProviderResult<void>> {
     return fetchProviderResult<void>(
-      `${API}/contests/${encodeURIComponent(contestId)}/entries/${encodeURIComponent(entryId)}`,
+      `${API}/contests/${encodeURIComponent(contestId)}/contestants/${encodeURIComponent(contestantId)}`,
       { method: 'DELETE' },
+    );
+  },
+
+  async setMatchupEntryName(
+    contestId: string,
+    matchupId: string,
+    entryId: string,
+    payload: { name: string; description?: string },
+  ): Promise<ProviderResult<Matchup>> {
+    return fetchProviderResult<Matchup>(
+      `${API}/contests/${encodeURIComponent(contestId)}/matchups/${encodeURIComponent(matchupId)}/entries/${encodeURIComponent(entryId)}`,
+      { method: 'PUT', body: JSON.stringify(payload) },
     );
   },
 
@@ -237,11 +252,11 @@ export const contestApi = {
   async registerAsContestant(
     contestId: string,
     displayName: string,
-    entryName?: string,
-  ): Promise<ProviderResult<{ registered: boolean }>> {
-    return fetchProviderResult<{ registered: boolean }>(
+    contact?: string,
+  ): Promise<ProviderResult<{ registered: boolean; contestantId?: string }>> {
+    return fetchProviderResult<{ registered: boolean; contestantId?: string }>(
       `${API}/contests/${encodeURIComponent(contestId)}/register`,
-      { method: 'POST', body: JSON.stringify({ displayName, entryName }) },
+      { method: 'POST', body: JSON.stringify({ displayName, contact }) },
     );
   },
 

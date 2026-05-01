@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Contest, ContestRound, Matchup } from '../../../contexts/contest/contestTypes';
+import type { ContestRound, Entry, Matchup } from '../../../contexts/contest/contestTypes';
 import {
   getActiveRoundIdFromMatchups,
   getComputedRoundStatus,
@@ -10,6 +10,10 @@ import {
 
 function makeRound(id: string, adminOverride?: 'active' | 'closed' | null): ContestRound {
   return { id, name: id, adminOverride: adminOverride ?? null };
+}
+
+function makeEntry(id: string, name = id, contestantId = `c-${id}`): Entry {
+  return { id, contestantId, matchupId: 'm1', name };
 }
 
 function makeMatchup(
@@ -23,7 +27,7 @@ function makeMatchup(
     contestId: 'c1',
     roundId,
     slotIndex: 0,
-    entryIds: ['e1', 'e2'],
+    entries: [makeEntry('e1'), makeEntry('e2')],
     phase,
     winnerEntryId: null,
     ...opts,
@@ -117,31 +121,16 @@ describe('getActiveRoundIdFromMatchups', () => {
 });
 
 describe('getEntriesInMatchup', () => {
-  it('resolves entry IDs against the contest entry list', () => {
-    const contest: Contest = {
-      id: 'c1',
-      name: 'C',
-      slug: 'c',
-      entries: [
-        { id: 'e1', name: 'One', slug: 'one', description: '', submittedBy: '' },
-        { id: 'e2', name: 'Two', slug: 'two', description: '', submittedBy: '' },
-        { id: 'e3', name: 'Three', slug: 'three', description: '', submittedBy: '' },
-      ],
-      voters: [],
-    };
-    const matchup = makeMatchup('m1', 'r1', 'set', { entryIds: ['e1', 'e3'] });
-    expect(getEntriesInMatchup(matchup, contest).map((e) => e.name)).toEqual(['One', 'Three']);
+  it('returns the matchup entries directly', () => {
+    const matchup = makeMatchup('m1', 'r1', 'set', {
+      entries: [makeEntry('eA', 'A'), makeEntry('eC', 'C')],
+    });
+    expect(getEntriesInMatchup(matchup).map((e) => e.name)).toEqual(['A', 'C']);
   });
 
-  it('skips missing entries', () => {
-    const contest: Contest = {
-      id: 'c1',
-      name: 'C',
-      slug: 'c',
-      entries: [{ id: 'e1', name: 'One', slug: 'one', description: '', submittedBy: '' }],
-      voters: [],
-    };
-    const matchup = makeMatchup('m1', 'r1', 'set', { entryIds: ['e1', 'missing'] });
-    expect(getEntriesInMatchup(matchup, contest).map((e) => e.id)).toEqual(['e1']);
+  it('returns empty for missing entries field', () => {
+    const matchup = makeMatchup('m1', 'r1', 'set');
+    matchup.entries = [];
+    expect(getEntriesInMatchup(matchup)).toEqual([]);
   });
 });

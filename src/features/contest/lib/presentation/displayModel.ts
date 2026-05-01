@@ -1,5 +1,6 @@
 import type {
   Contest,
+  Contestant,
   Entry,
   Matchup,
   MatchupPhase,
@@ -69,19 +70,27 @@ export interface DisplayModel {
   isFinalRoundActive: boolean;
 }
 
-function buildContestant(
+function buildDisplayContestant(
   entry: Entry | null,
+  contestantsById: Map<string, Contestant>,
   fallbackId: string,
-  winnerId: string | null,
+  winnerEntryId: string | null,
 ): DisplayContestant {
   const score = entry ? getEntryScore(entry) : null;
   const id = entry?.id ?? fallbackId;
+  const contestantName = entry ? contestantsById.get(entry.contestantId)?.displayName : null;
+  const drinkName = entry?.name?.trim();
+  const displayName = drinkName
+    ? contestantName
+      ? `${drinkName} — ${contestantName}`
+      : drinkName
+    : contestantName ?? 'TBD';
 
   return {
     id,
-    name: entry?.name ?? 'TBD',
+    name: displayName,
     score,
-    isWinner: winnerId === id,
+    isWinner: winnerEntryId === id,
   };
 }
 
@@ -115,7 +124,7 @@ export function buildDisplayModel(contest: Contest, matchups: Matchup[]): Displa
   const bracketStructure = computeBracketStructure(contestRounds.length);
   const activeRoundId = getActiveRoundIdFromMatchups(contestRounds, matchups);
   const lastRoundId = contestRounds[contestRounds.length - 1]?.id ?? null;
-  const entriesById = new Map(contest.entries.map((entry) => [entry.id, entry]));
+  const contestantsById = new Map(contest.contestants.map((c) => [c.id, c]));
 
   const activeIndex = contestRounds.findIndex((round) => round.id === activeRoundId);
   const futureRoundId =
@@ -139,25 +148,31 @@ export function buildDisplayModel(contest: Contest, matchups: Matchup[]): Displa
       const slot = structureRound?.slots[slotIndex];
       const sourceMatchups = slot?.sourceMatchups ?? null;
 
-      const contestantAEntry = matchup
-        ? entriesById.get(matchup.entryIds[0] ?? '') ?? null
-        : null;
-      const contestantBEntry = matchup
-        ? entriesById.get(matchup.entryIds[1] ?? '') ?? null
-        : null;
+      const contestantAEntry = matchup?.entries?.[0] ?? null;
+      const contestantBEntry = matchup?.entries?.[1] ?? null;
 
       const winnerId =
         matchup?.winnerEntryId ?? getLeadingContestantId(contestantAEntry, contestantBEntry);
 
       displayMatchups.push({
         id: matchup?.id ?? `${round.id}-slot-${slotIndex}`,
-        contestantA: buildContestant(contestantAEntry, `${round.id}-${slotIndex}-a`, winnerId),
-        contestantB: buildContestant(contestantBEntry, `${round.id}-${slotIndex}-b`, winnerId),
+        contestantA: buildDisplayContestant(
+          contestantAEntry,
+          contestantsById,
+          `${round.id}-${slotIndex}-a`,
+          winnerId,
+        ),
+        contestantB: buildDisplayContestant(
+          contestantBEntry,
+          contestantsById,
+          `${round.id}-${slotIndex}-b`,
+          winnerId,
+        ),
         winnerId: winnerId ?? null,
         sourceMatchups,
         slotIndex,
         ...(matchup
-          ? { matchupId: matchup.id, phase: matchup.phase, isBye: matchup.entryIds.length === 1 }
+          ? { matchupId: matchup.id, phase: matchup.phase, isBye: (matchup.entries?.length ?? 0) === 1 }
           : {}),
       });
     }

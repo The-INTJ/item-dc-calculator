@@ -10,7 +10,7 @@ interface FeaturedContestCardProps {
 
 export default function FeaturedContestCard({ contest }: FeaturedContestCardProps) {
   const roundCount = contest.rounds?.length ?? 0;
-  const entryCount = contest.entries?.length ?? 0;
+  const contestantCount = contest.contestants?.length ?? 0;
 
   return (
     <div className={styles.card}>
@@ -18,7 +18,7 @@ export default function FeaturedContestCard({ contest }: FeaturedContestCardProp
       <h1 className={styles.name}>{contest.name}</h1>
       {contest.config?.topic && <p className={styles.topic}>{contest.config.topic}</p>}
       <span className={styles.meta}>
-        {entryCount} entries / {roundCount} rounds
+        {contestantCount} contestants / {roundCount} rounds
       </span>
       <Link href={`/contest/${contest.id}`} className={styles.cta}>
         View Contest

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Contest } from '../../contexts/contest/contestTypes';
+import type { Contest, Entry } from '../../contexts/contest/contestTypes';
 import {
   getContestRounds,
   getEntryScore,
@@ -16,18 +16,17 @@ const contest: Contest = {
     { id: 'round-2', name: 'Semifinals' },
     { id: 'round-3', name: 'Finals' },
   ],
-  entries: [
-    {
-      id: 'entry-1',
-      name: 'North',
-      slug: 'north',
-      description: '',
-      submittedBy: 'A',
-      sumScore: 12,
-      voteCount: 2,
-    },
-  ],
+  contestants: [],
   voters: [],
+};
+
+const sampleEntry: Entry = {
+  id: 'entry-1',
+  contestantId: 'c-1',
+  matchupId: 'matchup-1',
+  name: 'North',
+  sumScore: 12,
+  voteCount: 2,
 };
 
 describe('contestGetters', () => {
@@ -49,7 +48,7 @@ describe('contestGetters', () => {
   });
 
   it('calculates rounded entry scores from aggregates', () => {
-    expect(getEntryScore(contest.entries[0])).toBe(6);
-    expect(getEntryScore({ ...contest.entries[0], voteCount: 0 })).toBeNull();
+    expect(getEntryScore(sampleEntry)).toBe(6);
+    expect(getEntryScore({ ...sampleEntry, voteCount: 0 })).toBeNull();
   });
 });

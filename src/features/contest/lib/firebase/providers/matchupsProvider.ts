@@ -73,5 +73,13 @@ export function createFirebaseMatchupsProvider(adapter: FirestoreAdapter): Match
         return error(String(err));
       }
     },
+
+    async setEntryName(contestId, matchupId, entryId, payload): Promise<ProviderResult<Matchup>> {
+      try {
+        return success(await adapter.setMatchupEntryName(contestId, matchupId, entryId, payload));
+      } catch (err) {
+        return error(String(err));
+      }
+    },
   };
 }

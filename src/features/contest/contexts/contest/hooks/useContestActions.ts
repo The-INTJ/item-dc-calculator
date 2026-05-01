@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
 import type {
   Contest,
+  Contestant,
   ContestActions,
   ContestContextState,
   ContestContextStateUpdater,
   ContestRound,
-  Entry,
   Matchup,
 } from '../contestTypes';
 import { contestApi } from '../../../lib/api/contestApi';
@@ -134,24 +134,19 @@ export function useContestActions(
   const addContestant = useCallback(
     async (
       contestId: string,
-      contestant: { name: string; entryName: string },
-    ): Promise<Entry | null> => {
-      const result = await contestApi.createEntry(contestId, {
-        name: contestant.entryName,
-        slug: contestant.entryName.toLowerCase().replace(/\s+/g, '-'),
-        description: '',
-        submittedBy: contestant.name,
-      });
+      contestant: { displayName: string; userId?: string; contact?: string },
+    ): Promise<Contestant | null> => {
+      const result = await contestApi.createContestant(contestId, contestant);
 
       if (result.success && result.data) {
-        const entry = result.data;
+        const created = result.data;
         updateState((prev) => ({
           ...prev,
           contests: prev.contests.map((c) =>
-            c.id === contestId ? { ...c, entries: [...(c.entries ?? []), entry] } : c,
+            c.id === contestId ? { ...c, contestants: [...(c.contestants ?? []), created] } : c,
           ),
         }));
-        return entry;
+        return created;
       }
       return null;
     },
@@ -159,37 +154,49 @@ export function useContestActions(
   );
 
   const updateContestant = useCallback(
-    async (contestId: string, entryId: string, updates: Partial<Entry>): Promise<Entry | null> => {
-      const result = await contestApi.updateEntry(contestId, entryId, updates);
+    async (
+      contestId: string,
+      contestantId: string,
+      updates: Partial<Contestant>,
+    ): Promise<Contestant | null> => {
+      const result = await contestApi.updateContestant(contestId, contestantId, updates);
       if (result.success && result.data) {
-        const entry = result.data;
+        const updated = result.data;
         updateState((prev) => ({
           ...prev,
           contests: prev.contests.map((c) =>
             c.id === contestId
-              ? { ...c, entries: c.entries?.map((e) => (e.id === entryId ? entry : e)) }
+              ? {
+                  ...c,
+                  contestants: c.contestants?.map((cc) => (cc.id === contestantId ? updated : cc)),
+                }
               : c,
           ),
         }));
-        return entry;
+        return updated;
       }
       return null;
     },
     [updateState],
   );
 
-  const removeContestant = useCallback(async (contestId: string, entryId: string): Promise<boolean> => {
-    const result = await contestApi.deleteEntry(contestId, entryId);
-    if (result.success) {
-      updateState((prev) => ({
-        ...prev,
-        contests: prev.contests.map((c) =>
-          c.id === contestId ? { ...c, entries: c.entries?.filter((e) => e.id !== entryId) } : c,
-        ),
-      }));
-    }
-    return result.success;
-  }, [updateState]);
+  const removeContestant = useCallback(
+    async (contestId: string, contestantId: string): Promise<boolean> => {
+      const result = await contestApi.deleteContestant(contestId, contestantId);
+      if (result.success) {
+        updateState((prev) => ({
+          ...prev,
+          contests: prev.contests.map((c) =>
+            c.id === contestId
+              ? { ...c, contestants: c.contestants?.filter((cc) => cc.id !== contestantId) }
+              : c,
+          ),
+        }));
+      }
+      return result.success;
+    },
+    [updateState],
+  );
 
   const setMatchupsForContest = useCallback(
     (contestId: string, matchups: Matchup[]) => {
@@ -266,7 +273,7 @@ export function useContestActions(
       const result = await contestApi.createMatchup(contestId, {
         roundId: input.roundId,
         slotIndex: input.slotIndex,
-        entryIds: input.entryIds,
+        contestantIds: input.contestantIds,
         phase: input.phase ?? 'set',
         ...(input.winnerEntryId !== undefined ? { winnerEntryId: input.winnerEntryId } : {}),
       });
@@ -285,6 +292,16 @@ export function useContestActions(
       return created;
     },
     [updateState],
+  );
+
+  const setMatchupEntryName = useCallback<ContestActions['setMatchupEntryName']>(
+    async (contestId, matchupId, entryId, payload) => {
+      const result = await contestApi.setMatchupEntryName(contestId, matchupId, entryId, payload);
+      if (!result.success || !result.data) return null;
+      upsertMatchup(contestId, result.data);
+      return result.data;
+    },
+    [upsertMatchup],
   );
 
   const deleteMatchup = useCallback<ContestActions['deleteMatchup']>(
@@ -320,6 +337,7 @@ export function useContestActions(
     removeContestant,
     setMatchupsForContest,
     updateMatchup,
+    setMatchupEntryName,
     seedRound,
     createMatchup,
     deleteMatchup,

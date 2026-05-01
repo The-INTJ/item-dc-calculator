@@ -1,5 +1,6 @@
 import type {
   Contest,
+  Entry,
   Matchup,
   MatchupPhase,
   RoundStatus,
@@ -44,7 +45,19 @@ export function buildBracketRoundsFromContest(
   matchups: Matchup[],
 ): BracketRound[] {
   const rounds = getContestRounds(contest);
-  const entriesById = new Map(contest.entries.map((entry) => [entry.id, entry]));
+  const contestantsById = new Map(contest.contestants.map((c) => [c.id, c]));
+
+  function buildContestant(entry: Entry | undefined, fallbackId: string): BracketContestant {
+    if (!entry) return { id: fallbackId, name: 'TBD', score: null };
+    const contestantName = contestantsById.get(entry.contestantId)?.displayName ?? null;
+    const drink = entry.name?.trim();
+    const label = drink
+      ? contestantName
+        ? `${drink} — ${contestantName}`
+        : drink
+      : contestantName ?? 'TBD';
+    return { id: entry.id, name: label, score: getEntryScore(entry) };
+  }
 
   return rounds.map((round, index) => {
     const roundMatchups = getMatchupsForRound(matchups, round.id).sort(
@@ -52,24 +65,17 @@ export function buildBracketRoundsFromContest(
     );
 
     const bracketMatchups: BracketMatchup[] = roundMatchups.map((matchup) => {
-      const entryA = entriesById.get(matchup.entryIds[0] ?? '') ?? null;
-      const entryB = entriesById.get(matchup.entryIds[1] ?? '') ?? null;
-
-      const contestantA: BracketContestant = entryA
-        ? { id: entryA.id, name: entryA.name ?? 'TBD', score: getEntryScore(entryA) }
-        : { id: 'tbd-a', name: 'TBD', score: null };
-      const contestantB: BracketContestant = entryB
-        ? { id: entryB.id, name: entryB.name ?? 'TBD', score: getEntryScore(entryB) }
-        : { id: 'tbd-b', name: 'TBD', score: null };
+      const entryA = matchup.entries?.[0];
+      const entryB = matchup.entries?.[1];
 
       return {
         id: matchup.id,
-        contestantA,
-        contestantB,
+        contestantA: buildContestant(entryA, 'tbd-a'),
+        contestantB: buildContestant(entryB, 'tbd-b'),
         winnerId: matchup.winnerEntryId ?? null,
         matchupId: matchup.id,
         phase: matchup.phase,
-        isBye: matchup.entryIds.length === 1,
+        isBye: (matchup.entries?.length ?? 0) === 1,
       };
     });
 

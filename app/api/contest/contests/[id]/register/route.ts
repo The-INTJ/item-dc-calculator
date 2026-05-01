@@ -26,6 +26,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 
   const userId = auth.user.uid;
   const displayName = body.data.displayName?.trim() || auth.user.displayName || 'Guest';
+  const contact = body.data.contact?.trim();
 
   // Upsert voter as competitor
   const existing = await provider.voters.getById(contest.id, userId);
@@ -45,23 +46,29 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
   }
 
-  // Optionally create entry
-  const entryName = body.data.entryName?.trim();
-  if (entryName) {
-    const slug = entryName
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
-    const entryResult = await provider.entries.create(contest.id, {
-      name: entryName,
-      slug,
-      description: '',
-      submittedBy: displayName,
+  // Upsert contestant identity (linked by userId so self-vote checks work)
+  const existingContestant = contest.contestants.find((c) => c.userId === userId);
+  let contestantId: string;
+  if (existingContestant) {
+    contestantId = existingContestant.id;
+    const updateRes = await provider.contestants.update(contest.id, existingContestant.id, {
+      displayName,
+      ...(contact ? { contact } : {}),
     });
-    if (!entryResult.success) {
-      return jsonError(entryResult.error ?? 'Registered but failed to create entry', 500);
+    if (!updateRes.success) {
+      return jsonError(updateRes.error ?? 'Failed to update contestant', 500);
     }
+  } else {
+    const createRes = await provider.contestants.create(contest.id, {
+      displayName,
+      userId,
+      ...(contact ? { contact } : {}),
+    });
+    if (!createRes.success || !createRes.data) {
+      return jsonError(createRes.error ?? 'Failed to register contestant', 500);
+    }
+    contestantId = createRes.data.id;
   }
 
-  return jsonSuccess({ registered: true });
+  return jsonSuccess({ registered: true, contestantId });
 }

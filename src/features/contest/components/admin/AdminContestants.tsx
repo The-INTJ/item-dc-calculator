@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import type {
   Contest,
+  Contestant,
   Entry,
   Matchup,
   ScoreEntry,
@@ -16,192 +17,46 @@ interface AdminContestantsProps {
   contestScores: ScoreEntry[];
 }
 
-interface ParticipantEntry {
+interface MatchupEntryRef {
+  matchup: Matchup;
   entry: Entry;
-  placement: { roundId: string; roundIndex: number } | null;
-}
-
-type VoteStatus = 'voted' | 'partial' | 'not-voted' | 'auto-max' | 'not-open';
-
-interface RoundParticipation {
   roundId: string;
   roundIndex: number;
-  label: string;
-  status: VoteStatus;
-  votedCount: number;
-  expectedCount: number;
-  isCompetitor: boolean;
 }
 
 interface ParticipantDetails {
   id: string;
+  contestantId: string | null;
   displayName: string;
   role: UserRole;
-  entries: ParticipantEntry[];
-  competitorRoundIndexes: number[];
-  voteRounds: RoundParticipation[];
-  votedRoundCount: number;
+  entries: MatchupEntryRef[];
   totalRounds: number;
+  votedRoundCount: number;
 }
 
-type Filter = 'all' | 'no-entry' | 'unplaced' | string;
-
-const VOTE_STATUS_LABEL: Record<VoteStatus, string> = {
-  voted: 'Voted',
-  partial: 'Partial',
-  'not-voted': 'Not voted',
-  'auto-max': 'Auto max',
-  'not-open': 'Not open',
-};
-
-function EntryEditor({
-  entry,
-  placementLabel,
-  onUpdate,
-  onRemove,
-}: {
-  entry: Entry;
-  placementLabel: string;
-  onUpdate: (updates: Partial<Entry>) => Promise<void>;
-  onRemove: () => Promise<void>;
-}) {
-  const [updating, setUpdating] = useState(false);
-  const [removing, setRemoving] = useState(false);
-  const [draft, setDraft] = useState(entry.name ?? '');
-
-  const commit = async () => {
-    if (draft === (entry.name ?? '')) return;
-    setUpdating(true);
-    await onUpdate({ name: draft });
-    setUpdating(false);
-  };
-
-  const handleRemove = async () => {
-    setRemoving(true);
-    await onRemove();
-  };
-
-  const disabled = updating || removing;
-
-  return (
-    <li className="admin-entry-row">
-      <input
-        className="admin-contestant-input admin-entry-row__name"
-        value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-        onBlur={commit}
-        placeholder="Entry name"
-        disabled={disabled}
-      />
-      <span className="admin-entry-row__placement">{placementLabel}</span>
-      <button
-        type="button"
-        className="admin-inline-button admin-inline-button--danger"
-        onClick={handleRemove}
-        disabled={disabled}
-      >
-        {removing ? 'Removing...' : 'Remove'}
-      </button>
-    </li>
-  );
-}
-
-function AddEntryForm({
-  onAdd,
-  disabled,
-}: {
-  onAdd: (entryName: string) => Promise<boolean>;
-  disabled?: boolean;
-}) {
-  const [name, setName] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleAdd = async () => {
-    setLoading(true);
-    const ok = await onAdd(name.trim());
-    if (ok) setName('');
-    setLoading(false);
-  };
-
-  return (
-    <div className="admin-entry-add">
-      <input
-        className="admin-contestant-input"
-        placeholder="Entry name (optional)"
-        value={name}
-        onChange={(event) => setName(event.target.value)}
-        disabled={disabled || loading}
-      />
-      <button
-        type="button"
-        className="admin-inline-button admin-inline-button--primary"
-        onClick={handleAdd}
-        disabled={disabled || loading}
-      >
-        {loading ? 'Adding...' : 'Add entry'}
-      </button>
-    </div>
-  );
-}
-
-function RoundVoteRow({ round }: { round: RoundParticipation }) {
-  const statusClass = `admin-vote-status admin-vote-status--${
-    round.status === 'auto-max' ? 'auto' : round.status === 'voted' ? 'voted' : round.status === 'partial' ? 'partial' : 'pending'
-  }`;
-  const detail =
-    round.status === 'auto-max'
-      ? 'Competing this round'
-      : round.expectedCount > 0
-        ? `${round.votedCount} of ${round.expectedCount}`
-        : '';
-
-  return (
-    <li className="admin-round-vote-row">
-      <span className="admin-round-vote-row__label">
-        <strong>{round.label}</strong>
-        {round.isCompetitor && (
-          <span className="admin-inline-chip admin-inline-chip--competitor">competing</span>
-        )}
-      </span>
-      <span className="admin-round-vote-row__detail">
-        <span className={statusClass}>{VOTE_STATUS_LABEL[round.status]}</span>
-        {detail && <span className="admin-detail-meta">{detail}</span>}
-      </span>
-    </li>
-  );
-}
-
-function ParticipantCard({
+function ContestantCard({
   participant,
+  rounds,
   expanded,
   onToggle,
-  onUpdateEntry,
-  onRemoveEntry,
-  onAddEntry,
+  onSetEntryName,
+  onRemoveContestant,
 }: {
   participant: ParticipantDetails;
+  rounds: Contest['rounds'];
   expanded: boolean;
   onToggle: () => void;
-  onUpdateEntry: (entryId: string, updates: Partial<Entry>) => Promise<void>;
-  onRemoveEntry: (entryId: string) => Promise<void>;
-  onAddEntry: (entryName: string) => Promise<boolean>;
+  onSetEntryName: (matchupId: string, entryId: string, name: string) => Promise<boolean>;
+  onRemoveContestant: (() => Promise<void>) | null;
 }) {
-  const [votesOpen, setVotesOpen] = useState(false);
-  const voteSummary =
-    participant.totalRounds > 0
-      ? `${participant.votedRoundCount} of ${participant.totalRounds} rounds`
-      : 'No rounds yet';
-  const entrySummary =
+  const namedCount = participant.entries.filter((e) => e.entry.name?.trim()).length;
+  const placementSummary =
     participant.entries.length === 0
-      ? 'No entry'
-      : participant.entries.length === 1
-        ? '1 entry'
-        : `${participant.entries.length} entries`;
+      ? 'Not placed yet'
+      : `${namedCount}/${participant.entries.length} entries named`;
 
   return (
-    <li
-      className={`admin-participant-card${expanded ? ' admin-participant-card--expanded' : ''}`}
-    >
+    <li className={`admin-participant-card${expanded ? ' admin-participant-card--expanded' : ''}`}>
       <button
         type="button"
         className="admin-participant-card__header"
@@ -214,14 +69,13 @@ function ParticipantCard({
             <span className={`admin-role-badge admin-role-badge--${participant.role}`}>
               {participant.role}
             </span>
-            {participant.entries.length > 0 && (
+            {participant.contestantId && (
               <span className="admin-role-badge admin-role-badge--contestant">contestant</span>
             )}
           </div>
         </div>
         <div className="admin-participant-card__summary">
-          <span className="admin-detail-meta">{entrySummary}</span>
-          <span className="admin-detail-meta">{voteSummary}</span>
+          <span className="admin-detail-meta">{placementSummary}</span>
           <span className="admin-participant-card__chevron" aria-hidden="true">
             {expanded ? '^' : 'v'}
           </span>
@@ -232,58 +86,35 @@ function ParticipantCard({
         <div className="admin-participant-card__body">
           <section className="admin-participant-section">
             <header className="admin-participant-section__header">
-              <h4>Entries</h4>
-              {participant.competitorRoundIndexes.length > 0 && (
-                <span className="admin-detail-meta">
-                  Competing in{' '}
-                  {participant.competitorRoundIndexes
-                    .map((i) => `Round ${i + 1}`)
-                    .join(', ')}
-                </span>
-              )}
+              <h4>Per-matchup entries</h4>
             </header>
             {participant.entries.length === 0 ? (
-              <p className="admin-empty">No entries assigned.</p>
+              <p className="admin-empty">Not placed in any matchups yet.</p>
             ) : (
               <ul className="admin-entry-list">
-                {participant.entries.map(({ entry, placement }) => (
-                  <EntryEditor
+                {participant.entries.map(({ matchup, entry, roundIndex }) => (
+                  <MatchupEntryEditor
                     key={entry.id}
+                    matchup={matchup}
                     entry={entry}
-                    placementLabel={
-                      placement ? `Round ${placement.roundIndex + 1}` : 'Unplaced'
-                    }
-                    onUpdate={(updates) => onUpdateEntry(entry.id, updates)}
-                    onRemove={() => onRemoveEntry(entry.id)}
+                    roundLabel={rounds?.[roundIndex]?.name || `Round ${roundIndex + 1}`}
+                    onSubmit={(name) => onSetEntryName(matchup.id, entry.id, name)}
                   />
                 ))}
               </ul>
             )}
-            <AddEntryForm onAdd={onAddEntry} />
           </section>
 
-          {participant.voteRounds.length > 0 && (
-            <section className="admin-participant-section">
+          {onRemoveContestant && (
+            <div className="admin-entry-add">
               <button
                 type="button"
-                className="admin-participant-section__toggle"
-                onClick={() => setVotesOpen((open) => !open)}
-                aria-expanded={votesOpen}
+                className="admin-inline-button admin-inline-button--danger"
+                onClick={() => void onRemoveContestant()}
               >
-                <h4>Voting</h4>
-                <span className="admin-detail-meta">{voteSummary}</span>
-                <span className="admin-participant-card__chevron" aria-hidden="true">
-                  {votesOpen ? '^' : 'v'}
-                </span>
+                Remove contestant
               </button>
-              {votesOpen && (
-                <ul className="admin-round-vote-list">
-                  {participant.voteRounds.map((round) => (
-                    <RoundVoteRow key={round.roundId} round={round} />
-                  ))}
-                </ul>
-              )}
-            </section>
+            </div>
           )}
         </div>
       )}
@@ -291,159 +122,107 @@ function ParticipantCard({
   );
 }
 
-export function AdminContestants({ contest, matchups, contestScores }: AdminContestantsProps) {
-  const { addContestant, updateContestant, removeContestant } = useContestStore();
-  const [filter, setFilter] = useState<Filter>('all');
+function MatchupEntryEditor({
+  matchup,
+  entry,
+  roundLabel,
+  onSubmit,
+}: {
+  matchup: Matchup;
+  entry: Entry;
+  roundLabel: string;
+  onSubmit: (name: string) => Promise<boolean>;
+}) {
+  const [draft, setDraft] = useState(entry.name ?? '');
+  const [busy, setBusy] = useState(false);
+
+  const commit = async () => {
+    const trimmed = draft.trim();
+    if (trimmed === (entry.name?.trim() ?? '')) return;
+    if (!trimmed) return;
+    setBusy(true);
+    await onSubmit(trimmed);
+    setBusy(false);
+  };
+
+  return (
+    <li className="admin-entry-row">
+      <input
+        className="admin-contestant-input admin-entry-row__name"
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={() => void commit()}
+        placeholder="Entry name (e.g. drink name)"
+        disabled={busy}
+      />
+      <span className="admin-entry-row__placement">
+        {roundLabel} · Matchup {matchup.slotIndex + 1}
+      </span>
+    </li>
+  );
+}
+
+export function AdminContestants({ contest, matchups }: AdminContestantsProps) {
+  const { removeContestant, setMatchupEntryName } = useContestStore();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [actionError, setActionError] = useState<string | null>(null);
 
   const rounds = contest.rounds ?? [];
-  const entries = contest.entries ?? [];
+  const contestants = contest.contestants ?? [];
   const voters = contest.voters ?? [];
 
-  const placementByEntryId = useMemo(() => {
-    const map = new Map<string, { roundId: string; roundIndex: number }>();
+  const entriesByContestantId = useMemo(() => {
+    const map = new Map<string, MatchupEntryRef[]>();
     for (const matchup of matchups) {
       const roundIndex = rounds.findIndex((r) => r.id === matchup.roundId);
-      for (const entryId of matchup.entryIds) {
-        map.set(entryId, { roundId: matchup.roundId, roundIndex });
+      for (const entry of matchup.entries ?? []) {
+        const key = entry.contestantId;
+        if (!map.has(key)) map.set(key, []);
+        map.get(key)!.push({ matchup, entry, roundId: matchup.roundId, roundIndex });
       }
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => a.roundIndex - b.roundIndex || a.matchup.slotIndex - b.matchup.slotIndex);
     }
     return map;
   }, [matchups, rounds]);
 
   const participants = useMemo<ParticipantDetails[]>(() => {
-    const entriesByName = new Map<string, Entry[]>();
-    for (const entry of entries) {
-      const key = entry.submittedBy?.toLowerCase() ?? '';
-      if (!key) continue;
-      if (!entriesByName.has(key)) entriesByName.set(key, []);
-      entriesByName.get(key)!.push(entry);
-    }
-
-    const roundsMeta = rounds.map((round, index) => {
-      const roundMatchups = matchups.filter((m) => m.roundId === round.id);
-      const roundEntryIds = new Set(roundMatchups.flatMap((m) => m.entryIds));
-      const matchupIdsForRound = new Set(roundMatchups.map((m) => m.id));
-      const isVotingOpen = roundMatchups.some((m) => m.phase === 'shake');
-      const isShakeOrScored = roundMatchups.some(
-        (m) => m.phase === 'shake' || m.phase === 'scored',
-      );
-      return {
-        round,
-        index,
-        roundEntryIds,
-        matchupIdsForRound,
-        isVotingOpen,
-        isShakeOrScored,
-      };
-    });
-
-    const build = (id: string, displayName: string, role: UserRole): ParticipantDetails => {
-      const participantEntries: ParticipantEntry[] =
-        (entriesByName.get(displayName.toLowerCase()) ?? []).map((entry) => ({
-          entry,
-          placement: placementByEntryId.get(entry.id) ?? null,
-        }));
-
-      const competitorRoundIndexes = Array.from(
-        new Set(
-          participantEntries
-            .map((pe) => pe.placement?.roundIndex)
-            .filter((i): i is number => typeof i === 'number'),
-        ),
-      ).sort((a, b) => a - b);
-
-      const voteRounds: RoundParticipation[] = roundsMeta.map((meta) => {
-        const isCompetitor = participantEntries.some(
-          (pe) => pe.placement?.roundId === meta.round.id,
-        );
-        const expectedCount = Math.max(
-          0,
-          meta.roundEntryIds.size -
-            participantEntries.filter((pe) => pe.placement?.roundId === meta.round.id).length,
-        );
-
-        let votedCount = 0;
-        for (const score of contestScores) {
-          if (score.userId !== id) continue;
-          if (!meta.roundEntryIds.has(score.entryId)) continue;
-          if (score.matchupId && !meta.matchupIdsForRound.has(score.matchupId)) continue;
-          votedCount += 1;
-        }
-
-        let status: VoteStatus;
-        if (isCompetitor && meta.isShakeOrScored) {
-          status = 'auto-max';
-        } else if (!meta.isVotingOpen && !meta.isShakeOrScored) {
-          status = 'not-open';
-        } else if (expectedCount > 0 && votedCount >= expectedCount) {
-          status = 'voted';
-        } else if (votedCount > 0) {
-          status = 'partial';
-        } else {
-          status = 'not-voted';
-        }
-
-        return {
-          roundId: meta.round.id,
-          roundIndex: meta.index,
-          label: `Round ${meta.index + 1}`,
-          status,
-          votedCount,
-          expectedCount,
-          isCompetitor,
-        };
-      });
-
-      const totalRounds = voteRounds.filter(
-        (r) => r.status !== 'not-open' && !r.isCompetitor,
-      ).length;
-      const votedRoundCount = voteRounds.filter(
-        (r) => r.status === 'voted' || r.status === 'auto-max',
-      ).length;
-
-      return {
-        id,
-        displayName,
-        role,
-        entries: participantEntries,
-        competitorRoundIndexes,
-        voteRounds,
-        votedRoundCount,
-        totalRounds,
-      };
-    };
-
     const list: ParticipantDetails[] = [];
-    const seenNames = new Set<string>();
+    const seenContestantIds = new Set<string>();
 
-    for (const voter of voters) {
-      seenNames.add(voter.displayName.toLowerCase());
-      list.push(build(voter.id, voter.displayName, voter.role));
+    // Build contestant entries first (they're the per-matchup competitors)
+    for (const c of contestants) {
+      seenContestantIds.add(c.id);
+      const linkedVoter = c.userId ? voters.find((v) => v.id === c.userId) : null;
+      list.push({
+        id: c.id,
+        contestantId: c.id,
+        displayName: c.displayName,
+        role: linkedVoter?.role ?? 'competitor',
+        entries: entriesByContestantId.get(c.id) ?? [],
+        totalRounds: rounds.length,
+        votedRoundCount: 0,
+      });
     }
 
-    for (const entry of entries) {
-      const name = entry.submittedBy;
-      if (!name || seenNames.has(name.toLowerCase())) continue;
-      seenNames.add(name.toLowerCase());
-      list.push(build(`contestant-${name}`, name, 'competitor'));
+    // Append voters who are NOT contestants (so admin can see vote participation later)
+    const linkedUserIds = new Set(contestants.map((c) => c.userId).filter(Boolean) as string[]);
+    for (const voter of voters) {
+      if (linkedUserIds.has(voter.id)) continue;
+      list.push({
+        id: voter.id,
+        contestantId: null,
+        displayName: voter.displayName,
+        role: voter.role,
+        entries: [],
+        totalRounds: rounds.length,
+        votedRoundCount: 0,
+      });
     }
 
     return list.sort((a, b) => a.displayName.localeCompare(b.displayName));
-  }, [voters, entries, matchups, rounds, placementByEntryId, contestScores]);
-
-  const filteredParticipants = useMemo(() => {
-    if (filter === 'all') return participants;
-    if (filter === 'no-entry') return participants.filter((p) => p.entries.length === 0);
-    if (filter === 'unplaced')
-      return participants.filter((p) =>
-        p.entries.some((pe) => pe.placement === null),
-      );
-    return participants.filter((p) =>
-      p.entries.some((pe) => pe.placement?.roundId === filter),
-    );
-  }, [participants, filter]);
+  }, [contestants, voters, entriesByContestantId, rounds.length]);
 
   const toggleExpanded = (id: string) => {
     setExpandedIds((prev) => {
@@ -454,29 +233,11 @@ export function AdminContestants({ contest, matchups, contestScores }: AdminCont
     });
   };
 
-  const handleUpdateEntry = async (entryId: string, updates: Partial<Entry>) => {
+  const handleSetEntryName = async (matchupId: string, entryId: string, name: string): Promise<boolean> => {
     setActionError(null);
-    const result = await updateContestant(contest.id, entryId, updates);
-    if (!result) setActionError('Failed to update entry');
-  };
-
-  const handleRemoveEntry = async (entryId: string) => {
-    setActionError(null);
-    const ok = await removeContestant(contest.id, entryId);
-    if (!ok) setActionError('Failed to remove entry');
-  };
-
-  const handleAddEntry = async (
-    participant: ParticipantDetails,
-    entryName: string,
-  ): Promise<boolean> => {
-    setActionError(null);
-    const result = await addContestant(contest.id, {
-      name: participant.displayName,
-      entryName,
-    });
+    const result = await setMatchupEntryName(contest.id, matchupId, entryId, { name });
     if (!result) {
-      setActionError('Failed to add entry');
+      setActionError('Failed to update entry');
       return false;
     }
     return true;
@@ -486,43 +247,37 @@ export function AdminContestants({ contest, matchups, contestScores }: AdminCont
     <section className="admin-details-section">
       <header className="admin-participants-header">
         <h3>Participants ({participants.length})</h3>
-        <label className="admin-participants-filter">
-          <span>Filter</span>
-          <select
-            value={filter}
-            onChange={(event) => setFilter(event.target.value as Filter)}
-          >
-            <option value="all">All participants</option>
-            <option value="no-entry">No entry assigned</option>
-            <option value="unplaced">Has unplaced entry</option>
-            {rounds.map((round, index) => (
-              <option key={round.id} value={round.id}>
-                Placed in Round {index + 1}
-              </option>
-            ))}
-          </select>
-        </label>
       </header>
 
       {actionError && (
         <p className="admin-phase-controls__message--error">{actionError}</p>
       )}
 
-      {filteredParticipants.length === 0 ? (
-        <p className="admin-empty">No participants match this filter.</p>
+      {participants.length === 0 ? (
+        <p className="admin-empty">No participants yet.</p>
       ) : (
         <ul className="admin-participants-list">
-          {filteredParticipants.map((participant) => (
-            <ParticipantCard
-              key={participant.id}
-              participant={participant}
-              expanded={expandedIds.has(participant.id)}
-              onToggle={() => toggleExpanded(participant.id)}
-              onUpdateEntry={handleUpdateEntry}
-              onRemoveEntry={handleRemoveEntry}
-              onAddEntry={(entryName) => handleAddEntry(participant, entryName)}
-            />
-          ))}
+          {participants.map((participant) => {
+            const removeFn: (() => Promise<void>) | null = participant.contestantId
+              ? async () => {
+                  if (!window.confirm(`Remove contestant ${participant.displayName}?`)) return;
+                  setActionError(null);
+                  const ok = await removeContestant(contest.id, participant.contestantId!);
+                  if (!ok) setActionError('Failed to remove contestant');
+                }
+              : null;
+            return (
+              <ContestantCard
+                key={participant.id}
+                participant={participant}
+                rounds={rounds}
+                expanded={expandedIds.has(participant.id)}
+                onToggle={() => toggleExpanded(participant.id)}
+                onSetEntryName={handleSetEntryName}
+                onRemoveContestant={removeFn}
+              />
+            );
+          })}
         </ul>
       )}
     </section>

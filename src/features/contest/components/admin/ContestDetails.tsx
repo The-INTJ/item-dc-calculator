@@ -50,20 +50,23 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
 
   const activeRoundLabel = getRoundLabel(contest, activeRoundId);
   const config = getEffectiveConfig(contest);
-  const hasScores = contest.entries.some((e) => (e.voteCount ?? 0) > 0);
+  const hasScores = matchups.some((m) =>
+    m.entries.some((e) => (e.voteCount ?? 0) > 0),
+  );
 
   useEffect(() => {
     if (!contest.id) return;
 
     const fetchScores = async () => {
+      const allEntryIds = matchups.flatMap((m) => m.entries.map((e) => e.id));
       const scoreGroups = await Promise.all(
-        contest.entries.map((entry) => contestApi.getScoresForEntry(contest.id, entry.id)),
+        allEntryIds.map((entryId) => contestApi.getScoresForEntry(contest.id, entryId)),
       );
       setContestScores(scoreGroups.flatMap((r) => (r.success ? r.data ?? [] : [])));
     };
 
     void fetchScores();
-  }, [contest.id, contest.entries]);
+  }, [contest.id, matchups]);
 
   const handleSaveConfig = async (nextConfig: ContestConfig) => {
     const result = await contestApi.updateContestConfig(contest.id, nextConfig);

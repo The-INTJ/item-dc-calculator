@@ -7,12 +7,13 @@ import { setRecentContest } from '@/contest/lib/hooks/useRecentContest';
 import { ContestRoundNavigator } from '@/contest/components/ui/ContestRoundNavigator';
 import { ContestantCta } from '@/contest/components/ui/ContestantCta';
 import { VoteModal } from '@/contest/components/ui/VoteModal';
+import { MatchupEntryNameForm } from '@/contest/components/ui/MatchupEntryNameForm';
 import { useResolvedContest } from '@/contest/lib/hooks/useResolvedContest';
 import { getContestantLabel, getEntryLabel } from '@/contest/lib/domain/contestLabels';
 import { getUserContestRole } from '@/contest/lib/domain/userContestState';
 import { getActiveRoundIdFromMatchups } from '@/contest/lib/domain/matchupGetters';
 import { buildBracketRoundsFromContest } from '@/contest/lib/presentation/buildBracketRoundsFromContest';
-import type { Contest } from '@/contest/contexts/contest/contestTypes';
+import type { Contest, Entry, Matchup } from '@/contest/contexts/contest/contestTypes';
 
 interface ContestPageClientProps {
   contestId: string;
@@ -52,19 +53,36 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
   const entryLabel = getEntryLabel(contest.config);
   const showContestantButton = userId && contestRole !== 'contestant';
   const topic = contest.config?.topic ?? 'Contest';
-  const entryCount = contest.entries?.length ?? 0;
+  const contestantCount = contest.contestants?.length ?? 0;
   const roundCount = contest.rounds?.length ?? 0;
+
+  const myContestantId = useMemo(
+    () => (userId ? contest.contestants.find((c) => c.userId === userId)?.id ?? null : null),
+    [contest.contestants, userId],
+  );
+
+  const myMatchupEntries = useMemo<Array<{ matchup: Matchup; entry: Entry }>>(() => {
+    if (!myContestantId) return [];
+    const list: Array<{ matchup: Matchup; entry: Entry }> = [];
+    for (const matchup of matchups) {
+      if (matchup.phase === 'scored') continue;
+      const entry = matchup.entries.find((e) => e.contestantId === myContestantId);
+      if (entry) list.push({ matchup, entry });
+    }
+    list.sort((a, b) => {
+      const ai = (contest.rounds ?? []).findIndex((r) => r.id === a.matchup.roundId);
+      const bi = (contest.rounds ?? []).findIndex((r) => r.id === b.matchup.roundId);
+      if (ai !== bi) return ai - bi;
+      return a.matchup.slotIndex - b.matchup.slotIndex;
+    });
+    return list;
+  }, [matchups, myContestantId, contest.rounds]);
+
+  const pendingEntryCount = myMatchupEntries.filter(({ entry }) => !entry.name?.trim()).length;
 
   const selectedMatchup = selectedMatchupId
     ? matchups.find((m) => m.id === selectedMatchupId) ?? null
     : null;
-
-  const handleVoteRound = (roundId: string) => {
-    const firstShake = matchups
-      .filter((m) => m.roundId === roundId && m.phase === 'shake')
-      .sort((a, b) => a.slotIndex - b.slotIndex)[0];
-    if (firstShake) setSelectedMatchupId(firstShake.id);
-  };
 
   const handleVoteMatchup = (matchupId: string) => {
     setSelectedMatchupId(matchupId);
@@ -80,7 +98,7 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
         </div>
         <h1>{contest.name}</h1>
         <p>
-          {roundCount} rounds / {entryCount} {entryCount === 1 ? entryLabel.toLowerCase() : `${entryLabel.toLowerCase()}s`}
+          {roundCount} rounds / {contestantCount} {contestantCount === 1 ? contestantLabel.toLowerCase() : `${contestantLabel.toLowerCase()}s`}
         </p>
         <Link
           href={`/contest/${contestId}/display`}
@@ -95,7 +113,6 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
         activeRoundId={activeRoundId}
         viewedRoundId={viewedRoundId}
         onViewRound={setUserPickedRoundId}
-        onVoteRound={handleVoteRound}
         onVoteMatchup={handleVoteMatchup}
       />
 
@@ -114,24 +131,47 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
         </section>
       )}
 
-      <section className="contest-entry-preview" aria-label={`${entryLabel} preview`}>
+      {pendingEntryCount > 0 && (
+        <aside className="matchup-entry-banner" role="status">
+          <strong>
+            {pendingEntryCount === 1
+              ? `1 ${entryLabel.toLowerCase()} needs a name.`
+              : `${pendingEntryCount} ${entryLabel.toLowerCase()}s need names.`}
+          </strong>
+          <span>Scroll down to fill in your matchup entries.</span>
+        </aside>
+      )}
+
+      {myMatchupEntries.length > 0 && (
+        <section className="matchup-entry-section" aria-label="Your matchup entries">
+          <h2>Your matchup {myMatchupEntries.length === 1 ? entryLabel.toLowerCase() : `${entryLabel.toLowerCase()}s`}</h2>
+          <div className="matchup-entry-section__list">
+            {myMatchupEntries.map(({ matchup, entry }) => (
+              <MatchupEntryNameForm
+                key={entry.id}
+                contest={contest}
+                matchup={matchup}
+                entry={entry}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="contest-entry-preview" aria-label={`${contestantLabel} preview`}>
         <div className="contest-entry-preview__header">
-          <h2>{entryCount === 1 ? entryLabel : `${entryLabel}s`}</h2>
-          <span className="muted">{entryCount}</span>
+          <h2>{contestantCount === 1 ? contestantLabel : `${contestantLabel}s`}</h2>
+          <span className="muted">{contestantCount}</span>
         </div>
-        {contest.entries.length === 0 ? (
-          <p className="contest-empty">No {entryLabel.toLowerCase()}s have been submitted yet.</p>
+        {contest.contestants.length === 0 ? (
+          <p className="contest-empty">No {contestantLabel.toLowerCase()}s have registered yet.</p>
         ) : (
           <div className="contest-entry-preview__list">
-            {contest.entries.slice(0, 6).map((entry) => (
-              <div key={entry.id} className="contest-entry-row">
+            {contest.contestants.slice(0, 6).map((c) => (
+              <div key={c.id} className="contest-entry-row">
                 <span className="contest-entry-row__image" aria-hidden="true" />
                 <span className="contest-entry-row__body">
-                  <strong>{entry.name || 'Unnamed entry'}</strong>
-                  <span>by {entry.submittedBy}</span>
-                </span>
-                <span className="badge badge--pending">
-                  {(entry.voteCount ?? 0) > 0 ? `${entry.voteCount} votes` : 'Unscored'}
+                  <strong>{c.displayName}</strong>
                 </span>
               </div>
             ))}

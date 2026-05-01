@@ -21,6 +21,7 @@
 @use '../../src/features/contest/styles/entry-styles';
 @use '../../src/features/contest/styles/display-styles';
 @use '../../src/features/contest/styles/vote-styles';
+@use '../../src/features/contest/styles/matchup-entry-form';
 
 // Page-specific styles (still in app folder)
 @use './account/account-styles';

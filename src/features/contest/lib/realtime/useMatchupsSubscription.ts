@@ -5,7 +5,7 @@ import { initializeFirebase } from '../firebase/config';
 import { useContestStore } from '../../contexts/contest/ContestContext';
 import { useAuth } from '../../contexts/auth/AuthContext';
 import { subscribeToMatchups } from './firestoreSubscription';
-import type { Matchup } from '../../contexts/contest/contestTypes';
+import type { Entry, Matchup } from '../../contexts/contest/contestTypes';
 
 function matchupFromSnapshot(id: string, data: Record<string, unknown>): Matchup {
   return {
@@ -13,7 +13,7 @@ function matchupFromSnapshot(id: string, data: Record<string, unknown>): Matchup
     contestId: String(data.contestId ?? ''),
     roundId: String(data.roundId ?? ''),
     slotIndex: Number(data.slotIndex ?? 0),
-    entryIds: Array.isArray(data.entryIds) ? (data.entryIds as string[]) : [],
+    entries: Array.isArray(data.entries) ? (data.entries as Entry[]) : [],
     phase: (data.phase as Matchup['phase']) ?? 'set',
     winnerEntryId: (data.winnerEntryId as string | null | undefined) ?? null,
     advancesToMatchupId: (data.advancesToMatchupId as string | null | undefined) ?? null,

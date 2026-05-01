@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import type { Contest, Matchup } from '../../../contexts/contest/contestTypes';
+import type { Contest, Entry, Matchup } from '../../../contexts/contest/contestTypes';
 import { buildBracketRoundsFromContest } from '../buildBracketRoundsFromContest';
+
+function entry(id: string, contestantId: string, name: string, sumScore = 0, voteCount = 0): Entry {
+  return { id, contestantId, matchupId: '', name, sumScore, voteCount };
+}
 
 describe('buildBracketRoundsFromContest', () => {
   it('drives rounds and matchupIds from a stored matchup collection', () => {
@@ -12,11 +16,11 @@ describe('buildBracketRoundsFromContest', () => {
         { id: 'r1', name: 'Semifinal' },
         { id: 'r2', name: 'Final' },
       ],
-      entries: [
-        { id: 'e1', name: 'Alpha', slug: 'alpha', description: '', submittedBy: 'A', sumScore: 20, voteCount: 2 },
-        { id: 'e2', name: 'Beta', slug: 'beta', description: '', submittedBy: 'B', sumScore: 10, voteCount: 2 },
-        { id: 'e3', name: 'Gamma', slug: 'gamma', description: '', submittedBy: 'C', sumScore: 16, voteCount: 2 },
-        { id: 'e4', name: 'Delta', slug: 'delta', description: '', submittedBy: 'D', sumScore: 8, voteCount: 2 },
+      contestants: [
+        { id: 'cA', displayName: 'A' },
+        { id: 'cB', displayName: 'B' },
+        { id: 'cC', displayName: 'C' },
+        { id: 'cD', displayName: 'D' },
       ],
       voters: [],
     };
@@ -26,7 +30,7 @@ describe('buildBracketRoundsFromContest', () => {
         contestId: 'contest-m',
         roundId: 'r1',
         slotIndex: 0,
-        entryIds: ['e1', 'e2'],
+        entries: [entry('e1', 'cA', 'Alpha', 20, 2), entry('e2', 'cB', 'Beta', 10, 2)],
         phase: 'scored',
         winnerEntryId: 'e1',
       },
@@ -35,7 +39,7 @@ describe('buildBracketRoundsFromContest', () => {
         contestId: 'contest-m',
         roundId: 'r1',
         slotIndex: 1,
-        entryIds: ['e3', 'e4'],
+        entries: [entry('e3', 'cC', 'Gamma', 16, 2), entry('e4', 'cD', 'Delta', 8, 2)],
         phase: 'shake',
       },
     ];
@@ -53,16 +57,17 @@ describe('buildBracketRoundsFromContest', () => {
       matchupId: 'm-1',
       phase: 'scored',
       winnerId: 'e1',
-      contestantA: { id: 'e1', name: 'Alpha' },
-      contestantB: { id: 'e2', name: 'Beta' },
     });
+    expect(rounds[0].matchups[0].contestantA.id).toBe('e1');
+    expect(rounds[0].matchups[0].contestantA.name).toContain('Alpha');
+    expect(rounds[0].matchups[0].contestantB.id).toBe('e2');
     expect(rounds[0].matchups[1]).toMatchObject({
       id: 'm-2',
       matchupId: 'm-2',
       phase: 'shake',
-      contestantA: { id: 'e3', name: 'Gamma' },
-      contestantB: { id: 'e4', name: 'Delta' },
     });
+    expect(rounds[0].matchups[1].contestantA.id).toBe('e3');
+    expect(rounds[0].matchups[1].contestantB.id).toBe('e4');
     expect(rounds[1]).toMatchObject({
       id: 'r2',
       status: 'pending',
@@ -76,7 +81,7 @@ describe('buildBracketRoundsFromContest', () => {
       name: 'Empty',
       slug: 'empty',
       rounds: [{ id: 'r1', name: 'Only' }],
-      entries: [],
+      contestants: [],
       voters: [],
     };
 

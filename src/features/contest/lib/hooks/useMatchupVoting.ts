@@ -38,9 +38,18 @@ export function useMatchupVoting(contest: Contest | null, matchup: Matchup | nul
   const config = contest ? getEffectiveConfig(contest) : undefined;
   const categories = config?.attributes ?? [];
   const categoryIds = categories.map((a) => a.id);
-  const entries = contest && matchup ? getEntriesInMatchup(matchup, contest) : [];
-  const drinks = buildEntrySummaries(entries);
+  const entries = matchup ? getEntriesInMatchup(matchup) : [];
+  const contestantsById = new Map(
+    (contest?.contestants ?? []).map((c) => [c.id, c]),
+  );
+  const drinks = buildEntrySummaries(entries, contestantsById);
   const userId = session?.firebaseUid ?? session?.sessionId;
+  const myContestantId = userId
+    ? contest?.contestants.find((c) => c.userId === userId)?.id ?? null
+    : null;
+  const selfEntryId = myContestantId
+    ? entries.find((e) => e.contestantId === myContestantId)?.id ?? null
+    : null;
   const categoryKey = categoryIds.join('|');
   const entryKey = entries.map((entry) => entry.id).join('|');
   const matchupId = matchup?.id ?? null;
@@ -96,6 +105,7 @@ export function useMatchupVoting(contest: Contest | null, matchup: Matchup | nul
     }
 
     const voteEntries = Object.entries(scores)
+      .filter(([entryId]) => entryId !== selfEntryId)
       .map(([entryId, entryScores]) => {
         const breakdown = categoryIds.reduce<Partial<ScoreBreakdown>>((acc, cid) => {
           if (!isBreakdownKey(cid, config)) return acc;
@@ -107,7 +117,7 @@ export function useMatchupVoting(contest: Contest | null, matchup: Matchup | nul
       })
       .filter((e) => Object.keys(e.breakdown).length > 0);
 
-    if (voteEntries.length === 0) {
+    if (voteEntries.length === 0 && !selfEntryId) {
       setStatus('error');
       setMessage('Enter at least one score before submitting.');
       return;
@@ -145,5 +155,15 @@ export function useMatchupVoting(contest: Contest | null, matchup: Matchup | nul
     }
   };
 
-  return { drinks, categories, scores, updateScore, submit, status, message, isSubmitting: status === 'submitting' };
+  return {
+    drinks,
+    categories,
+    scores,
+    updateScore,
+    submit,
+    status,
+    message,
+    isSubmitting: status === 'submitting',
+    selfEntryId,
+  };
 }

@@ -74,7 +74,7 @@ describe('/api/contest/contests/[id]/scores route', () => {
     requireAuthMock.mockResolvedValue({ user: authedUser, response: null });
     getContestByParamMock.mockResolvedValue({
       error: null,
-      contest: { id: 'contest-1', entries: [], voters: [] },
+      contest: { id: 'contest-1', contestants: [], voters: [] },
       provider: {},
     });
 
@@ -101,7 +101,7 @@ describe('/api/contest/contests/[id]/scores route', () => {
       error: null,
       contest: {
         id: 'contest-1',
-        entries: [{ id: 'entry-1' }],
+        contestants: [{ id: 'c-1', displayName: 'A' }],
         voters: [],
       },
       provider: {
@@ -111,7 +111,10 @@ describe('/api/contest/contests/[id]/scores route', () => {
             data: {
               id: 'matchup-1',
               phase: 'set',
-              entryIds: ['entry-1', 'entry-2'],
+              entries: [
+                { id: 'entry-1', contestantId: 'c-1', matchupId: 'matchup-1', name: 'A' },
+                { id: 'entry-2', contestantId: 'c-2', matchupId: 'matchup-1', name: 'B' },
+              ],
             },
           }),
         },
@@ -145,7 +148,7 @@ describe('/api/contest/contests/[id]/scores route', () => {
       error: null,
       contest: {
         id: 'contest-1',
-        entries: [{ id: 'entry-1' }],
+        contestants: [{ id: 'c-1', displayName: 'A' }],
         voters: [],
       },
       provider: {
@@ -155,7 +158,10 @@ describe('/api/contest/contests/[id]/scores route', () => {
             data: {
               id: 'matchup-1',
               phase: 'shake',
-              entryIds: ['entry-2', 'entry-3'],
+              entries: [
+                { id: 'entry-2', contestantId: 'c-2', matchupId: 'matchup-1', name: 'B' },
+                { id: 'entry-3', contestantId: 'c-3', matchupId: 'matchup-1', name: 'C' },
+              ],
             },
           }),
         },
@@ -194,7 +200,10 @@ describe('/api/contest/contests/[id]/scores route', () => {
       data: {
         id: 'matchup-1',
         phase: 'shake',
-        entryIds: ['entry-1', 'entry-2'],
+        entries: [
+          { id: 'entry-1', contestantId: 'c-1', matchupId: 'matchup-1', name: 'A' },
+          { id: 'entry-2', contestantId: 'c-2', matchupId: 'matchup-1', name: 'B' },
+        ],
       },
     });
 
@@ -202,7 +211,7 @@ describe('/api/contest/contests/[id]/scores route', () => {
       error: null,
       contest: {
         id: 'contest-1',
-        entries: [{ id: 'entry-1' }],
+        contestants: [{ id: 'c-1', displayName: 'A' }],
         voters: [],
       },
       provider: {
@@ -262,7 +271,10 @@ describe('/api/contest/contests/[id]/scores route', () => {
             data: {
               id: 'matchup-1',
               phase: 'shake',
-              entryIds: ['entry-1', 'entry-2'],
+              entries: [
+                { id: 'entry-1', contestantId: 'c-1', matchupId: 'matchup-1', name: 'A' },
+                { id: 'entry-2', contestantId: 'c-2', matchupId: 'matchup-1', name: 'B' },
+              ],
             },
           }),
         },

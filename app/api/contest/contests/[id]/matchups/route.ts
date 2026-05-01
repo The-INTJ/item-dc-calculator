@@ -46,16 +46,19 @@ export async function POST(request: Request, { params }: RouteParams) {
     return body.response;
   }
 
+  const knownContestants = new Set(contest.contestants.map((c) => c.id));
+  for (const candidate of body.data.contestantIds) {
+    if (!knownContestants.has(candidate)) {
+      return jsonError(`Contestant ${candidate} is not part of this contest.`, 400);
+    }
+  }
+
   const input: MatchupCreateInput = {
     roundId: body.data.roundId,
     slotIndex: body.data.slotIndex,
-    entryIds: body.data.entryIds ?? [],
+    contestantIds: body.data.contestantIds,
     phase: body.data.phase ?? 'set',
     ...(body.data.winnerEntryId !== undefined ? { winnerEntryId: body.data.winnerEntryId } : {}),
-    ...(body.data.advancesToMatchupId !== undefined
-      ? { advancesToMatchupId: body.data.advancesToMatchupId }
-      : {}),
-    ...(body.data.advancesToSlot !== undefined ? { advancesToSlot: body.data.advancesToSlot } : {}),
   };
 
   const result = await provider.matchups.create(contest.id, input);

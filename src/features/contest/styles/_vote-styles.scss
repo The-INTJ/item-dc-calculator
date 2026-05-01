@@ -62,6 +62,13 @@
   width: min(100%, 38rem) !important;
 }
 
+.vote-sheet .MuiDialog-paperFullScreen.vote-sheet__paper {
+  border-radius: 0 !important;
+  height: 100% !important;
+  max-height: 100dvh !important;
+  width: 100% !important;
+}
+
 .vote-sheet__grabber {
   background: var(--border-default);
   border-radius: 999px;
@@ -302,6 +309,22 @@
 .vote-sheet__empty {
   color: var(--text-muted);
   padding: 2rem 1rem;
+}
+
+.vote-sheet__self-badge {
+  color: var(--c-cyan-600);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.vote-sheet__self-notice {
+  background: var(--c-amber-100, #fef3c7);
+  border-left: 3px solid var(--c-amber-500);
+  color: var(--text-strong);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin: 0.5rem 1rem 0;
+  padding: 0.5rem 0.75rem;
 }
 
 .vote-panel--disabled {

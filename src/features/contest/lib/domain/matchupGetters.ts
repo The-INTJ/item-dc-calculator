@@ -1,5 +1,6 @@
 import type {
   Contest,
+  Contestant,
   ContestRound,
   Entry,
   Matchup,
@@ -15,9 +16,42 @@ export function getMatchupPhase(matchup: Matchup): MatchupPhase {
   return matchup.phase;
 }
 
-export function getEntriesInMatchup(matchup: Matchup, contest: Contest): Entry[] {
-  const byId = new Map(contest.entries.map((e) => [e.id, e]));
-  return matchup.entryIds.map((id) => byId.get(id)).filter((e): e is Entry => e != null);
+export function getEntriesInMatchup(matchup: Matchup): Entry[] {
+  return matchup.entries ?? [];
+}
+
+export function getContestantById(
+  contest: Contest,
+  contestantId: string | null | undefined,
+): Contestant | null {
+  if (!contestantId) return null;
+  return contest.contestants.find((c) => c.id === contestantId) ?? null;
+}
+
+export function getContestantDisplayName(
+  contest: Contest,
+  contestantId: string | null | undefined,
+): string {
+  return getContestantById(contest, contestantId)?.displayName ?? 'TBD';
+}
+
+/**
+ * Sum a contestant's aggregate scores across every matchup they appear in.
+ */
+export function getContestantTotals(
+  contestantId: string,
+  matchups: Matchup[],
+): { sumScore: number; voteCount: number } {
+  let sumScore = 0;
+  let voteCount = 0;
+  for (const matchup of matchups) {
+    for (const entry of matchup.entries ?? []) {
+      if (entry.contestantId !== contestantId) continue;
+      sumScore += entry.sumScore ?? 0;
+      voteCount += entry.voteCount ?? 0;
+    }
+  }
+  return { sumScore, voteCount };
 }
 
 /**

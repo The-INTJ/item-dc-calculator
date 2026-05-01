@@ -17,7 +17,7 @@ import { getFirebaseAdminFirestore, isFirebaseAdminConfigured } from './admin';
 import { createFirestoreAdapter, type FirestoreAdapter } from './firestoreAdapter';
 import { createFirestoreAdminAdapter } from './firestoreAdminAdapter';
 import { createFirebaseContestsProvider } from './providers/contestsProvider';
-import { createFirebaseEntriesProvider } from './providers/entriesProvider';
+import { createFirebaseContestantsProvider } from './providers/contestantsProvider';
 import { createFirebaseVotersProvider } from './providers/votersProvider';
 import { createFirebaseScoresProvider } from './providers/scoresProvider';
 import { createFirebaseConfigsProvider } from './providers/configsProvider';
@@ -35,12 +35,10 @@ export function createFirebaseBackendProvider(): BackendProvider {
     ? createFirestoreAdminAdapter(() => adminDb)
     : createFirestoreAdapter(() => clientDb);
 
-  const entriesProvider = createFirebaseEntriesProvider(adapter);
-
   return {
     name: 'firebase',
     contests: createFirebaseContestsProvider(adapter),
-    entries: entriesProvider,
+    contestants: createFirebaseContestantsProvider(adapter),
     voters: createFirebaseVotersProvider(adapter),
     scores: createFirebaseScoresProvider(adapter),
     configs: createFirebaseConfigsProvider(adapter),

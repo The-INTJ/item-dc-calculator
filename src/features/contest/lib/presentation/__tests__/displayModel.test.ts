@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import type { Contest, Matchup } from '../../../contexts/contest/contestTypes';
+import type { Contest, Entry, Matchup } from '../../../contexts/contest/contestTypes';
 import { buildDisplayModel } from '../displayModel';
+
+function entry(id: string, contestantId: string, name: string, sumScore = 0, voteCount = 0): Entry {
+  return { id, contestantId, matchupId: '', name, sumScore, voteCount };
+}
 
 describe('buildDisplayModel', () => {
   it('drives rounds, matchupIds, scores, and phases from the matchup collection', () => {
@@ -12,11 +16,11 @@ describe('buildDisplayModel', () => {
         { id: 'r1', name: 'Semifinal' },
         { id: 'r2', name: 'Final' },
       ],
-      entries: [
-        { id: 'e1', name: 'Alpha', slug: 'alpha', description: '', submittedBy: 'A', sumScore: 20, voteCount: 2 },
-        { id: 'e2', name: 'Beta', slug: 'beta', description: '', submittedBy: 'B', sumScore: 10, voteCount: 2 },
-        { id: 'e3', name: 'Gamma', slug: 'gamma', description: '', submittedBy: 'C', sumScore: 16, voteCount: 2 },
-        { id: 'e4', name: 'Delta', slug: 'delta', description: '', submittedBy: 'D', sumScore: 8, voteCount: 2 },
+      contestants: [
+        { id: 'cA', displayName: 'A' },
+        { id: 'cB', displayName: 'B' },
+        { id: 'cC', displayName: 'C' },
+        { id: 'cD', displayName: 'D' },
       ],
       voters: [],
     };
@@ -26,7 +30,7 @@ describe('buildDisplayModel', () => {
         contestId: 'contest-m',
         roundId: 'r1',
         slotIndex: 0,
-        entryIds: ['e1', 'e2'],
+        entries: [entry('e1', 'cA', 'Alpha', 20, 2), entry('e2', 'cB', 'Beta', 10, 2)],
         phase: 'scored',
         winnerEntryId: 'e1',
       },
@@ -35,7 +39,7 @@ describe('buildDisplayModel', () => {
         contestId: 'contest-m',
         roundId: 'r1',
         slotIndex: 1,
-        entryIds: ['e3', 'e4'],
+        entries: [entry('e3', 'cC', 'Gamma', 16, 2), entry('e4', 'cD', 'Delta', 8, 2)],
         phase: 'shake',
       },
     ];
@@ -52,15 +56,15 @@ describe('buildDisplayModel', () => {
       matchupId: 'm-1',
       phase: 'scored',
       winnerId: 'e1',
-      contestantA: { id: 'e1', score: 10, isWinner: true },
-      contestantB: { id: 'e2', score: 5, isWinner: false },
       slotIndex: 0,
     });
+    expect(model.rounds[0].matchups[0].contestantA.id).toBe('e1');
+    expect(model.rounds[0].matchups[0].contestantA.score).toBe(10);
+    expect(model.rounds[0].matchups[0].contestantA.isWinner).toBe(true);
+    expect(model.rounds[0].matchups[0].contestantB.score).toBe(5);
     expect(model.rounds[0].matchups[1]).toMatchObject({
       matchupId: 'm-2',
       phase: 'shake',
-      contestantA: { id: 'e3', name: 'Gamma' },
-      contestantB: { id: 'e4', name: 'Delta' },
     });
     expect(model.phase).toBe('shake');
     expect(model.rounds[1].status).toBe('pending');
@@ -80,7 +84,7 @@ describe('buildDisplayModel', () => {
         { id: 'r1', name: 'Semi' },
         { id: 'r2', name: 'Final' },
       ],
-      entries: [],
+      contestants: [],
       voters: [],
     };
     const matchups: Matchup[] = [
@@ -89,7 +93,7 @@ describe('buildDisplayModel', () => {
         contestId: 'contest-f',
         roundId: 'r1',
         slotIndex: 0,
-        entryIds: ['x', 'y'],
+        entries: [entry('x', 'cX', 'X'), entry('y', 'cY', 'Y')],
         phase: 'scored',
         winnerEntryId: 'x',
       },
@@ -98,7 +102,7 @@ describe('buildDisplayModel', () => {
         contestId: 'contest-f',
         roundId: 'r2',
         slotIndex: 0,
-        entryIds: ['x', 'z'],
+        entries: [entry('x2', 'cX', 'X'), entry('z', 'cZ', 'Z')],
         phase: 'shake',
       },
     ];

@@ -73,17 +73,33 @@ export interface Voter {
 }
 
 /**
- * A contest entry (drink, chili, cosplay, performance, etc.)
+ * A contestant participating in a contest. One Contestant per person.
+ * Each round, the contestant submits a fresh Entry per matchup they're in.
+ */
+export interface Contestant {
+  id: string;
+  displayName: string;
+  /** Firebase UID — set when a registered user IS this contestant. Used for self-vote checks. */
+  userId?: string;
+  contact?: string;
+}
+
+/**
+ * A contest entry — a single creation (drink, dish, etc.) submitted by a
+ * contestant for one specific matchup. A contestant has one Entry per
+ * matchup they appear in. Stored inline on the parent Matchup document.
  */
 export interface Entry {
   id: string;
+  contestantId: string;
+  matchupId: string;
+  /** Per-game name (e.g. drink name); empty until contestant submits. */
   name: string;
-  slug: string;
-  description: string;
-  submittedBy: string;
-  /** Aggregate: sum of per-user average scores */
+  description?: string;
+  slug?: string;
+  /** Aggregate: sum of per-user average scores for this matchup entry */
   sumScore?: number;
-  /** Aggregate: number of distinct voters */
+  /** Aggregate: number of distinct voters for this matchup entry */
   voteCount?: number;
 }
 
@@ -106,8 +122,12 @@ export interface ScoreEntry {
 }
 
 /**
- * A first-class matchup between entries within a round.
- * Today always 1v1 (entryIds.length === 2); array shape leaves room for XvX later.
+ * A first-class matchup between contestants within a round.
+ * Today always 1v1 (entries.length === 2); array shape leaves room for XvX later.
+ *
+ * Each matchup carries its own per-contestant entries inline — `entries[i]`
+ * is the entry submitted by `entries[i].contestantId` for THIS matchup.
+ * Score aggregates live on each entry.
  */
 export interface Matchup {
   id: string;
@@ -115,8 +135,8 @@ export interface Matchup {
   roundId: string;
   /** Index within the round (0-based, stable across lifecycle). */
   slotIndex: number;
-  /** Entries competing in this matchup. */
-  entryIds: string[];
+  /** Per-matchup entries (one per contestant slot). */
+  entries: Entry[];
   /** Current lifecycle phase. */
   phase: MatchupPhase;
   /** Winner entry ID once phase becomes 'scored'. Null if tie or undecided. */
@@ -151,7 +171,7 @@ export interface Contest {
   currentEntryId?: string;
   defaultContest?: boolean;
   rounds?: ContestRound[];
-  entries: Entry[];
+  contestants: Contestant[];
   voters: Voter[];
 }
 
@@ -186,10 +206,14 @@ export interface ContestActions {
   ) => Promise<boolean>;
   addContestant: (
     contestId: string,
-    contestant: { name: string; entryName: string },
-  ) => Promise<Entry | null>;
-  updateContestant: (contestId: string, entryId: string, updates: Partial<Entry>) => Promise<Entry | null>;
-  removeContestant: (contestId: string, entryId: string) => Promise<boolean>;
+    contestant: { displayName: string; userId?: string; contact?: string },
+  ) => Promise<Contestant | null>;
+  updateContestant: (
+    contestId: string,
+    contestantId: string,
+    updates: Partial<Contestant>,
+  ) => Promise<Contestant | null>;
+  removeContestant: (contestId: string, contestantId: string) => Promise<boolean>;
   /** Replace the cached matchups for a contest (used by the realtime subscription). */
   setMatchupsForContest: (contestId: string, matchups: Matchup[]) => void;
   updateMatchup: (
@@ -197,9 +221,17 @@ export interface ContestActions {
     matchupId: string,
     updates: Partial<Matchup>,
   ) => Promise<Matchup | null>;
+  /** Set or update a contestant's per-matchup entry name. */
+  setMatchupEntryName: (
+    contestId: string,
+    matchupId: string,
+    entryId: string,
+    payload: { name: string; description?: string },
+  ) => Promise<Matchup | null>;
   /**
-   * Seed (or reseed) a round's matchups. For round 0 pass pairs; for N>0 derives from winners.
-   * Pairs may be `[a, b]` (regular matchup) or `[a]` (bye / auto-advance).
+   * Seed (or reseed) a round's matchups. For round 0 pass pairs (contestant ids);
+   * for N>0 derives from winners. Pairs may be `[a, b]` (regular matchup) or
+   * `[a]` (bye / auto-advance).
    */
   seedRound: (
     contestId: string,
@@ -208,7 +240,13 @@ export interface ContestActions {
   ) => Promise<{ matchups: Matchup[] | null; error: string | null }>;
   createMatchup: (
     contestId: string,
-    matchup: { roundId: string; slotIndex: number; entryIds: string[]; phase?: MatchupPhase; winnerEntryId?: string | null },
+    matchup: {
+      roundId: string;
+      slotIndex: number;
+      contestantIds: string[];
+      phase?: MatchupPhase;
+      winnerEntryId?: string | null;
+    },
   ) => Promise<Matchup | null>;
   deleteMatchup: (contestId: string, matchupId: string) => Promise<boolean>;
 }

@@ -48,7 +48,9 @@ function BracketMatchupCard({
   const key = `${round.roundIndex}-${matchup.slotIndex}`;
 
   const classes = ['contest-display__matchup'];
-  if (round.isActive) classes.push('contest-display__matchup--active');
+  if (round.isActive && matchup.phase === 'shake') {
+    classes.push('contest-display__matchup--active');
+  }
 
   return (
     <article
@@ -303,6 +305,16 @@ function firstMatchup(round: DisplayRound | null | undefined) {
   return round?.matchups[0] ?? null;
 }
 
+function liveMatchup(round: DisplayRound | null | undefined) {
+  if (!round) return null;
+  return (
+    round.matchups.find((m) => m.phase === 'shake' && !m.isBye) ??
+    round.matchups.find((m) => m.phase === 'set' && !m.isBye) ??
+    round.matchups[0] ??
+    null
+  );
+}
+
 export function DisplayBracket({ model }: DisplayBracketProps) {
   const bracketRounds = model.isFinalRoundActive ? model.rounds.slice(0, -1) : model.rounds;
   const faceOffRound = model.isFinalRoundActive
@@ -313,7 +325,7 @@ export function DisplayBracket({ model }: DisplayBracketProps) {
     ? model.rounds.findIndex((round) => round.id === activeRound.id)
     : -1;
   const nextRound = activeRoundIndex >= 0 ? model.rounds[activeRoundIndex + 1] ?? null : null;
-  const activeMatchup = firstMatchup(activeRound);
+  const activeMatchup = liveMatchup(activeRound);
   const nextMatchup = firstMatchup(nextRound);
 
   return (
