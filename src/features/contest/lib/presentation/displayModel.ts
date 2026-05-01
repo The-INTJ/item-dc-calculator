@@ -18,11 +18,16 @@ import {
   getComputedRoundStatus,
   getMatchupsForRound,
 } from '../domain/matchupGetters';
+import { normalizeContestKind, type ContestDisplayKind } from './displaySurface';
+
+export type FeaturedMatchupMode = 'shake' | 'standby';
 
 export interface DisplayContestant {
   id: string;
   name: string;
   score: number | null;
+  /** Changes whenever the raw cached aggregate changes, even if rounded score is unchanged. */
+  scoreSignature: string;
   isWinner: boolean;
 }
 
@@ -58,10 +63,14 @@ export interface DisplayRound {
 export interface DisplayModel {
   contestId: string;
   contestName: string;
+  contestKind: ContestDisplayKind;
   rounds: DisplayRound[];
   activeRoundId: string | null;
   activeRoundName: string | null;
   nextRoundName: string | null;
+  activeShakeMatchup: DisplayMatchup | null;
+  featuredMatchup: DisplayMatchup | null;
+  featuredMatchupMode: FeaturedMatchupMode;
   totalRounds: number;
   phase: MatchupPhase;
   /** The computed ideal bracket structure. */
@@ -85,11 +94,15 @@ function buildDisplayContestant(
       ? `${drinkName} — ${contestantName}`
       : drinkName
     : contestantName ?? 'TBD';
+  const scoreSignature = entry
+    ? `${entry.id}:${entry.sumScore ?? 0}:${entry.voteCount ?? 0}`
+    : `${fallbackId}:empty`;
 
   return {
     id,
     name: displayName,
     score,
+    scoreSignature,
     isWinner: winnerEntryId === id,
   };
 }
@@ -125,6 +138,7 @@ export function buildDisplayModel(contest: Contest, matchups: Matchup[]): Displa
   const activeRoundId = getActiveRoundIdFromMatchups(contestRounds, matchups);
   const lastRoundId = contestRounds[contestRounds.length - 1]?.id ?? null;
   const contestantsById = new Map(contest.contestants.map((c) => [c.id, c]));
+  const contestKind = normalizeContestKind(contest.config);
 
   const activeIndex = contestRounds.findIndex((round) => round.id === activeRoundId);
   const futureRoundId =
@@ -188,13 +202,27 @@ export function buildDisplayModel(contest: Contest, matchups: Matchup[]): Displa
     };
   });
 
+  const activeRound = displayRounds.find((round) => round.id === activeRoundId) ?? null;
+  const activeShakeMatchup =
+    activeRound?.matchups.find((matchup) => matchup.phase === 'shake' && !matchup.isBye) ?? null;
+  const featuredMatchup =
+    activeShakeMatchup ??
+    activeRound?.matchups.find((matchup) => !matchup.isBye) ??
+    activeRound?.matchups[0] ??
+    displayRounds.flatMap((round) => round.matchups).find((matchup) => !matchup.isBye) ??
+    null;
+
   return {
     contestId: contest.id,
     contestName: contest.name,
+    contestKind,
     rounds: displayRounds,
     activeRoundId,
     activeRoundName: getDisplayRoundName(contest, activeRoundId),
     nextRoundName: getDisplayRoundName(contest, futureRoundId),
+    activeShakeMatchup,
+    featuredMatchup,
+    featuredMatchupMode: activeShakeMatchup ? 'shake' : 'standby',
     totalRounds: displayRounds.length,
     phase: derivePhaseFromMatchups(matchups, activeRoundId),
     bracketStructure,

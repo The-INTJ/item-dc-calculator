@@ -30,6 +30,7 @@
     "@base-ui-components/react": "^1.0.0-alpha.6",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@fontsource-variable/material-symbols-rounded": "^5.2.43",
     "@fontsource/roboto": "^5.1.1",
     "@mui/material": "^6.4.2",
     "@scalar/nextjs-api-reference": "^0.9.11",

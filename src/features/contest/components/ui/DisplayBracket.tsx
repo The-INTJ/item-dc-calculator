@@ -1,71 +1,207 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 import {
   getBracketGridRowCount,
   getMatchupGridPlacement,
 } from '@/contest/lib/domain/bracketMath';
+import {
+  getContestDisplaySurface,
+  type ContestDisplaySurface,
+} from '@/contest/lib/presentation/displaySurface';
 import type {
   DisplayContestant,
   DisplayMatchup,
   DisplayModel,
   DisplayRound,
 } from '@/contest/lib/presentation/displayModel';
+import { AnimatedScore } from './AnimatedScore';
+import { MaterialSymbol } from './MaterialSymbol';
 
 interface DisplayBracketProps {
   model: DisplayModel;
 }
 
+const RAIN_LEFTS = [
+  2, 7, 13, 19, 24, 31, 37, 43, 49, 55, 62, 68, 73, 79, 84, 91, 96, 11, 28, 46,
+  64, 82, 5, 35, 58, 88,
+];
+
 function formatLabel(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-function formatScore(score: number | null) {
-  return score === null ? '-' : String(score);
+function matchupLabel(matchup: DisplayMatchup | null) {
+  if (!matchup) return 'Waiting for active round';
+  return `${matchup.contestantA.name} vs ${matchup.contestantB.name}`;
 }
 
-function ContestantRow({ contestant }: { contestant: DisplayContestant }) {
-  const winnerClass = contestant.isWinner ? ' contest-display__team--winner' : '';
+function useBumpOnChange(signature: string) {
+  const [bumping, setBumping] = useState(false);
+  const previous = useRef(signature);
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      previous.current = signature;
+      return undefined;
+    }
+
+    if (previous.current === signature) return undefined;
+    previous.current = signature;
+
+    setBumping(false);
+    const start = window.setTimeout(() => setBumping(true), 0);
+    const clear = window.setTimeout(() => setBumping(false), 760);
+
+    return () => {
+      window.clearTimeout(start);
+      window.clearTimeout(clear);
+    };
+  }, [signature]);
+
+  return bumping;
+}
+
+function IconRain({ surface }: { surface: ContestDisplaySurface }) {
+  const amount = surface.kind === 'mixology' ? RAIN_LEFTS.length : 10;
+  const slots = RAIN_LEFTS.slice(0, amount);
+
   return (
-    <div className={`contest-display__team${winnerClass}`}>
-      <span className="contest-display__name">{contestant.name}</span>
-      <span className="contest-display__score">{formatScore(contestant.score)}</span>
+    <div className="contest-display__icon-rain" aria-hidden="true">
+      {slots.map((left, index) => {
+        const style = {
+          '--fall-left': `${left}%`,
+          '--fall-delay': `${-index * 0.47}s`,
+          '--fall-duration': `${5.8 + (index % 7) * 0.42}s`,
+          '--fall-size': `${1.25 + (index % 5) * 0.22}rem`,
+        } as CSSProperties;
+
+        return (
+          <MaterialSymbol
+            key={`${left}-${index}`}
+            name={surface.rainIcons[index % surface.rainIcons.length]}
+            className="contest-display__rain-icon"
+            style={style}
+          />
+        );
+      })}
     </div>
+  );
+}
+
+function BubbleField({ surface }: { surface: ContestDisplaySurface }) {
+  if (surface.kind !== 'mixology') return null;
+
+  return (
+    <div className="contest-display__bubbles" aria-hidden="true">
+      {Array.from({ length: 18 }, (_, index) => (
+        <span
+          key={index}
+          style={
+            {
+              '--bubble-left': `${6 + ((index * 17) % 88)}%`,
+              '--bubble-delay': `${-index * 0.31}s`,
+              '--bubble-size': `${0.45 + (index % 4) * 0.22}rem`,
+            } as CSSProperties
+          }
+        />
+      ))}
+    </div>
+  );
+}
+
+function ContestantRow({
+  contestant,
+  surface,
+}: {
+  contestant: DisplayContestant;
+  surface: ContestDisplaySurface;
+}) {
+  const bumping = useBumpOnChange(contestant.scoreSignature);
+  const classes = [
+    'contest-display__team',
+    contestant.isWinner ? 'contest-display__team--winner' : '',
+    bumping ? 'contest-display__team--score-bump' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <div className={classes}>
+      <MaterialSymbol
+        name={surface.contestantIcon}
+        className="contest-display__team-icon"
+      />
+      <span className="contest-display__name">{contestant.name}</span>
+      <AnimatedScore score={contestant.score} signature={contestant.scoreSignature} />
+    </div>
+  );
+}
+
+function MatchupSparkles({ surface }: { surface: ContestDisplaySurface }) {
+  return (
+    <span className="contest-display__matchup-sparks" aria-hidden="true">
+      {surface.sideIcons.slice(0, 3).map((icon, index) => (
+        <MaterialSymbol
+          key={`${icon}-${index}`}
+          name={icon}
+          className={`contest-display__matchup-spark contest-display__matchup-spark--${index + 1}`}
+        />
+      ))}
+    </span>
   );
 }
 
 function BracketMatchupCard({
   matchup,
   round,
+  surface,
   onRef,
 }: {
   matchup: DisplayMatchup;
   round: DisplayRound;
+  surface: ContestDisplaySurface;
   onRef: (key: string, el: HTMLElement | null) => void;
 }) {
   const { rowStart, rowSpan } = getMatchupGridPlacement(round.roundIndex, matchup.slotIndex);
   const key = `${round.roundIndex}-${matchup.slotIndex}`;
+  const scoreSignature = `${matchup.contestantA.scoreSignature}|${matchup.contestantB.scoreSignature}`;
+  const bumping = useBumpOnChange(scoreSignature);
 
-  const classes = ['contest-display__matchup'];
-  if (round.isActive && matchup.phase === 'shake') {
-    classes.push('contest-display__matchup--active');
-  }
+  const classes = [
+    'contest-display__matchup',
+    round.isActive && matchup.phase === 'shake' ? 'contest-display__matchup--active' : '',
+    bumping ? 'contest-display__matchup--score-bump' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <article
-      className={classes.join(' ')}
+      className={classes}
       style={{
         gridRow: `${rowStart} / span ${rowSpan}`,
       }}
       ref={(el) => onRef(key, el)}
       data-matchup-key={key}
+      data-phase={matchup.phase ?? 'empty'}
     >
-      <ContestantRow contestant={matchup.contestantA} />
+      <MatchupSparkles surface={surface} />
+      <ContestantRow contestant={matchup.contestantA} surface={surface} />
       {matchup.isBye ? (
         <p className="contest-display__bye-label">Bye</p>
       ) : (
-        <ContestantRow contestant={matchup.contestantB} />
+        <ContestantRow contestant={matchup.contestantB} surface={surface} />
       )}
       {matchup.winnerId && !matchup.isBye ? (
         <span className="contest-display__badge">Leader</span>
@@ -77,10 +213,12 @@ function BracketMatchupCard({
 function BracketColumn({
   round,
   totalRounds,
+  surface,
   onMatchupRef,
 }: {
   round: DisplayRound;
   totalRounds: number;
+  surface: ContestDisplaySurface;
   onMatchupRef: (key: string, el: HTMLElement | null) => void;
 }) {
   const totalRows = getBracketGridRowCount(totalRounds);
@@ -107,6 +245,7 @@ function BracketColumn({
             key={matchup.id}
             matchup={matchup}
             round={round}
+            surface={surface}
             onRef={onMatchupRef}
           />
         ))}
@@ -164,7 +303,15 @@ function computeConnectorPaths(
   return paths;
 }
 
-function BracketCanvas({ rounds, totalRounds }: { rounds: DisplayRound[]; totalRounds: number }) {
+function BracketCanvas({
+  rounds,
+  totalRounds,
+  surface,
+}: {
+  rounds: DisplayRound[];
+  totalRounds: number;
+  surface: ContestDisplaySurface;
+}) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const matchupRefs = useRef<Map<string, HTMLElement | null>>(new Map());
   const [paths, setPaths] = useState<ConnectorPath[]>([]);
@@ -220,7 +367,7 @@ function BracketCanvas({ rounds, totalRounds }: { rounds: DisplayRound[]; totalR
     <div
       className="contest-display__canvas"
       ref={canvasRef}
-      style={{ '--total-rounds': totalRounds } as React.CSSProperties}
+      style={{ '--total-rounds': totalRounds } as CSSProperties}
     >
       <svg
         className="contest-display__connectors"
@@ -245,6 +392,7 @@ function BracketCanvas({ rounds, totalRounds }: { rounds: DisplayRound[]; totalR
             key={round.id}
             round={round}
             totalRounds={totalRounds}
+            surface={surface}
             onMatchupRef={handleMatchupRef}
           />
         ))}
@@ -253,36 +401,96 @@ function BracketCanvas({ rounds, totalRounds }: { rounds: DisplayRound[]; totalR
   );
 }
 
-function FaceOffContestant({ contestant }: { contestant: DisplayContestant }) {
+function FaceOffContestant({
+  contestant,
+  surface,
+  side,
+}: {
+  contestant: DisplayContestant;
+  surface: ContestDisplaySurface;
+  side: 'left' | 'right';
+}) {
+  const bumping = useBumpOnChange(contestant.scoreSignature);
+  const classes = [
+    'contest-display__fo-contestant',
+    `contest-display__fo-contestant--${side}`,
+    contestant.isWinner ? 'contest-display__fo-contestant--leader' : '',
+    bumping ? 'contest-display__fo-contestant--score-bump' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <div
-      className={`contest-display__fo-contestant${
-        contestant.isWinner ? ' contest-display__fo-contestant--leader' : ''
-      }`}
-    >
+    <div className={classes}>
+      <div className="contest-display__fo-orbit" aria-hidden="true">
+        {surface.sideIcons.slice(side === 'left' ? 0 : 2, side === 'left' ? 4 : 6).map((icon) => (
+          <MaterialSymbol key={icon} name={icon} className="contest-display__fo-orbit-icon" />
+        ))}
+      </div>
+      <MaterialSymbol name={surface.contestantIcon} className="contest-display__fo-main-icon" />
       <p className="contest-display__fo-name">{contestant.name}</p>
-      <span className="contest-display__fo-score">{formatScore(contestant.score)}</span>
+      <AnimatedScore
+        className="contest-display__fo-score"
+        score={contestant.score}
+        signature={contestant.scoreSignature}
+      />
     </div>
   );
 }
 
-function DisplayFaceOff({ round }: { round: DisplayRound }) {
-  const matchup = round.matchups[0];
+function FaceOffCenter({
+  matchup,
+  surface,
+}: {
+  matchup: DisplayMatchup;
+  surface: ContestDisplaySurface;
+}) {
+  return (
+    <div className="contest-display__fo-center">
+      <MaterialSymbol name={surface.centerIcon} className="contest-display__shaker-icon" />
+      <span className="contest-display__fo-vs">VS</span>
+      <span className="contest-display__fo-game">Game {matchup.slotIndex + 1}</span>
+    </div>
+  );
+}
+
+function DisplayFaceOff({
+  model,
+  surface,
+}: {
+  model: DisplayModel;
+  surface: ContestDisplaySurface;
+}) {
+  const matchup = model.featuredMatchup;
+  const mode = model.featuredMatchupMode;
+  const title =
+    mode === 'shake' && matchup
+      ? `Game ${matchup.slotIndex + 1} is active`
+      : surface.standbySpotlightLabel;
+  const label = mode === 'shake' ? surface.activeSpotlightLabel : surface.standbySpotlightLabel;
 
   return (
-    <section className="contest-display__face-off">
+    <section className={`contest-display__face-off contest-display__face-off--${mode}`}>
       <header className="contest-display__fo-header">
-        <p className="contest-display__label">Final Round</p>
-        <h2 className="contest-display__fo-title">{round.name}</h2>
-        <span className={`contest-display__status contest-display__status--${round.status}`}>
-          {formatLabel(round.status)}
+        <p className="contest-display__label">{model.activeRoundName ?? 'Live round'}</p>
+        <h2 className="contest-display__fo-title">{title}</h2>
+        <span className={`contest-display__status contest-display__status--${mode}`}>
+          {label}
         </span>
       </header>
       {matchup ? (
         <div className="contest-display__fo-matchup">
-          <FaceOffContestant contestant={matchup.contestantA} />
-          <span className="contest-display__fo-vs">VS</span>
-          <FaceOffContestant contestant={matchup.contestantB} />
+          <FaceOffContestant
+            contestant={matchup.contestantA}
+            surface={surface}
+            side="left"
+          />
+          <FaceOffCenter matchup={matchup} surface={surface} />
+          <FaceOffContestant
+            contestant={matchup.contestantB}
+            surface={surface}
+            side="right"
+          />
         </div>
       ) : (
         <p className="contest-display__empty">Waiting for finalists...</p>
@@ -291,31 +499,25 @@ function DisplayFaceOff({ round }: { round: DisplayRound }) {
   );
 }
 
-function matchupTitle(matchup: DisplayMatchup | null) {
-  if (!matchup) return 'Waiting for active round';
-  return matchup.contestantA.name;
-}
-
-function matchupSubtitle(matchup: DisplayMatchup | null) {
-  if (!matchup) return 'No matchup currently scoring';
-  return `vs ${matchup.contestantB.name}`;
-}
-
 function firstMatchup(round: DisplayRound | null | undefined) {
   return round?.matchups[0] ?? null;
 }
 
-function liveMatchup(round: DisplayRound | null | undefined) {
-  if (!round) return null;
-  return (
-    round.matchups.find((m) => m.phase === 'shake' && !m.isBye) ??
-    round.matchups.find((m) => m.phase === 'set' && !m.isBye) ??
-    round.matchups[0] ??
-    null
-  );
+function featuredPanelTitle(model: DisplayModel, surface: ContestDisplaySurface) {
+  if (model.featuredMatchupMode === 'standby') return surface.standbySpotlightLabel;
+  return model.featuredMatchup?.contestantA.name ?? 'Waiting for active round';
+}
+
+function featuredPanelSubtitle(model: DisplayModel) {
+  if (!model.featuredMatchup) return 'No matchup currently scoring';
+  if (model.featuredMatchupMode === 'standby') {
+    return `Next look: ${matchupLabel(model.featuredMatchup)}`;
+  }
+  return `vs ${model.featuredMatchup.contestantB.name}`;
 }
 
 export function DisplayBracket({ model }: DisplayBracketProps) {
+  const surface = getContestDisplaySurface(model.contestKind);
   const bracketRounds = model.isFinalRoundActive ? model.rounds.slice(0, -1) : model.rounds;
   const faceOffRound = model.isFinalRoundActive
     ? model.rounds[model.rounds.length - 1]
@@ -325,18 +527,26 @@ export function DisplayBracket({ model }: DisplayBracketProps) {
     ? model.rounds.findIndex((round) => round.id === activeRound.id)
     : -1;
   const nextRound = activeRoundIndex >= 0 ? model.rounds[activeRoundIndex + 1] ?? null : null;
-  const activeMatchup = liveMatchup(activeRound);
   const nextMatchup = firstMatchup(nextRound);
+  const classes = ['contest-display', surface.rootClassName].join(' ');
 
   return (
-    <section className="contest-display" data-theme="broadcast">
+    <section
+      className={classes}
+      data-theme="broadcast"
+      data-contest-kind={model.contestKind}
+      data-featured-mode={model.featuredMatchupMode}
+    >
+      <IconRain surface={surface} />
+      <BubbleField surface={surface} />
       <header className="contest-display__hero">
-        <div>
+        <div className="contest-display__hero-copy">
           <Link
             href={`/contest/${model.contestId}`}
             className="contest-display__eyebrow contest-display__eyebrow--link"
           >
             <span className="live-dot" aria-hidden="true" />
+            <MaterialSymbol name={surface.eyebrowIcon} className="contest-display__eyebrow-icon" />
             On Air / {model.activeRoundName ?? 'Waiting'}
           </Link>
           <h1 className="contest-display__title">{model.contestName}</h1>
@@ -345,18 +555,28 @@ export function DisplayBracket({ model }: DisplayBracketProps) {
           </p>
         </div>
         <div className="contest-display__ticker">
-          <section className="contest-display__panel">
-            <span className="contest-display__label">Now Scoring</span>
-            <strong className="contest-display__value">{matchupTitle(activeMatchup)}</strong>
-            <span className="contest-display__panel-sub">{matchupSubtitle(activeMatchup)}</span>
+          <section className="contest-display__panel contest-display__panel--now">
+            <span className="contest-display__label">
+              <MaterialSymbol name={surface.centerIcon} className="contest-display__panel-icon" />
+              {model.featuredMatchupMode === 'shake'
+                ? surface.nowPanelLabel
+                : surface.standbyPanelLabel}
+            </span>
+            <strong className="contest-display__value">{featuredPanelTitle(model, surface)}</strong>
+            <span className="contest-display__panel-sub">{featuredPanelSubtitle(model)}</span>
           </section>
-          <section className="contest-display__panel">
-            <span className="contest-display__label">Up Next</span>
+          <section className="contest-display__panel contest-display__panel--next">
+            <span className="contest-display__label">
+              <MaterialSymbol name="double_arrow" className="contest-display__panel-icon" />
+              {surface.nextPanelLabel}
+            </span>
             <strong className="contest-display__value">
-              {nextMatchup ? matchupTitle(nextMatchup) : model.nextRoundName ?? 'No next round queued'}
+              {nextMatchup
+                ? nextMatchup.contestantA.name
+                : model.nextRoundName ?? 'No next round queued'}
             </strong>
             <span className="contest-display__panel-sub">
-              {nextMatchup ? matchupSubtitle(nextMatchup) : 'Awaiting bracket advance'}
+              {nextMatchup ? `vs ${nextMatchup.contestantB.name}` : 'Awaiting bracket advance'}
             </span>
           </section>
         </div>
@@ -367,21 +587,26 @@ export function DisplayBracket({ model }: DisplayBracketProps) {
       ) : (
         <>
           {bracketRounds.length > 0 && (
-            <BracketCanvas rounds={bracketRounds} totalRounds={bracketRounds.length} />
+            <BracketCanvas
+              rounds={bracketRounds}
+              totalRounds={bracketRounds.length}
+              surface={surface}
+            />
           )}
-          {faceOffRound && <DisplayFaceOff round={faceOffRound} />}
+          {faceOffRound && <DisplayFaceOff model={model} surface={surface} />}
         </>
       )}
 
       <footer className="contest-display__feed">
         <span className="contest-display__feed-label">
           <span aria-hidden="true" />
-          Vote feed
+          <MaterialSymbol name={surface.eyebrowIcon} className="contest-display__feed-icon" />
+          {surface.feedLabel}
         </span>
         <span>
-          {model.activeRoundName
-            ? `${model.activeRoundName} is live. Scores update from cached entry aggregates.`
-            : 'Waiting for the host to open a live round.'}
+          {model.activeShakeMatchup
+            ? `${model.activeRoundName ?? 'Round'} is live. ${surface.feedActiveMessage}`
+            : surface.feedStandbyMessage}
         </span>
       </footer>
     </section>

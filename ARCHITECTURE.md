@@ -165,6 +165,15 @@ What should stay true:
 - `src/features/contest/lib/hooks/`: contest-specific hooks
 - `src/features/contest/styles/`: contest style system and feature styles
 
+## Live display surface registry
+
+Display mode uses `src/features/contest/lib/presentation/displaySurface.ts` to map a contest
+configuration to a presentation surface. The first custom surface is `mixology`, selected from
+config topic/entry/contestant labels such as Mixology, Drink, Cocktail, or Mixologist. Unknown
+contest types fall back to the generic broadcast surface. These surfaces control display copy,
+Material Symbols icon choices, and TV-only decoration; score data still comes from cached entry
+aggregates in the display model.
+
 ## Style layering
 
 - `app/globals.scss`: app-wide global entry point
