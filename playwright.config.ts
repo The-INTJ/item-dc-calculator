@@ -26,7 +26,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'node scripts/e2e-dev.mjs',
+    command: 'node scripts/dev.mjs',
     url: BASE_URL,
     timeout: 180_000,
     reuseExistingServer: true,

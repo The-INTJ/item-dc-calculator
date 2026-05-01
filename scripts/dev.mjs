@@ -1,11 +1,11 @@
 /**
- * E2E dev orchestration — called by Playwright's webServer.
+ * Dev orchestration — invoked by `npm run dev` and Playwright's webServer.
  *
  * Starts Firebase emulators (auth + firestore), seeds test accounts,
  * then runs `next dev` with .env.emulators loaded into the child's env
  * (Next's CLI doesn't accept --env-file — that flag is node's). One
- * process tree — when Playwright stops the webServer, emulators and
- * dev die together.
+ * process tree — Ctrl+C (or Playwright stopping the webServer) tears
+ * emulators and dev down together.
  */
 
 import { spawn } from 'node:child_process';
@@ -14,7 +14,6 @@ import { readFileSync, rmSync } from 'node:fs';
 import waitOn from 'wait-on';
 
 // Stale lock from a prior Next dev that didn't exit cleanly blocks startup.
-// Safe to remove — Playwright's webServer guarantees we're the only dev on 3000.
 try { rmSync('.next/dev/lock', { force: true }); } catch {}
 
 function loadEnvFile(path) {
@@ -55,7 +54,7 @@ function cleanup(code = 0) {
 process.on('SIGINT', () => cleanup(130));
 process.on('SIGTERM', () => cleanup(143));
 process.on('uncaughtException', (err) => {
-  console.error('[e2e-dev] uncaught:', err);
+  console.error('[dev] uncaught:', err);
   cleanup(1);
 });
 
@@ -68,7 +67,7 @@ function spawnChild(cmd, args, env) {
 }
 
 try {
-  console.log('[e2e-dev] Starting Firebase emulators...');
+  console.log('[dev] Starting Firebase emulators...');
   emulators = spawnChild('npx', [
     '--no-install',
     'firebase',
@@ -79,35 +78,35 @@ try {
     'auth,firestore',
   ]);
   emulators.on('exit', (code) => {
-    console.error(`[e2e-dev] Emulators exited (code ${code}) before dev ready`);
+    console.error(`[dev] Emulators exited (code ${code}) before dev ready`);
     cleanup(code ?? 1);
   });
 
-  console.log('[e2e-dev] Waiting for emulator endpoints...');
+  console.log('[dev] Waiting for emulator endpoints...');
   await waitOn({
     resources: [AUTH_TCP, FIRESTORE_TCP],
     timeout: 60_000,
     interval: 250,
   });
 
-  console.log('[e2e-dev] Seeding test accounts...');
+  console.log('[dev] Seeding test accounts...');
   const seed = spawnChild('node', ['scripts/seed-emulator.mjs']);
   const [seedCode] = await once(seed, 'exit');
   if (seedCode !== 0) {
-    console.error(`[e2e-dev] Seed failed (code ${seedCode})`);
+    console.error(`[dev] Seed failed (code ${seedCode})`);
     cleanup(seedCode ?? 1);
   }
 
-  console.log('[e2e-dev] Starting Next dev server on port 3000...');
+  console.log('[dev] Starting Next dev server on port 3000...');
   const emuEnv = loadEnvFile('.env.emulators');
   devServer = spawnChild('npx', ['--no-install', 'next', 'dev'], emuEnv);
   devServer.on('exit', (code) => {
-    console.log(`[e2e-dev] Next dev exited (code ${code})`);
+    console.log(`[dev] Next dev exited (code ${code})`);
     cleanup(code ?? 0);
   });
 
   await new Promise(() => {});
 } catch (err) {
-  console.error('[e2e-dev] fatal:', err);
+  console.error('[dev] fatal:', err);
   cleanup(1);
 }

@@ -83,7 +83,7 @@ Seeded accounts are defined in `scripts/seed-emulator.mjs`:
 
 **"signIn failed: 400 EMAIL_NOT_FOUND" in global-setup** — the seed didn't
 run, or emulators were restarted without re-seeding. Restart the test run;
-`scripts/e2e-dev.mjs` re-seeds on each start.
+`scripts/dev.mjs` re-seeds on each start.
 
 **Tally never matches expected** — the 300ms pacing means the first poll
 often misses. `waitForEntryScore` polls for 15s by default. If it times out,
