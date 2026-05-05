@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/dev.mjs",
+    "dev": "cross-env EMULATOR_DATA_DIR=./emulator-data node scripts/dev.mjs",
     "dev:prod": "next dev --env-file .env.production",
     "build": "next build",
     "start": "next start",
@@ -21,6 +21,7 @@
     "docs:validate": "npm run docs:build && npx swagger-cli validate app/api/contest/openapi.json",
     "emulators": "firebase emulators:start",
     "emulators:seed": "node scripts/seed-emulator.mjs",
+    "emulators:reset": "node -e \"require('fs').rmSync('./emulator-data',{recursive:true,force:true})\"",
     "deploy:rules": "firebase deploy --only firestore:rules",
     "deploy:indexes": "firebase deploy --only firestore:indexes",
     "deploy:firestore": "firebase deploy --only firestore"

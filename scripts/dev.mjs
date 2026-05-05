@@ -10,7 +10,7 @@
 
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { readFileSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync } from 'node:fs';
 import waitOn from 'wait-on';
 
 // Stale lock from a prior Next dev that didn't exit cleanly blocks startup.
@@ -42,17 +42,29 @@ const PROJECT_ID = 'playground-69cbc';
 const AUTH_TCP = 'tcp:127.0.0.1:9099';
 const FIRESTORE_TCP = 'tcp:127.0.0.1:8080';
 
+// When set (e.g. by `npm run dev`), Firestore + Auth state is imported on
+// startup and exported on graceful shutdown so data survives restarts.
+// Unset for Playwright so E2E runs against a fresh emulator.
+const DATA_DIR = process.env.EMULATOR_DATA_DIR;
+
 let emulators;
 let devServer;
 
-function cleanup(code = 0) {
+async function cleanup(code = 0) {
   if (devServer && !devServer.killed) devServer.kill('SIGTERM');
-  if (emulators && !emulators.killed) emulators.kill('SIGTERM');
+  if (emulators && !emulators.killed) {
+    emulators.kill('SIGTERM');
+    // Give Firebase time to flush --export-on-exit before the parent dies.
+    await Promise.race([
+      once(emulators, 'exit'),
+      new Promise((r) => setTimeout(r, 8000)),
+    ]);
+  }
   process.exit(code);
 }
 
-process.on('SIGINT', () => cleanup(130));
-process.on('SIGTERM', () => cleanup(143));
+process.on('SIGINT', () => { cleanup(130); });
+process.on('SIGTERM', () => { cleanup(143); });
 process.on('uncaughtException', (err) => {
   console.error('[dev] uncaught:', err);
   cleanup(1);
@@ -68,7 +80,7 @@ function spawnChild(cmd, args, env) {
 
 try {
   console.log('[dev] Starting Firebase emulators...');
-  emulators = spawnChild('npx', [
+  const emulatorFlags = [
     '--no-install',
     'firebase',
     'emulators:start',
@@ -76,7 +88,17 @@ try {
     PROJECT_ID,
     '--only',
     'auth,firestore',
-  ]);
+  ];
+  if (DATA_DIR) {
+    emulatorFlags.push(`--export-on-exit=${DATA_DIR}`);
+    if (existsSync(DATA_DIR)) {
+      emulatorFlags.push(`--import=${DATA_DIR}`);
+      console.log(`[dev] Importing emulator data from ${DATA_DIR}`);
+    } else {
+      console.log(`[dev] No existing data at ${DATA_DIR} — will export on exit`);
+    }
+  }
+  emulators = spawnChild('npx', emulatorFlags);
   emulators.on('exit', (code) => {
     console.error(`[dev] Emulators exited (code ${code}) before dev ready`);
     cleanup(code ?? 1);
