@@ -514,6 +514,51 @@
   margin: 0;
 }
 
+.contest-display__champion {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 215, 0, 0.28), transparent 65%),
+    linear-gradient(140deg, rgba(255, 200, 87, 0.18), rgba(255, 138, 0, 0.12));
+  border: 1px solid rgba(255, 215, 0, 0.55);
+  border-radius: 0.75rem;
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  display: grid;
+  gap: 0.45rem;
+  box-shadow: 0 0 60px rgba(255, 200, 87, 0.18);
+}
+
+.contest-display__champion-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 224, 130, 0.95);
+}
+
+.contest-display__champion-icon {
+  font-size: 1.15rem;
+  color: rgba(255, 224, 130, 1);
+}
+
+.contest-display__champion-name {
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(255, 200, 87, 0.45);
+}
+
+.contest-display__champion-meta {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+
 .contest-display__face-off {
   background:
     linear-gradient(90deg, rgba(139, 255, 211, 0.08), transparent 34%, rgba(251, 113, 133, 0.08)),

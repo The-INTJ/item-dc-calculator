@@ -547,7 +547,7 @@ export function DisplayBracket({ model }: DisplayBracketProps) {
           >
             <span className="live-dot" aria-hidden="true" />
             <MaterialSymbol name={surface.eyebrowIcon} className="contest-display__eyebrow-icon" />
-            On Air / {model.activeRoundName ?? 'Waiting'}
+            On Air / {model.champion ? 'Champion crowned' : model.activeRoundName ?? 'Waiting'}
           </Link>
           <h1 className="contest-display__title">{model.contestName}</h1>
           <p className="contest-display__meta">
@@ -586,6 +586,33 @@ export function DisplayBracket({ model }: DisplayBracketProps) {
         <p className="contest-display__empty">No rounds have been created yet.</p>
       ) : (
         <>
+          {model.champion && (
+            <section
+              className="contest-display__champion"
+              role="status"
+              aria-live="polite"
+            >
+              <p className="contest-display__champion-eyebrow">
+                <MaterialSymbol
+                  name="emoji_events"
+                  className="contest-display__champion-icon"
+                />
+                Champion · {model.champion.finalRoundName}
+              </p>
+              <h2 className="contest-display__champion-name">
+                {model.champion.contestant.name}
+              </h2>
+              {model.champion.runnerUp && (
+                <p className="contest-display__champion-meta">
+                  Defeated {model.champion.runnerUp.name}
+                  {typeof model.champion.contestant.score === 'number' &&
+                  typeof model.champion.runnerUp.score === 'number'
+                    ? ` ${model.champion.contestant.score} – ${model.champion.runnerUp.score}`
+                    : ''}
+                </p>
+              )}
+            </section>
+          )}
           {bracketRounds.length > 0 && (
             <BracketCanvas
               rounds={bracketRounds}

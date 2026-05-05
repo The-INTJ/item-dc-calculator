@@ -61,6 +61,14 @@ export interface DisplayRound {
   roundIndex: number;
 }
 
+export interface DisplayChampion {
+  /** The winning contestant entry from the final matchup. */
+  contestant: DisplayContestant;
+  /** The opponent in the final matchup (for the runner-up callout). */
+  runnerUp: DisplayContestant | null;
+  finalRoundName: string;
+}
+
 export interface DisplayModel {
   contestId: string;
   contestName: string;
@@ -78,6 +86,8 @@ export interface DisplayModel {
   bracketStructure: BracketStructure;
   /** True when the active round is the final round in the bracket. */
   isFinalRoundActive: boolean;
+  /** Set when the final round's matchup is scored with a winner — drives the crowning UI. */
+  champion: DisplayChampion | null;
 }
 
 function buildDisplayContestant(
@@ -213,6 +223,32 @@ export function buildDisplayModel(contest: Contest, matchups: Matchup[]): Displa
     displayRounds.flatMap((round) => round.matchups).find((matchup) => !matchup.isBye) ??
     null;
 
+  const finalRound = lastRoundId
+    ? displayRounds.find((round) => round.id === lastRoundId) ?? null
+    : null;
+  const finalMatchup =
+    finalRound?.matchups.find((m) => !m.isBye && m.phase === 'scored' && m.winnerId) ?? null;
+  const champion: DisplayChampion | null = finalMatchup
+    ? (() => {
+        const winner =
+          finalMatchup.contestantA.id === finalMatchup.winnerId
+            ? finalMatchup.contestantA
+            : finalMatchup.contestantB.id === finalMatchup.winnerId
+              ? finalMatchup.contestantB
+              : null;
+        if (!winner) return null;
+        const runnerUp =
+          finalMatchup.contestantA.id === winner.id
+            ? finalMatchup.contestantB
+            : finalMatchup.contestantA;
+        return {
+          contestant: winner,
+          runnerUp: runnerUp ?? null,
+          finalRoundName: finalRound?.name ?? 'Finals',
+        };
+      })()
+    : null;
+
   return {
     contestId: contest.id,
     contestName: contest.name,
@@ -228,6 +264,7 @@ export function buildDisplayModel(contest: Contest, matchups: Matchup[]): Displa
     phase: derivePhaseFromMatchups(matchups, activeRoundId),
     bracketStructure,
     isFinalRoundActive: activeRoundId != null && activeRoundId === lastRoundId,
+    champion,
   };
 }
 
