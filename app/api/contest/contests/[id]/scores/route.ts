@@ -3,6 +3,7 @@ import { getContestByParam } from '@/contest/lib/backend/serverProvider';
 import { requireAuth } from '../../../_lib/requireAuth';
 import { SubmitScoreBodySchema } from '@/contest/lib/schemas';
 import type { ScoreBreakdown } from '@/contest/contexts/contest/contestTypes';
+import { harnessLog } from '@/lib/diagnostics/harnessLog';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -72,6 +73,12 @@ export async function POST(request: Request, { params }: RouteParams) {
   }
   const matchup = matchupResult.data;
   if (matchup.phase !== 'shake') {
+    harnessLog({
+      domain: 'voting',
+      event: 'phase.guard.rejected',
+      level: 'warn',
+      data: { contestId: contest.id, matchupId, currentPhase: matchup.phase, userId },
+    });
     return jsonError('Matchup is not open for scoring.', 400);
   }
   if (!matchup.entries.some((e) => e.id === entryId)) {

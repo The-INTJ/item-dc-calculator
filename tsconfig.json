@@ -31,6 +31,9 @@
       ],
       "@/contest/*": [
         "./src/features/contest/*"
+      ],
+      "@/lib/*": [
+        "./src/lib/*"
       ]
     },
     "plugins": [

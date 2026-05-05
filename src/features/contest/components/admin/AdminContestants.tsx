@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui';
 import type {
   Contest,
   Contestant,
@@ -109,13 +110,9 @@ function ContestantCard({
 
           {onRemoveContestant && (
             <div className="admin-entry-add">
-              <button
-                type="button"
-                className="admin-inline-button admin-inline-button--danger"
-                onClick={() => void onRemoveContestant()}
-              >
+              <Button variant="danger" onClick={() => void onRemoveContestant()}>
                 Remove contestant
-              </button>
+              </Button>
             </div>
           )}
         </div>

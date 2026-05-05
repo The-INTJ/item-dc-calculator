@@ -252,11 +252,10 @@ export const contestApi = {
   async registerAsContestant(
     contestId: string,
     displayName: string,
-    contact?: string,
   ): Promise<ProviderResult<{ registered: boolean; contestantId?: string }>> {
     return fetchProviderResult<{ registered: boolean; contestantId?: string }>(
       `${API}/contests/${encodeURIComponent(contestId)}/register`,
-      { method: 'POST', body: JSON.stringify({ displayName, contact }) },
+      { method: 'POST', body: JSON.stringify({ displayName }) },
     );
   },
 

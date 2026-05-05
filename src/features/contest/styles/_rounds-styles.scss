@@ -208,17 +208,18 @@
   text-align: right;
 }
 
-.contest-rounds__matchup-vote {
-  background: var(--action-secondary-bg, var(--bg-surface));
-  border: 1px solid var(--border-default);
-  color: var(--text-strong);
-  justify-self: start;
-  min-height: 2.5rem;
-  padding: 0 0.875rem;
-
-  &:hover:not(:disabled) {
-    border-color: var(--border-focus);
-  }
+.contest-rounds__matchup-voted {
+  align-items: center;
+  align-self: start;
+  background: var(--status-success-bg);
+  border-radius: var(--r-pill);
+  color: var(--status-success-text);
+  display: inline-flex;
+  font: var(--t-label);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0.125rem 0.625rem;
+  text-transform: uppercase;
 }
 
 .contest-rounds__empty,
@@ -229,14 +230,7 @@
 }
 
 .contest-rounds__vote-cta {
-  background: var(--action-accent-bg);
-  color: var(--action-accent-text);
   margin-top: 0.25rem;
-  width: 100%;
-
-  &:hover:not(:disabled) {
-    background: var(--action-accent-bg-hover);
-  }
 }
 
 .contestant-cta {

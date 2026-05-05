@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Button } from '@/components/ui';
 import { useAuth } from '@/contest/contexts/auth/AuthContext';
 import { NavBar } from './NavBar';
 import styles from '@/contest/styles/components/Header.module.scss';
@@ -30,9 +31,9 @@ export function SiteHeader() {
         <div className="auth-banner" role="status" aria-live="polite">
           <div className="auth-banner__content">
             <span>Sign in to unlock this experience.</span>
-            <Link href="/onboard" className="button-secondary auth-banner__action">
+            <Button href="/onboard" variant="secondary" className="auth-banner__action">
               Log in
-            </Link>
+            </Button>
           </div>
         </div>
       ) : null}

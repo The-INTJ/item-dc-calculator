@@ -29,3 +29,22 @@ export function buildAutoVoteScores(
 
   return unscored.map((entryId) => ({ entryId, breakdown: { ...breakdown } }));
 }
+
+/**
+ * Builds a max-score self-vote for a contestant on their own entry.
+ * The VoteModal UI promises self-entries auto-record the maximum; this
+ * keeps the aggregate honest (e.g. with 2 contestants both scoring each
+ * other 5/10, each entry ends up averaging 7.5 once their own self-max
+ * is included).
+ */
+export function buildSelfMaxVote(
+  selfEntryId: string | null,
+  config: ContestConfig,
+): AutoVoteEntry[] {
+  if (!selfEntryId) return [];
+  const breakdown: ScoreBreakdown = {};
+  for (const attr of config.attributes) {
+    breakdown[attr.id] = attr.max ?? 10;
+  }
+  return [{ entryId: selfEntryId, breakdown }];
+}

@@ -1,10 +1,11 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { Button } from '@/components/ui';
 import { useAuth } from '@/contest/contexts/auth/AuthContext';
 import { setRecentContest } from '@/contest/lib/hooks/useRecentContest';
 import { markContestVisited } from '@/contest/lib/hooks/useVisitedContests';
+import { useUserVotesForContest } from '@/contest/lib/hooks/useUserVotesForContest';
 import { ContestRoundNavigator } from '@/contest/components/ui/ContestRoundNavigator';
 import { ContestantCta } from '@/contest/components/ui/ContestantCta';
 import { VoteModal } from '@/contest/components/ui/VoteModal';
@@ -51,6 +52,10 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
 
   const userId = session?.firebaseUid ?? session?.sessionId ?? null;
   const contestRole = getUserContestRole(userId, contest);
+  const { votedMatchupIds, refresh: refreshVotedMatchups } = useUserVotesForContest(
+    contest.id,
+    userId,
+  );
   const contestantLabel = getContestantLabel(contest.config);
   const entryLabel = getEntryLabel(contest.config);
   const showContestantButton = userId && contestRole !== 'contestant';
@@ -102,18 +107,20 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
         <p>
           {roundCount} rounds / {contestantCount} {contestantCount === 1 ? contestantLabel.toLowerCase() : `${contestantLabel.toLowerCase()}s`}
         </p>
-        <Link
+        <Button
           href={`/contest/${contestId}/display`}
-          className="btn btn--secondary btn--sm contest-hero__display-link"
+          variant="secondary"
+          size="sm"
         >
           Display mode
-        </Link>
+        </Button>
       </section>
 
       <ContestRoundNavigator
         rounds={rounds}
         activeRoundId={activeRoundId}
         viewedRoundId={viewedRoundId}
+        votedMatchupIds={votedMatchupIds}
         onViewRound={setUserPickedRoundId}
         onVoteMatchup={handleVoteMatchup}
       />
@@ -185,6 +192,7 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
         <VoteModal
           open
           onClose={() => setSelectedMatchupId(null)}
+          onSubmitted={refreshVotedMatchups}
           contest={contest}
           matchup={selectedMatchup}
         />

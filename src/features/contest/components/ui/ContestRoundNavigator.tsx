@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef } from 'react';
+import { Button } from '@/components/ui';
 import type {
   BracketContestant,
   BracketMatchup,
@@ -12,6 +13,7 @@ interface ContestRoundNavigatorProps {
   rounds: BracketRound[];
   activeRoundId: string | null;
   viewedRoundId: string | null;
+  votedMatchupIds: Set<string>;
   onViewRound: (roundId: string) => void;
   onVoteMatchup: (matchupId: string) => void;
 }
@@ -57,15 +59,14 @@ function matchupLabel(matchup: BracketMatchup): string {
 function HeroMatchup({
   matchup,
   index,
-  onVoteMatchup,
+  hasVoted,
 }: {
   matchup: BracketMatchup;
   index: number;
-  onVoteMatchup: (matchupId: string) => void;
+  hasVoted: boolean;
 }) {
   const matchupNumber = index + 1;
   const label = matchupLabel(matchup);
-  const canVote = matchup.phase === 'shake' && !matchup.isBye && matchup.matchupId;
 
   if (matchup.isBye) {
     return (
@@ -82,16 +83,7 @@ function HeroMatchup({
     <li className="contest-rounds__matchup" aria-label={`Matchup ${matchupNumber}: ${label}`}>
       <MatchupRow contestant={matchup.contestantA} winnerId={matchup.winnerId} />
       <MatchupRow contestant={matchup.contestantB} winnerId={matchup.winnerId} />
-      {canVote && (
-        <button
-          type="button"
-          className="contest-rounds__matchup-vote"
-          onClick={() => onVoteMatchup(matchup.matchupId!)}
-          aria-label={`Vote matchup ${matchupNumber}: ${label}`}
-        >
-          Vote matchup {matchupNumber}
-        </button>
-      )}
+      {hasVoted && <span className="contest-rounds__matchup-voted">Voted</span>}
     </li>
   );
 }
@@ -100,6 +92,7 @@ export function ContestRoundNavigator({
   rounds,
   activeRoundId,
   viewedRoundId,
+  votedMatchupIds,
   onViewRound,
   onVoteMatchup,
 }: ContestRoundNavigatorProps) {
@@ -208,20 +201,23 @@ export function ContestRoundNavigator({
                   key={matchup.id}
                   matchup={matchup}
                   index={index}
-                  onVoteMatchup={onVoteMatchup}
+                  hasVoted={Boolean(matchup.matchupId && votedMatchupIds.has(matchup.matchupId))}
                 />
               ))}
             </ol>
           )}
 
           {liveMatchup && (
-            <button
-              type="button"
+            <Button
+              variant="accent"
+              block
               className="contest-rounds__vote-cta"
               onClick={() => onVoteMatchup(liveMatchup.matchupId!)}
             >
-              Vote this matchup
-            </button>
+              {liveMatchup.matchupId && votedMatchupIds.has(liveMatchup.matchupId)
+                ? 'Change vote'
+                : 'Vote this matchup'}
+            </Button>
           )}
 
           {viewedRound.status === 'active' && !hasLiveMatchup && (

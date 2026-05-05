@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { Button } from './Button';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -33,12 +34,12 @@ export function ConfirmDialog({
         <h2>{title}</h2>
         <p>{message}</p>
         <div className="confirm-modal__actions">
-          <button type="button" className="button-secondary" onClick={onCancel}>
+          <Button variant="secondary" onClick={onCancel}>
             {cancelLabel}
-          </button>
-          <button type="button" className="button-primary" onClick={handleConfirm}>
+          </Button>
+          <Button variant="primary" onClick={handleConfirm}>
             {confirmLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

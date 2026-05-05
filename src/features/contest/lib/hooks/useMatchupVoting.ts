@@ -17,8 +17,9 @@ import type {
   ScoreBreakdown,
   ScoreEntry,
 } from '../../contexts/contest/contestTypes';
-import { buildAutoVoteScores } from '../domain/autoVote';
+import { buildAutoVoteScores, buildSelfMaxVote } from '../domain/autoVote';
 import { contestApi } from '../api/contestApi';
+import { harnessLog } from '@/lib/diagnostics/harnessLog';
 
 type ScoreByEntryId = Record<string, Record<string, number>>;
 export type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error';
@@ -124,12 +125,27 @@ export function useMatchupVoting(contest: Contest | null, matchup: Matchup | nul
     }
 
     const scoredIds = voteEntries.map((e) => e.entryId);
-    const allEntryIds = entries.map((e) => e.id);
-    const autoVotes = buildAutoVoteScores(allEntryIds, scoredIds, config);
-    const allVotes = [...voteEntries, ...autoVotes];
+    const otherEntryIds = entries
+      .map((e) => e.id)
+      .filter((id) => id !== selfEntryId);
+    const autoVotes = buildAutoVoteScores(otherEntryIds, scoredIds, config);
+    const selfVote = buildSelfMaxVote(selfEntryId, config);
+    const allVotes = [...voteEntries, ...autoVotes, ...selfVote];
 
     setStatus('submitting');
     setMessage(null);
+
+    harnessLog({
+      domain: 'voting',
+      event: 'submit.start',
+      data: {
+        contestId: contest.id,
+        matchupId: matchup.id,
+        manualVoteCount: voteEntries.length,
+        autoVoteCount: autoVotes.length,
+        hasSelfVote: selfVote.length > 0,
+      },
+    });
 
     try {
       const results = await Promise.all(
@@ -145,11 +161,43 @@ export function useMatchupVoting(contest: Contest | null, matchup: Matchup | nul
       );
 
       const firstFailure = results.find((r) => !r.success);
-      if (firstFailure) throw new Error(firstFailure.error ?? 'Failed to submit scores.');
+      if (firstFailure) {
+        harnessLog({
+          domain: 'voting',
+          event: 'submit.failed',
+          level: 'error',
+          data: {
+            contestId: contest.id,
+            matchupId: matchup.id,
+            error: firstFailure.error,
+          },
+        });
+        throw new Error(firstFailure.error ?? 'Failed to submit scores.');
+      }
+
+      harnessLog({
+        domain: 'voting',
+        event: 'submit.success',
+        data: {
+          contestId: contest.id,
+          matchupId: matchup.id,
+          totalVotes: allVotes.length,
+        },
+      });
 
       setStatus('success');
       setMessage('Scores submitted!');
     } catch (err) {
+      harnessLog({
+        domain: 'voting',
+        event: 'submit.error',
+        level: 'error',
+        data: {
+          contestId: contest.id,
+          matchupId: matchup.id,
+          error: err instanceof Error ? err.message : String(err),
+        },
+      });
       setStatus('error');
       setMessage(String(err));
     }

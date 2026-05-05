@@ -6,7 +6,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { Button } from '@/components/ui';
 import { useAuth } from '../../contexts/auth/AuthContext';
 import { useContestStore } from '../../contexts/contest/ContestContext';
 import type { Contest } from '../../contexts/contest/contestTypes';
@@ -55,9 +55,9 @@ export function AdminDashboard() {
     return (
       <div className="admin-error">
         <p>Sign in to access the admin dashboard.</p>
-        <Link href="/onboard" className="button-secondary">
+        <Button href="/onboard" variant="secondary">
           Log in
-        </Link>
+        </Button>
       </div>
     );
   }
@@ -66,9 +66,9 @@ export function AdminDashboard() {
     return (
       <div className="admin-error">
         <p>Admin access required.</p>
-        <Link href="/contest" className="button-secondary">
+        <Button href="/contest" variant="secondary">
           Return to contests
-        </Link>
+        </Button>
       </div>
     );
   }
@@ -81,9 +81,9 @@ export function AdminDashboard() {
     return (
       <div className="admin-error">
         <p>Error loading contests: {error}</p>
-        <button onClick={refresh} className="button-secondary">
+        <Button onClick={refresh} variant="secondary">
           Retry
-        </button>
+        </Button>
       </div>
     );
   }
@@ -107,9 +107,9 @@ export function AdminDashboard() {
           Manage contests, rounds, entries, and voters.
           Select a contest to view its details.
         </p>
-        <button onClick={refresh} className="button-secondary">
+        <Button onClick={refresh} variant="secondary">
           Refresh Data
-        </button>
+        </Button>
       </header>
 
       <div className="admin-dashboard__layout">
@@ -141,9 +141,9 @@ export function AdminDashboard() {
               </div>
             )}
             <div className="admin-add-contest">
-              <Link href="/admin/contest-setup" className="button-primary">
+              <Button href="/admin/contest-setup" variant="primary">
                 Create New Contest
-              </Link>
+              </Button>
             </div>
           </div>
         </aside>

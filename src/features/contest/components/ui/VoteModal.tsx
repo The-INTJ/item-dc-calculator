@@ -9,11 +9,12 @@ import { useMatchupVoting } from '../../lib/hooks/useMatchupVoting';
 interface VoteModalProps {
   open: boolean;
   onClose: () => void;
+  onSubmitted?: () => void;
   contest: Contest;
   matchup: Matchup;
 }
 
-export function VoteModal({ open, onClose, contest, matchup }: VoteModalProps) {
+export function VoteModal({ open, onClose, onSubmitted, contest, matchup }: VoteModalProps) {
   const roundName = getRoundLabel(contest, matchup.roundId);
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
@@ -36,9 +37,10 @@ export function VoteModal({ open, onClose, contest, matchup }: VoteModalProps) {
 
   useEffect(() => {
     if (!open || status !== 'success') return;
+    onSubmitted?.();
     const timer = setTimeout(onClose, 1500);
     return () => clearTimeout(timer);
-  }, [open, status, onClose]);
+  }, [open, status, onClose, onSubmitted]);
 
   const activeEntry = drinks[activeEntryIndex] ?? drinks[0] ?? null;
   const isSelfEntry = activeEntry?.id === selfEntryId;
