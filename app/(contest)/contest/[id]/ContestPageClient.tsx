@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/contest/contexts/auth/AuthContext';
 import { setRecentContest } from '@/contest/lib/hooks/useRecentContest';
+import { markContestVisited } from '@/contest/lib/hooks/useVisitedContests';
 import { ContestRoundNavigator } from '@/contest/components/ui/ContestRoundNavigator';
 import { ContestantCta } from '@/contest/components/ui/ContestantCta';
 import { VoteModal } from '@/contest/components/ui/VoteModal';
@@ -45,6 +46,7 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
 
   useEffect(() => {
     setRecentContest({ id: contest.id, name: contest.name });
+    markContestVisited(contest.id);
   }, [contest.id, contest.name]);
 
   const userId = session?.firebaseUid ?? session?.sessionId ?? null;

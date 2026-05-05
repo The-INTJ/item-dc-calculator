@@ -12,6 +12,7 @@ import { useContestStore } from '../../contexts/contest/ContestContext';
 import type { Contest } from '../../contexts/contest/contestTypes';
 import { ContestCard } from './ContestCard';
 import { ContestDetails } from './ContestDetails';
+import { MaterialSymbol } from '../ui/MaterialSymbol';
 import {
   setLastAdminContest,
   useLastAdminContest,
@@ -119,7 +120,10 @@ export function AdminDashboard() {
             onClick={() => setSidebarCollapsed((prev) => !prev)}
           >
             <span>Contests ({contests.length})</span>
-            <span className="admin-sidebar__chevron">{sidebarCollapsed ? 'v' : '^'}</span>
+            <MaterialSymbol
+              name={sidebarCollapsed ? 'expand_more' : 'expand_less'}
+              className="admin-sidebar__chevron"
+            />
           </button>
           <div className="admin-sidebar__body">
             {!contests || contests.length === 0 ? (

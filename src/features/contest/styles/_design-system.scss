@@ -78,6 +78,10 @@
   --action-accent-text: #ffffff;
   --action-live-bg: var(--c-amber-500);
   --action-live-text: var(--c-slate-900);
+  --action-on-dark-bg: rgba(255, 255, 255, 0.08);
+  --action-on-dark-bg-hover: rgba(255, 255, 255, 0.18);
+  --action-on-dark-border: rgba(255, 255, 255, 0.22);
+  --action-on-dark-text: #ffffff;
 
   --status-pending-bg: var(--c-slate-100);
   --status-pending-text: var(--c-slate-600);
@@ -277,6 +281,11 @@
   color: var(--action-accent-text);
 }
 
+.btn--accent:hover:not(:disabled) {
+  background: var(--action-accent-bg-hover);
+  color: var(--action-accent-text);
+}
+
 .btn--tertiary {
   background: transparent;
   color: var(--action-tertiary-text);
@@ -284,6 +293,18 @@
 
 .btn--tertiary:hover:not(:disabled) {
   background: var(--action-tertiary-bg-hover);
+}
+
+.btn--on-dark {
+  background: var(--action-on-dark-bg);
+  border-color: var(--action-on-dark-border);
+  color: var(--action-on-dark-text);
+}
+
+.btn--on-dark:hover:not(:disabled) {
+  background: var(--action-on-dark-bg-hover);
+  border-color: var(--action-on-dark-border);
+  color: var(--action-on-dark-text);
 }
 
 .btn--danger,

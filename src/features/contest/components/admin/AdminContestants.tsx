@@ -10,6 +10,7 @@ import type {
   UserRole,
 } from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
+import { MaterialSymbol } from '../ui/MaterialSymbol';
 
 interface AdminContestantsProps {
   contest: Contest;
@@ -76,9 +77,10 @@ function ContestantCard({
         </div>
         <div className="admin-participant-card__summary">
           <span className="admin-detail-meta">{placementSummary}</span>
-          <span className="admin-participant-card__chevron" aria-hidden="true">
-            {expanded ? '^' : 'v'}
-          </span>
+          <MaterialSymbol
+            name={expanded ? 'expand_less' : 'expand_more'}
+            className="admin-participant-card__chevron"
+          />
         </div>
       </button>
 
