@@ -81,6 +81,31 @@ async function buildServerUser(uid: string, claims: Record<string, unknown>): Pr
 }
 
 /**
+ * Firebase auth error codes that mean "this caller is just not logged in" —
+ * an expired or revoked cookie, a malformed value, or a session pointing at a
+ * user record that has been deleted (common after an emulator data wipe).
+ * These are not server faults; the page should render as if the user were
+ * anonymous, without a stack-trace in the log.
+ */
+const EXPECTED_AUTH_ERROR_CODES = new Set([
+  'auth/session-cookie-expired',
+  'auth/session-cookie-revoked',
+  'auth/invalid-session-cookie',
+  'auth/argument-error',
+  'auth/user-not-found',
+  'auth/id-token-expired',
+  'auth/id-token-revoked',
+  'auth/user-disabled',
+]);
+
+function isExpectedAuthError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const code = (error as { code?: unknown; errorInfo?: { code?: unknown } }).code
+    ?? (error as { errorInfo?: { code?: unknown } }).errorInfo?.code;
+  return typeof code === 'string' && EXPECTED_AUTH_ERROR_CODES.has(code);
+}
+
+/**
  * Get the current user from the server side.
  *
  * This checks for Firebase auth tokens in cookies and validates them.
@@ -105,6 +130,9 @@ export async function getCurrentUser(): Promise<ServerUser | null> {
     const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie, true);
     return await buildServerUser(decodedClaims.uid, decodedClaims);
   } catch (error) {
+    if (isExpectedAuthError(error)) {
+      return null;
+    }
     console.error('[ServerAuth] Error getting current user:', error);
     return null;
   }
@@ -131,6 +159,9 @@ export async function getCurrentUserFromRequest(request: Request): Promise<Serve
       const decodedClaims = await adminAuth.verifyIdToken(token, true);
       return await buildServerUser(decodedClaims.uid, decodedClaims);
     } catch (error) {
+      if (isExpectedAuthError(error)) {
+        return null;
+      }
       console.error('[ServerAuth] Error verifying ID token:', error);
       return null;
     }

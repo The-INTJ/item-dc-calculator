@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import type {
   Contest,
   Contestant,
@@ -26,6 +26,23 @@ export function useContestActions(
   const getContestById = useCallback(
     (id: string) => state.contests.find((c) => c.id === id),
     [state.contests],
+  );
+
+  // Per-contest serialization for read-modify-write actions on `contest.rounds`.
+  // Without this, rapid clicks on "Add round" all read the same stale rounds
+  // array and overwrite each other's PUT (the API replaces the whole array).
+  const roundMutationQueues = useRef<Map<string, Promise<unknown>>>(new Map());
+  const enqueueRoundMutation = useCallback(
+    <T,>(contestId: string, task: () => Promise<T>): Promise<T> => {
+      const previous = roundMutationQueues.current.get(contestId) ?? Promise.resolve();
+      const next = previous.then(task, task);
+      roundMutationQueues.current.set(
+        contestId,
+        next.catch(() => undefined),
+      );
+      return next;
+    },
+    [],
   );
 
   const replaceContest = useCallback((contest: Contest) => {
@@ -80,21 +97,31 @@ export function useContestActions(
     return result.success;
   }, [updateState]);
 
-  const addRound = useCallback(async (contestId: string): Promise<boolean> => {
-    const contest = getContestById(contestId);
-    if (!contest) return false;
+  const addRound = useCallback(
+    (contestId: string): Promise<boolean> =>
+      enqueueRoundMutation(contestId, async () => {
+        // Re-read the latest contest *inside* the queued task, after any prior
+        // append has settled — otherwise concurrent clicks all snapshot the
+        // pre-append rounds and clobber each other.
+        const latest = await contestApi.getContest(contestId);
+        const baseContest = latest.success && latest.data ? latest.data : getContestById(contestId);
+        if (!baseContest) return false;
 
-    const rounds = contest.rounds ?? [];
-    const newRound: ContestRound = {
-      id: generateId('round'),
-      name: `Round ${rounds.length + 1}`,
-      number: rounds.length + 1,
-    };
+        const rounds = baseContest.rounds ?? [];
+        const newRound: ContestRound = {
+          id: generateId('round'),
+          name: `Round ${rounds.length + 1}`,
+          number: rounds.length + 1,
+        };
 
-    const result = await contestApi.updateContest(contestId, { rounds: [...rounds, newRound] });
-    if (result.success && result.data) replaceContest(result.data);
-    return result.success;
-  }, [getContestById, replaceContest]);
+        const result = await contestApi.updateContest(contestId, {
+          rounds: [...rounds, newRound],
+        });
+        if (result.success && result.data) replaceContest(result.data);
+        return result.success;
+      }),
+    [enqueueRoundMutation, getContestById, replaceContest],
+  );
 
   const updateRound = useCallback(
     async (contestId: string, roundId: string, updates: Partial<ContestRound>): Promise<boolean> => {
