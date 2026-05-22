@@ -62,6 +62,12 @@ service cloud.firestore {
       }
     }
 
+    // Plant tracker: all access goes through API routes (Admin SDK bypasses
+    // rules). The client never reads or writes this collection directly.
+    match /plants/{plantId} {
+      allow read, write: if false;
+    }
+
     // Deny everything else
     match /{document=**} {
       allow read, write: if false;

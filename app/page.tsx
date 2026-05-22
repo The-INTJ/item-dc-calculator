@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { PlantWidget } from '@/plants/components';
 import styles from './page.module.scss';
 
 export const metadata = {
@@ -33,6 +34,7 @@ export default function PortalPage() {
         <h1>Experiments</h1>
         <p>Pick an experience.</p>
       </header>
+      <PlantWidget />
       <ul className={styles.list}>
         {experiences.map((experience) => (
           <li key={experience.href}>

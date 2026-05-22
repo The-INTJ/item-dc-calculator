@@ -1,0 +1,138 @@
+@use '../styles/tokens' as *;
+
+.widget {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1.1rem 1.2rem;
+  background: $surface;
+  border: 1px solid $line;
+  border-radius: $radius;
+  box-shadow: $shadow;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: $ink;
+}
+
+.count {
+  font-size: 0.8rem;
+  color: $ink-faint;
+}
+
+.message {
+  margin: 0;
+  font-size: 0.9rem;
+  color: $ink-soft;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0;
+}
+
+.dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: $ink-faint;
+
+  &[data-status='ok'] {
+    background: $green;
+  }
+  &[data-status='due'] {
+    background: $amber;
+  }
+  &[data-status='overdue'] {
+    background: $red;
+  }
+}
+
+.rowName {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: $ink;
+}
+
+.rowAge {
+  flex: none;
+  font-size: 0.8rem;
+  color: $ink-soft;
+}
+
+.waterButton {
+  flex: none;
+  min-height: 34px;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid $water-line;
+  border-radius: 999px;
+  background: $water-soft;
+  color: $water;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 80ms ease;
+
+  &:active {
+    transform: scale(0.96);
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+  &:focus-visible {
+    outline: 2px solid $water;
+    outline-offset: 2px;
+  }
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.more {
+  font-size: 0.8rem;
+  color: $ink-faint;
+}
+
+.link {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: $green-dark;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

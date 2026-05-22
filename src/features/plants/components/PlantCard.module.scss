@@ -1,0 +1,376 @@
+@use '../styles/tokens' as *;
+
+.card {
+  background: $surface;
+  border: 1px solid $line;
+  border-left: 4px solid $ink-faint;
+  border-radius: $radius;
+  box-shadow: $shadow;
+  overflow: hidden;
+
+  &[data-status='ok'] {
+    border-left-color: $green;
+  }
+  &[data-status='due'] {
+    border-left-color: $amber;
+  }
+  &[data-status='overdue'] {
+    border-left-color: $red;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: $surface-sunken;
+  }
+  &:focus-visible {
+    outline: 2px solid $green;
+    outline-offset: -2px;
+  }
+}
+
+.statusDot {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: $ink-faint;
+
+  .card[data-status='ok'] & {
+    background: $green;
+  }
+  .card[data-status='due'] & {
+    background: $amber;
+  }
+  .card[data-status='overdue'] & {
+    background: $red;
+  }
+}
+
+.headerText {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: $ink;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub {
+  font-size: 0.84rem;
+  color: $ink-soft;
+}
+
+.chevron {
+  flex: none;
+  color: $ink-faint;
+  font-size: 0.8rem;
+  transform: rotate(-90deg);
+  transition: transform 150ms ease;
+
+  &[data-expanded='true'] {
+    transform: rotate(0deg);
+  }
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding: 0 1rem 0.85rem;
+}
+
+.action {
+  min-height: 46px;
+  padding: 0.45rem 0.4rem;
+  border: 1px solid $line;
+  border-radius: $radius-sm;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: transform 80ms ease;
+
+  &[data-action='watered'] {
+    background: $water-soft;
+    border-color: $water-line;
+    color: $water;
+  }
+  &[data-action='watered_nutrition'] {
+    background: $green-soft;
+    border-color: $green-line;
+    color: $green-dark;
+  }
+  &[data-action='replanted'] {
+    background: $soil-soft;
+    border-color: $soil-line;
+    color: $soil;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+  &:focus-visible {
+    outline: 2px solid $green;
+    outline-offset: 2px;
+  }
+}
+
+.error {
+  margin: 0;
+  padding: 0 1rem 0.8rem;
+  color: $red;
+  font-size: 0.83rem;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  padding: 1rem;
+  border-top: 1px solid $line;
+}
+
+.sectionLabel {
+  margin: 0 0 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: $ink-faint;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 0.5rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.55rem 0.65rem;
+  background: $surface-sunken;
+  border-radius: $radius-sm;
+}
+
+.statLabel {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: $ink-faint;
+}
+
+.statValue {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $ink;
+}
+
+.historyList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.historyRow {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.1rem;
+  border-bottom: 1px solid $line;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.historyType {
+  flex: none;
+  padding: 0.16rem 0.5rem;
+  border-radius: 999px;
+  background: $surface-sunken;
+  color: $ink-soft;
+  font-size: 0.73rem;
+  font-weight: 600;
+
+  &[data-type='watered'] {
+    background: $water-soft;
+    color: $water;
+  }
+  &[data-type='watered_nutrition'] {
+    background: $green-soft;
+    color: $green-dark;
+  }
+  &[data-type='replanted'] {
+    background: $soil-soft;
+    color: $soil;
+  }
+}
+
+.historyWhen {
+  flex: 1 1 auto;
+  font-size: 0.84rem;
+  color: $ink-soft;
+}
+
+.historyRemove {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: 1px solid $line;
+  border-radius: 50%;
+  background: $surface;
+  color: $ink-faint;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    color: $red;
+    border-color: $red-line;
+  }
+  &:focus-visible {
+    outline: 2px solid $green;
+    outline-offset: 1px;
+  }
+}
+
+.empty {
+  margin: 0;
+  font-size: 0.86rem;
+  color: $ink-faint;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.8rem;
+}
+
+.renameForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.renameInput {
+  flex: 1 1 9rem;
+  min-width: 0;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid $line-strong;
+  border-radius: $radius-sm;
+  font: inherit;
+  font-size: 0.9rem;
+
+  &:focus-visible {
+    outline: 2px solid $green;
+    outline-offset: 1px;
+  }
+}
+
+.textButton {
+  padding: 0.35rem 0.65rem;
+  border: 1px solid $line;
+  border-radius: $radius-sm;
+  background: $surface;
+  color: $ink-soft;
+  font: inherit;
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: $surface-sunken;
+    color: $ink;
+  }
+  &:focus-visible {
+    outline: 2px solid $green;
+    outline-offset: 1px;
+  }
+}
+
+.dangerLink {
+  margin-left: auto;
+  padding: 0.35rem 0.2rem;
+  border: 0;
+  background: transparent;
+  color: $red;
+  font: inherit;
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+  &:focus-visible {
+    outline: 2px solid $red;
+    outline-offset: 1px;
+  }
+}
+
+.confirmRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin-left: auto;
+}
+
+.confirmText {
+  font-size: 0.83rem;
+  color: $ink-soft;
+}
+
+.dangerButton {
+  padding: 0.38rem 0.7rem;
+  border: 0;
+  border-radius: $radius-sm;
+  background: $red;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+  &:focus-visible {
+    outline: 2px solid $red;
+    outline-offset: 2px;
+  }
+}

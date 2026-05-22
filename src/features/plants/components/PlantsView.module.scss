@@ -1,0 +1,317 @@
+@use '../styles/tokens' as *;
+
+.page {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1.75rem 1.1rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.topBar {
+  display: flex;
+}
+
+.backLink {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: $ink-soft;
+  text-decoration: none;
+
+  &:hover {
+    color: $green-dark;
+  }
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: $ink;
+}
+
+.tagline {
+  margin: 0;
+  font-size: 0.95rem;
+  color: $ink-soft;
+  line-height: 1.45;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.primaryButton {
+  flex: 1 1 auto;
+  min-height: 46px;
+  padding: 0.6rem 1rem;
+  border: 0;
+  border-radius: $radius-sm;
+  background: $green;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: $green-dark;
+  }
+  &:focus-visible {
+    outline: 2px solid $green-dark;
+    outline-offset: 2px;
+  }
+}
+
+.secondaryButton {
+  min-height: 46px;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid $line-strong;
+  border-radius: $radius-sm;
+  background: $surface;
+  color: $ink;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $surface-sunken;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  &:focus-visible {
+    outline: 2px solid $green;
+    outline-offset: 2px;
+  }
+}
+
+.addForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.9rem;
+  background: $surface;
+  border: 1px solid $line;
+  border-radius: $radius;
+  box-shadow: $shadow;
+}
+
+.addInput {
+  flex: 1 1 12rem;
+  min-width: 0;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid $line-strong;
+  border-radius: $radius-sm;
+  font: inherit;
+  font-size: 0.95rem;
+
+  &:focus-visible {
+    outline: 2px solid $green;
+    outline-offset: 1px;
+  }
+}
+
+.formButton {
+  min-height: 44px;
+  padding: 0.55rem 0.95rem;
+  border: 1px solid $line-strong;
+  border-radius: $radius-sm;
+  background: $surface;
+  color: $ink;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: $surface-sunken;
+  }
+  &:focus-visible {
+    outline: 2px solid $green;
+    outline-offset: 1px;
+  }
+}
+
+.formButtonPrimary {
+  border-color: $green;
+  background: $green;
+  color: #ffffff;
+
+  &:hover {
+    background: $green-dark;
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.addError {
+  flex: 1 1 100%;
+  margin: 0;
+  color: $red;
+  font-size: 0.83rem;
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 2.1rem 1rem;
+  text-align: center;
+  color: $ink-soft;
+  font-size: 0.95rem;
+  background: $surface;
+  border: 1px dashed $line-strong;
+  border-radius: $radius;
+}
+
+.retryButton {
+  padding: 0.45rem 1rem;
+  border: 1px solid $line-strong;
+  border-radius: $radius-sm;
+  background: $surface;
+  color: $ink;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: $surface-sunken;
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(20, 26, 22, 0.55);
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 34rem;
+  max-height: 85vh;
+  background: $surface;
+  border-radius: $radius;
+  box-shadow: 0 18px 50px rgba(20, 26, 22, 0.4);
+  overflow: hidden;
+}
+
+.modalHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid $line;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: $ink;
+}
+
+.modalClose {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: $surface-sunken;
+  color: $ink-soft;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    color: $ink;
+  }
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.exportArea {
+  width: 100%;
+  min-height: 14rem;
+  resize: vertical;
+  padding: 0.7rem;
+  border: 1px solid $line-strong;
+  border-radius: $radius-sm;
+  background: $surface-sunken;
+  color: $ink;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.modalHint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: $ink-soft;
+  line-height: 1.5;
+
+  code {
+    padding: 0.1rem 0.35rem;
+    border-radius: 5px;
+    background: $surface-sunken;
+    font-size: 0.78rem;
+  }
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.copyButton {
+  padding: 0.55rem 1rem;
+  border: 0;
+  border-radius: $radius-sm;
+  background: $green;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: $green-dark;
+  }
+  &:focus-visible {
+    outline: 2px solid $green-dark;
+    outline-offset: 2px;
+  }
+}

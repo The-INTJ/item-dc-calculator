@@ -1,0 +1,21 @@
+import { AddEventSchema } from '@/plants/lib/schemas';
+import { addEvent } from '@/plants/lib/server/plantsStore';
+
+import { fromResult, parseBody } from '../../_lib/http';
+
+export const dynamic = 'force-dynamic';
+
+interface RouteParams {
+  params: Promise<{ id: string }>;
+}
+
+export async function POST(request: Request, { params }: RouteParams) {
+  const { id } = await params;
+  const body = await parseBody(request, AddEventSchema);
+  if (!body.ok) {
+    return body.response;
+  }
+
+  const result = await addEvent(id, body.data.type);
+  return fromResult(result, { successStatus: 201 });
+}
