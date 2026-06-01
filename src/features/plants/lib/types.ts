@@ -6,7 +6,14 @@
  * fact (see `stats.ts`).
  */
 
-export const PLANT_EVENT_TYPES = ['watered', 'watered_nutrition', 'replanted'] as const;
+export const PLANT_EVENT_TYPES = [
+  'watered',
+  'watered_nutrition',
+  'fertilized',
+  'replanted',
+  'note',
+  'vibe_check',
+] as const;
 
 export type PlantEventType = (typeof PLANT_EVENT_TYPES)[number];
 
@@ -15,6 +22,16 @@ export interface PlantEvent {
   type: PlantEventType;
   /** Epoch milliseconds when the care action was logged. */
   at: number;
+  /** Freeform observation text for note events. */
+  note?: string;
+  /** Vibes-based plant appearance score from 0 to 10. */
+  rating?: number;
+}
+
+export interface PlantEventInput {
+  type: PlantEventType;
+  note?: string;
+  rating?: number;
 }
 
 export interface Plant {
@@ -35,16 +52,23 @@ export interface PlantStats {
   totalWaterings: number;
   totalNutritions: number;
   totalReplants: number;
+  totalNotes: number;
+  totalVibeChecks: number;
   totalEvents: number;
 
   lastWateredAt: number | null;
   lastNutritionAt: number | null;
   lastReplantedAt: number | null;
+  lastNoteAt: number | null;
+  lastVibeAt: number | null;
+  lastVibeRating: number | null;
   firstEventAt: number | null;
 
   daysSinceWatered: number | null;
   daysSinceNutrition: number | null;
   daysSinceReplanted: number | null;
+  daysSinceNote: number | null;
+  daysSinceVibe: number | null;
 
   averageWateringIntervalDays: number | null;
   lastWateringIntervalDays: number | null;

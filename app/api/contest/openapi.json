@@ -308,6 +308,69 @@
           "role"
         ]
       },
+      "Contestant": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "contestant-1"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Jane Smith"
+          },
+          "userId": {
+            "type": "string",
+            "example": "firebase-uid-abc"
+          },
+          "contact": {
+            "type": "string",
+            "example": "jane@example.com"
+          }
+        },
+        "required": [
+          "id",
+          "displayName"
+        ],
+        "description": "A registered contestant. Identity record; per-game entries live on Matchups."
+      },
+      "CreateContestantBody": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "example": "Jane Smith"
+          },
+          "userId": {
+            "type": "string",
+            "example": "firebase-uid-abc"
+          },
+          "contact": {
+            "type": "string",
+            "example": "jane@example.com"
+          }
+        },
+        "required": [
+          "displayName"
+        ]
+      },
+      "UpdateContestantBody": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "example": "Jane Smith"
+          },
+          "userId": {
+            "type": "string",
+            "example": "firebase-uid-abc"
+          },
+          "contact": {
+            "type": "string",
+            "example": "jane@example.com"
+          }
+        }
+      },
       "Entry": {
         "type": "object",
         "properties": {
@@ -315,109 +378,63 @@
             "type": "string",
             "example": "entry-1"
           },
+          "contestantId": {
+            "type": "string",
+            "example": "contestant-1"
+          },
+          "matchupId": {
+            "type": "string",
+            "example": "matchup-1"
+          },
           "name": {
             "type": "string",
+            "description": "Per-game name (e.g. drink name); empty string until contestant submits.",
             "example": "Summer Sunset"
+          },
+          "description": {
+            "type": "string",
+            "example": "Citrus + lavender"
           },
           "slug": {
             "type": "string",
             "example": "summer-sunset"
           },
-          "description": {
-            "type": "string",
-            "example": "A refreshing citrus cocktail with a hint of lavender"
-          },
-          "submittedBy": {
-            "type": "string",
-            "example": "John Doe"
-          },
           "sumScore": {
             "type": "number",
-            "description": "Aggregate: sum of all vote totals for this entry",
+            "description": "Aggregate: sum of all vote totals for this matchup entry",
             "example": 42.5
           },
           "voteCount": {
             "type": "integer",
-            "description": "Aggregate: number of distinct voters",
+            "description": "Aggregate: number of distinct voters for this matchup entry",
             "example": 5
           }
         },
         "required": [
           "id",
-          "name",
-          "slug",
-          "description",
-          "submittedBy"
+          "contestantId",
+          "matchupId",
+          "name"
         ],
-        "description": "A contest entry (drink, chili, cosplay, performance, etc.)"
+        "description": "A per-matchup entry submitted by a contestant for one specific game."
       },
-      "CreateEntryBody": {
+      "SetMatchupEntryNameBody": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
             "example": "Summer Sunset"
-          },
-          "slug": {
-            "type": "string",
-            "example": "summer-sunset"
           },
           "description": {
             "type": "string",
-            "example": "A refreshing citrus cocktail with a hint of lavender"
-          },
-          "submittedBy": {
-            "type": "string",
-            "example": "John Doe"
-          },
-          "sumScore": {
-            "type": "number",
-            "description": "Aggregate: sum of all vote totals for this entry",
-            "example": 42.5
-          },
-          "voteCount": {
-            "type": "integer",
-            "description": "Aggregate: number of distinct voters",
-            "example": 5
+            "maxLength": 280
           }
         },
         "required": [
-          "name",
-          "slug",
-          "description",
-          "submittedBy"
+          "name"
         ]
-      },
-      "UpdateEntryBody": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "Summer Sunset"
-          },
-          "slug": {
-            "type": "string",
-            "example": "summer-sunset"
-          },
-          "description": {
-            "type": "string",
-            "example": "A refreshing citrus cocktail with a hint of lavender"
-          },
-          "submittedBy": {
-            "type": "string",
-            "example": "John Doe"
-          },
-          "sumScore": {
-            "type": "number",
-            "description": "Aggregate: sum of all vote totals for this entry",
-            "example": 42.5
-          },
-          "voteCount": {
-            "type": "integer",
-            "description": "Aggregate: number of distinct voters",
-            "example": 5
-          }
-        }
       },
       "ContestRound": {
         "type": "object",
@@ -471,16 +488,12 @@
             "type": "integer",
             "example": 0
           },
-          "entryIds": {
+          "entries": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/Entry"
             },
-            "description": "Entries competing in this matchup (length 2 for 1v1).",
-            "example": [
-              "entry-1",
-              "entry-2"
-            ]
+            "description": "Per-contestant entries inline on this matchup (length 2 for 1v1)."
           },
           "phase": {
             "$ref": "#/components/schemas/MatchupPhase"
@@ -509,32 +522,27 @@
           "contestId",
           "roundId",
           "slotIndex",
-          "entryIds",
+          "entries",
           "phase"
         ],
-        "description": "A first-class matchup between entries within a round."
+        "description": "A first-class matchup between contestants within a round."
       },
       "CreateMatchupBody": {
         "type": "object",
         "properties": {
           "roundId": {
-            "type": "string",
-            "example": "round-1"
+            "type": "string"
           },
           "slotIndex": {
-            "type": "integer",
-            "example": 0
+            "type": "integer"
           },
-          "entryIds": {
+          "contestantIds": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Entries competing in this matchup (length 2 for 1v1).",
-            "example": [
-              "entry-1",
-              "entry-2"
-            ]
+            "minItems": 1,
+            "maxItems": 2
           },
           "phase": {
             "$ref": "#/components/schemas/MatchupPhase"
@@ -544,23 +552,12 @@
               "string",
               "null"
             ]
-          },
-          "advancesToMatchupId": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "advancesToSlot": {
-            "type": [
-              "integer",
-              "null"
-            ]
           }
         },
         "required": [
           "roundId",
-          "slotIndex"
+          "slotIndex",
+          "contestantIds"
         ]
       },
       "UpdateMatchupBody": {
@@ -574,16 +571,12 @@
             "type": "integer",
             "example": 0
           },
-          "entryIds": {
+          "entries": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/Entry"
             },
-            "description": "Entries competing in this matchup (length 2 for 1v1).",
-            "example": [
-              "entry-1",
-              "entry-2"
-            ]
+            "description": "Per-contestant entries inline on this matchup (length 2 for 1v1)."
           },
           "phase": {
             "$ref": "#/components/schemas/MatchupPhase"
@@ -636,7 +629,7 @@
                 }
               ]
             },
-            "description": "Explicit entry pairs for round-1 seeding. A 2-tuple is a regular matchup; a 1-tuple is a bye (auto-advance). Omit for rounds > 1 (propagated from previous round winners)."
+            "description": "Explicit contestant-id pairs for round-1 seeding. A 2-tuple is a regular matchup; a 1-tuple is a bye (auto-advance). Omit for rounds > 1 (propagated from previous round winners)."
           }
         }
       },
@@ -701,10 +694,10 @@
               "$ref": "#/components/schemas/ContestRound"
             }
           },
-          "entries": {
+          "contestants": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Entry"
+              "$ref": "#/components/schemas/Contestant"
             }
           },
           "voters": {
@@ -718,7 +711,7 @@
           "id",
           "name",
           "slug",
-          "entries",
+          "contestants",
           "voters"
         ]
       },
@@ -796,10 +789,10 @@
               "$ref": "#/components/schemas/ContestRound"
             }
           },
-          "entries": {
+          "contestants": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Entry"
+              "$ref": "#/components/schemas/Contestant"
             }
           },
           "voters": {
@@ -882,7 +875,7 @@
           "displayName": {
             "type": "string"
           },
-          "entryName": {
+          "contact": {
             "type": "string"
           }
         }

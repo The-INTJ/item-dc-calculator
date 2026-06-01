@@ -2,9 +2,10 @@
 
 ## What this repo is
 
-This is a Next.js App Router application with two product areas:
+This is a Next.js App Router application with three product areas:
 
 - Contest app: active feature set for contest creation, judging, scoring, and display mode
+- Plant tracker: lightweight personal tracker for plant care, notes, and appearance logs
 - DC calculator: legacy calculator preserved inside the same shell
 
 The contest app is the active area. The DC calculator is intentionally stable and should only receive targeted changes.
@@ -18,6 +19,7 @@ The contest app is the active area. The DC calculator is intentionally stable an
 - `/admin`: admin dashboard
 - `/admin/contest-setup`: create contest
 - `/onboard`: guest/Google onboarding
+- `/plants`: plant tracker
 - `/dc-calculator`: legacy calculator
 
 Route groups:
@@ -97,6 +99,20 @@ Short version:
 - Simple now: browser client + Firestore rules
 - Optional later: full server API migration
 - Avoid: hybrid half-migration
+
+## Plant tracker data path
+
+Current live path:
+
+1. client components call `src/features/plants/lib/api/plantsApi.ts`
+2. that API client uses REST routes under `app/api/plants/*`
+3. route handlers use `src/features/plants/lib/server/plantsStore.ts`
+4. the store writes through the Firebase Admin SDK to the top-level `plants` collection
+
+Each plant document stores an `events[]` history. Watering, separate fertilizer,
+replanting, freeform notes, and 0-10 vibe checks are all timestamped events.
+Legacy `watered_nutrition` records remain valid and count as both watering and
+nutrition; new fertilizer-only actions should use `fertilized`.
 
 ## Contest, Round, Matchup hierarchy
 

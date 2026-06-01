@@ -4,12 +4,15 @@
  */
 
 import { computePlantStats, daysBetween } from './stats';
-import type { Plant, PlantEventType, PlantStats } from './types';
+import type { Plant, PlantEvent, PlantEventType, PlantStats } from './types';
 
 const EVENT_TYPE_LABELS: Record<PlantEventType, string> = {
   watered: 'Watered',
   watered_nutrition: 'Watered + Nutrition',
+  fertilized: 'Fertilized',
   replanted: 'Replanted',
+  note: 'Note',
+  vibe_check: 'Vibe check',
 };
 
 export function eventTypeLabel(type: PlantEventType): string {
@@ -67,6 +70,10 @@ export function formatInterval(days: number | null): string {
   return days === null ? '—' : `${days.toFixed(1)} days`;
 }
 
+export function formatVibe(rating: number | null): string {
+  return rating === null ? 'n/a' : `${rating}/10`;
+}
+
 function isoDate(ms: number): string {
   return new Date(ms).toISOString().slice(0, 10);
 }
@@ -82,13 +89,30 @@ function describeSince(at: number | null, daysSince: number | null): string {
   return `${daysSince.toFixed(1)} days ago (${isoDate(at)})`;
 }
 
+function eventDetail(event: PlantEvent): string {
+  if (event.type === 'note' && event.note) {
+    return `: ${event.note}`;
+  }
+  if (event.type === 'vibe_check' && typeof event.rating === 'number') {
+    return `: ${event.rating}/10`;
+  }
+  return '';
+}
+
 export interface PlantExportEntry {
   id: string;
   name: string;
   createdAt: number;
   createdAtISO: string;
   stats: PlantStats;
-  events: Array<{ id: string; type: PlantEventType; at: number; atISO: string }>;
+  events: Array<{
+    id: string;
+    type: PlantEventType;
+    at: number;
+    atISO: string;
+    note?: string;
+    rating?: number;
+  }>;
 }
 
 export interface PlantsExport {
@@ -117,6 +141,8 @@ export function buildExportJson(plants: Plant[], now: number = Date.now()): Plan
           type: event.type,
           at: event.at,
           atISO: new Date(event.at).toISOString(),
+          ...(event.note ? { note: event.note } : {}),
+          ...(typeof event.rating === 'number' ? { rating: event.rating } : {}),
         })),
       };
     }),
@@ -150,8 +176,16 @@ export function buildExportText(plants: Plant[], now: number = Date.now()): stri
       `- Last replanted: ${describeSince(stats.lastReplantedAt, stats.daysSinceReplanted)}`,
     );
     lines.push(
+      `- Latest vibe: ${
+        stats.lastVibeAt === null || stats.lastVibeRating === null
+          ? 'n/a'
+          : `${stats.lastVibeRating}/10 (${isoDateTime(stats.lastVibeAt)})`
+      }`,
+    );
+    lines.push(
       `- Totals: ${stats.totalWaterings} waterings, ${stats.totalNutritions} with nutrition, ` +
-        `${stats.totalReplants} replants`,
+        `${stats.totalReplants} replants, ${stats.totalNotes} notes, ` +
+        `${stats.totalVibeChecks} vibe checks`,
     );
     lines.push(
       `- Average watering interval: ${
@@ -182,7 +216,9 @@ export function buildExportText(plants: Plant[], now: number = Date.now()): stri
     } else {
       lines.push('- Event log (most recent first):');
       for (const event of log) {
-        lines.push(`  - ${isoDateTime(event.at)} — ${eventTypeLabel(event.type)}`);
+        lines.push(
+          `  - ${isoDateTime(event.at)} - ${eventTypeLabel(event.type)}${eventDetail(event)}`,
+        );
       }
     }
     lines.push('');

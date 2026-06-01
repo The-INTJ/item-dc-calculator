@@ -19,9 +19,14 @@ export function daysBetween(earlier: number, later: number): number {
   return (later - earlier) / MS_PER_DAY;
 }
 
-/** A plain watering and a watering-with-nutrition both count as watering. */
+/** A plain watering and a legacy watering-with-nutrition both count as watering. */
 export function isWateringEvent(event: PlantEvent): boolean {
   return event.type === 'watered' || event.type === 'watered_nutrition';
+}
+
+/** Fertilizer is now logged separately; legacy combined records still count. */
+export function isNutritionEvent(event: PlantEvent): boolean {
+  return event.type === 'fertilized' || event.type === 'watered_nutrition';
 }
 
 function byTimeAscending(a: PlantEvent, b: PlantEvent): number {
@@ -103,8 +108,10 @@ export function computePlantStats(plant: Plant, now: number = Date.now()): Plant
   const events = [...(plant.events ?? [])].sort(byTimeAscending);
 
   const wateringEvents = events.filter(isWateringEvent);
-  const nutritionEvents = events.filter((event) => event.type === 'watered_nutrition');
+  const nutritionEvents = events.filter(isNutritionEvent);
   const replantEvents = events.filter((event) => event.type === 'replanted');
+  const noteEvents = events.filter((event) => event.type === 'note');
+  const vibeEvents = events.filter((event) => event.type === 'vibe_check');
 
   const lastAt = (list: PlantEvent[]): number | null =>
     list.length > 0 ? list[list.length - 1].at : null;
@@ -112,6 +119,9 @@ export function computePlantStats(plant: Plant, now: number = Date.now()): Plant
   const lastWateredAt = lastAt(wateringEvents);
   const lastNutritionAt = lastAt(nutritionEvents);
   const lastReplantedAt = lastAt(replantEvents);
+  const lastNoteAt = lastAt(noteEvents);
+  const lastVibe = vibeEvents.length > 0 ? vibeEvents[vibeEvents.length - 1] : null;
+  const lastVibeAt = lastVibe?.at ?? null;
 
   const wateringIntervals = intervalDays(wateringEvents.map((event) => event.at));
   const nutritionIntervals = intervalDays(nutritionEvents.map((event) => event.at));
@@ -134,16 +144,23 @@ export function computePlantStats(plant: Plant, now: number = Date.now()): Plant
     totalWaterings: wateringEvents.length,
     totalNutritions: nutritionEvents.length,
     totalReplants: replantEvents.length,
+    totalNotes: noteEvents.length,
+    totalVibeChecks: vibeEvents.length,
     totalEvents: events.length,
 
     lastWateredAt,
     lastNutritionAt,
     lastReplantedAt,
+    lastNoteAt,
+    lastVibeAt,
+    lastVibeRating: typeof lastVibe?.rating === 'number' ? lastVibe.rating : null,
     firstEventAt: events.length > 0 ? events[0].at : null,
 
     daysSinceWatered,
     daysSinceNutrition: sinceDays(lastNutritionAt),
     daysSinceReplanted: sinceDays(lastReplantedAt),
+    daysSinceNote: sinceDays(lastNoteAt),
+    daysSinceVibe: sinceDays(lastVibeAt),
 
     averageWateringIntervalDays,
     lastWateringIntervalDays,

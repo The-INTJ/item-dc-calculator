@@ -108,7 +108,8 @@ export function PlantsView() {
       <header className={styles.head}>
         <h1 className={styles.title}>Plant tracker</h1>
         <p className={styles.tagline}>
-          Log watering, nutrition and replanting. Tap a plant to open its history and trends.
+          Log watering, fertilizer, notes, vibe checks and replanting. Tap a plant to open its
+          history and trends.
         </p>
       </header>
 

@@ -122,6 +122,11 @@
     border-color: $green-line;
     color: $green-dark;
   }
+  &[data-action='fertilized'] {
+    background: $green-soft;
+    border-color: $green-line;
+    color: $green-dark;
+  }
   &[data-action='replanted'] {
     background: $soil-soft;
     border-color: $soil-line;
@@ -165,6 +170,18 @@
   color: $ink-faint;
 }
 
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  margin-bottom: 0.55rem;
+
+  .sectionLabel {
+    margin-bottom: 0;
+  }
+}
+
 .statGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
@@ -192,6 +209,152 @@
   font-size: 0.95rem;
   font-weight: 600;
   color: $ink;
+}
+
+.inlineButton {
+  flex: none;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid $line;
+  border-radius: 999px;
+  background: $surface;
+  color: $ink-soft;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $surface-sunken;
+    color: $ink;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  &:focus-visible {
+    outline: 2px solid $green;
+    outline-offset: 1px;
+  }
+}
+
+.noteForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.noteInput {
+  width: 100%;
+  min-height: 5.4rem;
+  resize: vertical;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid $line-strong;
+  border-radius: $radius-sm;
+  background: $surface;
+  color: $ink;
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1.45;
+
+  &:focus-visible {
+    outline: 2px solid $green;
+    outline-offset: 1px;
+  }
+}
+
+.noteActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.noteCount {
+  font-size: 0.73rem;
+  color: $ink-faint;
+}
+
+.noteList {
+  list-style: none;
+  margin: 0.65rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.noteRow {
+  display: grid;
+  grid-template-columns: minmax(4.5rem, auto) 1fr;
+  gap: 0.55rem;
+  padding: 0.45rem 0;
+  border-top: 1px solid $line;
+}
+
+.noteWhen {
+  color: $ink-faint;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.noteText {
+  min-width: 0;
+  color: $ink;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.latestVibe {
+  flex: none;
+  color: $ink-faint;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.vibeForm {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.vibePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  width: 5.4rem;
+  min-height: 36px;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid $green-line;
+  border-radius: 999px;
+  background: $green-soft;
+  color: $green-dark;
+  font-weight: 700;
+}
+
+.vibeInput {
+  width: 2.2rem;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: right;
+  appearance: textfield;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    margin: 0;
+    appearance: none;
+  }
+  &:focus-visible {
+    outline: 0;
+  }
+}
+
+.vibeSuffix {
+  flex: none;
+  font-size: 0.86rem;
 }
 
 .historyList {
@@ -231,14 +394,38 @@
     background: $green-soft;
     color: $green-dark;
   }
+  &[data-type='fertilized'] {
+    background: $green-soft;
+    color: $green-dark;
+  }
   &[data-type='replanted'] {
     background: $soil-soft;
     color: $soil;
   }
+  &[data-type='note'] {
+    background: $amber-soft;
+    color: $amber;
+  }
+  &[data-type='vibe_check'] {
+    background: $red-soft;
+    color: $red;
+  }
 }
 
 .historyWhen {
+  flex: none;
+  margin-left: auto;
+  font-size: 0.84rem;
+  color: $ink-soft;
+  white-space: nowrap;
+}
+
+.historyDetail {
   flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 0.84rem;
   color: $ink-soft;
 }
@@ -314,6 +501,10 @@
   &:hover {
     background: $surface-sunken;
     color: $ink;
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
   }
   &:focus-visible {
     outline: 2px solid $green;

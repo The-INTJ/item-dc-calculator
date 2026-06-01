@@ -4,7 +4,7 @@
  * {@link ProviderResult} rather than throwing.
  */
 
-import type { Plant, PlantEventType, ProviderResult } from '../types';
+import type { Plant, PlantEventInput, PlantEventType, ProviderResult } from '../types';
 
 const BASE = '/api/plants';
 
@@ -46,6 +46,17 @@ async function request<T>(
   }
 }
 
+function addEvent(
+  id: string,
+  input: PlantEventInput | PlantEventType,
+): Promise<ProviderResult<Plant>> {
+  const body = typeof input === 'string' ? { type: input } : input;
+  return request<Plant>(`/${encodeURIComponent(id)}/events`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
 export const plantsApi = {
   async list(): Promise<ProviderResult<Plant[]>> {
     const result = await request<{ plants: Plant[] }>('');
@@ -70,11 +81,14 @@ export const plantsApi = {
     return request<void>(`/${encodeURIComponent(id)}`, { method: 'DELETE' });
   },
 
-  addEvent(id: string, type: PlantEventType): Promise<ProviderResult<Plant>> {
-    return request<Plant>(`/${encodeURIComponent(id)}/events`, {
-      method: 'POST',
-      body: JSON.stringify({ type }),
-    });
+  addEvent,
+
+  addNote(id: string, note: string): Promise<ProviderResult<Plant>> {
+    return addEvent(id, { type: 'note', note });
+  },
+
+  addVibeCheck(id: string, rating: number): Promise<ProviderResult<Plant>> {
+    return addEvent(id, { type: 'vibe_check', rating });
   },
 
   deleteEvent(id: string, eventId: string): Promise<ProviderResult<Plant>> {

@@ -52,6 +52,17 @@ describe('computePlantStats', () => {
     expect(stats.daysSinceNutrition).toBeCloseTo(5);
   });
 
+  it('counts fertilized as nutrition without counting it as watering', () => {
+    const stats = computePlantStats(
+      plant([event('watered', 9), event('fertilized', 3), event('watered', 1)]),
+      NOW,
+    );
+    expect(stats.totalWaterings).toBe(2);
+    expect(stats.totalNutritions).toBe(1);
+    expect(stats.daysSinceWatered).toBeCloseTo(1);
+    expect(stats.daysSinceNutrition).toBeCloseTo(3);
+  });
+
   it('computes average and most-recent watering intervals', () => {
     const stats = computePlantStats(
       plant([
@@ -71,6 +82,19 @@ describe('computePlantStats', () => {
     expect(stats.totalReplants).toBe(1);
     expect(stats.daysSinceReplanted).toBeCloseTo(40);
     expect(stats.daysSinceWatered).toBeNull();
+  });
+
+  it('tracks notes and vibe checks without changing watering cadence', () => {
+    const note = { ...event('note', 2), note: 'Leaf tips look crispy.' };
+    const lowVibe = { ...event('vibe_check', 1), rating: 4 };
+    const highVibe = { ...event('vibe_check', 0.25), rating: 8 };
+    const stats = computePlantStats(plant([event('watered', 7), note, lowVibe, highVibe]), NOW);
+    expect(stats.totalWaterings).toBe(1);
+    expect(stats.totalNotes).toBe(1);
+    expect(stats.totalVibeChecks).toBe(2);
+    expect(stats.daysSinceNote).toBeCloseTo(2);
+    expect(stats.daysSinceVibe).toBeCloseTo(0.25);
+    expect(stats.lastVibeRating).toBe(8);
   });
 
   describe('watering status', () => {

@@ -16,6 +16,6 @@ export async function POST(request: Request, { params }: RouteParams) {
     return body.response;
   }
 
-  const result = await addEvent(id, body.data.type);
+  const result = await addEvent(id, body.data);
   return fromResult(result, { successStatus: 201 });
 }

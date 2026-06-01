@@ -13,7 +13,13 @@ import { randomUUID } from 'node:crypto';
 
 import { getFirebaseAdminFirestore } from '@/contest/lib/firebase/admin';
 
-import type { Plant, PlantEvent, PlantEventType, ProviderResult } from '../types';
+import type {
+  Plant,
+  PlantEvent,
+  PlantEventInput,
+  PlantEventType,
+  ProviderResult,
+} from '../types';
 
 const COLLECTION = 'plants';
 
@@ -134,10 +140,24 @@ export async function deletePlant(id: string): Promise<ProviderResult<void>> {
   }
 }
 
-/** Append a care event (watering / nutrition / replant) to a plant. */
+function buildEvent(input: PlantEventInput | PlantEventType): PlantEvent {
+  const payload = typeof input === 'string' ? { type: input } : input;
+  const event: PlantEvent = { id: randomUUID(), type: payload.type, at: Date.now() };
+
+  if (payload.type === 'note' && payload.note) {
+    event.note = payload.note;
+  }
+  if (payload.type === 'vibe_check' && typeof payload.rating === 'number') {
+    event.rating = payload.rating;
+  }
+
+  return event;
+}
+
+/** Append a timestamped plant event to a plant's history. */
 export async function addEvent(
   id: string,
-  type: PlantEventType,
+  input: PlantEventInput | PlantEventType,
 ): Promise<ProviderResult<Plant>> {
   const db = getFirebaseAdminFirestore();
   if (!db) {
@@ -145,7 +165,7 @@ export async function addEvent(
   }
   try {
     const ref = db.collection(COLLECTION).doc(id);
-    const event: PlantEvent = { id: randomUUID(), type, at: Date.now() };
+    const event = buildEvent(input);
     const plant = await db.runTransaction(async (tx) => {
       const doc = await tx.get(ref);
       if (!doc.exists) {
