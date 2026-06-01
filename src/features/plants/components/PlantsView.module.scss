@@ -1,12 +1,21 @@
 @use '../styles/tokens' as *;
 
 .page {
-  max-width: 40rem;
   margin: 0 auto;
+  max-width: 40rem;
+  width: 100%;
+  overflow-x: hidden;
   padding: 1.75rem 1.1rem 4rem;
   display: flex;
   flex-direction: column;
   gap: 1.4rem;
+  touch-action: pan-y;
+
+  input,
+  select,
+  textarea {
+    font-size: 1rem;
+  }
 }
 
 .topBar {
