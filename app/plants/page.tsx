@@ -1,9 +1,18 @@
+import type { Metadata, Viewport } from 'next';
+
 import { PlantsView } from '@/plants/components';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Plant Tracker | Drew Taylor',
   description:
     'Track watering, fertilizer, notes, vibe checks, and replanting cycles for your plants.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function PlantsPage() {
