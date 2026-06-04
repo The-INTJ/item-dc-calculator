@@ -22,14 +22,25 @@ export interface PlantEvent {
   type: PlantEventType;
   /** Epoch milliseconds when the care action was logged. */
   at: number;
+  /** Freeform weight before watering, including units when useful. */
+  weightBefore?: string;
+  /** Freeform weight after watering, including units when useful. */
+  weightAfter?: string;
   /** Freeform observation text for note events. */
   note?: string;
   /** Vibes-based plant appearance score from 0 to 10. */
   rating?: number;
 }
 
+export interface WateringWeightInput {
+  weightBefore?: string;
+  weightAfter?: string;
+}
+
 export interface PlantEventInput {
   type: PlantEventType;
+  weightBefore?: string;
+  weightAfter?: string;
   note?: string;
   rating?: number;
 }

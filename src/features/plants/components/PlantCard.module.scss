@@ -377,6 +377,34 @@
   }
 }
 
+.historyEditButton {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.12rem 0.2rem;
+  border: 0;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: $surface-sunken;
+  }
+  &:hover .historyDetail,
+  &:hover .historyEmptyDetail {
+    color: $water;
+  }
+  &:focus-visible {
+    outline: 2px solid $water;
+    outline-offset: 1px;
+  }
+}
+
 .historyType {
   flex: none;
   padding: 0.16rem 0.5rem;
@@ -428,6 +456,17 @@
   white-space: nowrap;
   font-size: 0.84rem;
   color: $ink-soft;
+}
+
+.historyEmptyDetail {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: $water;
 }
 
 .historyRemove {

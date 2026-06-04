@@ -66,4 +66,43 @@ describe('/api/plants/[id]/events route', () => {
     });
     expect(response.status).toBe(201);
   });
+
+  it('forwards optional watering weights as trimmed text', async () => {
+    addEventMock.mockResolvedValue({
+      success: true,
+      data: {
+        id: 'plant-1',
+        name: 'Monstera',
+        createdAt: 1,
+        events: [
+          {
+            id: 'event-1',
+            type: 'watered',
+            at: 2,
+            weightBefore: '410 g',
+          },
+        ],
+      },
+    });
+
+    const response = await POST(
+      new Request('http://localhost/api/plants/plant-1/events', {
+        method: 'POST',
+        body: JSON.stringify({
+          type: 'watered',
+          weightBefore: ' 410 g ',
+          weightAfter: '',
+        }),
+        headers: { 'Content-Type': 'application/json' },
+      }),
+      { params: Promise.resolve({ id: 'plant-1' }) },
+    );
+
+    expect(addEventMock).toHaveBeenCalledWith('plant-1', {
+      type: 'watered',
+      weightBefore: '410 g',
+      weightAfter: undefined,
+    });
+    expect(response.status).toBe(201);
+  });
 });

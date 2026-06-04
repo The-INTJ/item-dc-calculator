@@ -6,8 +6,9 @@ import { useEffect, useState } from 'react';
 import { plantsApi } from '../lib/api/plantsApi';
 import { formatDaysShort } from '../lib/format';
 import { computePlantStats, urgencyRank } from '../lib/stats';
-import type { Plant } from '../lib/types';
+import type { Plant, WateringWeightInput } from '../lib/types';
 import styles from './PlantWidget.module.scss';
+import { WateringWeightModal } from './WateringWeightModal';
 
 const MAX_ROWS = 6;
 
@@ -16,6 +17,8 @@ export function PlantWidget() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [wateringPlant, setWateringPlant] = useState<Plant | null>(null);
+  const [wateringSaving, setWateringSaving] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -36,15 +39,35 @@ export function PlantWidget() {
     };
   }, []);
 
-  async function water(id: string) {
-    setPendingId(id);
-    const result = await plantsApi.addEvent(id, 'watered');
+  function openWatering(plant: Plant) {
+    setError(null);
+    setWateringPlant(plant);
+  }
+
+  function closeWatering() {
+    if (!wateringSaving) {
+      setWateringPlant(null);
+    }
+  }
+
+  async function submitWatering(weights: WateringWeightInput) {
+    if (!wateringPlant) {
+      return;
+    }
+
+    setPendingId(wateringPlant.id);
+    setWateringSaving(true);
+    const result = await plantsApi.addEvent(wateringPlant.id, { type: 'watered', ...weights });
     setPendingId(null);
+    setWateringSaving(false);
     if (result.success && result.data) {
       const updated = result.data;
       setPlants((current) =>
         current.map((plant) => (plant.id === updated.id ? updated : plant)),
       );
+      setWateringPlant(null);
+    } else {
+      setError(result.error ?? 'Could not water that plant.');
     }
   }
 
@@ -105,7 +128,7 @@ export function PlantWidget() {
                   <button
                     type="button"
                     className={styles.waterButton}
-                    onClick={() => water(plant.id)}
+                    onClick={() => openWatering(plant)}
                     disabled={pendingId === plant.id}
                   >
                     {pendingId === plant.id ? '…' : 'Water'}
@@ -123,6 +146,16 @@ export function PlantWidget() {
             </Link>
           </div>
         </>
+      )}
+
+      {wateringPlant && (
+        <WateringWeightModal
+          title={`Water ${wateringPlant.name}`}
+          error={error}
+          saving={wateringSaving}
+          onClose={closeWatering}
+          onSubmit={submitWatering}
+        />
       )}
     </section>
   );

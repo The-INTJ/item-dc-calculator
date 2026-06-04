@@ -7,12 +7,14 @@ import {
   eventTypeLabel,
   formatDaysAgo,
   formatInterval,
+  formatWateringWeights,
   formatVibe,
   trendLabel,
 } from '../lib/format';
 import { computePlantStats } from '../lib/stats';
-import type { Plant, PlantEvent, PlantEventType } from '../lib/types';
+import type { Plant, PlantEvent, PlantEventType, WateringWeightInput } from '../lib/types';
 import styles from './PlantCard.module.scss';
+import { WateringWeightModal } from './WateringWeightModal';
 
 interface PlantCardProps {
   plant: Plant;
@@ -26,12 +28,24 @@ const ACTIONS: { type: PlantEventType; label: string }[] = [
   { type: 'replanted', label: 'Replanted' },
 ];
 
+type WateringDialogState =
+  | { mode: 'create' }
+  | { mode: 'edit'; event: PlantEvent };
+
+function isWateringEvent(event: PlantEvent): boolean {
+  return event.type === 'watered' || event.type === 'watered_nutrition';
+}
+
 function historyDetail(event: PlantEvent): string | null {
   if (event.type === 'note') {
     return event.note ?? null;
   }
   if (event.type === 'vibe_check' && typeof event.rating === 'number') {
     return `${event.rating}/10`;
+  }
+  const weights = formatWateringWeights(event);
+  if (weights) {
+    return weights;
   }
   return null;
 }
@@ -49,12 +63,30 @@ export function PlantCard({ plant, onChanged, onRemoved }: PlantCardProps) {
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [vibeDraft, setVibeDraft] = useState('');
   const [vibeSaving, setVibeSaving] = useState(false);
+  const [wateringDialog, setWateringDialog] = useState<WateringDialogState | null>(null);
+  const [wateringSaving, setWateringSaving] = useState(false);
 
   const now = Date.now();
   const stats = computePlantStats(plant, now);
-  const busy = pendingType !== null;
+  const busy = pendingType !== null || wateringSaving;
   const history = [...plant.events].sort((a, b) => b.at - a.at);
   const notes = history.filter((event) => event.type === 'note');
+
+  function openWateringDialog() {
+    setError(null);
+    setWateringDialog({ mode: 'create' });
+  }
+
+  function openWateringEdit(event: PlantEvent) {
+    setError(null);
+    setWateringDialog({ mode: 'edit', event });
+  }
+
+  function closeWateringDialog() {
+    if (!wateringSaving) {
+      setWateringDialog(null);
+    }
+  }
 
   async function logEvent(type: PlantEventType) {
     setPendingType(type);
@@ -65,6 +97,27 @@ export function PlantCard({ plant, onChanged, onRemoved }: PlantCardProps) {
       onChanged(result.data);
     } else {
       setError(result.error ?? 'Could not save that action.');
+    }
+  }
+
+  async function submitWateringWeights(weights: WateringWeightInput) {
+    const dialog = wateringDialog;
+    if (!dialog) {
+      return;
+    }
+
+    setWateringSaving(true);
+    setError(null);
+    const result =
+      dialog.mode === 'create'
+        ? await plantsApi.addEvent(plant.id, { type: 'watered', ...weights })
+        : await plantsApi.updateEventWeights(plant.id, dialog.event.id, weights);
+    setWateringSaving(false);
+    if (result.success && result.data) {
+      onChanged(result.data);
+      setWateringDialog(null);
+    } else {
+      setError(result.error ?? 'Could not save watering weights.');
     }
   }
 
@@ -196,10 +249,14 @@ export function PlantCard({ plant, onChanged, onRemoved }: PlantCardProps) {
             type="button"
             className={styles.action}
             data-action={action.type}
-            onClick={() => logEvent(action.type)}
+            onClick={() =>
+              action.type === 'watered' ? openWateringDialog() : logEvent(action.type)
+            }
             disabled={busy}
           >
-            {pendingType === action.type ? 'Saving…' : action.label}
+            {pendingType === action.type || (action.type === 'watered' && wateringSaving)
+              ? 'Saving...'
+              : action.label}
           </button>
         ))}
       </div>
@@ -298,18 +355,47 @@ export function PlantCard({ plant, onChanged, onRemoved }: PlantCardProps) {
               <ul className={styles.historyList}>
                 {history.map((event) => {
                   const detail = historyDetail(event);
+                  const wateringEvent = isWateringEvent(event);
                   return (
                     <li key={event.id} className={styles.historyRow}>
-                      <span className={styles.historyType} data-type={event.type}>
-                        {eventTypeLabel(event.type)}
-                      </span>
-                      {detail && <span className={styles.historyDetail}>{detail}</span>}
-                      <span
-                        className={styles.historyWhen}
-                        title={new Date(event.at).toLocaleString()}
-                      >
-                        {formatDaysAgo(event.at, now)}
-                      </span>
+                      {wateringEvent ? (
+                        <button
+                          type="button"
+                          className={styles.historyEditButton}
+                          onClick={() => openWateringEdit(event)}
+                          aria-label={`Edit weights for ${eventTypeLabel(event.type)} entry`}
+                        >
+                          <span className={styles.historyType} data-type={event.type}>
+                            {eventTypeLabel(event.type)}
+                          </span>
+                          <span
+                            className={
+                              detail ? styles.historyDetail : styles.historyEmptyDetail
+                            }
+                          >
+                            {detail ?? 'Add weights'}
+                          </span>
+                          <span
+                            className={styles.historyWhen}
+                            title={new Date(event.at).toLocaleString()}
+                          >
+                            {formatDaysAgo(event.at, now)}
+                          </span>
+                        </button>
+                      ) : (
+                        <>
+                          <span className={styles.historyType} data-type={event.type}>
+                            {eventTypeLabel(event.type)}
+                          </span>
+                          {detail && <span className={styles.historyDetail}>{detail}</span>}
+                          <span
+                            className={styles.historyWhen}
+                            title={new Date(event.at).toLocaleString()}
+                          >
+                            {formatDaysAgo(event.at, now)}
+                          </span>
+                        </>
+                      )}
                       <button
                         type="button"
                         className={styles.historyRemove}
@@ -393,6 +479,22 @@ export function PlantCard({ plant, onChanged, onRemoved }: PlantCardProps) {
             )}
           </div>
         </div>
+      )}
+
+      {wateringDialog && (
+        <WateringWeightModal
+          title={wateringDialog.mode === 'create' ? `Water ${plant.name}` : 'Edit watering'}
+          initialBefore={
+            wateringDialog.mode === 'edit' ? wateringDialog.event.weightBefore ?? '' : ''
+          }
+          initialAfter={
+            wateringDialog.mode === 'edit' ? wateringDialog.event.weightAfter ?? '' : ''
+          }
+          error={error}
+          saving={wateringSaving}
+          onClose={closeWateringDialog}
+          onSubmit={submitWateringWeights}
+        />
       )}
     </div>
   );

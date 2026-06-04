@@ -19,6 +19,7 @@ import type {
   PlantEventInput,
   PlantEventType,
   ProviderResult,
+  WateringWeightInput,
 } from '../types';
 
 const COLLECTION = 'plants';
@@ -43,6 +44,38 @@ function describeError(error: unknown): string {
 
 function normalizeEvents(value: unknown): PlantEvent[] {
   return Array.isArray(value) ? (value as PlantEvent[]) : [];
+}
+
+function normalizeWeight(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function isWateringType(type: PlantEventType): boolean {
+  return type === 'watered' || type === 'watered_nutrition';
+}
+
+function applyWateringWeights<T extends PlantEvent>(
+  event: T,
+  input: WateringWeightInput,
+): T {
+  const next = { ...event };
+  const weightBefore = normalizeWeight(input.weightBefore);
+  const weightAfter = normalizeWeight(input.weightAfter);
+
+  if (weightBefore) {
+    next.weightBefore = weightBefore;
+  } else {
+    delete next.weightBefore;
+  }
+
+  if (weightAfter) {
+    next.weightAfter = weightAfter;
+  } else {
+    delete next.weightAfter;
+  }
+
+  return next;
 }
 
 function toPlant(id: string, data: PlantDoc): Plant {
@@ -142,7 +175,11 @@ export async function deletePlant(id: string): Promise<ProviderResult<void>> {
 
 function buildEvent(input: PlantEventInput | PlantEventType): PlantEvent {
   const payload = typeof input === 'string' ? { type: input } : input;
-  const event: PlantEvent = { id: randomUUID(), type: payload.type, at: Date.now() };
+  let event: PlantEvent = { id: randomUUID(), type: payload.type, at: Date.now() };
+
+  if (isWateringType(payload.type)) {
+    event = applyWateringWeights(event, payload);
+  }
 
   if (payload.type === 'note' && payload.note) {
     event.note = payload.note;
@@ -182,7 +219,47 @@ export async function addEvent(
   }
 }
 
-/** Remove a single logged event — used to undo an accidental tap. */
+/** Update the optional before/after weights on a watering event. */
+export async function updateEventWeights(
+  id: string,
+  eventId: string,
+  input: WateringWeightInput,
+): Promise<ProviderResult<Plant>> {
+  const db = getFirebaseAdminFirestore();
+  if (!db) {
+    return fail('Plant storage is not configured');
+  }
+  try {
+    const ref = db.collection(COLLECTION).doc(id);
+    const plant = await db.runTransaction(async (tx) => {
+      const doc = await tx.get(ref);
+      if (!doc.exists) {
+        throw new Error('Plant not found');
+      }
+      const data = doc.data() as PlantDoc;
+      const existing = normalizeEvents(data.events);
+      const index = existing.findIndex((event) => event.id === eventId);
+      if (index === -1) {
+        throw new Error('Event not found');
+      }
+
+      const target = existing[index];
+      if (!isWateringType(target.type)) {
+        throw new Error('Event is not a watering');
+      }
+
+      const events = [...existing];
+      events[index] = applyWateringWeights(target, input);
+      tx.update(ref, { events });
+      return toPlant(id, { ...data, events });
+    });
+    return ok(plant);
+  } catch (error) {
+    return fail(describeError(error));
+  }
+}
+
+/** Remove a single logged event - used to undo an accidental tap. */
 export async function deleteEvent(
   id: string,
   eventId: string,

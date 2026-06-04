@@ -74,6 +74,17 @@ export function formatVibe(rating: number | null): string {
   return rating === null ? 'n/a' : `${rating}/10`;
 }
 
+export function formatWateringWeights(event: PlantEvent): string | null {
+  const parts: string[] = [];
+  if (event.weightBefore) {
+    parts.push(`Before ${event.weightBefore}`);
+  }
+  if (event.weightAfter) {
+    parts.push(`After ${event.weightAfter}`);
+  }
+  return parts.length > 0 ? parts.join(' / ') : null;
+}
+
 function isoDate(ms: number): string {
   return new Date(ms).toISOString().slice(0, 10);
 }
@@ -96,6 +107,10 @@ function eventDetail(event: PlantEvent): string {
   if (event.type === 'vibe_check' && typeof event.rating === 'number') {
     return `: ${event.rating}/10`;
   }
+  const weights = formatWateringWeights(event);
+  if (weights) {
+    return `: ${weights}`;
+  }
   return '';
 }
 
@@ -110,6 +125,8 @@ export interface PlantExportEntry {
     type: PlantEventType;
     at: number;
     atISO: string;
+    weightBefore?: string;
+    weightAfter?: string;
     note?: string;
     rating?: number;
   }>;
@@ -141,6 +158,8 @@ export function buildExportJson(plants: Plant[], now: number = Date.now()): Plan
           type: event.type,
           at: event.at,
           atISO: new Date(event.at).toISOString(),
+          ...(event.weightBefore ? { weightBefore: event.weightBefore } : {}),
+          ...(event.weightAfter ? { weightAfter: event.weightAfter } : {}),
           ...(event.note ? { note: event.note } : {}),
           ...(typeof event.rating === 'number' ? { rating: event.rating } : {}),
         })),

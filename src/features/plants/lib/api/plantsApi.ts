@@ -4,7 +4,13 @@
  * {@link ProviderResult} rather than throwing.
  */
 
-import type { Plant, PlantEventInput, PlantEventType, ProviderResult } from '../types';
+import type {
+  Plant,
+  PlantEventInput,
+  PlantEventType,
+  ProviderResult,
+  WateringWeightInput,
+} from '../types';
 
 const BASE = '/api/plants';
 
@@ -95,6 +101,17 @@ export const plantsApi = {
     return request<Plant>(
       `/${encodeURIComponent(id)}/events/${encodeURIComponent(eventId)}`,
       { method: 'DELETE' },
+    );
+  },
+
+  updateEventWeights(
+    id: string,
+    eventId: string,
+    weights: WateringWeightInput,
+  ): Promise<ProviderResult<Plant>> {
+    return request<Plant>(
+      `/${encodeURIComponent(id)}/events/${encodeURIComponent(eventId)}`,
+      { method: 'PATCH', body: JSON.stringify(weights) },
     );
   },
 };

@@ -20,6 +20,18 @@ const VibeRatingSchema = z.coerce
   .min(0, 'Rating must be at least 0')
   .max(10, 'Rating must be 10 or lower');
 
+const WeightTextSchema = z
+  .string()
+  .trim()
+  .max(80, 'Weight must be 80 characters or fewer')
+  .optional()
+  .transform((value) => (value === '' ? undefined : value));
+
+const WateringWeightsSchema = {
+  weightBefore: WeightTextSchema,
+  weightAfter: WeightTextSchema,
+};
+
 export const CreatePlantSchema = z.object({
   name: PlantNameSchema,
 });
@@ -29,10 +41,12 @@ export const UpdatePlantSchema = z.object({
 });
 
 export const AddEventSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('watered') }),
-  z.object({ type: z.literal('watered_nutrition') }),
+  z.object({ type: z.literal('watered'), ...WateringWeightsSchema }),
+  z.object({ type: z.literal('watered_nutrition'), ...WateringWeightsSchema }),
   z.object({ type: z.literal('fertilized') }),
   z.object({ type: z.literal('replanted') }),
   z.object({ type: z.literal('note'), note: NoteSchema }),
   z.object({ type: z.literal('vibe_check'), rating: VibeRatingSchema }),
 ]);
+
+export const UpdateEventWeightsSchema = z.object(WateringWeightsSchema);

@@ -1,0 +1,152 @@
+@use '../styles/tokens' as *;
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(20, 26, 22, 0.45);
+}
+
+.modal {
+  width: min(100%, 23rem);
+  padding: 0.9rem;
+  border: 1px solid $line;
+  border-radius: $radius;
+  background: $surface;
+  box-shadow: 0 16px 44px rgba(20, 26, 22, 0.28);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.title {
+  margin: 0;
+  color: $ink;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.error {
+  margin: -0.25rem 0 0.7rem;
+  color: $red;
+  font-size: 0.83rem;
+}
+
+.close {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: $surface-sunken;
+  color: $ink-soft;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: $ink;
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+  &:focus-visible {
+    outline: 2px solid $water;
+    outline-offset: 2px;
+  }
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.55rem;
+}
+
+.field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: $ink-faint;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid $line-strong;
+  border-radius: $radius-sm;
+  background: $surface;
+  color: $ink;
+  font: inherit;
+  font-size: 1rem;
+  letter-spacing: 0;
+  text-transform: none;
+
+  &:focus-visible {
+    outline: 2px solid $water;
+    outline-offset: 1px;
+  }
+  &:disabled {
+    opacity: 0.65;
+  }
+}
+
+.check {
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  background: $water;
+  color: #ffffff;
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    filter: brightness(0.95);
+  }
+  &:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+  &:focus-visible {
+    outline: 2px solid $water;
+    outline-offset: 2px;
+  }
+}
+
+@media (max-width: 30rem) {
+  .modal {
+    padding: 0.85rem;
+  }
+
+  .fields {
+    grid-template-columns: 1fr;
+  }
+
+  .check {
+    justify-self: end;
+  }
+}

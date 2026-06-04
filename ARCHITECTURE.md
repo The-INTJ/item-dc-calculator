@@ -111,6 +111,8 @@ Current live path:
 
 Each plant document stores an `events[]` history. Watering, separate fertilizer,
 replanting, freeform notes, and 0-10 vibe checks are all timestamped events.
+Watering events may also carry optional `weightBefore` and `weightAfter` text
+values; existing watering events can be updated through the event PATCH route.
 Legacy `watered_nutrition` records remain valid and count as both watering and
 nutrition; new fertilizer-only actions should use `fertilized`.
 
