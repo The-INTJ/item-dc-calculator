@@ -2,29 +2,33 @@
 
 ## What this repo is
 
-This is a Next.js App Router application with three product areas:
+This is a Next.js App Router application with four product/demo areas:
 
 - Contest app: active feature set for contest creation, judging, scoring, and display mode
 - Plant tracker: lightweight personal tracker for plant care, notes, and appearance logs
+- Heritage Hymns: standalone client-only search/browse demo with generated data
 - DC calculator: legacy calculator preserved inside the same shell
 
 The contest app is the active area. The DC calculator is intentionally stable and should only receive targeted changes.
 
 ## Route structure
 
-- `/`: contest landing page
+- `/`: experiments portal
+- `/contests`: contest landing page
 - `/contest/[id]`: live contest page
 - `/contest/[id]/display`: display mode
 - `/account`: account/session
 - `/admin`: admin dashboard
 - `/admin/contest-setup`: create contest
 - `/onboard`: guest/Google onboarding
+- `/heritage-hymns`: Heritage Hymns search/browse demo
 - `/plants`: plant tracker
 - `/dc-calculator`: legacy calculator
 
 Route groups:
 
 - `app/(contest)/`: contest layouts and pages
+- `app/(heritage-hymns)/`: standalone Heritage Hymns demo layout and page
 - `app/(dc-calculator)/`: legacy calculator layout and page
 
 ## Provider and shell structure
@@ -32,16 +36,15 @@ Route groups:
 Root layout:
 
 1. `app/layout.tsx`
-2. `app/RootLayoutClient.tsx`
-3. `SiteHeader`
-4. route children
+2. route group layout, when a route group defines one
+3. route children
 
 Active global providers:
 
-- `AuthProvider`
-- `ContestProvider`
+- None at the root layout
 
-Contest routes load contest feature SCSS through `app/(contest)/layout.tsx`.
+Contest routes load contest feature SCSS and providers through `app/(contest)/layout.tsx` and `ContestShell`.
+Heritage Hymns routes load their local font packages through `app/(heritage-hymns)/layout.tsx` and keep all demo state client-local.
 
 ## Contest data path
 
