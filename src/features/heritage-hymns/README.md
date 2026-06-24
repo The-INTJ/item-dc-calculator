@@ -12,9 +12,21 @@ This feature owns the sendable `/heritage-hymns` prototype.
 ## Behavior
 
 - The catalog contains exactly 573 generated hymn entries.
+- The bare `/heritage-hymns` route renders the Home tab; other prototype tabs use
+  the `tab` query parameter.
 - Search scans hymn number, title, first line, chorus first line, tune name, and contributors.
 - Filter selections are OR within a category and AND across categories.
 - Sort options are title, hymn number, era, and tune.
+
+## Prototype Tabs
+
+- `/heritage-hymns`: Home
+- `/heritage-hymns?tab=hymns`: search and refine experience
+- `/heritage-hymns?tab=hymnals`: hymnal orders placeholder
+- `/heritage-hymns?tab=about`: supplied company/about copy
+- `/heritage-hymns?tab=connect`: connection placeholder
+- `/heritage-hymns?tab=donate`: donation placeholder
+- `/heritage-hymns?tab=for-jack`: implementation notes for Jack
 
 ## Design Notes
 

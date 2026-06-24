@@ -9,7 +9,7 @@ import '@fontsource-variable/material-symbols-rounded/wght.css';
 
 export const metadata = {
   title: 'Heritage Hymns',
-  description: 'A search and browse demo for a curated hymnal collection.',
+  description: 'A client-only prototype for a curated hymnal collection.',
 };
 
 export default function HeritageHymnsLayout({ children }: { children: ReactNode }) {

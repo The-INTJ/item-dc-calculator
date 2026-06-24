@@ -177,6 +177,316 @@
   margin-bottom: 0.8rem !important;
 }
 
+.homePage {
+  display: grid;
+  gap: clamp(3rem, 7vw, 6rem);
+  padding-bottom: clamp(3rem, 7vw, 6rem);
+}
+
+.homeHero,
+.homeClosing {
+  align-items: center;
+  border-bottom: 1px solid var(--hh-line);
+  display: grid;
+  isolation: isolate;
+  min-height: min(42rem, calc(100dvh - 9rem));
+  overflow: hidden;
+  position: relative;
+}
+
+.homeImageWell {
+  background:
+    linear-gradient(90deg, rgba(251, 248, 239, 0.94), rgba(251, 248, 239, 0.7) 46%, rgba(251, 248, 239, 0.96)),
+    repeating-linear-gradient(105deg, rgba(92, 39, 80, 0.05) 0 1px, transparent 1px 1.1rem),
+    radial-gradient(circle at 20% 46%, rgba(102, 117, 107, 0.18), transparent 20rem),
+    linear-gradient(180deg, rgba(92, 39, 80, 0.08), rgba(102, 117, 107, 0.05));
+  inset: clamp(0.5rem, 2vw, 1.4rem);
+  opacity: 0.86;
+  position: absolute;
+  z-index: -1;
+}
+
+.homeTitleBlock {
+  color: var(--hh-ink);
+  justify-self: center;
+  max-width: 38rem;
+  padding: clamp(3rem, 8vw, 6rem) 1rem;
+  text-align: center;
+
+  p,
+  strong {
+    color: var(--hh-plum);
+    font-family: Cardo, Georgia, serif;
+    font-size: clamp(0.86rem, 0.72rem + 0.45vw, 1.05rem);
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    margin: 0;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-family: Cardo, Georgia, serif;
+    font-size: clamp(3rem, 2rem + 5vw, 6.8rem);
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 0.82;
+    margin: 0.75rem auto 0.85rem;
+    max-width: 8ch;
+    text-transform: uppercase;
+  }
+}
+
+.homeFleuron,
+.homeDivider {
+  display: block;
+  height: 1px;
+  margin: 1.7rem auto 0;
+  position: relative;
+  width: 6rem;
+
+  &::before,
+  &::after {
+    background: var(--hh-plum);
+    content: '';
+    height: 1px;
+    position: absolute;
+    top: 0;
+    width: 2.15rem;
+  }
+
+  &::before {
+    left: 0;
+  }
+
+  &::after {
+    right: 0;
+  }
+}
+
+.homeInvitation {
+  align-self: end;
+  display: grid;
+  gap: 1rem;
+  justify-self: start;
+  max-width: 15rem;
+  padding: 0 clamp(1rem, 10vw, 16rem) clamp(2.5rem, 6vw, 4.5rem);
+
+  p {
+    font-family: Cardo, Georgia, serif;
+    font-size: 1.05rem;
+    line-height: 1.28;
+    margin: 0;
+  }
+
+  a {
+    align-items: center;
+    background: var(--hh-plum);
+    border-radius: 6px;
+    color: #fff;
+    display: inline-flex;
+    font-size: 0.82rem;
+    font-weight: 700;
+    justify-content: center;
+    min-width: 9rem;
+    min-height: 2.45rem;
+    padding: 0 1rem;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+}
+
+.homeCollection {
+  margin: 0 auto;
+  max-width: 58rem;
+  width: 100%;
+}
+
+.homeSectionHeader {
+  align-items: center;
+  border-bottom: 1px solid var(--hh-line);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.8rem;
+
+  h2 {
+    color: var(--hh-plum);
+    font-family: Cardo, Georgia, serif;
+    font-size: 1.15rem;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    margin: 0;
+    text-transform: uppercase;
+  }
+
+  a {
+    color: var(--hh-plum);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+}
+
+.homeCollectionList {
+  display: grid;
+
+  .hymnCard {
+    grid-template-columns: 3.4rem minmax(0, 1fr);
+    padding: 1.1rem 0;
+  }
+
+  .hymnNumber {
+    font-size: 1.7rem;
+  }
+
+  .hymnHeader h2 {
+    font-size: clamp(1.35rem, 1.1rem + 0.8vw, 1.8rem);
+  }
+}
+
+.homeClosing {
+  min-height: min(34rem, calc(100dvh - 12rem));
+}
+
+.homeClosingContent {
+  margin: 0 auto;
+  max-width: 42rem;
+  padding: clamp(4rem, 8vw, 7rem) 1rem;
+  text-align: center;
+
+  h2 {
+    font-family: Cardo, Georgia, serif;
+    font-size: clamp(1.8rem, 1.2rem + 2vw, 3rem);
+    font-weight: 400;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  blockquote {
+    margin: 2.5rem auto 0;
+    max-width: 28rem;
+  }
+
+  p {
+    font-family: Cardo, Georgia, serif;
+    font-size: 1rem;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  cite {
+    color: var(--hh-plum);
+    display: block;
+    font-size: 0.78rem;
+    font-style: normal;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    margin-top: 0.8rem;
+    text-transform: uppercase;
+  }
+}
+
+.staticPage {
+  margin: 0 auto;
+  max-width: 760px;
+  padding: clamp(3.5rem, 8vw, 7rem) 0 clamp(4rem, 8vw, 7rem);
+}
+
+.staticHeader {
+  border-bottom: 1px solid var(--hh-line);
+  margin-bottom: clamp(2rem, 5vw, 4rem);
+  padding-bottom: clamp(1.4rem, 3vw, 2.4rem);
+
+  p {
+    color: var(--hh-plum);
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    margin: 0 0 0.7rem;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-family: Cardo, Georgia, serif;
+    font-size: clamp(2.4rem, 1.5rem + 3vw, 4.25rem);
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1.02;
+    margin: 0;
+  }
+}
+
+.staticProse {
+  color: var(--hh-ink);
+  display: grid;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+
+  section {
+    display: grid;
+    gap: 1rem;
+  }
+
+  h2,
+  h3 {
+    color: var(--hh-plum);
+    font-family: Cardo, Georgia, serif;
+    font-weight: 400;
+    letter-spacing: 0;
+    margin: 0;
+  }
+
+  h2 {
+    font-size: clamp(1.55rem, 1.2rem + 1vw, 2.2rem);
+  }
+
+  h3 {
+    font-size: 1.18rem;
+  }
+
+  p {
+    font-size: 1rem;
+    line-height: 1.75;
+    margin: 0;
+  }
+
+  blockquote {
+    border-left: 2px solid rgba(92, 39, 80, 0.3);
+    color: var(--hh-muted);
+    margin: 0;
+    padding-left: 1rem;
+
+    p {
+      font-family: Cardo, Georgia, serif;
+      line-height: 1.58;
+    }
+
+    cite {
+      color: var(--hh-plum);
+      display: block;
+      font-size: 0.78rem;
+      font-style: normal;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      margin-top: 0.7rem;
+      text-transform: uppercase;
+    }
+  }
+}
+
+.convictionGrid,
+.noteGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.convictionGrid > div,
+.noteGrid > section {
+  border-top: 1px solid var(--hh-line);
+  padding-top: 1rem;
+}
+
 .searchDock {
   align-items: end;
   background: rgba(251, 248, 239, 0.96);
@@ -850,6 +1160,32 @@
   .searchDock {
     grid-template-columns: 1fr;
     top: 0;
+  }
+
+  .homeHero,
+  .homeClosing {
+    min-height: auto;
+  }
+
+  .homeInvitation {
+    justify-self: center;
+    max-width: 22rem;
+    padding: 0 1rem 3rem;
+    text-align: center;
+  }
+
+  .homeSectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .staticPage {
+    padding-top: 3rem;
+  }
+
+  .convictionGrid,
+  .noteGrid {
+    grid-template-columns: 1fr;
   }
 
   .resultCount {

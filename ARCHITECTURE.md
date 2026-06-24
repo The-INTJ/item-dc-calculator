@@ -6,7 +6,7 @@ This is a Next.js App Router application with four product/demo areas:
 
 - Contest app: active feature set for contest creation, judging, scoring, and display mode
 - Plant tracker: lightweight personal tracker for plant care, notes, and appearance logs
-- Heritage Hymns: standalone client-only search/browse demo with generated data
+- Heritage Hymns: standalone client-only prototype with generated data and query-param tabs
 - DC calculator: legacy calculator preserved inside the same shell
 
 The contest app is the active area. The DC calculator is intentionally stable and should only receive targeted changes.
@@ -21,7 +21,7 @@ The contest app is the active area. The DC calculator is intentionally stable an
 - `/admin`: admin dashboard
 - `/admin/contest-setup`: create contest
 - `/onboard`: guest/Google onboarding
-- `/heritage-hymns`: Heritage Hymns search/browse demo
+- `/heritage-hymns`: Heritage Hymns prototype; `tab` query param selects Home, Hymns, Hymnals, About, Connect, Donate, or For Jack
 - `/plants`: plant tracker
 - `/dc-calculator`: legacy calculator
 
@@ -44,7 +44,7 @@ Active global providers:
 - None at the root layout
 
 Contest routes load contest feature SCSS and providers through `app/(contest)/layout.tsx` and `ContestShell`.
-Heritage Hymns routes load their local font packages through `app/(heritage-hymns)/layout.tsx` and keep all demo state client-local.
+Heritage Hymns routes load their local font packages through `app/(heritage-hymns)/layout.tsx` and keep all demo state client-local. Its prototype tabs are selected with `?tab=...`; the bare route defaults to Home.
 
 ## Contest data path
 
