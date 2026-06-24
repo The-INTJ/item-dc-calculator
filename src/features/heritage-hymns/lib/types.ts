@@ -25,6 +25,8 @@ export type FilterState = Record<FilterCategory, string[]>;
 
 export type SortKey = 'title' | 'number' | 'era' | 'tune';
 
+export type SortDirection = 'asc' | 'desc';
+
 export interface ThemeOption {
   label: string;
   selectable: boolean;

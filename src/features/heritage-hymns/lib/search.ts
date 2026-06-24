@@ -4,6 +4,7 @@ import type {
   HymnEntry,
   HymnSearchResult,
   SearchMatch,
+  SortDirection,
   SortKey,
 } from './types';
 import { eras } from './catalog';
@@ -92,25 +93,30 @@ function getEntryMatches(entry: HymnEntry, query: string): SearchMatch[] {
   return [...fieldMatches, ...contributorMatches];
 }
 
-function sortResults(results: HymnSearchResult[], sortKey: SortKey): HymnSearchResult[] {
+function sortResults(
+  results: HymnSearchResult[],
+  sortKey: SortKey,
+  sortDirection: SortDirection,
+): HymnSearchResult[] {
   const eraRank = new Map<string, number>(eras.map((era, index) => [era, index]));
   const sorted = [...results];
 
   sorted.sort((a, b) => {
+    let result = 0;
+
     if (sortKey === 'number') {
-      return a.entry.number - b.entry.number;
+      result = a.entry.number - b.entry.number;
+    } else if (sortKey === 'era') {
+      result =
+        (eraRank.get(a.entry.era) ?? 0) - (eraRank.get(b.entry.era) ?? 0) ||
+        a.entry.title.localeCompare(b.entry.title);
+    } else if (sortKey === 'tune') {
+      result = a.entry.tuneName.localeCompare(b.entry.tuneName) || a.entry.number - b.entry.number;
+    } else {
+      result = a.entry.title.localeCompare(b.entry.title) || a.entry.number - b.entry.number;
     }
 
-    if (sortKey === 'era') {
-      const eraDelta = (eraRank.get(a.entry.era) ?? 0) - (eraRank.get(b.entry.era) ?? 0);
-      return eraDelta || a.entry.title.localeCompare(b.entry.title);
-    }
-
-    if (sortKey === 'tune') {
-      return a.entry.tuneName.localeCompare(b.entry.tuneName) || a.entry.number - b.entry.number;
-    }
-
-    return a.entry.title.localeCompare(b.entry.title) || a.entry.number - b.entry.number;
+    return sortDirection === 'desc' ? -result : result;
   });
 
   return sorted;
@@ -121,6 +127,7 @@ export function searchHymns(
   query: string,
   filters: FilterState,
   sortKey: SortKey,
+  sortDirection: SortDirection = 'asc',
 ): HymnSearchResult[] {
   const normalizedQuery = normalized(query.trim());
 
@@ -132,5 +139,5 @@ export function searchHymns(
     }))
     .filter((result) => normalizedQuery.length === 0 || result.matches.length > 0);
 
-  return sortResults(results, sortKey);
+  return sortResults(results, sortKey, sortDirection);
 }
