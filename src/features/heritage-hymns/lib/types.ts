@@ -6,17 +6,30 @@ export interface Contributor {
   roles: ContributorRole[];
 }
 
+export interface HymnCopyright {
+  wordsPublicDomain: boolean;
+  musicPublicDomain: boolean;
+}
+
+export interface HymnMaterials {
+  midi?: boolean;
+  congregation?: boolean;
+  pdf?: boolean;
+}
+
 export interface HymnEntry {
   id: string;
   number: number;
   title: string;
   firstLine: string;
   chorusFirstLine?: string;
-  tuneName: string;
-  meter: string;
+  tuneName?: string;
+  meter?: string;
   era: string;
   themes: string[];
   contributors: Contributor[];
+  copyright: HymnCopyright;
+  materials?: HymnMaterials;
 }
 
 export type FilterCategory = 'theme' | 'contributors' | 'era' | 'meter';

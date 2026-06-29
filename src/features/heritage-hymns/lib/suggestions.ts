@@ -67,12 +67,13 @@ export function buildSearchSuggestions(entries: HymnEntry[], query: string): Sea
       });
     }
 
-    if (includesQuery(entry.tuneName, normalizedQuery)) {
+    const tuneName = entry.tuneName;
+    if (includesQuery(tuneName, normalizedQuery) && tuneName) {
       addSuggestion(suggestions, seen, {
         id: `${entry.id}-tune`,
         field: 'Tune',
-        value: entry.tuneName,
-        completion: entry.tuneName,
+        value: tuneName,
+        completion: tuneName,
       });
     }
 

@@ -40,6 +40,28 @@ export function toggleFilterValue(
   };
 }
 
+export function toggleFilterGroup(
+  filters: FilterState,
+  category: FilterCategory,
+  values: string[],
+): FilterState {
+  if (values.length === 0) return filters;
+
+  const selected = new Set(filters[category]);
+  const hasAnySelected = values.some((value) => selected.has(value));
+
+  if (hasAnySelected) {
+    values.forEach((value) => selected.delete(value));
+  } else {
+    values.forEach((value) => selected.add(value));
+  }
+
+  return {
+    ...filters,
+    [category]: [...selected],
+  };
+}
+
 function includesAny(values: string[], selected: string[]): boolean {
   return selected.length === 0 || values.some((value) => selected.includes(value));
 }
@@ -49,7 +71,7 @@ function entryPassesFilters(entry: HymnEntry, filters: FilterState): boolean {
     includesAny(entry.themes, filters.theme) &&
     includesAny(entry.contributors.map((person) => person.displayName), filters.contributors) &&
     includesAny([entry.era], filters.era) &&
-    includesAny([entry.meter], filters.meter)
+    includesAny(entry.meter ? [entry.meter] : [], filters.meter)
   );
 }
 
@@ -111,7 +133,9 @@ function sortResults(
         (eraRank.get(a.entry.era) ?? 0) - (eraRank.get(b.entry.era) ?? 0) ||
         a.entry.title.localeCompare(b.entry.title);
     } else if (sortKey === 'tune') {
-      result = a.entry.tuneName.localeCompare(b.entry.tuneName) || a.entry.number - b.entry.number;
+      result =
+        (a.entry.tuneName ?? '').localeCompare(b.entry.tuneName ?? '') ||
+        a.entry.number - b.entry.number;
     } else {
       result = a.entry.title.localeCompare(b.entry.title) || a.entry.number - b.entry.number;
     }

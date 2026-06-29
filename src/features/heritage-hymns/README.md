@@ -16,7 +16,11 @@ This feature owns the sendable `/heritage-hymns` prototype.
   the `tab` query parameter.
 - Search scans hymn number, title, first line, chorus first line, tune name, and contributors.
 - Filter selections are OR within a category and AND across categories.
+- Theme parent rows toggle their child themes as a group; only child themes are filter values.
 - Sort options are title, hymn number, era, and tune.
+- Hymn records carry placeholder rights metadata for independent words/music public-domain badges.
+- Optional MIDI, congregation-recording, and PDF material flags are modeled but absent from the
+  generated day-one catalog.
 
 ## Prototype Tabs
 

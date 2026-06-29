@@ -4,12 +4,17 @@ import {
   createEmptyFilters,
   getActiveFilterCount,
   searchHymns,
+  toggleFilterGroup,
   toggleFilterValue,
 } from './search';
 
 describe('heritage hymns search helpers', () => {
   it('builds the demo catalog with exactly 573 dummy hymns', () => {
     expect(hymnCatalog).toHaveLength(573);
+  });
+
+  it('uses one assigned theme per dummy hymn', () => {
+    expect(hymnCatalog.every((entry) => entry.themes.length === 1)).toBe(true);
   });
 
   it('searches contributors and returns highlight ranges', () => {
@@ -80,6 +85,14 @@ describe('heritage hymns search helpers', () => {
     expect(getActiveFilterCount(first)).toBe(1);
     expect(getActiveFilterCount(second)).toBe(2);
     expect(getActiveFilterCount(third)).toBe(1);
+  });
+
+  it('toggles filter groups as a unit', () => {
+    const first = toggleFilterGroup(createEmptyFilters(), 'theme', ["God's Eternity", "God's Grace"]);
+    const second = toggleFilterGroup(first, 'theme', ["God's Eternity", "God's Grace"]);
+
+    expect(first.theme).toEqual(["God's Eternity", "God's Grace"]);
+    expect(second.theme).toEqual([]);
   });
 
   it('returns an empty list when no search fields match', () => {

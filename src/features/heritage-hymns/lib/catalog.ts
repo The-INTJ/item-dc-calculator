@@ -84,6 +84,10 @@ function contributor(displayName: string, sortName: string, roles: Contributor['
   return { displayName, sortName, roles };
 }
 
+function copyright(wordsPublicDomain: boolean, musicPublicDomain: boolean): HymnEntry['copyright'] {
+  return { wordsPublicDomain, musicPublicDomain };
+}
+
 const handcraftedEntries: HymnEntry[] = [
   {
     id: 'hymn-016',
@@ -93,11 +97,12 @@ const handcraftedEntries: HymnEntry[] = [
     tuneName: 'ST. HARBOR',
     meter: 'CM (8 6 8 6)',
     era: '19th Century',
-    themes: ['The Reigning King', "The Savior's Sacrifice"],
+    themes: ['The Reigning King'],
     contributors: [
       contributor('Thomas Kellen', 'Kellen, Thomas', ['words']),
       contributor('Jeremiah Clarke', 'Clarke, Jeremiah', ['music']),
     ],
+    copyright: copyright(true, true),
   },
   {
     id: 'hymn-023',
@@ -107,11 +112,12 @@ const handcraftedEntries: HymnEntry[] = [
     tuneName: 'NICASTOR',
     meter: 'LM (8 8 8 8)',
     era: '19th Century',
-    themes: ['The Holy Trinity', "God's Holiness"],
+    themes: ['The Holy Trinity'],
     contributors: [
       contributor('Reginald Mercer', 'Mercer, Reginald', ['words']),
       contributor('John D. Ames', 'Ames, John D.', ['music']),
     ],
+    copyright: copyright(true, true),
   },
   {
     id: 'hymn-042',
@@ -122,11 +128,12 @@ const handcraftedEntries: HymnEntry[] = [
     tuneName: 'MERCY BROOK',
     meter: 'CMD (8 6 8 6 D)',
     era: '18th Century',
-    themes: ["God's Mercy", 'Redemption'],
+    themes: ["God's Mercy"],
     contributors: [
       contributor('Elias Waters', 'Waters, Elias', ['words']),
       contributor('Marian Ashford', 'Ashford, Marian', ['music']),
     ],
+    copyright: copyright(true, false),
   },
   {
     id: 'hymn-087',
@@ -136,8 +143,9 @@ const handcraftedEntries: HymnEntry[] = [
     tuneName: 'MORNING COURT',
     meter: 'SM (6 6 8 6)',
     era: 'Before 1700',
-    themes: ['Call to Worship', 'Adoration & Praise'],
+    themes: ['Call to Worship'],
     contributors: [contributor('Anne Selby', 'Selby, Anne', ['words', 'music'])],
+    copyright: copyright(true, true),
   },
   {
     id: 'hymn-118',
@@ -147,11 +155,12 @@ const handcraftedEntries: HymnEntry[] = [
     tuneName: 'COVENANT OAK',
     meter: 'LMD (8 8 8 8 D)',
     era: '20th Century',
-    themes: ["God's Word", "God's Faithfulness"],
+    themes: ["God's Word"],
     contributors: [
       contributor('Nathaniel Rowe', 'Rowe, Nathaniel', ['words']),
       contributor('Clara Benton', 'Benton, Clara', ['music', 'arranger']),
     ],
+    copyright: copyright(false, false),
   },
   {
     id: 'hymn-146',
@@ -162,11 +171,12 @@ const handcraftedEntries: HymnEntry[] = [
     tuneName: 'NEW BRIGHTON',
     meter: 'Other Meters',
     era: '21st Century',
-    themes: ["Christ's Return", 'Hope & Heaven'],
+    themes: ["Christ's Return"],
     contributors: [
       contributor('Julian Merritt', 'Merritt, Julian', ['words']),
       contributor('Elise Harrow', 'Harrow, Elise', ['music']),
     ],
+    copyright: copyright(false, false),
   },
   {
     id: 'hymn-174',
@@ -176,11 +186,12 @@ const handcraftedEntries: HymnEntry[] = [
     tuneName: 'PILGRIM TABLE',
     meter: 'CM (8 6 8 6)',
     era: '18th Century',
-    themes: ["The Lord's Supper", 'Christian Community'],
+    themes: ["The Lord's Supper"],
     contributors: [
       contributor('Silas Renwick', 'Renwick, Silas', ['words']),
       contributor('Marta Bell', 'Bell, Marta', ['music']),
     ],
+    copyright: copyright(true, true),
   },
   {
     id: 'hymn-205',
@@ -190,11 +201,12 @@ const handcraftedEntries: HymnEntry[] = [
     tuneName: 'GREEN RIDGE',
     meter: 'HM (6 6 6 6 8 8)',
     era: '19th Century',
-    themes: ['Providence', "God's Goodness"],
+    themes: ['Providence'],
     contributors: [
       contributor('Clara Whitcomb', 'Whitcomb, Clara', ['words']),
       contributor('Edwin Larke', 'Larke, Edwin', ['music']),
     ],
+    copyright: copyright(true, true),
   },
   {
     id: 'hymn-227',
@@ -205,11 +217,12 @@ const handcraftedEntries: HymnEntry[] = [
     tuneName: 'ENDLESS SONG',
     meter: 'LPM (8 8 8 8 8 8)',
     era: '21st Century',
-    themes: ['The Reigning King', 'Adoration & Praise'],
+    themes: ['The Reigning King'],
     contributors: [
       contributor('Mason Bell', 'Bell, Mason', ['words', 'music']),
       contributor('Keira Glenn', 'Glenn, Keira', ['words', 'music']),
     ],
+    copyright: copyright(false, false),
   },
   {
     id: 'hymn-302',
@@ -219,11 +232,12 @@ const handcraftedEntries: HymnEntry[] = [
     tuneName: 'EMBER LANE',
     meter: 'SMD (6 6 8 6 D)',
     era: '20th Century',
-    themes: ['God the Holy Spirit', 'Revival'],
+    themes: ['God the Holy Spirit'],
     contributors: [
       contributor('Peter Hollis', 'Hollis, Peter', ['words']),
       contributor('Lena Carver', 'Carver, Lena', ['music']),
     ],
+    copyright: copyright(false, false),
   },
   {
     id: 'hymn-418',
@@ -233,11 +247,12 @@ const handcraftedEntries: HymnEntry[] = [
     tuneName: 'SHEPHERD WATCH',
     meter: 'CM (8 6 8 6)',
     era: '19th Century',
-    themes: ['Assurance & Security', 'Devotion to Christ'],
+    themes: ['Assurance & Security'],
     contributors: [
       contributor('Amelia North', 'North, Amelia', ['words']),
       contributor('Gideon Vale', 'Vale, Gideon', ['music']),
     ],
+    copyright: copyright(true, true),
   },
   {
     id: 'hymn-512',
@@ -247,11 +262,12 @@ const handcraftedEntries: HymnEntry[] = [
     tuneName: 'LAMPLIGHT',
     meter: 'SPM (6 6 8 6 6 8)',
     era: '20th Century',
-    themes: ['Evening Meditations', 'Prayer'],
+    themes: ['Evening Meditations'],
     contributors: [
       contributor('Margaret Voss', 'Voss, Margaret', ['words']),
       contributor('Henry Alden', 'Alden, Henry', ['music', 'arranger']),
     ],
+    copyright: copyright(true, false),
   },
 ];
 
@@ -378,7 +394,6 @@ function makeGeneratedEntry(number: number, index: number): HymnEntry {
   }`;
   const firstLine = `${firstLineOpeners[index % firstLineOpeners.length]}, we trace the Lord's kindness`;
   const theme = selectableThemes[index % selectableThemes.length];
-  const secondaryTheme = selectableThemes[(index * 7 + 3) % selectableThemes.length];
   const tuneName = `${tuneRoots[index % tuneRoots.length]} ${String((index % 9) + 1)}`;
   const words = makeGeneratedContributor(index * 2, 'words');
   const music = index % 13 === 0 ? words : makeGeneratedContributor(index * 2 + 1, 'music');
@@ -392,8 +407,9 @@ function makeGeneratedEntry(number: number, index: number): HymnEntry {
     tuneName,
     meter: meters[index % meters.length],
     era: eras[index % eras.length],
-    themes: index % 5 === 0 && theme !== secondaryTheme ? [theme, secondaryTheme] : [theme],
+    themes: [theme],
     contributors: music === words ? [words] : [words, music],
+    copyright: copyright(index % 3 === 0, index % 4 === 0),
   };
 }
 

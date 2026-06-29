@@ -5,8 +5,8 @@ export interface FilterOption {
   value: string;
   label: string;
   selectable: boolean;
-  count?: number;
   depth?: ThemeOption['depth'];
+  children?: string[];
 }
 
 export const categoryLabels: Record<FilterCategory, string> = {
@@ -23,27 +23,14 @@ export const sortLabels: Array<{ value: SortKey; label: string }> = [
   { value: 'tune', label: 'Tune' },
 ];
 
-function getOptionCount(category: FilterCategory, value: string): number {
-  return hymnCatalog.filter((entry) => {
-    if (category === 'theme') return entry.themes.includes(value);
-    if (category === 'contributors') {
-      return entry.contributors.some((person) => person.displayName === value);
-    }
-    if (category === 'era') return entry.era === value;
-    return entry.meter === value;
-  }).length;
-}
-
 function buildContributorOptions(): FilterOption[] {
-  const contributors = new Map<string, { label: string; sortName: string; count: number }>();
+  const contributors = new Map<string, { label: string; sortName: string }>();
 
   hymnCatalog.forEach((entry) => {
     entry.contributors.forEach((person) => {
-      const current = contributors.get(person.displayName);
       contributors.set(person.displayName, {
         label: person.displayName,
         sortName: person.sortName,
-        count: (current?.count ?? 0) + 1,
       });
     });
   });
@@ -54,29 +41,42 @@ function buildContributorOptions(): FilterOption[] {
       value: person.label,
       label: person.label,
       selectable: true,
-      count: person.count,
     }));
 }
 
-export const filterOptions: Record<FilterCategory, FilterOption[]> = {
-  theme: themeOptions.map((theme) => ({
+function getThemeChildren(parentIndex: number): string[] {
+  const children: string[] = [];
+
+  for (let index = parentIndex + 1; index < themeOptions.length; index += 1) {
+    const theme = themeOptions[index];
+    if (theme.depth !== 1) break;
+    if (theme.selectable) children.push(theme.label);
+  }
+
+  return children;
+}
+
+function buildThemeOptions(): FilterOption[] {
+  return themeOptions.map((theme, index) => ({
     value: theme.label,
     label: theme.label,
     selectable: theme.selectable,
-    count: theme.selectable ? getOptionCount('theme', theme.label) : undefined,
     depth: theme.depth,
-  })),
+    children: theme.selectable ? undefined : getThemeChildren(index),
+  }));
+}
+
+export const filterOptions: Record<FilterCategory, FilterOption[]> = {
+  theme: buildThemeOptions(),
   contributors: buildContributorOptions(),
   era: eras.map((era) => ({
     value: era,
     label: era,
     selectable: true,
-    count: getOptionCount('era', era),
   })),
   meter: meters.map((meter) => ({
     value: meter,
     label: meter,
     selectable: true,
-    count: getOptionCount('meter', meter),
   })),
 };

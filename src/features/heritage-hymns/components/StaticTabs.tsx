@@ -108,17 +108,14 @@ export function ForJackTab() {
       <section>
         <h2>About coding tools</h2>
         <p>
-          One practical thing worth knowing: tools like Claude Code and Codex may serve you well. A prior developer with strong opinions is
-          exactly the kind of person these tools can help, because you can describe intent, review the
-          result, and steer the next pass.
+          One practical thing worth knowing: tools like Claude Code and Codex may serve you well during
+          active development. A prior developer with strong opinions is exactly the kind of person these
+          tools can help, because you can describe intent, review the result, and steer the next pass.
         </p>
         <p>
-          This prototype, for example, was built almost entirely by directing an AI coding agent, without me looking at
-          code more than once during the first pass, and that first-pass build took less than an hour.
-          It costs me $20 /month :&#41;
-          </p>
-          <p>
-          For you, and for true delivery, I think you'd need versions costing $100-$200 /month, but the point is that you can get a lot done with a small investment of time and money.
+          The $100-$200/month figure was meant as a rough active-development tooling cost while building,
+          not as an ongoing maintenance cost after launch. Ongoing site costs should mostly be hosting and
+          server costs, which should be much lower unless future requirements add paid services.
         </p>
       </section>
     </StaticShell>

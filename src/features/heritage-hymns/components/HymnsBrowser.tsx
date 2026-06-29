@@ -6,11 +6,12 @@ import {
   createEmptyFilters,
   getActiveFilterCount,
   searchHymns,
+  toggleFilterGroup,
   toggleFilterValue,
 } from '../lib/search';
 import { buildSearchSuggestions } from '../lib/suggestions';
 import type { FilterCategory, FilterState, SortDirection, SortKey } from '../lib/types';
-import { categoryLabels, sortLabels } from '../lib/filter-options';
+import { sortLabels } from '../lib/filter-options';
 import { HymnCard } from './HymnCard';
 import { MaterialSymbol } from './MaterialSymbol';
 import { RefinePanel } from './RefinePanel';
@@ -18,12 +19,6 @@ import styles from './HeritageHymnsDemo.module.scss';
 
 function cx(...classes: Array<string | false | undefined>): string {
   return classes.filter(Boolean).join(' ');
-}
-
-function activeFilters(filters: FilterState): Array<{ category: FilterCategory; value: string }> {
-  return (Object.keys(filters) as FilterCategory[]).flatMap((category) =>
-    filters[category].map((value) => ({ category, value })),
-  );
 }
 
 export function HymnsBrowser() {
@@ -41,24 +36,21 @@ export function HymnsBrowser() {
   const showSuggestions = isSearchFocused && suggestions.length > 0;
   const activeFilterCount = getActiveFilterCount(filters);
   const resultLabel = `${results.length} ${results.length === 1 ? 'hymn' : 'hymns'}`;
-  const selectedFilters = activeFilters(filters);
 
   function toggleFilter(category: FilterCategory, value: string) {
     setFilters((current) => toggleFilterValue(current, category, value));
+  }
+
+  function toggleGroup(category: FilterCategory, values: string[]) {
+    setFilters((current) => toggleFilterGroup(current, category, values));
   }
 
   function clearAll() {
     setFilters(createEmptyFilters());
   }
 
-  function toggleSort(nextSortKey: SortKey) {
-    if (nextSortKey === sortKey) {
-      setSortDirection((current) => (current === 'asc' ? 'desc' : 'asc'));
-      return;
-    }
-
-    setSortKey(nextSortKey);
-    setSortDirection('asc');
+  function toggleSortDirection() {
+    setSortDirection((current) => (current === 'asc' ? 'desc' : 'asc'));
   }
 
   function toggleRefine() {
@@ -76,29 +68,19 @@ export function HymnsBrowser() {
 
   return (
     <>
-      <section className={styles.collectionIntro} aria-labelledby="collection-title">
-        <div>
-          <p className={styles.eyebrow}>Treasures New & Old</p>
-          <h1 id="collection-title">
-            Hymns rooted in biblical truth for the exaltation of God and the edification of His people.
-          </h1>
-        </div>
-        <p>A hymnal for congregational song, family worship, and personal devotion.</p>
-      </section>
-
       <section className={styles.searchDock} aria-label="Search and sort hymns">
         <div className={styles.searchFieldWrap}>
-          <label className={styles.searchField}>
-            <span>Search hymns</span>
+          <div className={styles.searchField}>
             <input
+              aria-label="Search hymns"
               type="search"
               value={query}
               onBlur={() => setIsSearchFocused(false)}
               onChange={(event) => setQuery(event.target.value)}
               onFocus={() => setIsSearchFocused(true)}
-              placeholder="Number, title, line, tune, or contributor"
+              placeholder="Search number, title, first line, tune, or contributor"
             />
-          </label>
+          </div>
           {showSuggestions ? (
             <div className={styles.suggestions} role="listbox" aria-label="Search suggestions">
               {suggestions.map((suggestion) => (
@@ -119,61 +101,52 @@ export function HymnsBrowser() {
             </div>
           ) : null}
         </div>
-        <div className={styles.resultCount} aria-live="polite">
-          {resultLabel}
-        </div>
-      </section>
-
-      <section className={styles.browseToolbar} aria-label="View controls">
-        <button
-          type="button"
-          className={styles.filterToggle}
-          onClick={toggleRefine}
-          aria-expanded={isRefineOpen || isDrawerOpen}
-        >
-          <MaterialSymbol icon={isRefineOpen ? 'left_panel_close' : 'tune'} />
-          <span>Filters</span>
-          {activeFilterCount > 0 ? <em>{activeFilterCount}</em> : null}
-        </button>
-        <div className={styles.sortRail} aria-label="Sort hymns">
-          {sortLabels.map((sort) => {
-            const isActive = sort.value === sortKey;
-            return (
-              <button
-                type="button"
-                key={sort.value}
-                className={cx(isActive && styles.sortButtonActive)}
-                onClick={() => toggleSort(sort.value)}
-                aria-pressed={isActive}
-                title={isActive ? `${sort.label} ${sortDirection}` : sort.label}
-              >
-                <span>{sort.label}</span>
-                {isActive ? (
-                  <MaterialSymbol icon={sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward'} />
-                ) : null}
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {selectedFilters.length > 0 ? (
-        <section className={styles.activeFilters} aria-label="Active filters">
-          {selectedFilters.map((filter) => (
+        <div className={styles.searchActions}>
+          <div className={styles.resultCount} aria-live="polite">
+            {resultLabel}
+          </div>
+          <button
+            type="button"
+            className={styles.filterToggle}
+            onClick={toggleRefine}
+            aria-expanded={isRefineOpen || isDrawerOpen}
+          >
+            <MaterialSymbol icon={isRefineOpen ? 'left_panel_close' : 'tune'} />
+            <span>Filters</span>
+            {activeFilterCount > 0 ? <em>{activeFilterCount}</em> : null}
+          </button>
+          {activeFilterCount > 0 ? (
+            <button type="button" className={styles.clearSearchAction} onClick={clearAll}>
+              Clear All
+            </button>
+          ) : null}
+          <div className={styles.sortControl}>
+            <label className={styles.srOnly} htmlFor="hymn-sort">
+              Sort hymns
+            </label>
+            <select
+              id="hymn-sort"
+              value={sortKey}
+              onChange={(event) => setSortKey(event.target.value as SortKey)}
+            >
+              {sortLabels.map((sort) => (
+                <option key={sort.value} value={sort.value}>
+                  {sort.label}
+                </option>
+              ))}
+            </select>
             <button
               type="button"
-              key={`${filter.category}-${filter.value}`}
-              onClick={() => toggleFilter(filter.category, filter.value)}
+              className={styles.sortDirectionButton}
+              onClick={toggleSortDirection}
+              aria-label={`Sort ${sortDirection === 'asc' ? 'ascending' : 'descending'}`}
+              title={`Sort ${sortDirection === 'asc' ? 'ascending' : 'descending'}`}
             >
-              <span>{categoryLabels[filter.category]}</span>
-              {filter.value}
+              <MaterialSymbol icon={sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward'} />
             </button>
-          ))}
-          <button type="button" className={styles.clearInline} onClick={clearAll}>
-            Clear All
-          </button>
-        </section>
-      ) : null}
+          </div>
+        </div>
+      </section>
 
       <div className={cx(styles.contentGrid, isRefineOpen && styles.contentGridWithRefine)}>
         <div className={cx(styles.desktopRefine, !isRefineOpen && styles.desktopRefineClosed)}>
@@ -182,6 +155,7 @@ export function HymnsBrowser() {
             filters={filters}
             onCategoryChange={setActiveCategory}
             onToggleFilter={toggleFilter}
+            onToggleGroup={toggleGroup}
             onClearAll={clearAll}
           />
         </div>
@@ -216,6 +190,7 @@ export function HymnsBrowser() {
               filters={filters}
               onCategoryChange={setActiveCategory}
               onToggleFilter={toggleFilter}
+              onToggleGroup={toggleGroup}
               onClearAll={clearAll}
               onClose={() => setIsDrawerOpen(false)}
             />

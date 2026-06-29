@@ -1,6 +1,7 @@
 import { getActiveFilterCount } from '../lib/search';
 import type { FilterCategory, FilterState } from '../lib/types';
 import { categoryLabels, filterOptions } from '../lib/filter-options';
+import { MaterialSymbol } from './MaterialSymbol';
 import styles from './HeritageHymnsDemo.module.scss';
 
 function cx(...classes: Array<string | false | undefined>): string {
@@ -12,6 +13,7 @@ export function RefinePanel({
   filters,
   onCategoryChange,
   onToggleFilter,
+  onToggleGroup,
   onClearAll,
   onClose,
   drawer = false,
@@ -20,6 +22,7 @@ export function RefinePanel({
   filters: FilterState;
   onCategoryChange: (category: FilterCategory) => void;
   onToggleFilter: (category: FilterCategory, value: string) => void;
+  onToggleGroup: (category: FilterCategory, values: string[]) => void;
   onClearAll: () => void;
   onClose?: () => void;
   drawer?: boolean;
@@ -32,7 +35,7 @@ export function RefinePanel({
       <header className={styles.refineHeader}>
         <div>
           <p>Refine</p>
-          <strong>{activeCount === 0 ? 'Full collection' : `${activeCount} selected`}</strong>
+          {activeCount > 0 ? <strong>{`${activeCount} selected`}</strong> : null}
         </div>
         <div className={styles.refineActions}>
           <button type="button" onClick={onClearAll} disabled={activeCount === 0}>
@@ -65,7 +68,11 @@ export function RefinePanel({
         </nav>
         <div className={styles.optionList} aria-label={`${categoryLabels[activeCategory]} options`}>
           {options.map((option) => {
-            const selected = filters[activeCategory].includes(option.value);
+            const selected = option.selectable && filters[activeCategory].includes(option.value);
+            const hasGroupChildren = !option.selectable && (option.children?.length ?? 0) > 0;
+            const hasSelectedChild =
+              hasGroupChildren &&
+              option.children?.some((child) => filters[activeCategory].includes(child));
             return (
               <button
                 type="button"
@@ -75,14 +82,27 @@ export function RefinePanel({
                   selected && styles.optionButtonSelected,
                   option.depth === 1 && styles.optionButtonNested,
                   !option.selectable && styles.optionButtonGroup,
+                  hasSelectedChild && styles.optionButtonGroupWithSelection,
                 )}
-                disabled={!option.selectable}
-                onClick={() => onToggleFilter(activeCategory, option.value)}
+                disabled={!option.selectable && !hasGroupChildren}
+                onClick={() => {
+                  if (option.selectable) {
+                    onToggleFilter(activeCategory, option.value);
+                    return;
+                  }
+
+                  if (option.children) {
+                    onToggleGroup(activeCategory, option.children);
+                  }
+                }}
                 aria-pressed={option.selectable ? selected : undefined}
               >
-                <span className={styles.optionCheck} aria-hidden="true" />
                 <span className={styles.optionLabel}>{option.label}</span>
-                {option.count != null ? <span className={styles.optionCount}>{option.count}</span> : null}
+                {option.selectable ? (
+                  <span className={styles.optionCheck} aria-hidden="true">
+                    {selected ? <MaterialSymbol icon="check" /> : null}
+                  </span>
+                ) : null}
               </button>
             );
           })}

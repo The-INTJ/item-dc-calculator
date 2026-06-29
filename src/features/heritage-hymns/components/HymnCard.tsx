@@ -1,16 +1,19 @@
 import type {
   ContributorRole,
   HymnEntry,
+  HymnMaterials,
   HymnSearchResult,
   SearchMatch,
 } from '../lib/types';
 import { HighlightedText, matchesFor } from './HighlightedText';
+import { MaterialSymbol } from './MaterialSymbol';
 import styles from './HeritageHymnsDemo.module.scss';
 
-type MetadataKind = 'words' | 'music' | 'additional' | 'firstLine' | 'chorus';
+type MetadataKind = 'words' | 'wordsAndMusic' | 'music' | 'additional' | 'firstLine' | 'chorus';
 
 const metadataLabels: Record<MetadataKind, string> = {
   words: 'Words',
+  wordsAndMusic: 'Words & Music',
   music: 'Music',
   additional: 'Additional',
   firstLine: 'First Line',
@@ -33,22 +36,45 @@ function contributorMatchesForNames(result: HymnSearchResult, names: string[]): 
   );
 }
 
+function PublicDomainBadge({ label }: { label: 'Words' | 'Music' }) {
+  return (
+    <span className={styles.publicDomainBadge} aria-label={`${label} public domain`}>
+      PD
+    </span>
+  );
+}
+
 function MetadataRow({
   kind,
   value,
   matches,
+  publicDomainBadges = [],
 }: {
   kind: MetadataKind;
   value: string;
   matches: SearchMatch[];
+  publicDomainBadges?: Array<'Words' | 'Music'>;
 }) {
   return (
     <div className={cx(styles.metadataRow, styles[`metadataRow_${kind}`])}>
       <dt>{metadataLabels[kind]}</dt>
       <dd>
         <HighlightedText value={value} matches={matches} />
+        {publicDomainBadges.length > 0 ? (
+          <span className={styles.publicDomainBadges}>
+            {publicDomainBadges.map((label) => (
+              <PublicDomainBadge key={label} label={label} />
+            ))}
+          </span>
+        ) : null}
       </dd>
     </div>
+  );
+}
+
+function publicDomainBadgesFor(entry: HymnEntry, roles: Array<'Words' | 'Music'>): Array<'Words' | 'Music'> {
+  return roles.filter((role) =>
+    role === 'Words' ? entry.copyright.wordsPublicDomain : entry.copyright.musicPublicDomain,
   );
 }
 
@@ -68,9 +94,10 @@ function AttributionRows({ result }: { result: HymnSearchResult }) {
   if (sameWordsAndMusic) {
     return (
       <MetadataRow
-        kind="words"
+        kind="wordsAndMusic"
         value={words.join(', ')}
         matches={contributorMatchesForNames(result, words)}
+        publicDomainBadges={publicDomainBadgesFor(entry, ['Words', 'Music'])}
       />
     );
   }
@@ -82,6 +109,7 @@ function AttributionRows({ result }: { result: HymnSearchResult }) {
           kind="words"
           value={words.join(', ')}
           matches={contributorMatchesForNames(result, words)}
+          publicDomainBadges={publicDomainBadgesFor(entry, ['Words'])}
         />
       ) : null}
       {music.length > 0 ? (
@@ -89,6 +117,7 @@ function AttributionRows({ result }: { result: HymnSearchResult }) {
           kind="music"
           value={music.join(', ')}
           matches={contributorMatchesForNames(result, music)}
+          publicDomainBadges={publicDomainBadgesFor(entry, ['Music'])}
         />
       ) : null}
       {additional.length > 0 ? (
@@ -102,9 +131,41 @@ function AttributionRows({ result }: { result: HymnSearchResult }) {
   );
 }
 
+const materialOrder: Array<{
+  key: keyof HymnMaterials;
+  icon: string;
+  label: string;
+}> = [
+  { key: 'midi', icon: 'piano', label: 'MIDI learning recording' },
+  { key: 'congregation', icon: 'groups', label: 'Congregation recording' },
+  { key: 'pdf', icon: 'picture_as_pdf', label: 'Public domain PDF' },
+];
+
+function MaterialLinks({ materials }: { materials: HymnMaterials | undefined }) {
+  const available = materialOrder.filter((item) => materials?.[item.key]);
+  if (available.length === 0) return null;
+
+  return (
+    <div className={styles.materialLinks} aria-label="Available hymn materials">
+      {available.map((item) => (
+        <span
+          className={styles.materialLink}
+          data-material-kind={item.key}
+          key={item.key}
+          aria-label={item.label}
+          title={item.label}
+        >
+          <MaterialSymbol icon={item.icon} />
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export function HymnCard({ result }: { result: HymnSearchResult }) {
   const { entry, matches } = result;
   const number = String(entry.number);
+  const primaryTheme = entry.themes[0];
 
   return (
     <article className={styles.hymnCard}>
@@ -117,6 +178,10 @@ export function HymnCard({ result }: { result: HymnSearchResult }) {
             <h2>
               <HighlightedText value={entry.title} matches={matchesFor(matches, 'title', entry.title)} />
             </h2>
+            <div className={styles.hymnHeaderMeta}>
+              {primaryTheme ? <span className={styles.themePill}>{primaryTheme}</span> : null}
+              <MaterialLinks materials={entry.materials} />
+            </div>
           </header>
           <dl className={styles.metadataList}>
             <AttributionRows result={result} />
@@ -135,19 +200,17 @@ export function HymnCard({ result }: { result: HymnSearchResult }) {
           </dl>
           <div className={styles.detailRail} aria-label="Era, tune, and meter">
             <span className={styles.detailPill}>{entry.era}</span>
-            <span className={styles.detailPill}>
-              <HighlightedText value={entry.tuneName} matches={matchesFor(matches, 'tuneName', entry.tuneName)} />
-            </span>
-            <span className={styles.detailPill}>{entry.meter}</span>
+            {entry.tuneName ? (
+              <span className={styles.detailPill}>
+                <HighlightedText
+                  value={entry.tuneName}
+                  matches={matchesFor(matches, 'tuneName', entry.tuneName)}
+                />
+              </span>
+            ) : null}
+            {entry.meter ? <span className={styles.detailPill}>{entry.meter}</span> : null}
           </div>
         </div>
-        <aside className={styles.hymnRightRail} aria-label="Themes">
-          <div className={styles.themeRail} aria-label="Themes">
-            {entry.themes.map((theme) => (
-              <span className={styles.themePill} key={theme}>{theme}</span>
-            ))}
-          </div>
-        </aside>
       </div>
     </article>
   );
