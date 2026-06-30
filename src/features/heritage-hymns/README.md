@@ -5,13 +5,14 @@ This feature owns the sendable `/heritage-hymns` prototype.
 ## Boundaries
 
 - Client-only demo experience.
-- Dummy catalog data only.
+- Prototype catalog data only.
 - No Firebase, API routes, auth, cart, checkout, or persistence.
 - Keep this feature isolated from the contest app and the frozen DC calculator.
 
 ## Behavior
 
-- The catalog contains exactly 573 generated hymn entries.
+- The catalog contains exactly 573 prototype hymn entries: a handcrafted set of traditional
+  hymnal-style records plus generated filler records.
 - The bare `/heritage-hymns` route renders the Home tab; other prototype tabs use
   the `tab` query parameter.
 - Search scans and highlights rendered hymn data including number, title, first line, chorus first
@@ -21,12 +22,14 @@ This feature owns the sendable `/heritage-hymns` prototype.
 - Filter selections are OR within a category and AND across categories.
 - Theme parent rows toggle their child themes as a group; only child themes are filter values.
 - Sort options are title, hymn number, era, and tune.
-- Hymn results can switch between the original editorial list style and a white card style.
-- The white card style uses middle-aligned metadata labels.
+- Hymn results default to a white card style and can switch back to the original editorial list
+  style.
+- The white card style is borderless, subtly lifted, and uses middle-aligned metadata labels on
+  desktop with stacked labels on mobile.
 - Prototype-only search/layout toggles live in a separate controls strip above the search bar.
 - Hymn records carry placeholder rights metadata for independent words/music public-domain badges.
 - Optional MIDI, congregation-recording, and PDF material flags are modeled but absent from the
-  generated day-one catalog.
+  day-one catalog.
 
 ## Prototype Tabs
 

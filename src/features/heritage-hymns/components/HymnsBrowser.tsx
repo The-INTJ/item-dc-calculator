@@ -25,7 +25,8 @@ function cx(...classes: Array<string | false | undefined>): string {
 
 function suggestionValueClass(field: SearchSuggestion['field']): string {
   if (field === 'Title') return styles.suggestionValueTitle;
-  if (field === 'First Line' || field === 'Chorus') return styles.suggestionValueLine;
+  if (field === 'First Line') return styles.suggestionValueFirstLine;
+  if (field === 'Chorus') return styles.suggestionValueChorus;
   if (field === 'Tune') return styles.suggestionValueTune;
   if (field === 'Number') return styles.suggestionValueNumber;
   return styles.suggestionValueContributor;
@@ -40,7 +41,7 @@ export function HymnsBrowser() {
   const [activeCategory, setActiveCategory] = useState<FilterCategory>('theme');
   const [isRefineOpen, setIsRefineOpen] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [displayMode, setDisplayMode] = useState<DisplayMode>('list');
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('cards');
   const [hideSearchSuggestions, setHideSearchSuggestions] = useState(false);
 
   const results = searchHymns(hymnCatalog, query, filters, sortKey, sortDirection);

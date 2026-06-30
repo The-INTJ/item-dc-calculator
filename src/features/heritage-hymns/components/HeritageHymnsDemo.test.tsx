@@ -29,8 +29,9 @@ describe('HeritageHymnsDemo', () => {
     expect(screen.getByRole('searchbox', { name: 'Search hymns' })).toBeTruthy();
     expect(screen.queryByText('Search hymns')).toBeNull();
     expect(screen.queryByText('Full collection')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Cards' }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.getAllByText('Words').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Words & Music').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Words and Music').length).toBeGreaterThan(0);
     expect(screen.queryByLabelText('Available hymn materials')).toBeNull();
     expect(screen.queryByLabelText('Dev display toggle')).toBeNull();
   });
@@ -39,11 +40,11 @@ describe('HeritageHymnsDemo', () => {
     render(<HeritageHymnsDemo initialTab="hymns" />);
 
     fireEvent.change(screen.getByRole('searchbox', { name: 'Search hymns' }), {
-      target: { value: 'Waters' },
+      target: { value: 'Newton' },
     });
 
     expect(screen.getByText('1 hymn')).toBeTruthy();
-    expect(screen.getAllByText('Waters').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Newton').length).toBeGreaterThan(0);
   });
 
   it('shows local search suggestions while typing', () => {
@@ -154,7 +155,7 @@ describe('HeritageHymnsDemo', () => {
     rerender(<HeritageHymnsDemo initialTab="for-jack" />);
 
     expect(screen.getByRole('heading', { name: 'For Jack' })).toBeTruthy();
-    expect(screen.getByText(/exactly 573 generated dummy hymn records/)).toBeTruthy();
+    expect(screen.getByText(/exactly 573 prototype hymn records/)).toBeTruthy();
     expect(screen.getByText(/\$100-\$200\/month figure was meant as a rough active-development/)).toBeTruthy();
     expect(screen.getByText(/Ongoing site costs should mostly be hosting and server costs/)).toBeTruthy();
   });
@@ -188,7 +189,7 @@ describe('HeritageHymnsDemo', () => {
     expect(screen.getByLabelText('Music public domain')).toBeTruthy();
   });
 
-  it('collapses identical attributions into Words & Music with independent rights badges', () => {
+  it('collapses identical attributions into Words and Music with independent rights badges', () => {
     const entry: HymnEntry = {
       id: 'sample-collapsed',
       number: 902,
@@ -204,7 +205,7 @@ describe('HeritageHymnsDemo', () => {
 
     render(<HymnCard result={{ entry, matches: [] }} />);
 
-    expect(screen.getByText('Words & Music')).toBeTruthy();
+    expect(screen.getByText('Words and Music')).toBeTruthy();
     expect(screen.getByLabelText('Words public domain')).toBeTruthy();
     expect(screen.queryByLabelText('Music public domain')).toBeNull();
   });

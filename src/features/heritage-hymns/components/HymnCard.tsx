@@ -13,7 +13,7 @@ type MetadataKind = 'words' | 'wordsAndMusic' | 'music' | 'additional' | 'firstL
 
 const metadataLabels: Record<MetadataKind, string> = {
   words: 'Words',
-  wordsAndMusic: 'Words & Music',
+  wordsAndMusic: 'Words and Music',
   music: 'Music',
   additional: 'Additional',
   firstLine: 'First Line',

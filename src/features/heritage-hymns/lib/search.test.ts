@@ -18,14 +18,14 @@ describe('heritage hymns search helpers', () => {
   });
 
   it('searches contributors and returns highlight ranges', () => {
-    const results = searchHymns(hymnCatalog, 'waters', createEmptyFilters(), 'title');
+    const results = searchHymns(hymnCatalog, 'newton', createEmptyFilters(), 'title');
 
     expect(results).toHaveLength(1);
-    expect(results[0].entry.title).toBe('Waters of Mercy Flow');
+    expect(results[0].entry.title).toBe('Amazing Grace');
 
     const contributorMatch = results[0].matches.find((match) => match.field === 'contributors');
     expect(contributorMatch).toBeDefined();
-    expect(contributorMatch?.value.slice(contributorMatch.start, contributorMatch.end)).toBe('Waters');
+    expect(contributorMatch?.value.slice(contributorMatch.start, contributorMatch.end)).toBe('Newton');
   });
 
   it('searches hymn numbers when the query is numeric', () => {
@@ -62,8 +62,8 @@ describe('heritage hymns search helpers', () => {
   it('narrows across theme and contributor selections', () => {
     const filters = {
       ...createEmptyFilters(),
-      theme: ["God's Mercy"],
-      contributors: ['Elias Waters'],
+      theme: ["God's Grace"],
+      contributors: ['John Newton'],
     };
     const results = searchHymns(hymnCatalog, '', filters, 'title');
 

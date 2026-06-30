@@ -24,7 +24,7 @@ export const guidingConvictions = [
 export const forJackNotes = [
   {
     title: 'What this prototype is',
-    body: 'This is a client-only prototype. It uses exactly 573 generated dummy hymn records, local browser state, query-param navigation, and no real hymnal data.',
+    body: 'This is a client-only prototype. It uses exactly 573 prototype hymn records, with a handcrafted traditional-hymn sample set and generated filler records, plus local browser state and query-param navigation.',
   },
   {
     title: 'What is intentionally absent',
