@@ -79,38 +79,50 @@ function normalized(value: string): string {
   return value.toLocaleLowerCase();
 }
 
-function findMatch(
+function findMatches(
   field: SearchMatch['field'],
   value: string | undefined,
   query: string,
-): SearchMatch | null {
-  if (!value) return null;
+): SearchMatch[] {
+  if (!value || query.length === 0) return [];
 
-  const start = normalized(value).indexOf(query);
-  if (start < 0) return null;
+  const matches: SearchMatch[] = [];
+  const normalizedValue = normalized(value);
+  let cursor = 0;
 
-  return {
-    field,
-    value,
-    start,
-    end: start + query.length,
-  };
+  while (cursor < normalizedValue.length) {
+    const start = normalizedValue.indexOf(query, cursor);
+    if (start < 0) break;
+
+    matches.push({
+      field,
+      value,
+      start,
+      end: start + query.length,
+    });
+    cursor = start + query.length;
+  }
+
+  return matches;
 }
 
 function getEntryMatches(entry: HymnEntry, query: string): SearchMatch[] {
   if (query.length === 0) return [];
 
   const fieldMatches = [
-    /^\d+$/.test(query) ? findMatch('number', String(entry.number), query) : null,
-    findMatch('title', entry.title, query),
-    findMatch('firstLine', entry.firstLine, query),
-    findMatch('chorusFirstLine', entry.chorusFirstLine, query),
-    findMatch('tuneName', entry.tuneName, query),
-  ].filter((match): match is SearchMatch => match !== null);
+    /^\d+$/.test(query) ? findMatches('number', String(entry.number), query) : [],
+    findMatches('title', entry.title, query),
+    findMatches('firstLine', entry.firstLine, query),
+    findMatches('chorusFirstLine', entry.chorusFirstLine, query),
+    findMatches('tuneName', entry.tuneName, query),
+    findMatches('era', entry.era, query),
+    findMatches('meter', entry.meter, query),
+    ...entry.themes.map((theme) => findMatches('theme', theme, query)),
+  ].flat();
 
   const contributorMatches = entry.contributors
-    .map((person) => findMatch('contributors', person.displayName, query))
-    .filter((match): match is SearchMatch => match !== null);
+    .map((person) => findMatches('contributors', person.displayName, query))
+    .flat();
 
   return [...fieldMatches, ...contributorMatches];
 }

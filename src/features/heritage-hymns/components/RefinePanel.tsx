@@ -35,7 +35,7 @@ export function RefinePanel({
       <header className={styles.refineHeader}>
         <div>
           <p>Refine</p>
-          {activeCount > 0 ? <strong>{`${activeCount} selected`}</strong> : null}
+          <strong>{`${activeCount} selected`}</strong>
         </div>
         <div className={styles.refineActions}>
           <button type="button" onClick={onClearAll} disabled={activeCount === 0}>

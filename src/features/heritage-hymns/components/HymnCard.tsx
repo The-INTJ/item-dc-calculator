@@ -179,7 +179,11 @@ export function HymnCard({ result }: { result: HymnSearchResult }) {
               <HighlightedText value={entry.title} matches={matchesFor(matches, 'title', entry.title)} />
             </h2>
             <div className={styles.hymnHeaderMeta}>
-              {primaryTheme ? <span className={styles.themePill}>{primaryTheme}</span> : null}
+              {primaryTheme ? (
+                <span className={styles.themePill}>
+                  <HighlightedText value={primaryTheme} matches={matchesFor(matches, 'theme', primaryTheme)} />
+                </span>
+              ) : null}
               <MaterialLinks materials={entry.materials} />
             </div>
           </header>
@@ -199,7 +203,9 @@ export function HymnCard({ result }: { result: HymnSearchResult }) {
             ) : null}
           </dl>
           <div className={styles.detailRail} aria-label="Era, tune, and meter">
-            <span className={styles.detailPill}>{entry.era}</span>
+            <span className={styles.detailPill}>
+              <HighlightedText value={entry.era} matches={matchesFor(matches, 'era', entry.era)} />
+            </span>
             {entry.tuneName ? (
               <span className={styles.detailPill}>
                 <HighlightedText
@@ -208,7 +214,11 @@ export function HymnCard({ result }: { result: HymnSearchResult }) {
                 />
               </span>
             ) : null}
-            {entry.meter ? <span className={styles.detailPill}>{entry.meter}</span> : null}
+            {entry.meter ? (
+              <span className={styles.detailPill}>
+                <HighlightedText value={entry.meter} matches={matchesFor(matches, 'meter', entry.meter)} />
+              </span>
+            ) : null}
           </div>
         </div>
       </div>

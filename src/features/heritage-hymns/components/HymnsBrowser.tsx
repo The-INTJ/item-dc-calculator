@@ -9,7 +9,7 @@ import {
   toggleFilterGroup,
   toggleFilterValue,
 } from '../lib/search';
-import { buildSearchSuggestions } from '../lib/suggestions';
+import { buildSearchSuggestions, type SearchSuggestion } from '../lib/suggestions';
 import type { FilterCategory, FilterState, SortDirection, SortKey } from '../lib/types';
 import { sortLabels } from '../lib/filter-options';
 import { HymnCard } from './HymnCard';
@@ -17,8 +17,18 @@ import { MaterialSymbol } from './MaterialSymbol';
 import { RefinePanel } from './RefinePanel';
 import styles from './HeritageHymnsDemo.module.scss';
 
+type DisplayMode = 'list' | 'cards';
+
 function cx(...classes: Array<string | false | undefined>): string {
   return classes.filter(Boolean).join(' ');
+}
+
+function suggestionValueClass(field: SearchSuggestion['field']): string {
+  if (field === 'Title') return styles.suggestionValueTitle;
+  if (field === 'First Line' || field === 'Chorus') return styles.suggestionValueLine;
+  if (field === 'Tune') return styles.suggestionValueTune;
+  if (field === 'Number') return styles.suggestionValueNumber;
+  return styles.suggestionValueContributor;
 }
 
 export function HymnsBrowser() {
@@ -30,10 +40,12 @@ export function HymnsBrowser() {
   const [activeCategory, setActiveCategory] = useState<FilterCategory>('theme');
   const [isRefineOpen, setIsRefineOpen] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('list');
+  const [hideSearchSuggestions, setHideSearchSuggestions] = useState(false);
 
   const results = searchHymns(hymnCatalog, query, filters, sortKey, sortDirection);
   const suggestions = buildSearchSuggestions(hymnCatalog, query);
-  const showSuggestions = isSearchFocused && suggestions.length > 0;
+  const showSuggestions = !hideSearchSuggestions && isSearchFocused && suggestions.length > 0;
   const activeFilterCount = getActiveFilterCount(filters);
   const resultLabel = `${results.length} ${results.length === 1 ? 'hymn' : 'hymns'}`;
 
@@ -68,6 +80,52 @@ export function HymnsBrowser() {
 
   return (
     <>
+      <nav className={styles.devToggleNav} aria-label="Prototype controls">
+        <div className={styles.devToggleGroup}>
+          <span className={styles.devToggleLabel}>Search</span>
+          <button
+            type="button"
+            className={cx(
+              styles.searchSuggestionToggle,
+              hideSearchSuggestions && styles.searchSuggestionToggleActive,
+            )}
+            onClick={() => setHideSearchSuggestions((current) => !current)}
+            aria-pressed={hideSearchSuggestions}
+            title={
+              hideSearchSuggestions
+                ? 'Dynamic search dropdown hidden'
+                : 'Dynamic search dropdown visible'
+            }
+          >
+            <MaterialSymbol icon={hideSearchSuggestions ? 'visibility_off' : 'arrow_drop_down_circle'} />
+            <span>No dropdown</span>
+          </button>
+        </div>
+        <div className={styles.devToggleGroup}>
+          <span className={styles.devToggleLabel}>Results</span>
+          <div className={styles.displayModeToggle} role="group" aria-label="Hymn display style">
+            <button
+              type="button"
+              className={cx(displayMode === 'list' && styles.displayModeButtonActive)}
+              onClick={() => setDisplayMode('list')}
+              aria-pressed={displayMode === 'list'}
+            >
+              <MaterialSymbol icon="view_list" />
+              <span>List</span>
+            </button>
+            <button
+              type="button"
+              className={cx(displayMode === 'cards' && styles.displayModeButtonActive)}
+              onClick={() => setDisplayMode('cards')}
+              aria-pressed={displayMode === 'cards'}
+            >
+              <MaterialSymbol icon="view_agenda" />
+              <span>Cards</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+
       <section className={styles.searchDock} aria-label="Search and sort hymns">
         <div className={styles.searchFieldWrap}>
           <div className={styles.searchField}>
@@ -82,7 +140,11 @@ export function HymnsBrowser() {
             />
           </div>
           {showSuggestions ? (
-            <div className={styles.suggestions} role="listbox" aria-label="Search suggestions">
+            <div
+              className={styles.suggestions}
+              role="listbox"
+              aria-label="Search suggestions"
+            >
               {suggestions.map((suggestion) => (
                 <button
                   type="button"
@@ -94,17 +156,20 @@ export function HymnsBrowser() {
                   }}
                   role="option"
                 >
-                  <span>{suggestion.field}</span>
-                  <strong>{suggestion.value}</strong>
+                  <strong
+                    className={cx(
+                      styles.suggestionValue,
+                      suggestionValueClass(suggestion.field),
+                    )}
+                  >
+                    {suggestion.value}
+                  </strong>
                 </button>
               ))}
             </div>
           ) : null}
         </div>
         <div className={styles.searchActions}>
-          <div className={styles.resultCount} aria-live="polite">
-            {resultLabel}
-          </div>
           <button
             type="button"
             className={styles.filterToggle}
@@ -115,6 +180,9 @@ export function HymnsBrowser() {
             <span>Filters</span>
             {activeFilterCount > 0 ? <em>{activeFilterCount}</em> : null}
           </button>
+          <div className={styles.resultCount} aria-live="polite">
+            {resultLabel}
+          </div>
           {activeFilterCount > 0 ? (
             <button type="button" className={styles.clearSearchAction} onClick={clearAll}>
               Clear All
@@ -159,7 +227,14 @@ export function HymnsBrowser() {
             onClearAll={clearAll}
           />
         </div>
-        <section className={styles.results} aria-label="Hymn results">
+        <section
+          className={cx(
+            styles.results,
+            displayMode === 'cards' && styles.resultsCardMode,
+            displayMode === 'cards' && styles.resultsCardLabelsMiddle,
+          )}
+          aria-label="Hymn results"
+        >
           {results.length > 0 ? (
             results.map((result) => (
               <HymnCard key={result.entry.id} result={result} />

@@ -47,7 +47,16 @@ export interface ThemeOption {
 }
 
 export interface SearchMatch {
-  field: 'number' | 'title' | 'firstLine' | 'chorusFirstLine' | 'tuneName' | 'contributors';
+  field:
+    | 'number'
+    | 'title'
+    | 'firstLine'
+    | 'chorusFirstLine'
+    | 'tuneName'
+    | 'contributors'
+    | 'era'
+    | 'meter'
+    | 'theme';
   value: string;
   start: number;
   end: number;

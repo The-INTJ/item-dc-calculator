@@ -1,5 +1,8 @@
-import type { ReactNode } from 'react';
+'use client';
+
+import { useState, type ReactNode } from 'react';
 import { forJackNotes, guidingConvictions } from '../lib/content';
+import { MaterialSymbol } from './MaterialSymbol';
 import styles from './HeritageHymnsDemo.module.scss';
 
 function StaticShell({
@@ -146,12 +149,89 @@ export function ConnectTab() {
 }
 
 export function DonateTab() {
+  const [isDonateModalOpen, setIsDonateModalOpen] = useState(false);
+
   return (
-    <StaticShell eyebrow="Donate" title="Help Preserve a Legacy of Praise">
+    <StaticShell eyebrow="Support the Work" title="Help Sustain This Ministry of Song">
       <p>
-        The donation opportunity should feel tasteful and mission-supporting rather than loud. This
-        prototype keeps Donate as a simple page instead of a full payment flow.
+        The preparation and publication of a hymnal is a labor that extends far beyond the printed
+        page. From planning, design, and engraving to licensing, production, and distribution, each
+        volume represents the work of many hands and many hours of thoughtful stewardship.
       </p>
+      <p>
+        As a non-profit ministry, Heritage Hymnal Company is grateful for the generosity of churches
+        and individuals who value faithful congregational singing and desire to place rich hymnody
+        into the hands of others.
+      </p>
+
+      <section>
+        <h2>Share in This Work</h2>
+        <p>
+          If you have benefited from this ministry or desire to see the church continue singing these
+          treasures of the faith, we invite you to share in this work by making a tax-deductible gift.
+          Your gift may help:
+        </p>
+        <ul className={styles.donateUseList}>
+          <li>offset production and licensing expenses</li>
+          <li>make hymnals available to churches and individuals with limited means</li>
+          <li>support the continued publication of faithful hymnals</li>
+        </ul>
+      </section>
+
+      <div className={styles.donateActionPanel}>
+        <div>
+          <p>Partner with Heritage Hymnal Company</p>
+          <strong>Give toward the continued publication of faithful hymnals.</strong>
+        </div>
+        <button
+          className={styles.donateButton}
+          type="button"
+          onClick={() => setIsDonateModalOpen(true)}
+        >
+          <MaterialSymbol icon="volunteer_activism" />
+          Donate Now
+        </button>
+      </div>
+
+      <p>
+        Thank you for partnering with us in this labor. Your support helps ensure that the church's
+        tradition of congregational song is preserved for generations yet unborn.
+      </p>
+      <blockquote>
+        <p>
+          This shall be written for the generation to come: and the people which shall be created
+          shall praise the LORD.
+        </p>
+        <cite>Psalm 102:18</cite>
+      </blockquote>
+
+      {isDonateModalOpen ? (
+        <div className={styles.donateModalLayer} role="presentation">
+          <button
+            aria-label="Close donation message"
+            className={styles.donateModalScrim}
+            type="button"
+            onClick={() => setIsDonateModalOpen(false)}
+          />
+          <div
+            aria-labelledby="donate-modal-title"
+            aria-modal="true"
+            className={styles.donateModal}
+            role="dialog"
+          >
+            <button
+              aria-label="Close donation message"
+              className={styles.donateModalClose}
+              type="button"
+              onClick={() => setIsDonateModalOpen(false)}
+            >
+              <MaterialSymbol icon="close" />
+            </button>
+            <MaterialSymbol icon="volunteer_activism" className={styles.donateModalIcon} />
+            <h2 id="donate-modal-title">Working on it!</h2>
+          </div>
+        </div>
+      ) : null}
     </StaticShell>
   );
 }
