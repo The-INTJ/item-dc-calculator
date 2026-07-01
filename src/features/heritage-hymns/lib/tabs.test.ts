@@ -6,15 +6,15 @@ describe('heritage tab helpers', () => {
     expect(normalizeHeritageTab(undefined)).toBe('home');
     expect(normalizeHeritageTab(null)).toBe('home');
     expect(normalizeHeritageTab('not-real')).toBe('home');
+    expect(normalizeHeritageTab('for-jack')).toBe('home');
   });
 
   it('normalizes known tab values', () => {
     expect(normalizeHeritageTab('hymns')).toBe('hymns');
-    expect(normalizeHeritageTab('for-jack')).toBe('for-jack');
     expect(normalizeHeritageTab(['about'])).toBe('about');
   });
 
-  it('builds canonical prototype hrefs', () => {
+  it('builds canonical Heritage hrefs', () => {
     expect(getHeritageTabHref('home')).toBe('/heritage-hymns');
     expect(getHeritageTabHref('hymns')).toBe('/heritage-hymns?tab=hymns');
   });

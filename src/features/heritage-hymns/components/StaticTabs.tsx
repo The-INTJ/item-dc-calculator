@@ -1,8 +1,5 @@
-'use client';
-
-import { useState, type ReactNode } from 'react';
-import { forJackNotes, guidingConvictions } from '../lib/content';
-import { MaterialSymbol } from './MaterialSymbol';
+import type { ReactNode } from 'react';
+import { guidingConvictions } from '../lib/content';
 import styles from './HeritageHymnsDemo.module.scss';
 
 function StaticShell({
@@ -12,7 +9,7 @@ function StaticShell({
 }: {
   eyebrow: string;
   title: string;
-  children: ReactNode;
+  children?: ReactNode;
 }) {
   return (
     <article className={styles.staticPage}>
@@ -20,7 +17,7 @@ function StaticShell({
         <p>{eyebrow}</p>
         <h1>{title}</h1>
       </header>
-      <div className={styles.staticProse}>{children}</div>
+      {children ? <div className={styles.staticProse}>{children}</div> : null}
     </article>
   );
 }
@@ -92,65 +89,15 @@ export function AboutTab() {
   );
 }
 
-export function ForJackTab() {
-  return (
-    <StaticShell eyebrow="Prototype Notes" title="For Jack">
-      <p>
-        Hey Jack! Some dev-oriented thoughts about this prototype are below.
-      </p>
-
-      <div className={styles.noteGrid}>
-        {forJackNotes.map((note) => (
-          <section key={note.title}>
-            <h2>{note.title}</h2>
-            <p>{note.body}</p>
-          </section>
-        ))}
-      </div>
-
-      <section>
-        <h2>About coding tools</h2>
-        <p>
-          One practical thing worth knowing: tools like Claude Code and Codex may serve you well during
-          active development. A prior developer with strong opinions is exactly the kind of person these
-          tools can help, because you can describe intent, review the result, and steer the next pass.
-        </p>
-        <p>
-          The $100-$200/month figure was meant as a rough active-development tooling cost while building,
-          not as an ongoing maintenance cost after launch. Ongoing site costs should mostly be hosting and
-          server costs, which should be much lower unless future requirements add paid services.
-        </p>
-      </section>
-    </StaticShell>
-  );
-}
-
 export function HymnalsTab() {
-  return (
-    <StaticShell eyebrow="Hymnals" title="Hymnal Orders">
-      <p>
-        The two primary features will be a browse/search/filter facility and hymnal orders. This
-        prototype keeps orders as a quiet placeholder so the search and editorial direction can stay
-        in focus.
-      </p>
-    </StaticShell>
-  );
+  return <StaticShell eyebrow="Hymnals" title="Hymnals" />;
 }
 
 export function ConnectTab() {
-  return (
-    <StaticShell eyebrow="Connect" title="Connect">
-      <p>
-        Connect would gather the other ways to find, follow, subscribe to blog posts, and receive
-        email news from Heritage Hymnal Company.
-      </p>
-    </StaticShell>
-  );
+  return <StaticShell eyebrow="Connect" title="Connect" />;
 }
 
 export function DonateTab() {
-  const [isDonateModalOpen, setIsDonateModalOpen] = useState(false);
-
   return (
     <StaticShell eyebrow="Support the Work" title="Help Sustain This Ministry of Song">
       <p>
@@ -178,21 +125,6 @@ export function DonateTab() {
         </ul>
       </section>
 
-      <div className={styles.donateActionPanel}>
-        <div>
-          <p>Partner with Heritage Hymnal Company</p>
-          <strong>Give toward the continued publication of faithful hymnals.</strong>
-        </div>
-        <button
-          className={styles.donateButton}
-          type="button"
-          onClick={() => setIsDonateModalOpen(true)}
-        >
-          <MaterialSymbol icon="volunteer_activism" />
-          Donate Now
-        </button>
-      </div>
-
       <p>
         Thank you for partnering with us in this labor. Your support helps ensure that the church's
         tradition of congregational song is preserved for generations yet unborn.
@@ -204,34 +136,6 @@ export function DonateTab() {
         </p>
         <cite>Psalm 102:18</cite>
       </blockquote>
-
-      {isDonateModalOpen ? (
-        <div className={styles.donateModalLayer} role="presentation">
-          <button
-            aria-label="Close donation message"
-            className={styles.donateModalScrim}
-            type="button"
-            onClick={() => setIsDonateModalOpen(false)}
-          />
-          <div
-            aria-labelledby="donate-modal-title"
-            aria-modal="true"
-            className={styles.donateModal}
-            role="dialog"
-          >
-            <button
-              aria-label="Close donation message"
-              className={styles.donateModalClose}
-              type="button"
-              onClick={() => setIsDonateModalOpen(false)}
-            >
-              <MaterialSymbol icon="close" />
-            </button>
-            <MaterialSymbol icon="volunteer_activism" className={styles.donateModalIcon} />
-            <h2 id="donate-modal-title">Working on it!</h2>
-          </div>
-        </div>
-      ) : null}
     </StaticShell>
   );
 }

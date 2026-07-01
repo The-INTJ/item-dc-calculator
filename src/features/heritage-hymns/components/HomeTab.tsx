@@ -1,24 +1,22 @@
-import { hymnCatalog } from '../lib/catalog';
-import type { HymnSearchResult } from '../lib/types';
+import Image from 'next/image';
 import { getHeritageTabHref } from '../lib/tabs';
-import { HymnCard } from './HymnCard';
 import styles from './HeritageHymnsDemo.module.scss';
-
-const sampleNumbers = [23, 16, 227];
-
-const sampleResults: HymnSearchResult[] = sampleNumbers
-  .map((number) => hymnCatalog.find((entry) => entry.number === number))
-  .filter((entry): entry is NonNullable<typeof entry> => entry != null)
-  .map((entry) => ({ entry, matches: [] }));
 
 export function HomeTab() {
   return (
     <div className={styles.homePage}>
       <section className={styles.homeHero} aria-labelledby="home-title">
+        <Image
+          src="/heritage-hymns/images/singing-in-the-pews.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className={styles.homeHeroImage}
+        />
         <div className={styles.homeImageWell} aria-hidden="true" />
         <div className={styles.homeTitleBlock}>
-          <p>Heritage Hymns</p>
-          <h1 id="home-title">Heritage Hymns</h1>
+          <h1 id="home-title">HERITAGE HYMNS</h1>
           <strong>Treasures New & Old</strong>
           <span className={styles.homeFleuron} aria-hidden="true" />
         </div>
@@ -28,19 +26,14 @@ export function HomeTab() {
         </div>
       </section>
 
-      <section className={styles.homeCollection} aria-labelledby="collection-preview-title">
-        <header className={styles.homeSectionHeader}>
-          <h2 id="collection-preview-title">From the Collection</h2>
-          <a href={getHeritageTabHref('hymns')}>Explore the Full Collection</a>
-        </header>
-        <div className={styles.homeCollectionList}>
-          {sampleResults.map((result) => (
-            <HymnCard key={result.entry.id} result={result} />
-          ))}
-        </div>
-      </section>
-
       <section className={styles.homeClosing} aria-labelledby="home-closing-title">
+        <Image
+          src="/heritage-hymns/images/cades-cove-church.jpg"
+          alt=""
+          fill
+          sizes="100vw"
+          className={styles.homeClosingImage}
+        />
         <div className={styles.homeImageWell} aria-hidden="true" />
         <div className={styles.homeClosingContent}>
           <h2 id="home-closing-title">

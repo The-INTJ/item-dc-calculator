@@ -20,22 +20,3 @@ export const guidingConvictions = [
     body: 'We believe books that serve the worship of God should be made with care, clarity, and enduring quality.',
   },
 ];
-
-export const forJackNotes = [
-  {
-    title: 'What this prototype is',
-    body: 'This is a client-only prototype. It uses exactly 573 prototype hymn records, with a handcrafted traditional-hymn sample set and generated filler records, plus local browser state and query-param navigation.',
-  },
-  {
-    title: 'What is intentionally absent',
-    body: 'There is no backend, Firebase, auth, account system, order form, cart, payment flow, persistence, or customer data here.',
-  },
-  {
-    title: 'Design choices made',
-    body: 'The visual direction follows the brief: restrained plum and ivory, Cardo for hymn-specific content, Inter for interface guidance, editorial hymn records, and instant local search/refine rather than a database-feeling workflow.',
-  },
-  {
-    title: 'How the data behaves',
-    body: 'Search scans number, title, first line, chorus first line, tune, and contributors. Filters are OR within a category and AND across categories. Everything reacts immediately in the browser.',
-  },
-];

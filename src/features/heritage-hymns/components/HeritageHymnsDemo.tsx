@@ -12,7 +12,6 @@ import {
   AboutTab,
   ConnectTab,
   DonateTab,
-  ForJackTab,
   HymnalsTab,
 } from './StaticTabs';
 import styles from './HeritageHymnsDemo.module.scss';
@@ -55,7 +54,6 @@ function ActiveTab({ activeTab }: { activeTab: HeritageTabId }) {
   if (activeTab === 'about') return <AboutTab />;
   if (activeTab === 'connect') return <ConnectTab />;
   if (activeTab === 'donate') return <DonateTab />;
-  if (activeTab === 'for-jack') return <ForJackTab />;
   return <HomeTab />;
 }
 

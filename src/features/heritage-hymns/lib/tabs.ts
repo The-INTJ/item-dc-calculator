@@ -5,7 +5,6 @@ export const heritageTabIds = [
   'about',
   'connect',
   'donate',
-  'for-jack',
 ] as const;
 
 export type HeritageTabId = (typeof heritageTabIds)[number];
@@ -24,7 +23,6 @@ export const heritageTabs: HeritageTab[] = [
   { id: 'about', label: 'About', nav: true },
   { id: 'connect', label: 'Connect', nav: true },
   { id: 'donate', label: 'Donate', nav: true, donate: true },
-  { id: 'for-jack', label: 'For Jack', nav: true },
 ];
 
 const heritageTabSet = new Set<string>(heritageTabIds);

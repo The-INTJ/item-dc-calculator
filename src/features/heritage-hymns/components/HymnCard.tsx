@@ -9,11 +9,10 @@ import { HighlightedText, matchesFor } from './HighlightedText';
 import { MaterialSymbol } from './MaterialSymbol';
 import styles from './HeritageHymnsDemo.module.scss';
 
-type MetadataKind = 'words' | 'wordsAndMusic' | 'music' | 'additional' | 'firstLine' | 'chorus';
+type MetadataKind = 'words' | 'music' | 'additional' | 'firstLine' | 'chorus';
 
 const metadataLabels: Record<MetadataKind, string> = {
   words: 'Words',
-  wordsAndMusic: 'Words and Music',
   music: 'Music',
   additional: 'Additional',
   firstLine: 'First Line',
@@ -49,17 +48,23 @@ function MetadataRow({
   value,
   matches,
   publicDomainBadges = [],
+  quietValue = false,
 }: {
   kind: MetadataKind;
   value: string;
   matches: SearchMatch[];
   publicDomainBadges?: Array<'Words' | 'Music'>;
+  quietValue?: boolean;
 }) {
   return (
     <div className={cx(styles.metadataRow, styles[`metadataRow_${kind}`])}>
       <dt>{metadataLabels[kind]}</dt>
-      <dd>
-        <HighlightedText value={value} matches={matches} />
+      <dd className={cx(quietValue && styles.metadataValueQuiet, !value && styles.metadataValueEmpty)}>
+        {value ? (
+          <HighlightedText value={value} matches={matches} />
+        ) : (
+          <span className={styles.emptyMetadataValue} aria-hidden="true" />
+        )}
         {publicDomainBadges.length > 0 ? (
           <span className={styles.publicDomainBadges}>
             {publicDomainBadges.map((label) => (
@@ -91,35 +96,21 @@ function AttributionRows({ result }: { result: HymnSearchResult }) {
     words.length === music.length &&
     words.every((name) => music.includes(name));
 
-  if (sameWordsAndMusic) {
-    return (
-      <MetadataRow
-        kind="wordsAndMusic"
-        value={words.join(', ')}
-        matches={contributorMatchesForNames(result, words)}
-        publicDomainBadges={publicDomainBadgesFor(entry, ['Words', 'Music'])}
-      />
-    );
-  }
-
   return (
     <>
-      {words.length > 0 ? (
-        <MetadataRow
-          kind="words"
-          value={words.join(', ')}
-          matches={contributorMatchesForNames(result, words)}
-          publicDomainBadges={publicDomainBadgesFor(entry, ['Words'])}
-        />
-      ) : null}
-      {music.length > 0 ? (
-        <MetadataRow
-          kind="music"
-          value={music.join(', ')}
-          matches={contributorMatchesForNames(result, music)}
-          publicDomainBadges={publicDomainBadgesFor(entry, ['Music'])}
-        />
-      ) : null}
+      <MetadataRow
+        kind="words"
+        value={words.join(', ')}
+        matches={contributorMatchesForNames(result, words)}
+        publicDomainBadges={publicDomainBadgesFor(entry, ['Words'])}
+      />
+      <MetadataRow
+        kind="music"
+        value={music.join(', ')}
+        matches={contributorMatchesForNames(result, music)}
+        publicDomainBadges={publicDomainBadgesFor(entry, ['Music'])}
+        quietValue={sameWordsAndMusic}
+      />
       {additional.length > 0 ? (
         <MetadataRow
           kind="additional"
@@ -194,13 +185,15 @@ export function HymnCard({ result }: { result: HymnSearchResult }) {
               value={entry.firstLine}
               matches={matchesFor(matches, 'firstLine', entry.firstLine)}
             />
-            {entry.chorusFirstLine ? (
-              <MetadataRow
-                kind="chorus"
-                value={entry.chorusFirstLine}
-                matches={matchesFor(matches, 'chorusFirstLine', entry.chorusFirstLine)}
-              />
-            ) : null}
+            <MetadataRow
+              kind="chorus"
+              value={entry.chorusFirstLine ?? ''}
+              matches={
+                entry.chorusFirstLine
+                  ? matchesFor(matches, 'chorusFirstLine', entry.chorusFirstLine)
+                  : []
+              }
+            />
           </dl>
           <div className={styles.detailRail} aria-label="Era, tune, and meter">
             <span className={styles.detailPill}>

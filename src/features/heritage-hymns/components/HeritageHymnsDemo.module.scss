@@ -1,3 +1,27 @@
+@font-face {
+  font-display: swap;
+  font-family: 'Heritage EB Garamond';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/heritage-hymns/fonts/eb-garamond-smallcaps-08-regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-display: swap;
+  font-family: 'Heritage EB Garamond';
+  font-style: italic;
+  font-weight: 400;
+  src: url('/heritage-hymns/fonts/eb-garamond-08-italic.ttf') format('truetype');
+}
+
+@font-face {
+  font-display: swap;
+  font-family: 'Heritage EB Garamond Display';
+  font-style: italic;
+  font-weight: 400;
+  src: url('/heritage-hymns/fonts/eb-garamond-12-italic.ttf') format('truetype');
+}
+
 .demoShell {
   --hh-ivory: #fbf8ef;
   --hh-paper: #fffdf7;
@@ -10,7 +34,7 @@
   --hh-sage: #66756b;
   --hh-line: rgba(72, 58, 50, 0.16);
   --hh-header-height: 7.1rem;
-  --hh-shadow: 0 18px 50px rgba(37, 31, 25, 0.08);
+  --hh-shadow: 0 1px 2px rgba(32, 32, 34, 0.08), 0 4px 12px rgba(32, 32, 34, 0.08);
 
   background:
     linear-gradient(180deg, rgba(92, 39, 80, 0.05), rgba(92, 39, 80, 0) 18rem),
@@ -77,7 +101,7 @@
   }
 
   strong {
-    font-family: Cardo, Georgia, serif;
+    font-family: 'Heritage EB Garamond', Cardo, Georgia, serif;
     font-size: clamp(1.25rem, 1rem + 0.9vw, 1.85rem);
     font-weight: 700;
     letter-spacing: 0;
@@ -86,33 +110,11 @@
 }
 
 .fleuron {
-  border: 1px solid rgba(92, 39, 80, 0.3);
-  border-radius: 50%;
-  display: inline-grid;
-  height: 2.2rem;
-  place-items: center;
-  position: relative;
-  width: 2.2rem;
-
-  &::before,
-  &::after {
-    background: var(--hh-plum);
-    border-radius: 999px 999px 999px 0;
-    content: '';
-    display: block;
-    height: 0.8rem;
-    opacity: 0.9;
-    position: absolute;
-    width: 0.42rem;
-  }
-
-  &::before {
-    transform: translate(-0.17rem, -0.08rem) rotate(45deg);
-  }
-
-  &::after {
-    transform: translate(0.17rem, 0.08rem) rotate(225deg);
-  }
+  background: url('/heritage-hymns/ornaments/ivy-3-leaf.svg') center / contain no-repeat;
+  display: inline-block;
+  height: 2.25rem;
+  opacity: 0.78;
+  width: 2.25rem;
 }
 
 .mainNav {
@@ -207,14 +209,32 @@
   position: relative;
 }
 
+.homeHeroImage,
+.homeClosingImage {
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+  z-index: -3;
+}
+
+.homeHeroImage {
+  object-position: center;
+}
+
+.homeClosingImage {
+  filter: saturate(0.84);
+  object-position: center;
+}
+
 .homeImageWell {
   background:
-    linear-gradient(90deg, rgba(251, 248, 239, 0.94), rgba(251, 248, 239, 0.7) 46%, rgba(251, 248, 239, 0.96)),
-    repeating-linear-gradient(105deg, rgba(92, 39, 80, 0.05) 0 1px, transparent 1px 1.1rem),
-    radial-gradient(circle at 20% 46%, rgba(102, 117, 107, 0.18), transparent 20rem),
-    linear-gradient(180deg, rgba(92, 39, 80, 0.08), rgba(102, 117, 107, 0.05));
-  inset: clamp(0.5rem, 2vw, 1.4rem);
-  opacity: 0.86;
+    linear-gradient(90deg, rgba(251, 248, 239, 0.94), rgba(251, 248, 239, 0.72) 48%, rgba(251, 248, 239, 0.96)),
+    linear-gradient(180deg, rgba(32, 32, 34, 0.12), rgba(32, 32, 34, 0.02));
+  inset: 0;
+  opacity: 0.95;
   position: absolute;
   z-index: -1;
 }
@@ -226,10 +246,9 @@
   padding: clamp(3rem, 8vw, 6rem) 1rem;
   text-align: center;
 
-  p,
   strong {
     color: var(--hh-plum);
-    font-family: Cardo, Georgia, serif;
+    font-family: 'Heritage EB Garamond Display', Cardo, Georgia, serif;
     font-size: clamp(0.86rem, 0.72rem + 0.45vw, 1.05rem);
     font-weight: 400;
     letter-spacing: 0.08em;
@@ -238,7 +257,7 @@
   }
 
   h1 {
-    font-family: Cardo, Georgia, serif;
+    font-family: 'Heritage EB Garamond', Cardo, Georgia, serif;
     font-size: clamp(3rem, 2rem + 5vw, 6.8rem);
     font-weight: 400;
     letter-spacing: 0;
@@ -1222,33 +1241,15 @@
 
   .hymnCard {
     background: #fffdf8;
-    border: 0;
-    border-radius: 5px;
-    box-shadow: 0 14px 34px rgba(37, 31, 25, 0.055);
+    border: 1px solid rgba(72, 58, 50, 0.14);
+    border-radius: 8px;
+    box-shadow: var(--hh-shadow);
     font-family: Cardo, Georgia, serif;
     gap: clamp(0.8rem, 1.8vw, 1.25rem);
     grid-template-columns: minmax(3.4rem, 4.4rem) minmax(0, 1fr);
-    isolation: isolate;
-    overflow: visible;
+    overflow: hidden;
     padding: clamp(0.8rem, 1.7vw, 1rem) clamp(0.75rem, 2vw, 1.2rem);
     position: relative;
-    z-index: 0;
-
-    &::before {
-      background:
-        radial-gradient(circle at 0 0, rgba(92, 39, 80, 0.085), transparent 8rem),
-        radial-gradient(circle at 100% 0, rgba(102, 117, 107, 0.085), transparent 8rem),
-        radial-gradient(circle at 0 100%, rgba(102, 117, 107, 0.07), transparent 8rem),
-        radial-gradient(circle at 100% 100%, rgba(92, 39, 80, 0.06), transparent 8rem);
-      border-radius: 8px;
-      content: '';
-      filter: blur(10px);
-      inset: -0.48rem;
-      opacity: 0.78;
-      pointer-events: none;
-      position: absolute;
-      z-index: -1;
-    }
 
     &:last-child {
       border-bottom: 0;
@@ -1312,17 +1313,17 @@
 
     dt {
       color: #8a8582;
-      font-family: Cardo, Georgia, serif;
-      font-size: 0.74rem;
+      font-family: Inter, Arial, sans-serif;
+      font-size: 0.62rem;
       font-weight: 700;
       justify-content: flex-end;
-      letter-spacing: 0;
+      letter-spacing: 0.08em;
       line-height: 1.3;
       min-height: 0;
       position: absolute;
       right: calc(100% + 0.75rem);
       text-align: right;
-      text-transform: none;
+      text-transform: uppercase;
       top: 0.08rem;
       width: 5.2rem;
       white-space: nowrap;
@@ -1396,12 +1397,14 @@
     position: static;
 
     dt {
-      font-size: 0.88rem;
+      font-family: Inter, Arial, sans-serif;
+      font-size: 0.64rem;
       font-weight: 700;
       justify-content: flex-end;
-      letter-spacing: 0;
+      letter-spacing: 0.08em;
       position: static;
       text-align: right;
+      text-transform: uppercase;
       width: auto;
       white-space: nowrap;
     }
@@ -1572,7 +1575,6 @@
 }
 
 .metadataRow_words dd,
-.metadataRow_wordsAndMusic dd,
 .metadataRow_additional dd {
   color: #443e3a;
   font-weight: 400;
@@ -1600,6 +1602,19 @@
 
 .metadataRow_chorus dt {
   color: var(--hh-muted);
+}
+
+.metadataValueQuiet {
+  color: rgba(68, 62, 58, 0.58) !important;
+}
+
+.metadataValueEmpty {
+  min-height: 1.25rem;
+}
+
+.emptyMetadataValue {
+  display: inline-block;
+  min-height: 1em;
 }
 
 .publicDomainBadges {
@@ -1802,13 +1817,15 @@
       dt {
         display: block;
         font-size: 0.7rem;
-        font-style: italic;
+        font-style: normal;
         font-weight: 700;
         justify-content: flex-start;
+        letter-spacing: 0.08em;
         line-height: 1.15;
         min-height: 0;
         position: static;
         text-align: left;
+        text-transform: uppercase;
         width: auto;
       }
     }
@@ -1824,16 +1841,17 @@
 
         dt {
           display: block;
-          font-size: 0.7rem;
-          font-style: italic;
+          font-family: Inter, Arial, sans-serif;
+          font-size: 0.64rem;
+          font-style: normal;
           font-weight: 700;
-          letter-spacing: 0;
+          letter-spacing: 0.08em;
           line-height: 1.15;
           min-height: 0;
           position: static;
           text-align: left;
           text-align-last: auto;
-          text-transform: none;
+          text-transform: uppercase;
           width: auto;
         }
       }

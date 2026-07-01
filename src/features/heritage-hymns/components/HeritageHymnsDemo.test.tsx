@@ -16,22 +16,34 @@ describe('HeritageHymnsDemo', () => {
   it('opens on the Home tab by default with query-param nav links', () => {
     render(<HeritageHymnsDemo />);
 
-    expect(screen.getByRole('heading', { name: 'Heritage Hymns' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'HERITAGE HYMNS' })).toBeTruthy();
+    expect(screen.getByText('Treasures New & Old')).toBeTruthy();
     expect(screen.getByText('A hymnal for congregational song, family worship, and personal devotion.')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Hymns' }).getAttribute('href')).toBe('/heritage-hymns?tab=hymns');
-    expect(screen.getByRole('link', { name: 'For Jack' }).getAttribute('href')).toBe('/heritage-hymns?tab=for-jack');
+    expect(screen.getByRole('link', { name: 'Hymnals' }).getAttribute('href')).toBe('/heritage-hymns?tab=hymnals');
+    expect(screen.getByRole('link', { name: 'About' }).getAttribute('href')).toBe('/heritage-hymns?tab=about');
+    expect(screen.getByRole('link', { name: 'Connect' }).getAttribute('href')).toBe('/heritage-hymns?tab=connect');
+    expect(screen.getByRole('link', { name: 'Donate' }).getAttribute('href')).toBe('/heritage-hymns?tab=donate');
+    expect(screen.queryByRole('link', { name: 'For Jack' })).toBeNull();
+    expect(screen.queryByText('From the Collection')).toBeNull();
+    expect(screen.getByText(/Hymns rooted in biblical truth/)).toBeTruthy();
   });
 
-  it('opens the full dummy collection on the Hymns tab', () => {
+  it('opens the full catalog on the Hymns tab without prototype controls', () => {
     render(<HeritageHymnsDemo initialTab="hymns" />);
 
     expect(screen.getByText('573 hymns')).toBeTruthy();
     expect(screen.getByRole('searchbox', { name: 'Search hymns' })).toBeTruthy();
+    expect(screen.getByPlaceholderText('Number, title, first line, chorus, tune name, or contributor')).toBeTruthy();
     expect(screen.queryByText('Search hymns')).toBeNull();
     expect(screen.queryByText('Full collection')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Cards' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.queryByRole('button', { name: 'Cards' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'List' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'No dropdown' })).toBeNull();
     expect(screen.getAllByText('Words').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Words and Music').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Music').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Chorus').length).toBeGreaterThan(0);
+    expect(screen.queryByText('Words and Music')).toBeNull();
     expect(screen.queryByLabelText('Available hymn materials')).toBeNull();
     expect(screen.queryByLabelText('Dev display toggle')).toBeNull();
   });
@@ -47,15 +59,17 @@ describe('HeritageHymnsDemo', () => {
     expect(screen.getAllByText('Newton').length).toBeGreaterThan(0);
   });
 
-  it('shows local search suggestions while typing', () => {
+  it('keeps search instant without showing a suggestions dropdown', () => {
     render(<HeritageHymnsDemo initialTab="hymns" />);
 
     const search = screen.getByRole('searchbox', { name: 'Search hymns' });
     fireEvent.focus(search);
     fireEvent.change(search, { target: { value: 'Mercy' } });
 
-    expect(screen.getByRole('listbox', { name: 'Search suggestions' })).toBeTruthy();
-    expect(screen.getAllByRole('option').length).toBeGreaterThan(0);
+    const expected = searchHymns(hymnCatalog, 'Mercy', createEmptyFilters(), 'title');
+
+    expect(screen.queryByRole('listbox', { name: 'Search suggestions' })).toBeNull();
+    expect(screen.getByText(`${expected.length} ${expected.length === 1 ? 'hymn' : 'hymns'}`)).toBeTruthy();
   });
 
   it('applies and clears theme filters', () => {
@@ -146,18 +160,28 @@ describe('HeritageHymnsDemo', () => {
     expect(screen.getByRole('dialog', { name: 'Filters' })).toBeTruthy();
   });
 
-  it('renders About and For Jack tabs with supplied prototype copy', () => {
+  it('renders static tabs without placeholder or prototype copy', () => {
     const { rerender } = render(<HeritageHymnsDemo initialTab="about" />);
 
     expect(screen.getByRole('heading', { name: 'Preserving a Legacy of Praise' })).toBeTruthy();
     expect(screen.getByText(/Founded in 2026/)).toBeTruthy();
 
-    rerender(<HeritageHymnsDemo initialTab="for-jack" />);
+    rerender(<HeritageHymnsDemo initialTab="hymnals" />);
 
-    expect(screen.getByRole('heading', { name: 'For Jack' })).toBeTruthy();
-    expect(screen.getByText(/exactly 573 prototype hymn records/)).toBeTruthy();
-    expect(screen.getByText(/\$100-\$200\/month figure was meant as a rough active-development/)).toBeTruthy();
-    expect(screen.getByText(/Ongoing site costs should mostly be hosting and server costs/)).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Hymnals' })).toBeTruthy();
+    expect(screen.queryByText(/placeholder/i)).toBeNull();
+
+    rerender(<HeritageHymnsDemo initialTab="connect" />);
+
+    expect(screen.getByRole('heading', { name: 'Connect' })).toBeTruthy();
+    expect(screen.queryByText(/would gather/i)).toBeNull();
+
+    rerender(<HeritageHymnsDemo initialTab="donate" />);
+
+    expect(screen.getByRole('heading', { name: 'Help Sustain This Ministry of Song' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Donate Now/ })).toBeNull();
+    expect(screen.queryByText(/Working on it/i)).toBeNull();
+    expect(screen.queryByText(/prototype/i)).toBeNull();
   });
 
   it('renders future material icons in their fixed order when available', () => {
@@ -189,7 +213,7 @@ describe('HeritageHymnsDemo', () => {
     expect(screen.getByLabelText('Music public domain')).toBeTruthy();
   });
 
-  it('collapses identical attributions into Words and Music with independent rights badges', () => {
+  it('renders identical attributions as separate Words and Music rows with quiet duplicate Music', () => {
     const entry: HymnEntry = {
       id: 'sample-collapsed',
       number: 902,
@@ -205,7 +229,11 @@ describe('HeritageHymnsDemo', () => {
 
     render(<HymnCard result={{ entry, matches: [] }} />);
 
-    expect(screen.getByText('Words and Music')).toBeTruthy();
+    expect(screen.getByText('Words')).toBeTruthy();
+    expect(screen.getByText('Music')).toBeTruthy();
+    expect(screen.getByText('Chorus')).toBeTruthy();
+    expect(screen.getAllByText('Anne Selby')).toHaveLength(2);
+    expect(screen.queryByText('Words and Music')).toBeNull();
     expect(screen.getByLabelText('Words public domain')).toBeTruthy();
     expect(screen.queryByLabelText('Music public domain')).toBeNull();
   });
