@@ -44,7 +44,7 @@ Active global providers:
 - None at the root layout
 
 Contest routes load contest feature SCSS and providers through `app/(contest)/layout.tsx` and `ContestShell`.
-Heritage Hymns routes load Inter, Cardo, and Material Symbols through `app/(heritage-hymns)/layout.tsx`, load approved EB Garamond assets from `public/heritage-hymns/fonts/`, and keep all state client-local. Its public tabs are selected with `?tab=...`; the bare route and unknown tab values default to Home. WordPress is out of scope for this local experience.
+Heritage Hymns routes load Inter, Cardo, and Material Symbols through `app/(heritage-hymns)/layout.tsx`, load approved EB Garamond assets from `public/heritage-hymns/fonts/`, and keep all state client-local. Its public tabs are selected with `?tab=...`; the bare route and unknown tab values default to Home. WordPress is out of scope for this local experience. Feature-specific client context, content provenance, and UX requirements live under `src/features/heritage-hymns/docs/`.
 
 ## Contest data path
 

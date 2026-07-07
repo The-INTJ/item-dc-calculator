@@ -2,6 +2,18 @@
 
 This feature owns the local `/heritage-hymns` Next.js experience.
 
+## Documentation
+
+- [Context and sources](docs/context-and-sources.md): email, attachment, Drive,
+  and business-context provenance.
+- [Product and content brief](docs/product-and-content-brief.md): product
+  north star, design system, page guidance, copy discipline, and implementation
+  boundaries.
+- [Search and card UX](docs/search-and-card-ux.md): detailed search/refine
+  behavior, filter logic, card hierarchy, metadata rules, and regression tests.
+- [Hymnal source notes](docs/hymnal-source-notes.md): parsed hymnal sample,
+  About, Donate, Preface, Acknowledgements, and section-divider source notes.
+
 ## Boundaries
 
 - Client-only Heritage Hymns surface.
@@ -10,6 +22,7 @@ This feature owns the local `/heritage-hymns` Next.js experience.
 - No Firebase, API routes, auth, cart, checkout, or persistence.
 - Keep this feature isolated from the contest app and the frozen DC calculator.
 - Visible content should come from Jack's emails, Drive docs, approved assets, or hymnal data.
+- Internal docs may summarize email context; public UI copy may not.
 
 ## Assets
 
