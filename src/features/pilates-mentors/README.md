@@ -8,8 +8,13 @@ feedback before the real rebuild starts (see `E:\Coding\MesaYoga` →
 ## What it is
 
 - One server-rendered page implementing the approved design direction:
-  editorial serif/sans (Fraunces + Inter), warm earth palette with a single
-  clay accent, one-idea-per-band section rhythm, one CTA label sitewide.
+  editorial serif/sans (Fraunces + Inter), the client's brand blue (sampled
+  from their logo, #6191C8) as primary with warm sand / cool mist band tints
+  and one sparing clay accent, one-idea-per-band section rhythm, one CTA
+  label sitewide.
+- The full-bleed hero is an image today; the slot is shaped so the real
+  build can upgrade it to poster + compressed background video if the
+  client wants the original site's video feel back.
 - All copy and photography come from the live pilatesmentors.com (verbatim or
   lightly condensed). Testimonials are verbatim and attributed by role only —
   the source carousel doesn't pair names with quotes, so we don't guess.

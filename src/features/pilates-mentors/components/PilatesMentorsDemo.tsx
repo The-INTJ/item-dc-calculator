@@ -54,8 +54,17 @@ export function PilatesMentorsDemo() {
 
       <main>
         <section className={styles.hero} aria-labelledby="pm-hero-heading">
-          <div className={`${styles.container} ${styles.heroGrid}`}>
-            <div>
+          <Image
+            src={hero.image.src}
+            alt={hero.image.alt}
+            fill
+            priority
+            sizes="100vw"
+            className={styles.heroBg}
+          />
+          <div className={styles.heroOverlay} aria-hidden="true" />
+          <div className={`${styles.container} ${styles.heroContent}`}>
+            <div className={styles.heroText}>
               <span className={styles.eyebrow}>{hero.eyebrow}</span>
               <h1 id="pm-hero-heading" className={styles.h1}>
                 {hero.headline}
@@ -71,15 +80,6 @@ export function PilatesMentorsDemo() {
               </div>
               <p className={styles.heroTrust}>{hero.trustLine}</p>
             </div>
-            <Image
-              src={hero.image.src}
-              alt={hero.image.alt}
-              width={1600}
-              height={1065}
-              priority
-              sizes="(max-width: 900px) 100vw, 45vw"
-              className={styles.heroImage}
-            />
           </div>
         </section>
 
