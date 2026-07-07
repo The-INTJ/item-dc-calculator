@@ -32,7 +32,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@fontsource-variable/material-symbols-rounded": "^5.2.43",
-    "@fontsource/cardo": "^5.2.8",
+    "@fontsource/fraunces": "^5.2.9",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/roboto": "^5.1.1",
     "@mui/material": "^6.4.2",

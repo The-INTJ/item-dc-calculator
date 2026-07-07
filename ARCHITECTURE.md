@@ -6,7 +6,7 @@ This is a Next.js App Router application with four product/demo areas:
 
 - Contest app: active feature set for contest creation, judging, scoring, and display mode
 - Plant tracker: lightweight personal tracker for plant care, notes, and appearance logs
-- Heritage Hymns: standalone client-only hymnal experience with local data and query-param tabs
+- Pilates Mentors: static design preview of the redesigned pilatesmentors.com homepage, built for client feedback
 - DC calculator: legacy calculator preserved inside the same shell
 
 The contest app is the active area. The DC calculator is intentionally stable and should only receive targeted changes.
@@ -21,14 +21,14 @@ The contest app is the active area. The DC calculator is intentionally stable an
 - `/admin`: admin dashboard
 - `/admin/contest-setup`: create contest
 - `/onboard`: guest/Google onboarding
-- `/heritage-hymns`: Heritage Hymns experience; `tab` query param selects Home, Hymns, Hymnals, About, Connect, or Donate
+- `/pilates-mentors`: Pilates Mentors design preview (noindex, single static page)
 - `/plants`: plant tracker
 - `/dc-calculator`: legacy calculator
 
 Route groups:
 
 - `app/(contest)/`: contest layouts and pages
-- `app/(heritage-hymns)/`: standalone Heritage Hymns layout and page
+- `app/(pilates-mentors)/`: standalone Pilates Mentors design-preview layout and page
 - `app/(dc-calculator)/`: legacy calculator layout and page
 
 ## Provider and shell structure
@@ -44,7 +44,7 @@ Active global providers:
 - None at the root layout
 
 Contest routes load contest feature SCSS and providers through `app/(contest)/layout.tsx` and `ContestShell`.
-Heritage Hymns routes load Inter, Cardo, and Material Symbols through `app/(heritage-hymns)/layout.tsx`, load approved EB Garamond assets from `public/heritage-hymns/fonts/`, and keep all state client-local. Its public tabs are selected with `?tab=...`; the bare route and unknown tab values default to Home. WordPress is out of scope for this local experience. Feature-specific client context, content provenance, and UX requirements live under `src/features/heritage-hymns/docs/`.
+The Pilates Mentors route loads Fraunces and Inter through `app/(pilates-mentors)/layout.tsx` and renders a fully static server component with zero client JS; its design tokens live as CSS custom properties in the feature's SCSS module. Photography ships from `public/pilates-mentors/`. Feature context and constraints live in `src/features/pilates-mentors/README.md`.
 
 ## Contest data path
 

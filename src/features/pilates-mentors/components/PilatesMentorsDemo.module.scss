@@ -1,0 +1,679 @@
+/**
+ * Pilates Mentors design preview — scoped styles.
+ *
+ * The :root-equivalent token block on .page mirrors the Tailwind v4 @theme
+ * tokens planned for the real rebuild (see MesaYoga docs/PLAN.md, Phase 4).
+ * Values locked here become the production token values after client
+ * feedback. Everything below consumes only these custom properties —
+ * no literals — so a retheme is an edit to this block alone.
+ */
+
+.page {
+  /* Color roles */
+  --pm-ink: #29241f;
+  --pm-paper: #f7f4ee;
+  --pm-white: #ffffff;
+  --pm-clay: #ac4a24; /* accent: CTAs, links, eyebrows only */
+  --pm-clay-deep: #8f3c1c;
+  --pm-sage: #c9cfbf;
+  --pm-sand: #e7dfd2;
+  --pm-ink-12: rgba(41, 36, 31, 0.12);
+  --pm-ink-60: rgba(41, 36, 31, 0.66);
+  --pm-paper-70: rgba(247, 244, 238, 0.72);
+
+  /* Type roles */
+  --pm-font-display: 'Fraunces', 'Georgia', serif;
+  --pm-font-body: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+
+  /* Shape + elevation */
+  --pm-radius-button: 3px;
+  --pm-radius-card: 8px;
+  --pm-shadow: 0 2px 24px rgba(41, 36, 31, 0.1);
+
+  /* Layout */
+  --pm-max-width: 1140px;
+
+  background: var(--pm-paper);
+  color: var(--pm-ink);
+  font-family: var(--pm-font-body);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--pm-clay);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+}
+
+/* ---------- primitives ---------- */
+
+.container {
+  margin-inline: auto;
+  max-width: var(--pm-max-width);
+  padding-inline: clamp(1.25rem, 5vw, 2.5rem);
+}
+
+.band {
+  padding-block: clamp(5.5rem, 9vw, 8.5rem);
+  scroll-margin-top: 5rem;
+}
+
+.eyebrow {
+  color: var(--pm-clay);
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+}
+
+.h1 {
+  font-family: var(--pm-font-display);
+  font-size: clamp(2.75rem, 6.5vw, 4.5rem);
+  font-weight: 340;
+  letter-spacing: -0.015em;
+  line-height: 1.04;
+  margin: 0 0 1.5rem;
+}
+
+.h2 {
+  font-family: var(--pm-font-display);
+  font-size: clamp(2.125rem, 4vw, 2.75rem);
+  font-weight: 360;
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+  margin: 0 0 1.25rem;
+  max-width: 21em;
+}
+
+.lede {
+  color: var(--pm-ink-60);
+  font-size: clamp(1.0625rem, 1.5vw, 1.1875rem);
+  margin: 0;
+  max-width: 34em;
+}
+
+.buttonPrimary {
+  background: var(--pm-clay);
+  border: 1px solid var(--pm-clay);
+  border-radius: var(--pm-radius-button);
+  color: var(--pm-white);
+  display: inline-block;
+  font-family: var(--pm-font-body);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.9375rem 1.875rem;
+  transition: background-color 300ms ease, border-color 300ms ease;
+
+  &:hover {
+    background: var(--pm-ink);
+    border-color: var(--pm-ink);
+  }
+}
+
+.textLink {
+  border-bottom: 1px solid var(--pm-ink-12);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  padding-bottom: 0.1875rem;
+  transition: border-color 300ms ease, color 300ms ease;
+
+  &:hover {
+    border-color: var(--pm-clay);
+    color: var(--pm-clay);
+  }
+}
+
+/* ---------- header ---------- */
+
+.header {
+  backdrop-filter: blur(8px);
+  background: var(--pm-paper-70);
+  border-bottom: 1px solid var(--pm-ink-12);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.headerInner {
+  align-items: center;
+  display: flex;
+  gap: 2rem;
+  justify-content: space-between;
+  padding-block: 0.875rem;
+}
+
+.brand {
+  align-items: center;
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 0.625rem;
+}
+
+.brandMark {
+  height: 2rem;
+  width: 2rem;
+}
+
+.brandName {
+  font-family: var(--pm-font-display);
+  font-size: 1.1875rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.headerNav {
+  display: flex;
+  gap: 1.75rem;
+
+  a {
+    color: var(--pm-ink-60);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: color 300ms ease;
+
+    &:hover {
+      color: var(--pm-ink);
+    }
+  }
+
+  @media (max-width: 56.25rem) {
+    display: none;
+  }
+}
+
+.headerActions {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+  gap: 1.5rem;
+
+  .buttonPrimary {
+    padding: 0.625rem 1.25rem;
+  }
+}
+
+.loginLink {
+  color: var(--pm-ink-60);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 300ms ease;
+
+  &:hover {
+    color: var(--pm-ink);
+  }
+
+  @media (max-width: 35rem) {
+    display: none;
+  }
+}
+
+/* ---------- hero ---------- */
+
+.hero {
+  padding-block: clamp(4rem, 8vw, 7.5rem);
+}
+
+.heroGrid {
+  align-items: center;
+  display: grid;
+  gap: clamp(2.5rem, 5vw, 4.5rem);
+  grid-template-columns: minmax(0, 10fr) minmax(0, 9fr);
+
+  @media (max-width: 56.25rem) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.heroCtas {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.75rem;
+  margin-top: 2.5rem;
+}
+
+.heroTrust {
+  color: var(--pm-ink-60);
+  font-size: 0.8125rem;
+  margin-top: 1.25rem;
+}
+
+.heroImage {
+  border-radius: var(--pm-radius-card);
+  box-shadow: var(--pm-shadow);
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+/* ---------- alternating split (the gap) ---------- */
+
+.gapBand {
+  background: var(--pm-sand);
+}
+
+.splitGrid {
+  align-items: center;
+  display: grid;
+  gap: clamp(2.5rem, 5vw, 5rem);
+  grid-template-columns: minmax(0, 4fr) minmax(0, 5fr);
+
+  @media (max-width: 56.25rem) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.splitImage {
+  border-radius: var(--pm-radius-card);
+  box-shadow: var(--pm-shadow);
+  display: block;
+  height: auto;
+  width: 100%;
+
+  @media (max-width: 56.25rem) {
+    order: 1;
+  }
+}
+
+/* ---------- method pillars ---------- */
+
+.pillarGrid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 3.5rem;
+
+  @media (max-width: 56.25rem) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pillarCard {
+  background: var(--pm-white);
+  border: 1px solid var(--pm-ink-12);
+  border-radius: var(--pm-radius-card);
+  padding: 2.25rem 2rem;
+}
+
+.pillarTitle {
+  font-family: var(--pm-font-display);
+  font-size: 1.625rem;
+  font-weight: 400;
+  margin: 0 0 0.75rem;
+}
+
+.pillarBody {
+  color: var(--pm-ink-60);
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+/* ---------- mentors (ink band) ---------- */
+
+.mentorsBand {
+  background: var(--pm-ink);
+  color: var(--pm-paper);
+
+  .eyebrow {
+    color: var(--pm-sage);
+  }
+
+  .lede {
+    color: rgba(247, 244, 238, 0.68);
+  }
+}
+
+.mentorGrid {
+  display: grid;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 3.5rem;
+
+  @media (max-width: 43.75rem) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mentorCard {
+  display: flex;
+  flex-direction: column;
+}
+
+.mentorPhoto {
+  border-radius: var(--pm-radius-card);
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+.mentorName {
+  font-family: var(--pm-font-display);
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin: 1.5rem 0 0.25rem;
+}
+
+.mentorRole {
+  color: var(--pm-sage);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  margin: 0 0 0.75rem;
+  text-transform: uppercase;
+}
+
+.mentorLine {
+  color: rgba(247, 244, 238, 0.68);
+  font-size: 0.9375rem;
+  margin: 0;
+  max-width: 34em;
+}
+
+.statRow {
+  border-top: 1px solid rgba(247, 244, 238, 0.16);
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: clamp(3rem, 5vw, 4.5rem);
+  padding-top: clamp(2.5rem, 4vw, 3.5rem);
+
+  @media (max-width: 43.75rem) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.statValue {
+  font-family: var(--pm-font-display);
+  font-size: clamp(2.5rem, 4vw, 3.25rem);
+  font-weight: 340;
+  line-height: 1;
+}
+
+.statLabel {
+  color: rgba(247, 244, 238, 0.68);
+  font-size: 0.875rem;
+  margin-top: 0.625rem;
+}
+
+/* ---------- hubs ---------- */
+
+.hubList {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 3.5rem;
+
+  @media (max-width: 56.25rem) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hubCard {
+  background: var(--pm-white);
+  border: 1px solid var(--pm-ink-12);
+  border-radius: var(--pm-radius-card);
+  display: flex;
+  flex-direction: column;
+  padding: 2.25rem 2rem;
+  transition: border-color 300ms ease, box-shadow 300ms ease;
+
+  &:hover {
+    border-color: var(--pm-clay);
+    box-shadow: var(--pm-shadow);
+  }
+}
+
+.hubNumber {
+  color: var(--pm-clay);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.hubOutcome {
+  font-family: var(--pm-font-display);
+  font-size: 1.625rem;
+  font-style: italic;
+  font-weight: 400;
+  margin: 1.25rem 0 0.25rem;
+}
+
+.hubTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: 0 0 0.875rem;
+}
+
+.hubBody {
+  color: var(--pm-ink-60);
+  font-size: 0.9375rem;
+  margin: 0 0 1.5rem;
+}
+
+.hubLink {
+  color: var(--pm-clay);
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-top: auto;
+}
+
+/* ---------- testimonials ---------- */
+
+.storiesBand {
+  background: var(--pm-sage);
+}
+
+.quoteGrid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 3.5rem;
+
+  @media (max-width: 56.25rem) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.quoteCard {
+  background: var(--pm-white);
+  border-radius: var(--pm-radius-card);
+  box-shadow: var(--pm-shadow);
+  display: flex;
+  flex-direction: column;
+  padding: 2.5rem 2.25rem;
+}
+
+.quoteText {
+  font-family: var(--pm-font-display);
+  font-size: 1.1875rem;
+  font-weight: 380;
+  line-height: 1.4;
+  margin: 0 0 1.5rem;
+
+  &::before {
+    content: '“';
+  }
+
+  &::after {
+    content: '”';
+  }
+}
+
+.quoteAttribution {
+  color: var(--pm-ink-60);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  margin-top: auto;
+  text-transform: uppercase;
+}
+
+/* ---------- pricing ---------- */
+
+.pricingGrid {
+  align-items: start;
+  display: grid;
+  gap: clamp(2.5rem, 5vw, 5rem);
+  grid-template-columns: minmax(0, 5fr) minmax(0, 4fr);
+  margin-top: 0;
+
+  @media (max-width: 56.25rem) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.planCard {
+  background: var(--pm-white);
+  border: 1px solid var(--pm-ink-12);
+  border-radius: var(--pm-radius-card);
+  box-shadow: var(--pm-shadow);
+  padding: 2.75rem 2.5rem;
+}
+
+.planName {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  margin: 0 0 1.25rem;
+  text-transform: uppercase;
+}
+
+.planPriceRow {
+  margin: 0;
+}
+
+.planPrice {
+  font-family: var(--pm-font-display);
+  font-size: 3.25rem;
+  font-weight: 340;
+  line-height: 1;
+}
+
+.planPriceUnit {
+  color: var(--pm-ink-60);
+  font-family: var(--pm-font-body);
+  font-size: 1rem;
+}
+
+.planPriceNote {
+  color: var(--pm-ink-60);
+  font-size: 0.8125rem;
+  margin: 0.625rem 0 0;
+}
+
+.planFeatures {
+  border-top: 1px solid var(--pm-ink-12);
+  list-style: none;
+  margin: 1.75rem 0 2rem;
+  padding: 1.75rem 0 0;
+
+  li {
+    font-size: 0.9375rem;
+    margin-bottom: 0.875rem;
+    padding-left: 1.625rem;
+    position: relative;
+
+    &::before {
+      color: var(--pm-clay);
+      content: '✓';
+      font-weight: 700;
+      left: 0;
+      position: absolute;
+    }
+  }
+}
+
+.planFinePrint {
+  color: var(--pm-ink-60);
+  font-size: 0.8125rem;
+  margin: 1.25rem 0 0;
+}
+
+/* ---------- final CTA (ink band) ---------- */
+
+.finalBand {
+  background: var(--pm-ink);
+  color: var(--pm-paper);
+  text-align: center;
+
+  .h2 {
+    margin-inline: auto;
+  }
+
+  .textLink {
+    border-color: rgba(247, 244, 238, 0.3);
+    color: rgba(247, 244, 238, 0.8);
+
+    &:hover {
+      border-color: var(--pm-sage);
+      color: var(--pm-sage);
+    }
+  }
+}
+
+.finalCtas {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.75rem;
+  justify-content: center;
+  margin-top: 2.5rem;
+}
+
+/* ---------- footer ---------- */
+
+.footer {
+  border-top: 1px solid var(--pm-ink-12);
+  padding-block: 3rem;
+}
+
+.footerInner {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 2.5rem;
+  justify-content: space-between;
+}
+
+.footerLinks {
+  display: flex;
+  gap: 1.75rem;
+
+  a {
+    color: var(--pm-ink-60);
+    font-size: 0.875rem;
+    transition: color 300ms ease;
+
+    &:hover {
+      color: var(--pm-clay);
+    }
+  }
+}
+
+.footerNote {
+  color: var(--pm-ink-60);
+  font-size: 0.75rem;
+  margin: 2rem 0 0;
+  max-width: 46em;
+}
+
+/* ---------- motion preferences ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .page *,
+  .page *::before,
+  .page *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
