@@ -2,10 +2,16 @@ import { CreatePlantSchema } from '@/plants/lib/schemas';
 import { createPlant, listPlants } from '@/plants/lib/server/plantsStore';
 
 import { fromResult, jsonError, jsonSuccess, parseBody } from './_lib/http';
+import { requirePlantAccess } from './_lib/requirePlantAccess';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const accessError = await requirePlantAccess(request);
+  if (accessError) {
+    return accessError;
+  }
+
   const result = await listPlants();
   if (!result.success) {
     return jsonError(result.error ?? 'Failed to load plants', 500);
@@ -14,6 +20,11 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const accessError = await requirePlantAccess(request);
+  if (accessError) {
+    return accessError;
+  }
+
   const body = await parseBody(request, CreatePlantSchema);
   if (!body.ok) {
     return body.response;

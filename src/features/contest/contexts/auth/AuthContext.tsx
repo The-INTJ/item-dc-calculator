@@ -91,7 +91,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     fallbackDisplayName?: string,
   ): Promise<UserProfile> {
     const existing = await contestApi.getProfile();
-    if (existing.success && existing.data) return existing.data;
+    if (existing.success && existing.data) {
+      return {
+        ...existing.data,
+        email: fallbackEmail ?? existing.data.email,
+      };
+    }
 
     const created = await contestApi.registerProfile({
       displayName: fallbackDisplayName,

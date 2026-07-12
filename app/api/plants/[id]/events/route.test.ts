@@ -3,14 +3,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { POST } from './route';
 
 const addEventMock = vi.fn();
+const requirePlantAccessMock = vi.fn();
 
 vi.mock('@/plants/lib/server/plantsStore', () => ({
   addEvent: (id: string, input: unknown) => addEventMock(id, input),
 }));
 
+vi.mock('../../_lib/requirePlantAccess', () => ({
+  requirePlantAccess: (request: Request) => requirePlantAccessMock(request),
+}));
+
 describe('/api/plants/[id]/events route', () => {
   beforeEach(() => {
     addEventMock.mockReset();
+    requirePlantAccessMock.mockReset();
+    requirePlantAccessMock.mockResolvedValue(null);
   });
 
   it('forwards note payloads to the plant store', async () => {

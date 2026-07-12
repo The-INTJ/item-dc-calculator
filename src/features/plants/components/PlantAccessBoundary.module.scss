@@ -1,0 +1,168 @@
+@use '../styles/tokens' as *;
+
+.frame {
+  color: $ink;
+}
+
+.page {
+  width: 100%;
+  max-width: 40rem;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 1.75rem 1.1rem 4rem;
+}
+
+.backLink,
+.link {
+  color: $green-dark;
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.backLink {
+  display: inline-block;
+  margin-bottom: 1.4rem;
+  color: $ink-soft;
+}
+
+.card,
+.widget {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.2rem;
+  border: 1px solid $line;
+  border-radius: $radius;
+  background: $surface;
+  box-shadow: $shadow;
+}
+
+.card {
+  max-width: 28rem;
+  margin: 8vh auto 0;
+  padding: 1.5rem;
+}
+
+.widget {
+  gap: 0.8rem;
+}
+
+.title,
+.message,
+.error {
+  margin: 0;
+}
+
+.title {
+  font-size: 1.35rem;
+}
+
+.widget .title {
+  font-size: 1.05rem;
+}
+
+.message,
+.error {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.message {
+  color: $ink-soft;
+}
+
+.error {
+  padding: 0.7rem;
+  border: 1px solid $red-line;
+  border-radius: $radius-sm;
+  background: $red-soft;
+  color: $red;
+}
+
+.form,
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form {
+  gap: 0.8rem;
+}
+
+.field {
+  gap: 0.35rem;
+  color: $ink-soft;
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  input {
+    min-height: 44px;
+    padding: 0.6rem 0.7rem;
+    border: 1px solid $line-strong;
+    border-radius: $radius-sm;
+    color: $ink;
+    font: inherit;
+    font-size: 1rem;
+
+    &:focus-visible {
+      outline: 2px solid $green;
+      outline-offset: 1px;
+    }
+  }
+}
+
+.primaryButton,
+.secondaryButton {
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  border-radius: $radius-sm;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+}
+
+.primaryButton {
+  border: 0;
+  background: $green;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: $green-dark;
+  }
+}
+
+.secondaryButton {
+  border: 1px solid $line-strong;
+  background: $surface;
+  color: $ink;
+
+  &:hover:not(:disabled) {
+    background: $surface-sunken;
+  }
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: $ink-faint;
+  font-size: 0.8rem;
+
+  &::before,
+  &::after {
+    height: 1px;
+    flex: 1;
+    background: $line;
+    content: '';
+  }
+}

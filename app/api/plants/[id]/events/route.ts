@@ -2,6 +2,7 @@ import { AddEventSchema } from '@/plants/lib/schemas';
 import { addEvent } from '@/plants/lib/server/plantsStore';
 
 import { fromResult, parseBody } from '../../_lib/http';
+import { requirePlantAccess } from '../../_lib/requirePlantAccess';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,11 @@ interface RouteParams {
 }
 
 export async function POST(request: Request, { params }: RouteParams) {
+  const accessError = await requirePlantAccess(request);
+  if (accessError) {
+    return accessError;
+  }
+
   const { id } = await params;
   const body = await parseBody(request, AddEventSchema);
   if (!body.ok) {

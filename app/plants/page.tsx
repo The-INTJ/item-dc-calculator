@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 
-import { PlantsView } from '@/plants/components';
+import { PlantAccessBoundary, PlantsView } from '@/plants/components';
 
 export const metadata: Metadata = {
   title: 'Plant Tracker | Drew Taylor',
@@ -16,5 +16,9 @@ export const viewport: Viewport = {
 };
 
 export default function PlantsPage() {
-  return <PlantsView />;
+  return (
+    <PlantAccessBoundary>
+      <PlantsView />
+    </PlantAccessBoundary>
+  );
 }

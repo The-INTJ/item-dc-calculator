@@ -1,8 +1,10 @@
 /**
- * Client-side access to the plant tracker REST API. The endpoints are open and
- * non-cached, so this is a thin `fetch` wrapper that always returns a
- * {@link ProviderResult} rather than throwing.
+ * Client-side access to the private plant tracker REST API. Every request
+ * carries the current Firebase ID token and returns a {@link ProviderResult}
+ * rather than throwing.
  */
+
+import { fetchWithAuth } from '@/contest/lib/api/fetchWithAuth';
 
 import type {
   Plant,
@@ -24,7 +26,7 @@ async function request<T>(
       headers.set('Content-Type', 'application/json');
     }
 
-    const response = await fetch(`${BASE}${path}`, {
+    const response = await fetchWithAuth(`${BASE}${path}`, {
       cache: 'no-store',
       ...options,
       headers,

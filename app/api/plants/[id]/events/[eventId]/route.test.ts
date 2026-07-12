@@ -4,6 +4,7 @@ import { PATCH } from './route';
 
 const deleteEventMock = vi.fn();
 const updateEventWeightsMock = vi.fn();
+const requirePlantAccessMock = vi.fn();
 
 vi.mock('@/plants/lib/server/plantsStore', () => ({
   deleteEvent: (id: string, eventId: string) => deleteEventMock(id, eventId),
@@ -11,10 +12,16 @@ vi.mock('@/plants/lib/server/plantsStore', () => ({
     updateEventWeightsMock(id, eventId, input),
 }));
 
+vi.mock('../../../_lib/requirePlantAccess', () => ({
+  requirePlantAccess: (request: Request) => requirePlantAccessMock(request),
+}));
+
 describe('/api/plants/[id]/events/[eventId] route', () => {
   beforeEach(() => {
     deleteEventMock.mockReset();
     updateEventWeightsMock.mockReset();
+    requirePlantAccessMock.mockReset();
+    requirePlantAccessMock.mockResolvedValue(null);
   });
 
   it('forwards watering weight updates as trimmed text', async () => {

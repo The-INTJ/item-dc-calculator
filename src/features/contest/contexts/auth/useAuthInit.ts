@@ -54,9 +54,18 @@ export function useAuthInit({ provider, dispatch }: UseAuthInitOptions) {
           profile = created.success ? created.data : undefined;
         }
 
+        const firebaseEmail = provider.getCurrentEmail() ?? undefined;
+        if (profile && firebaseEmail) {
+          profile = { ...profile, email: firebaseEmail };
+        }
+
         const session = createSession({
           firebaseUid: uid,
-          profile: profile ?? { displayName: 'Contest User', role: 'voter' },
+          profile: profile ?? {
+            displayName: 'Contest User',
+            email: firebaseEmail,
+            role: 'voter',
+          },
         });
         dispatch({ type: 'AUTHENTICATED', session });
       } catch (err) {

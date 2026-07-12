@@ -112,6 +112,15 @@ Current live path:
 3. route handlers use `src/features/plants/lib/server/plantsStore.ts`
 4. the store writes through the Firebase Admin SDK to the top-level `plants` collection
 
+The plant tracker is private even though the surrounding experiments portal is public:
+
+- the page and homepage widget reuse the contest app's Firebase Auth provider
+- the browser API client attaches the current Firebase ID token to every request
+- every `app/api/plants/*` handler verifies that token (or the Firebase session cookie)
+  and permits only the email allowlist in `src/features/plants/lib/access.ts`
+- Firestore rules deny all direct browser access to `plants`; the guarded route handlers
+  are the only supported read/write path
+
 Each plant document stores an `events[]` history. Watering, separate fertilizer,
 replanting, freeform notes, and 0-10 vibe checks are all timestamped events.
 Watering events may also carry optional `weightBefore` and `weightAfter` text

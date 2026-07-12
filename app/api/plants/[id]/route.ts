@@ -2,6 +2,7 @@ import { UpdatePlantSchema } from '@/plants/lib/schemas';
 import { deletePlant, getPlant, updatePlant } from '@/plants/lib/server/plantsStore';
 
 import { fromResult, parseBody } from '../_lib/http';
+import { requirePlantAccess } from '../_lib/requirePlantAccess';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,12 +11,22 @@ interface RouteParams {
 }
 
 export async function GET(request: Request, { params }: RouteParams) {
+  const accessError = await requirePlantAccess(request);
+  if (accessError) {
+    return accessError;
+  }
+
   const { id } = await params;
   const result = await getPlant(id);
   return fromResult(result);
 }
 
 export async function PATCH(request: Request, { params }: RouteParams) {
+  const accessError = await requirePlantAccess(request);
+  if (accessError) {
+    return accessError;
+  }
+
   const { id } = await params;
   const body = await parseBody(request, UpdatePlantSchema);
   if (!body.ok) {
@@ -27,6 +38,11 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {
+  const accessError = await requirePlantAccess(request);
+  if (accessError) {
+    return accessError;
+  }
+
   const { id } = await params;
   const result = await deletePlant(id);
   return fromResult(result, { successStatus: 204 });

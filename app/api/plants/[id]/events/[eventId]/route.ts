@@ -2,6 +2,7 @@ import { UpdateEventWeightsSchema } from '@/plants/lib/schemas';
 import { deleteEvent, updateEventWeights } from '@/plants/lib/server/plantsStore';
 
 import { fromResult, parseBody } from '../../../_lib/http';
+import { requirePlantAccess } from '../../../_lib/requirePlantAccess';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,11 @@ interface RouteParams {
 }
 
 export async function PATCH(request: Request, { params }: RouteParams) {
+  const accessError = await requirePlantAccess(request);
+  if (accessError) {
+    return accessError;
+  }
+
   const { id, eventId } = await params;
   const body = await parseBody(request, UpdateEventWeightsSchema);
   if (!body.ok) {
@@ -21,6 +27,11 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {
+  const accessError = await requirePlantAccess(request);
+  if (accessError) {
+    return accessError;
+  }
+
   const { id, eventId } = await params;
   const result = await deleteEvent(id, eventId);
   return fromResult(result);

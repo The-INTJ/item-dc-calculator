@@ -4,15 +4,21 @@ import { buildExportJson, buildExportText } from '@/plants/lib/format';
 import { listPlants } from '@/plants/lib/server/plantsStore';
 
 import { jsonError } from '../_lib/http';
+import { requirePlantAccess } from '../_lib/requirePlantAccess';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Public, read-only export of the whole plant collection. Returns structured
+ * Authenticated export of the whole plant collection. Returns structured
  * JSON by default, or a Markdown digest with `?format=text` — handy for pasting
  * the data straight into an AI for analysis.
  */
 export async function GET(request: Request) {
+  const accessError = await requirePlantAccess(request);
+  if (accessError) {
+    return accessError;
+  }
+
   const result = await listPlants();
   if (!result.success) {
     return jsonError(result.error ?? 'Failed to load plants', 500);
