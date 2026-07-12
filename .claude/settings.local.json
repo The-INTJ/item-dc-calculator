@@ -9,7 +9,9 @@
       "mcp__Claude_Preview__preview_start",
       "Skill(update-config)",
       "Skill(update-config:*)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:9099)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:9099)",
+      "PowerShell(npm run lint)",
+      "PowerShell(npm run type-check)"
     ]
   }
 }

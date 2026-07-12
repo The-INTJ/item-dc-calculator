@@ -137,9 +137,137 @@ describe('/api/contest/contests/[id]/scores route', () => {
       { params: Promise.resolve({ id: 'contest-1' }) },
     );
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(409);
     const body = await response.json();
     expect(body.message).toMatch(/not open for scoring/i);
+    expect(body.code).toBe('MATCHUP_CLOSED');
+  });
+
+  it('rejects out-of-range breakdowns against the contest config', async () => {
+    requireAuthMock.mockResolvedValue({ user: authedUser, response: null });
+    const submitScore = vi.fn();
+    getContestByParamMock.mockResolvedValue({
+      error: null,
+      contest: {
+        id: 'contest-1',
+        config: {
+          topic: 'Mixology',
+          attributes: [{ id: 'taste', label: 'Taste', min: 1, max: 10 }],
+        },
+        contestants: [{ id: 'c-1', displayName: 'A' }],
+        voters: [{ id: 'user-1' }],
+      },
+      provider: {
+        matchups: {
+          getById: vi.fn().mockResolvedValue({
+            success: true,
+            data: {
+              id: 'matchup-1',
+              phase: 'shake',
+              entries: [
+                { id: 'entry-1', contestantId: 'c-1', matchupId: 'matchup-1', name: 'A' },
+                { id: 'entry-2', contestantId: 'c-2', matchupId: 'matchup-1', name: 'B' },
+              ],
+            },
+          }),
+        },
+        scores: {
+          submit: submitScore,
+          getById: vi.fn().mockResolvedValue({ success: true, data: null }),
+        },
+        voters: { create: vi.fn() },
+      },
+    });
+
+    const response = await POST(
+      new Request('http://localhost/api/contest/contests/contest-1/scores', {
+        method: 'POST',
+        body: JSON.stringify({
+          entryId: 'entry-1',
+          matchupId: 'matchup-1',
+          breakdown: { taste: 11 },
+        }),
+        headers: { 'Content-Type': 'application/json' },
+      }),
+      { params: Promise.resolve({ id: 'contest-1' }) },
+    );
+
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.code).toBe('SCORE_INVALID');
+    expect(body.message).toMatch(/taste: must be between 1 and 10/);
+    expect(submitScore).not.toHaveBeenCalled();
+  });
+
+  it('merges a partial update onto the existing vote before validating', async () => {
+    requireAuthMock.mockResolvedValue({ user: authedUser, response: null });
+    const submitScore = vi.fn().mockResolvedValue({
+      success: true,
+      data: { id: 'score-1', entryId: 'entry-1', userId: 'user-1' },
+    });
+    const getById = vi.fn().mockResolvedValue({
+      success: true,
+      data: {
+        id: 'user-1_matchup-1_entry-1',
+        entryId: 'entry-1',
+        userId: 'user-1',
+        matchupId: 'matchup-1',
+        breakdown: { taste: 8, aroma: 6 },
+      },
+    });
+    getContestByParamMock.mockResolvedValue({
+      error: null,
+      contest: {
+        id: 'contest-1',
+        config: {
+          topic: 'Mixology',
+          attributes: [
+            { id: 'taste', label: 'Taste', min: 1, max: 10 },
+            { id: 'aroma', label: 'Aroma', min: 0, max: 10 },
+          ],
+        },
+        contestants: [{ id: 'c-1', displayName: 'A' }],
+        voters: [{ id: 'user-1' }],
+      },
+      provider: {
+        matchups: {
+          getById: vi.fn().mockResolvedValue({
+            success: true,
+            data: {
+              id: 'matchup-1',
+              phase: 'shake',
+              entries: [
+                { id: 'entry-1', contestantId: 'c-1', matchupId: 'matchup-1', name: 'A' },
+                { id: 'entry-2', contestantId: 'c-2', matchupId: 'matchup-1', name: 'B' },
+              ],
+            },
+          }),
+        },
+        scores: { submit: submitScore, getById },
+        voters: { create: vi.fn() },
+      },
+    });
+
+    const response = await POST(
+      new Request('http://localhost/api/contest/contests/contest-1/scores', {
+        method: 'POST',
+        body: JSON.stringify({
+          entryId: 'entry-1',
+          matchupId: 'matchup-1',
+          categoryId: 'aroma',
+          value: 9,
+        }),
+        headers: { 'Content-Type': 'application/json' },
+      }),
+      { params: Promise.resolve({ id: 'contest-1' }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(getById).toHaveBeenCalledWith('contest-1', 'user-1_matchup-1_entry-1');
+    expect(submitScore).toHaveBeenCalledWith(
+      'contest-1',
+      expect.objectContaining({ breakdown: { taste: 8, aroma: 9 } }),
+    );
   });
 
   it('rejects POST when the entry is not part of the matchup', async () => {

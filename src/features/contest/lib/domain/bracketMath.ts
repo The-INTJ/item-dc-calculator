@@ -9,8 +9,12 @@
 export interface BracketSlot {
   roundIndex: number;
   slotIndex: number;
-  /** Indices of the two matchups from the previous round that feed into this one. null for round 0 (seeded). */
-  sourceMatchups: [number, number] | null;
+  /**
+   * Indices of the previous-round matchups that feed into this one — usually
+   * two, but one for slots fed by a lone bye in odd shapes. null for round 0
+   * (seeded).
+   */
+  sourceMatchups: number[] | null;
 }
 
 export interface BracketSlotRound {
@@ -42,25 +46,71 @@ export function computeBracketStructure(numRounds: number): BracketStructure {
     return { totalRounds: 0, totalContestants: 0, rounds: [] };
   }
 
-  const totalContestants = 2 ** numRounds;
+  const shape: number[] = [];
+  for (let i = 0; i < numRounds; i++) {
+    shape.push(2 ** (numRounds - 1 - i));
+  }
+  return computeBracketStructureFromShape(shape);
+}
+
+/**
+ * Per-round matchup capacities derived from the actual first-round size:
+ * `c0 = firstRoundMatchupCount`, `c(i+1) = ceil(ci / 2)`. This is what
+ * seeding actually produces (pairWithByes on the previous round's winners),
+ * so a display grid built from this shape can never be over-filled by the
+ * seeding flow. Zero propagates zero (unseeded contest).
+ */
+export function computeBracketShape(
+  firstRoundMatchupCount: number,
+  totalRounds: number,
+): number[] {
+  const shape: number[] = [];
+  let current = Math.max(0, firstRoundMatchupCount);
+  for (let i = 0; i < totalRounds; i++) {
+    shape.push(current);
+    current = Math.ceil(current / 2);
+  }
+  return shape;
+}
+
+/**
+ * Bracket structure for an arbitrary per-round shape (not just power-of-2).
+ * Round i>0 slot j is fed by previous-round slots [2j, 2j+1], filtered to the
+ * slots that actually exist — a slot fed only by a bye has a single source.
+ */
+export function computeBracketStructureFromShape(shape: number[]): BracketStructure {
   const rounds: BracketSlotRound[] = [];
 
-  for (let i = 0; i < numRounds; i++) {
-    const matchupCount = 2 ** (numRounds - 1 - i);
+  for (let i = 0; i < shape.length; i++) {
+    const matchupCount = Math.max(0, shape[i]);
     const slots: BracketSlot[] = [];
 
     for (let j = 0; j < matchupCount; j++) {
-      slots.push({
-        roundIndex: i,
-        slotIndex: j,
-        sourceMatchups: i === 0 ? null : [j * 2, j * 2 + 1],
-      });
+      let sourceMatchups: number[] | null = null;
+      if (i > 0) {
+        const sources = [j * 2, j * 2 + 1].filter((s) => s < shape[i - 1]);
+        sourceMatchups = sources.length > 0 ? sources : null;
+      }
+      slots.push({ roundIndex: i, slotIndex: j, sourceMatchups });
     }
 
     rounds.push({ roundIndex: i, matchupCount, slots });
   }
 
-  return { totalRounds: numRounds, totalContestants, rounds };
+  return {
+    totalRounds: shape.length,
+    totalContestants: (shape[0] ?? 0) * 2,
+    rounds,
+  };
+}
+
+/**
+ * Rounds needed to crown a champion from a field of `contestantCount`:
+ * ceil(log2(n)), 0 when there is nothing to bracket.
+ */
+export function getRequiredRoundCount(contestantCount: number): number {
+  if (contestantCount < 2) return 0;
+  return 32 - Math.clz32(contestantCount - 1);
 }
 
 export interface MatchupGridPlacement {
@@ -69,14 +119,24 @@ export interface MatchupGridPlacement {
 }
 
 /**
- * Placement of a single matchup inside a CSS Grid column whose row count is
- * `getBracketGridRowCount(totalRounds)`. Each subsequent round doubles the
- * span, which naturally vertically centers a winner between its two feeders.
+ * Placement of a single matchup inside a CSS Grid column. Each subsequent
+ * round doubles the span, which naturally vertically centers a winner between
+ * its two feeders. When `gridRowCount` is provided, the span clamps to the
+ * grid so odd-shape slots (fed by a lone bye, or a surplus final) stay
+ * in-grid instead of spilling into implicit rows.
  */
-export function getMatchupGridPlacement(roundIndex: number, slotIndex: number): MatchupGridPlacement {
-  const rowSpan = 2 ** (roundIndex + 1);
-  const rowStart = slotIndex * rowSpan + 1;
-  return { rowStart, rowSpan };
+export function getMatchupGridPlacement(
+  roundIndex: number,
+  slotIndex: number,
+  gridRowCount?: number,
+): MatchupGridPlacement {
+  const naturalSpan = 2 ** (roundIndex + 1);
+  const rowStart = slotIndex * naturalSpan + 1;
+  if (gridRowCount === undefined) {
+    return { rowStart, rowSpan: naturalSpan };
+  }
+  const rowEnd = Math.min(rowStart + naturalSpan - 1, gridRowCount);
+  return { rowStart, rowSpan: Math.max(1, rowEnd - rowStart + 1) };
 }
 
 /**
@@ -85,6 +145,20 @@ export function getMatchupGridPlacement(roundIndex: number, slotIndex: number): 
  */
 export function getBracketGridRowCount(totalRounds: number): number {
   return totalRounds > 0 ? 2 ** totalRounds : 0;
+}
+
+/**
+ * Rows an arbitrary-shape bracket needs: every slot keeps at least its
+ * two-row footprint (`rowStart + 1`), and power-of-2 shapes reduce to the
+ * classic `2^totalRounds`.
+ */
+export function getBracketGridRowCountForShape(shape: number[]): number {
+  let rows = 0;
+  for (let i = 0; i < shape.length; i++) {
+    if (shape[i] <= 0) continue;
+    rows = Math.max(rows, (shape[i] - 1) * 2 ** (i + 1) + 2);
+  }
+  return rows;
 }
 
 /**

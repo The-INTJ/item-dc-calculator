@@ -3,21 +3,34 @@
 /**
  * Onboarding entry for the contest app.
  *
- * Provides a welcoming guest-first flow with optional account creation.
- * Guest and Google sign-in both rely on Firebase-backed auth flows.
+ * Signed-out: guest-first welcome with email sign-in, Google, and a full
+ * email/password registration view.
+ * Guest: account-upgrade view — links credentials onto the SAME Firebase uid
+ * so votes and registrations survive, plus the "start fresh" escape hatch.
  */
 
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contest/contexts/auth/AuthContext';
+import { RegisterForm } from '@/contest/components/auth/RegisterForm';
 
 export default function ContestOnboardPage() {
   const router = useRouter();
-  const { loading, isGuest, startGuestSession, loginWithGoogle, login, resetSessionForNewAccount } =
-    useAuth();
+  const {
+    loading,
+    isGuest,
+    session,
+    startGuestSession,
+    loginWithGoogle,
+    login,
+    upgradeGuestWithGoogle,
+    resetSessionForNewAccount,
+  } = useAuth();
   const [error, setError] = useState<string | null>(null);
-  const [syncWarning, setSyncWarning] = useState<string | null>(null);
-  const [busyAction, setBusyAction] = useState<'anonymous' | 'google' | 'reset' | 'email' | null>(null);
+  const [view, setView] = useState<'welcome' | 'register'>('welcome');
+  const [busyAction, setBusyAction] = useState<
+    'anonymous' | 'google' | 'reset' | 'email' | 'upgrade-google' | null
+  >(null);
   const [guestName, setGuestName] = useState('');
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -29,7 +42,6 @@ export default function ContestOnboardPage() {
   const handleGuestContinue = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSyncWarning(null);
     const trimmedName = guestName.trim();
 
     if (!trimmedName) {
@@ -38,9 +50,7 @@ export default function ContestOnboardPage() {
     }
 
     setBusyAction('anonymous');
-
     const result = await startGuestSession(trimmedName);
-
     setBusyAction(null);
 
     if (!result.success) {
@@ -53,7 +63,6 @@ export default function ContestOnboardPage() {
 
   const handleGoogle = async () => {
     setError(null);
-    setSyncWarning(null);
     setBusyAction('google');
     const result = await loginWithGoogle();
     setBusyAction(null);
@@ -67,7 +76,6 @@ export default function ContestOnboardPage() {
   const handleEmailLogin = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSyncWarning(null);
     if (!loginEmail.trim() || !loginPassword) {
       setError('Email and password are required.');
       return;
@@ -82,14 +90,91 @@ export default function ContestOnboardPage() {
     }
   };
 
+  const handleUpgradeWithGoogle = async () => {
+    setError(null);
+    setBusyAction('upgrade-google');
+    const result = await upgradeGuestWithGoogle();
+    setBusyAction(null);
+    if (result.success) {
+      router.push('/contests');
+    } else {
+      setError(result.error ?? 'Account upgrade failed');
+    }
+  };
+
   const handleNewAccount = async () => {
     setError(null);
-    setSyncWarning(null);
     setBusyAction('reset');
     await resetSessionForNewAccount();
     setBusyAction(null);
+    setView('welcome');
   };
 
+  // ── Guest: upgrade view ────────────────────────────────────────────────────
+  if (isGuest) {
+    return (
+      <div className="account-page">
+        <div className="guest-prompt">
+          {error && <div className="auth-error">{error}</div>}
+
+          <RegisterForm
+            mode="upgrade"
+            initialDisplayName={session?.profile.displayName ?? ''}
+            onSuccess={() => router.push('/contests')}
+          />
+
+          <div className="guest-divider">
+            <span>or</span>
+          </div>
+
+          <div className="guest-actions">
+            <button
+              type="button"
+              className="button-secondary"
+              onClick={handleUpgradeWithGoogle}
+              disabled={busyAction !== null}
+              aria-busy={busyAction === 'upgrade-google'}
+            >
+              {busyAction === 'upgrade-google' ? 'Connecting...' : 'Upgrade with Google'}
+            </button>
+          </div>
+        </div>
+
+        <section className="account-section">
+          <h2>Need a fresh start?</h2>
+          <p>
+            This signs you out of the current guest session. Votes cast as this guest stay with
+            the old session and won&apos;t follow you.
+          </p>
+          <button
+            type="button"
+            className="button-secondary"
+            onClick={handleNewAccount}
+            disabled={busyAction !== null}
+            aria-busy={busyAction === 'reset'}
+          >
+            {busyAction === 'reset' ? 'Resetting...' : 'Start fresh'}
+          </button>
+        </section>
+      </div>
+    );
+  }
+
+  // ── Signed out: registration view ──────────────────────────────────────────
+  if (view === 'register') {
+    return (
+      <div className="account-page">
+        <div className="guest-prompt">
+          <RegisterForm
+            onSuccess={() => router.push('/contests')}
+            onSwitchToLogin={() => setView('welcome')}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // ── Signed out: welcome view ───────────────────────────────────────────────
   return (
     <div className="account-page">
       <div className="guest-prompt">
@@ -97,7 +182,6 @@ export default function ContestOnboardPage() {
         <p>Join in and rate your favorite entries!</p>
 
         {error && <div className="auth-error">{error}</div>}
-        {syncWarning && <div className="auth-warning">{syncWarning}</div>}
 
         <form onSubmit={handleGuestContinue} className="guest-form">
           <div className="auth-field">
@@ -172,28 +256,21 @@ export default function ContestOnboardPage() {
           >
             {busyAction === 'google' ? 'Connecting...' : 'Sign in with Google'}
           </button>
-        </div>
-
-        <p className="guest-note">Anonymous sign-in still syncs your data across devices.</p>
-      </div>
-
-      {isGuest && (
-        <section className="account-section">
-          <h2>Need a fresh start?</h2>
-          <p>
-            This will clear local voting history on this device before signing in again.
-          </p>
           <button
             type="button"
             className="button-secondary"
-            onClick={handleNewAccount}
+            onClick={() => setView('register')}
             disabled={busyAction !== null}
-            aria-busy={busyAction === 'reset'}
           >
-            {busyAction === 'reset' ? 'Resetting...' : 'Start fresh'}
+            Need an account? Create one
           </button>
-        </section>
-      )}
+        </div>
+
+        <p className="guest-note">
+          Guest sessions are tied to this device — create an account to sign in anywhere and keep
+          your votes.
+        </p>
+      </div>
     </div>
   );
 }

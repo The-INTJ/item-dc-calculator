@@ -31,8 +31,17 @@ export interface AuthProvider {
   login(credentials: LoginCredentials): Promise<AuthResult>;
   loginWithGoogle(): Promise<AuthResult>;
   loginAnonymously(): Promise<AuthResult>;
+  /**
+   * Link email/password credentials onto the CURRENT (anonymous) user —
+   * the uid is preserved, so votes and registrations survive the upgrade.
+   */
+  linkWithEmail(data: RegistrationData): Promise<AuthResult>;
+  /** Link a Google credential onto the current (anonymous) user. */
+  linkWithGoogle(): Promise<AuthResult>;
   logout(): Promise<AuthResult>;
   isAuthenticated(): boolean;
+  /** True when the current Firebase user is an anonymous (guest) account. */
+  isAnonymous(): boolean;
   getCurrentUid(): string | null;
   getCurrentEmail(): string | null;
   getCurrentDisplayName(): string | null;

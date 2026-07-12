@@ -283,6 +283,48 @@
           "matchupId"
         ]
       },
+      "SubmitBallotBody": {
+        "type": "object",
+        "properties": {
+          "userName": {
+            "type": "string",
+            "description": "Display name for auto-registered voter (defaults to token display name)"
+          },
+          "userRole": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "scores": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "entryId": {
+                  "type": "string",
+                  "description": "Entry being scored"
+                },
+                "breakdown": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "number"
+                  },
+                  "description": "Full ScoreBreakdown for this entry"
+                }
+              },
+              "required": [
+                "entryId",
+                "breakdown"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 4,
+            "description": "One element per matchup entry the voter is scoring"
+          }
+        },
+        "required": [
+          "scores"
+        ],
+        "description": "A voter's complete ballot for one matchup. Committed atomically — if the matchup closes mid-submit, the whole ballot is rejected (no partial ballots)."
+      },
       "Voter": {
         "type": "object",
         "properties": {
@@ -886,6 +928,11 @@
           "message": {
             "type": "string",
             "example": "Contest not found"
+          },
+          "code": {
+            "type": "string",
+            "description": "Machine-readable error code (e.g. MATCHUP_CLOSED, SCORE_INVALID)",
+            "example": "MATCHUP_CLOSED"
           }
         },
         "required": [
@@ -1666,7 +1713,7 @@
       },
       "post": {
         "summary": "Submit or update a score",
-        "description": "Submits or updates a score via the votes subcollection. The userId is derived from the verified Bearer token, not the request body. Accepts either a full breakdown or a single category/value pair and auto-registers the voter if not already known.",
+        "description": "Submits or updates a single-entry score via the votes subcollection. The userId is derived from the verified Bearer token, not the request body. Accepts either a full breakdown or a single category/value pair (merged onto the caller's existing vote) and auto-registers the voter if not already known. Breakdowns are validated against the contest config (attribute set, min/max) when the contest has one. Interactive voting should prefer the atomic ballot endpoint (POST /contests/{id}/matchups/{matchupId}/ballot).",
         "tags": [
           "Scores"
         ],
@@ -1758,7 +1805,7 @@
             }
           },
           "400": {
-            "description": "Invalid request body",
+            "description": "Invalid request body or score breakdown",
             "content": {
               "application/json": {
                 "schema": {
@@ -1773,6 +1820,13 @@
                   "missingScore": {
                     "value": {
                       "message": "Score breakdown or categoryId + value is required."
+                    }
+                  },
+                  "invalidBreakdown": {
+                    "summary": "Breakdown failed config validation",
+                    "value": {
+                      "message": "Validation: taste: must be between 1 and 10",
+                      "code": "SCORE_INVALID"
                     }
                   }
                 }
@@ -1795,6 +1849,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Matchup is not open for scoring (phase is not 'shake')",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "message": "Matchup is not open for scoring.",
+                  "code": "MATCHUP_CLOSED"
                 }
               }
             }
@@ -2078,7 +2146,7 @@
       },
       "patch": {
         "summary": "Update a matchup",
-        "description": "Updates a matchup's phase, entries, winner, or advancement pointers. Admin only.",
+        "description": "Updates a matchup's phase, entries, winner, or advancement pointers. Admin only. Setting phase to 'scored' without a winnerEntryId auto-resolves the winner from current score aggregates (raw averages); genuine ties stay winnerless for the admin to resolve.",
         "tags": [
           "Matchups"
         ],
@@ -2177,6 +2245,414 @@
         }
       }
     },
+    "/contests/{id}/matchups/{matchupId}/ballot": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Contest ID or slug",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "matchupId",
+          "in": "path",
+          "required": true,
+          "description": "Matchup ID",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Submit an atomic matchup ballot",
+        "description": "Submits the caller's complete ballot for a matchup — one breakdown per entry — in a single transaction. The matchup phase is re-checked inside the transaction, so a ballot racing a round close either fully lands or is fully rejected with MATCHUP_CLOSED; partial ballots cannot occur. Breakdowns are validated against the contest config, partial re-votes merge onto the caller's existing votes, and unknown voters are auto-registered. This is the endpoint the vote modal uses.",
+        "tags": [
+          "Scores"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitBallotBody"
+              },
+              "example": {
+                "userName": "Jane Smith",
+                "scores": [
+                  {
+                    "entryId": "entry-1",
+                    "breakdown": {
+                      "aroma": 8,
+                      "taste": 7,
+                      "presentation": 9,
+                      "xFactor": 8,
+                      "overall": 8
+                    }
+                  },
+                  {
+                    "entryId": "entry-2",
+                    "breakdown": {
+                      "aroma": 6,
+                      "taste": 6,
+                      "presentation": 7,
+                      "xFactor": 5,
+                      "overall": 6
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ballot committed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "scores": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ScoreEntry"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body, entry not in matchup, or breakdown failed config validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "message": "entry-1: Validation: taste: must be between 1 and 10",
+                  "code": "SCORE_INVALID"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest or matchup not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Matchup is not open for scoring — the whole ballot was rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "message": "Matchup is not open for scoring.",
+                  "code": "MATCHUP_CLOSED"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contests/{id}/contestants": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Contest ID or slug",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List contestants",
+        "tags": [
+          "Contestants"
+        ],
+        "responses": {
+          "200": {
+            "description": "Contestants registered in the contest",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Contestant"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Add a contestant",
+        "description": "Creates a contestant identity record on the contest. Admin only — self-registration goes through POST /contests/{id}/register instead.",
+        "tags": [
+          "Contestants"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateContestantBody"
+              },
+              "example": {
+                "displayName": "Jane Smith"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Contestant created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contestant"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contests/{id}/contestants/{contestantId}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Contest ID or slug",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "contestantId",
+          "in": "path",
+          "required": true,
+          "description": "Contestant ID",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get a contestant",
+        "tags": [
+          "Contestants"
+        ],
+        "responses": {
+          "200": {
+            "description": "Contestant details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contestant"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest or contestant not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update a contestant",
+        "tags": [
+          "Contestants"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateContestantBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contestant updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contestant"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest or contestant not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove a contestant (cascade)",
+        "description": "Removes the contestant AND their tournament participation: their entries are stripped from every matchup (a 2-entry matchup collapses to a scored bye whose remaining entry auto-advances; a matchup left empty is deleted), winners are recomputed where they had won, and votes cast ON their entries are purged. Votes they cast on other entries and their Voter record are kept. Admin only.",
+        "tags": [
+          "Contestants"
+        ],
+        "security": [
+          {
+            "FirebaseBearer": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Contestant and their participation removed"
+          },
+          "403": {
+            "description": "Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest or contestant not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/contests/{id}/rounds/{roundId}": {
       "parameters": [
         {
@@ -2200,7 +2676,7 @@
       ],
       "patch": {
         "summary": "Update a round",
-        "description": "Updates name, number, or adminOverride on a round. Round status itself is computed from matchup phases; use adminOverride to force-open or force-close. Admin only.",
+        "description": "Updates name, number, or adminOverride on a round. Round status itself is computed from matchup phases; use adminOverride to force-open or force-close. Admin only. Force-closing (adminOverride: 'closed') is a real finalization: every still-open matchup in the round transitions to 'scored' with a winner resolved from current scores (null on tie/no votes), which also stops further vote submissions server-side.",
         "tags": [
           "Rounds"
         ],

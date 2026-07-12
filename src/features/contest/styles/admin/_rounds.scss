@@ -121,6 +121,51 @@
   margin: 0.5rem 0 0;
 }
 
+.admin-round-action-group {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-round-action-group__label {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-config-disclosure {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-card, 12px);
+  margin-bottom: 1rem;
+  padding: 0.25rem 0.75rem;
+}
+
+.admin-config-disclosure__summary {
+  color: var(--text-strong);
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.5rem 0.25rem;
+}
+
+.admin-round-advisory {
+  background: var(--bg-surface-sunken);
+  border-left: 3px solid var(--border-default);
+  border-radius: 0 var(--r-button, 8px) var(--r-button, 8px) 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.admin-round-advisory--warning {
+  background: var(--c-amber-100, #fef3c7);
+  border-left-color: var(--c-amber-500, #f59e0b);
+  color: var(--text-strong);
+}
+
 .admin-round-bye-badge {
   background: var(--bg-surface-sunken);
   border: 1px solid var(--border-subtle);

@@ -128,6 +128,30 @@ export const SubmitScoreBodySchema = z
   })
   .openapi('SubmitScoreBody');
 
+export const SubmitBallotBodySchema = z
+  .object({
+    userName: z.string().optional().openapi({
+      description: 'Display name for auto-registered voter (defaults to token display name)',
+    }),
+    userRole: UserRoleSchema.optional(),
+    scores: z
+      .array(
+        z.object({
+          entryId: z.string().openapi({ description: 'Entry being scored' }),
+          breakdown: z.record(z.string(), z.number()).openapi({
+            description: 'Full ScoreBreakdown for this entry',
+          }),
+        }),
+      )
+      .min(1)
+      .max(4)
+      .openapi({ description: 'One element per matchup entry the voter is scoring' }),
+  })
+  .openapi('SubmitBallotBody', {
+    description:
+      "A voter's complete ballot for one matchup. Committed atomically — if the matchup closes mid-submit, the whole ballot is rejected (no partial ballots).",
+  });
+
 // ── Voters / entries ────────────────────────────────────────────────────────
 
 export const VoterSchema = z
@@ -337,7 +361,13 @@ export const RegisterContestantBodySchema = z
 // ── Error envelope ──────────────────────────────────────────────────────────
 
 export const ErrorSchema = z
-  .object({ message: z.string().openapi({ example: 'Contest not found' }) })
+  .object({
+    message: z.string().openapi({ example: 'Contest not found' }),
+    code: z.string().optional().openapi({
+      description: 'Machine-readable error code (e.g. MATCHUP_CLOSED, SCORE_INVALID)',
+      example: 'MATCHUP_CLOSED',
+    }),
+  })
   .openapi('Error');
 
 // ── Inferred TypeScript types ───────────────────────────────────────────────
@@ -369,6 +399,7 @@ export type UserProfile = z.infer<typeof UserProfileSchema>;
 export type CreateContestBody = z.infer<typeof CreateContestBodySchema>;
 export type UpdateContestBody = z.infer<typeof UpdateContestBodySchema>;
 export type SubmitScoreBody = z.infer<typeof SubmitScoreBodySchema>;
+export type SubmitBallotBody = z.infer<typeof SubmitBallotBodySchema>;
 export type CreateContestConfigBody = z.infer<typeof CreateContestConfigBodySchema>;
 export type UpdateContestConfigBody = z.infer<typeof UpdateContestConfigBodySchema>;
 export type RegisterProfileBody = z.infer<typeof RegisterProfileBodySchema>;
@@ -391,6 +422,7 @@ register('UpdateContestConfigBody', UpdateContestConfigBodySchema);
 register('ScoreBreakdown', ScoreBreakdownSchema);
 register('ScoreEntry', ScoreEntrySchema);
 register('SubmitScoreBody', SubmitScoreBodySchema);
+register('SubmitBallotBody', SubmitBallotBodySchema);
 register('Voter', VoterSchema);
 register('Contestant', ContestantSchema);
 register('CreateContestantBody', CreateContestantBodySchema);

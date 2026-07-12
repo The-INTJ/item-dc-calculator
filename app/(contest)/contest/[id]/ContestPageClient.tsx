@@ -121,6 +121,7 @@ export default function ContestPageClient({ contestId, initialContest }: Contest
         activeRoundId={activeRoundId}
         viewedRoundId={viewedRoundId}
         votedMatchupIds={votedMatchupIds}
+        participationKnown={Boolean(userId)}
         onViewRound={setUserPickedRoundId}
         onVoteMatchup={handleVoteMatchup}
       />

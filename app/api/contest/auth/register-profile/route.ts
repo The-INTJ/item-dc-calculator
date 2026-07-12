@@ -22,6 +22,17 @@ export async function POST(request: Request) {
   }
 
   if (existing.data) {
+    // Post-account-linking sync: a guest-born profile has no email; once the
+    // VERIFIED token carries one (anonymous user upgraded via linking), copy
+    // it onto the profile. The token is the only trusted source here —
+    // client-supplied email never overwrites an existing profile.
+    if (auth.user.email && existing.data.email !== auth.user.email) {
+      const updated = await provider.profiles.upsert(auth.user.uid, {
+        ...existing.data,
+        email: auth.user.email,
+      });
+      return fromProviderResult(updated);
+    }
     return fromProviderResult({ success: true, data: existing.data });
   }
 

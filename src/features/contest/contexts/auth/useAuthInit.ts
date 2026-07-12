@@ -59,6 +59,10 @@ export function useAuthInit({ provider, dispatch }: UseAuthInitOptions) {
           profile = { ...profile, email: firebaseEmail };
         }
 
+        // Anonymous Firebase users rehydrate as GUESTS — dispatching
+        // AUTHENTICATED here made a reload silently flip guests to "Synced"
+        // and hid the account-upgrade path.
+        const isGuest = provider.isAnonymous();
         const session = createSession({
           firebaseUid: uid,
           profile: profile ?? {
@@ -66,8 +70,9 @@ export function useAuthInit({ provider, dispatch }: UseAuthInitOptions) {
             email: firebaseEmail,
             role: 'voter',
           },
+          status: isGuest ? 'guest' : 'authenticated',
         });
-        dispatch({ type: 'AUTHENTICATED', session });
+        dispatch(isGuest ? { type: 'GUEST', session } : { type: 'AUTHENTICATED', session });
       } catch (err) {
         console.error('[Auth] Init failed:', err);
         dispatch({ type: 'ERROR', message: 'Failed to initialize authentication' });

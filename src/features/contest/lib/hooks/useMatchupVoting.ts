@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../contexts/auth/AuthContext';
 import { getEffectiveConfig } from '../domain/validation';
 import { getEntriesInMatchup } from '../domain/matchupGetters';
@@ -18,11 +18,20 @@ import type {
   ScoreEntry,
 } from '../../contexts/contest/contestTypes';
 import { buildAutoVoteScores, buildSelfMaxVote } from '../domain/autoVote';
+import { MATCHUP_CLOSED } from '../domain/errorCodes';
 import { contestApi } from '../api/contestApi';
 import { harnessLog } from '@/lib/diagnostics/harnessLog';
 
 type ScoreByEntryId = Record<string, Record<string, number>>;
-export type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error';
+export type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error' | 'closed';
+
+/** Shown when the matchup closed while the voter had the modal open. */
+export const VOTING_CLOSED_MESSAGE =
+  'Voting just closed for this matchup — scores can no longer be submitted.';
+
+/** Shown when a submit raced the close and the whole ballot was rejected. */
+export const VOTING_RACE_MESSAGE =
+  "You weren't quite in time — voting closed before your scores arrived, so they weren't recorded.";
 
 /**
  * Self-contained hook for voting on the entries in a single matchup. Manages
@@ -35,6 +44,9 @@ export function useMatchupVoting(contest: Contest | null, matchup: Matchup | nul
   const [scores, setScores] = useState<ScoreByEntryId>({});
   const [status, setStatus] = useState<SubmitStatus>('idle');
   const [message, setMessage] = useState<string | null>(null);
+  // Guards the async prefill below: once the user moves a slider, a
+  // late-resolving fetch must not clobber their in-progress ballot.
+  const hasUserEditedRef = useRef(false);
 
   const config = contest ? getEffectiveConfig(contest) : undefined;
   const categories = config?.attributes ?? [];
@@ -54,6 +66,9 @@ export function useMatchupVoting(contest: Contest | null, matchup: Matchup | nul
   const categoryKey = categoryIds.join('|');
   const entryKey = entries.map((entry) => entry.id).join('|');
   const matchupId = matchup?.id ?? null;
+  // The matchup prop is re-derived from the live realtime subscription, so
+  // this flips the moment an admin closes (or reopens) the matchup.
+  const isMatchupOpen = matchup?.phase === 'shake';
 
   useEffect(() => {
     if (authLoading) return;
@@ -64,34 +79,51 @@ export function useMatchupVoting(contest: Contest | null, matchup: Matchup | nul
       return;
     }
 
+    hasUserEditedRef.current = false;
     const defaults = buildScoreDefaults(entryIds, categoryIds);
+    setScores(defaults);
 
     if (contest?.id && userId) {
       contestApi.getScoresForUser(contest.id, userId)
         .then((result) => {
+          // The user started scoring while the fetch was in flight — their
+          // in-progress ballot wins over the prefill.
+          if (hasUserEditedRef.current) return;
+
           const userScores: ScoreEntry[] = result.success ? result.data ?? [] : [];
-          if (!userScores.length) {
-            setScores(defaults);
-            return;
-          }
+          if (!userScores.length) return;
 
           const matchupEntryIds = new Set(entryIds);
           const matchupScores = userScores.filter(
             (s) => matchupEntryIds.has(s.entryId) && (!matchupId || s.matchupId === matchupId || !s.matchupId),
           );
           const existing = buildScoresFromEntries(matchupScores, categoryIds, config);
+          if (hasUserEditedRef.current) return;
           setScores(mergeScoreMaps(defaults, existing));
         })
-        .catch(() => setScores(defaults));
-    } else {
-      setScores(defaults);
+        .catch(() => {});
     }
 
     setStatus('idle');
     setMessage(null);
   }, [authLoading, categoryKey, contest?.id, entryKey, matchupId, userId]);
 
+  // If the admin reopens a matchup while the "closed" state is showing,
+  // return to a votable state. Only a closed→open TRANSITION resets — after
+  // a submit races the close, the local phase can still read 'shake' for a
+  // moment, and that stale openness must not wipe the "not in time" message.
+  const wasOpenRef = useRef(isMatchupOpen);
+  useEffect(() => {
+    const wasOpen = wasOpenRef.current;
+    wasOpenRef.current = isMatchupOpen;
+    if (isMatchupOpen && !wasOpen && status === 'closed') {
+      setStatus('idle');
+      setMessage(null);
+    }
+  }, [isMatchupOpen, status]);
+
   const updateScore = (entryId: string, categoryId: string, value: number) => {
+    hasUserEditedRef.current = true;
     setScores((prev) => ({
       ...prev,
       [entryId]: { ...(prev[entryId] ?? {}), [categoryId]: value },
@@ -102,6 +134,14 @@ export function useMatchupVoting(contest: Contest | null, matchup: Matchup | nul
     if (!contest?.id || !matchup?.id || !userId || !config) {
       setStatus('error');
       setMessage('No active matchup or session.');
+      return;
+    }
+
+    // Pre-flight: the realtime subscription may already know the matchup
+    // closed — skip the network round-trip entirely.
+    if (matchup.phase !== 'shake') {
+      setStatus('closed');
+      setMessage(VOTING_CLOSED_MESSAGE);
       return;
     }
 
@@ -147,60 +187,57 @@ export function useMatchupVoting(contest: Contest | null, matchup: Matchup | nul
       },
     });
 
-    try {
-      const results = await Promise.all(
-        allVotes.map(({ entryId, breakdown }) =>
-          contestApi.submitScore(contest.id, {
-            entryId,
-            matchupId: matchup.id,
-            userName: session?.profile.displayName ?? 'Guest',
-            userRole: role ?? 'voter',
-            breakdown,
-          }),
-        ),
-      );
+    // One atomic ballot — either every entry's score lands or none do, so a
+    // submit racing a round close can never leave a lopsided partial ballot.
+    const result = await contestApi.submitBallot(contest.id, matchup.id, {
+      userName: session?.profile.displayName ?? 'Guest',
+      userRole: role ?? 'voter',
+      scores: allVotes.map(({ entryId, breakdown }) => ({
+        entryId,
+        breakdown: breakdown as ScoreBreakdown,
+      })),
+    });
 
-      const firstFailure = results.find((r) => !r.success);
-      if (firstFailure) {
+    if (!result.success) {
+      if (result.errorCode === MATCHUP_CLOSED) {
         harnessLog({
           domain: 'voting',
-          event: 'submit.failed',
-          level: 'error',
-          data: {
-            contestId: contest.id,
-            matchupId: matchup.id,
-            error: firstFailure.error,
-          },
+          event: 'submit.closed',
+          level: 'warn',
+          data: { contestId: contest.id, matchupId: matchup.id },
         });
-        throw new Error(firstFailure.error ?? 'Failed to submit scores.');
+        setStatus('closed');
+        setMessage(VOTING_RACE_MESSAGE);
+        return;
       }
 
       harnessLog({
         domain: 'voting',
-        event: 'submit.success',
-        data: {
-          contestId: contest.id,
-          matchupId: matchup.id,
-          totalVotes: allVotes.length,
-        },
-      });
-
-      setStatus('success');
-      setMessage('Scores submitted!');
-    } catch (err) {
-      harnessLog({
-        domain: 'voting',
-        event: 'submit.error',
+        event: 'submit.failed',
         level: 'error',
         data: {
           contestId: contest.id,
           matchupId: matchup.id,
-          error: err instanceof Error ? err.message : String(err),
+          error: result.error,
         },
       });
       setStatus('error');
-      setMessage(String(err));
+      setMessage(result.error ?? 'Failed to submit scores.');
+      return;
     }
+
+    harnessLog({
+      domain: 'voting',
+      event: 'submit.success',
+      data: {
+        contestId: contest.id,
+        matchupId: matchup.id,
+        totalVotes: allVotes.length,
+      },
+    });
+
+    setStatus('success');
+    setMessage('Scores submitted!');
   };
 
   return {
@@ -212,6 +249,7 @@ export function useMatchupVoting(contest: Contest | null, matchup: Matchup | nul
     status,
     message,
     isSubmitting: status === 'submitting',
+    isMatchupOpen,
     selfEntryId,
   };
 }

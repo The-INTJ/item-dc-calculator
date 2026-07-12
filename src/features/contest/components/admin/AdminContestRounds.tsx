@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { ConfirmDialog } from '@/components/ui';
 import type {
   Contest,
   Contestant,
@@ -19,8 +20,9 @@ import {
   MATCHUP_PHASE_VALUES,
   matchupPhaseLabels,
 } from '../../lib/domain/matchupPhases';
-import { pairWithByes } from '../../lib/domain/bracketMath';
+import { getRequiredRoundCount, pairWithByes } from '../../lib/domain/bracketMath';
 import { getEntryDisplayName } from '../../lib/domain/entryLabels';
+import { resolveMatchupWinner } from '../../lib/domain/winnerResolution';
 
 interface AdminContestRoundsProps {
   contest: Contest;
@@ -84,6 +86,35 @@ export function AdminContestRounds({
     });
   };
 
+  type PendingRoundAction =
+    | { kind: 'reseed'; roundId: string; roundIndex: number; matchupCount: number; hasVotes: boolean }
+    | { kind: 'forceClose'; roundId: string; openCount: number };
+  const [pendingAction, setPendingAction] = useState<PendingRoundAction | null>(null);
+
+  const performSeed = async (roundId: string, roundIndex: number) => {
+    setSeedError(roundId, null);
+    const result =
+      roundIndex === 0
+        ? await seedRound(
+            contest.id,
+            roundId,
+            autoPairContestants(contest.contestants.map((c) => c.id)),
+          )
+        : await seedRound(contest.id, roundId);
+    if (result.error) setSeedError(roundId, result.error);
+  };
+
+  const confirmPendingAction = async () => {
+    const action = pendingAction;
+    setPendingAction(null);
+    if (!action) return;
+    if (action.kind === 'reseed') {
+      await performSeed(action.roundId, action.roundIndex);
+    } else {
+      await setRoundOverride(contest.id, action.roundId, 'closed');
+    }
+  };
+
   const handleAddRound = () => void addRound(contest.id);
 
   return (
@@ -91,6 +122,12 @@ export function AdminContestRounds({
       <div className="admin-rounds-header">
         <h3>Rounds</h3>
       </div>
+
+      <RoundCountAdvisory
+        contestantCount={contest.contestants.length}
+        roundCount={rounds.length}
+        contestantLabelPlural={config.contestantLabelPlural ?? 'contestants'}
+      />
 
       <ul className="admin-detail-list admin-rounds-list">
         {rounds.map((round, index) => {
@@ -131,52 +168,69 @@ export function AdminContestRounds({
               {isSelected && (
                 <div className="admin-round-state-controls">
                   <div className="admin-round-actions">
-                    {round.adminOverride == null ? (
-                      <>
+                    <div className="admin-round-action-group" role="group" aria-label="Round state">
+                      <span className="admin-round-action-group__label">Round state</span>
+                      {round.adminOverride == null ? (
+                        <>
+                          <button
+                            type="button"
+                            className="button-secondary"
+                            onClick={() => void setRoundOverride(contest.id, round.id, 'active')}
+                          >
+                            Force open
+                          </button>
+                          <button
+                            type="button"
+                            className="button-secondary"
+                            onClick={() => {
+                              const openCount = roundMatchups.filter(
+                                (m) => m.phase !== 'scored',
+                              ).length;
+                              if (openCount > 0) {
+                                setPendingAction({ kind: 'forceClose', roundId: round.id, openCount });
+                              } else {
+                                void setRoundOverride(contest.id, round.id, 'closed');
+                              }
+                            }}
+                          >
+                            Force close
+                          </button>
+                        </>
+                      ) : (
                         <button
                           type="button"
                           className="button-secondary"
-                          onClick={() => void setRoundOverride(contest.id, round.id, 'active')}
+                          onClick={() => void setRoundOverride(contest.id, round.id, null)}
                         >
-                          Force open
+                          Clear override ({round.adminOverride})
                         </button>
-                        <button
-                          type="button"
-                          className="button-secondary"
-                          onClick={() => void setRoundOverride(contest.id, round.id, 'closed')}
-                        >
-                          Force close
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        type="button"
-                        className="button-secondary"
-                        onClick={() => void setRoundOverride(contest.id, round.id, null)}
-                      >
-                        Clear override ({round.adminOverride})
-                      </button>
-                    )}
+                      )}
+                    </div>
                     {canSeed && (
-                      <button
-                        type="button"
-                        className="button-secondary"
-                        onClick={() =>
-                          void (async () => {
-                            setSeedError(round.id, null);
-                            const result = index === 0
-                              ? await seedRound(
-                                  contest.id,
-                                  round.id,
-                                  autoPairContestants(contest.contestants.map((c) => c.id)),
-                                )
-                              : await seedRound(contest.id, round.id);
-                            if (result.error) setSeedError(round.id, result.error);
-                          })()
-                        }
-                      >
-                        {roundMatchups.length > 0 ? 'Reseed round' : 'Seed round'}
-                      </button>
+                      <div className="admin-round-action-group" role="group" aria-label="Seeding">
+                        <span className="admin-round-action-group__label">Seeding</span>
+                        <button
+                          type="button"
+                          className="button-secondary"
+                          onClick={() => {
+                            if (roundMatchups.length > 0) {
+                              setPendingAction({
+                                kind: 'reseed',
+                                roundId: round.id,
+                                roundIndex: index,
+                                matchupCount: roundMatchups.length,
+                                hasVotes: roundMatchups.some((m) =>
+                                  m.entries.some((e) => (e.voteCount ?? 0) > 0),
+                                ),
+                              });
+                            } else {
+                              void performSeed(round.id, index);
+                            }
+                          }}
+                        >
+                          {roundMatchups.length > 0 ? 'Reseed round' : 'Seed round'}
+                        </button>
+                      </div>
                     )}
                   </div>
                   {seedErrorByRound[round.id] && (
@@ -226,7 +280,12 @@ export function AdminContestRounds({
                 type="button"
                 className="button-secondary admin-round-item__remove"
                 onClick={() => void removeRound(contest.id, round.id)}
-                disabled={status === 'active'}
+                disabled={status === 'active' || roundMatchups.length > 0}
+                title={
+                  roundMatchups.length > 0
+                    ? 'Delete this round’s matchups first — removing the round would orphan them.'
+                    : undefined
+                }
               >
                 Remove
               </button>
@@ -240,28 +299,65 @@ export function AdminContestRounds({
           Add round
         </button>
       </div>
+
+      <ConfirmDialog
+        open={pendingAction !== null}
+        title={pendingAction?.kind === 'reseed' ? 'Reseed this round?' : 'Force close this round?'}
+        message={
+          pendingAction?.kind === 'reseed'
+            ? `Reseeding deletes ${pendingAction.matchupCount} existing matchup${pendingAction.matchupCount === 1 ? '' : 's'}${pendingAction.hasVotes ? ' along with their recorded scores' : ''} and creates fresh ones. This cannot be undone.`
+            : pendingAction?.kind === 'forceClose'
+              ? `Force closing ends voting for ${pendingAction.openCount} open matchup${pendingAction.openCount === 1 ? '' : 's'} and records winners from current scores (ties stay undecided for you to resolve).`
+              : ''
+        }
+        confirmLabel={pendingAction?.kind === 'reseed' ? 'Reseed round' : 'Force close round'}
+        cancelLabel="Cancel"
+        onConfirm={confirmPendingAction}
+        onCancel={() => setPendingAction(null)}
+      />
     </section>
   );
 }
 
 function getLeadingEntryId(entries: Entry[]): string | null {
-  let leaderId: string | null = null;
-  let leaderScore = Number.NEGATIVE_INFINITY;
-  let tied = false;
+  const resolution = resolveMatchupWinner({ entries });
+  return resolution.ok ? resolution.winnerEntryId : null;
+}
 
-  for (const entry of entries) {
-    const score = getEntryScore(entry);
-    if (score == null) continue;
-    if (score > leaderScore) {
-      leaderId = entry.id;
-      leaderScore = score;
-      tied = false;
-    } else if (score === leaderScore) {
-      tied = true;
-    }
+/**
+ * Non-blocking heads-up when the round count and field size disagree: too few
+ * rounds can't crown a champion (the display renders it fine, but the "final"
+ * is really a semifinal); surplus rounds will just be byes.
+ */
+function RoundCountAdvisory({
+  contestantCount,
+  roundCount,
+  contestantLabelPlural,
+}: {
+  contestantCount: number;
+  roundCount: number;
+  contestantLabelPlural: string;
+}) {
+  const required = getRequiredRoundCount(contestantCount);
+  if (required === 0 || roundCount === 0) return null;
+
+  if (roundCount < required) {
+    return (
+      <p className="admin-round-advisory admin-round-advisory--warning" role="status">
+        {contestantCount} {contestantLabelPlural.toLowerCase()} need {required} rounds to crown a
+        champion — this contest has {roundCount}. Use &quot;Add round&quot; below.
+      </p>
+    );
   }
-
-  return tied ? null : leaderId;
+  if (roundCount > required) {
+    return (
+      <p className="admin-round-advisory" role="status">
+        A field of {contestantCount} resolves in {required} round{required === 1 ? '' : 's'} —
+        rounds beyond that will be byes.
+      </p>
+    );
+  }
+  return null;
 }
 
 function MatchupRow({

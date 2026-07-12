@@ -3,6 +3,9 @@ import { getContestByParam } from '@/contest/lib/backend/serverProvider';
 import { requireAuth } from '../../../_lib/requireAuth';
 import { SubmitScoreBodySchema } from '@/contest/lib/schemas';
 import type { ScoreBreakdown } from '@/contest/contexts/contest/contestTypes';
+import { MATCHUP_CLOSED, SCORE_INVALID } from '@/contest/lib/domain/errorCodes';
+import { normalizeScorePayload } from '@/contest/lib/domain/scoreNormalization';
+import { makeVoteDocId } from '@/contest/lib/firebase/scoreHelpers';
 import { harnessLog } from '@/lib/diagnostics/harnessLog';
 
 interface RouteParams {
@@ -79,7 +82,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       level: 'warn',
       data: { contestId: contest.id, matchupId, currentPhase: matchup.phase, userId },
     });
-    return jsonError('Matchup is not open for scoring.', 400);
+    return jsonError('Matchup is not open for scoring.', 409, MATCHUP_CLOSED);
   }
   if (!matchup.entries.some((e) => e.id === entryId)) {
     return jsonError('Entry is not part of this matchup.', 400);
@@ -111,11 +114,39 @@ export async function POST(request: Request, { params }: RouteParams) {
     return jsonError('Score breakdown or categoryId + value is required.', 400);
   }
 
+  // Validate + normalize against the contest config (attribute set, min/max).
+  // Partial updates merge onto the caller's existing vote for this entry.
+  // Configless contests skip validation — nothing to validate against.
+  let finalBreakdown: ScoreBreakdown = breakdownUpdates as ScoreBreakdown;
+  if (contest.config) {
+    const existingVote = await provider.scores.getById(
+      contest.id,
+      makeVoteDocId(userId, matchupId, entryId),
+    );
+    try {
+      const normalized = normalizeScorePayload({
+        contest,
+        baseBreakdown: existingVote.success ? existingVote.data?.breakdown : undefined,
+        updates: breakdownUpdates,
+      });
+      finalBreakdown = normalized.breakdown;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Score breakdown is invalid.';
+      harnessLog({
+        domain: 'voting',
+        event: 'validation.rejected',
+        level: 'warn',
+        data: { contestId: contest.id, matchupId, entryId, userId, message },
+      });
+      return jsonError(message, 400, SCORE_INVALID);
+    }
+  }
+
   const submitResult = await provider.scores.submit(contest.id, {
     entryId,
     userId,
     matchupId,
-    breakdown: breakdownUpdates as ScoreBreakdown,
+    breakdown: finalBreakdown,
     ...(body.notes ? { notes: body.notes } : {}),
   });
 

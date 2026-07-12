@@ -9,10 +9,11 @@ import {
   useState,
   type CSSProperties,
 } from 'react';
+import { getMatchupGridPlacement } from '@/contest/lib/domain/bracketMath';
 import {
-  getBracketGridRowCount,
-  getMatchupGridPlacement,
-} from '@/contest/lib/domain/bracketMath';
+  getColumnHeaderLabel,
+  getMatchupVisualState,
+} from '@/contest/lib/presentation/bracketVisualState';
 import {
   getContestDisplaySurface,
   type ContestDisplaySurface,
@@ -165,22 +166,31 @@ function MatchupSparkles({ surface }: { surface: ContestDisplaySurface }) {
 function BracketMatchupCard({
   matchup,
   round,
+  gridRowCount,
   surface,
   onRef,
 }: {
   matchup: DisplayMatchup;
   round: DisplayRound;
+  gridRowCount: number;
   surface: ContestDisplaySurface;
   onRef: (key: string, el: HTMLElement | null) => void;
 }) {
-  const { rowStart, rowSpan } = getMatchupGridPlacement(round.roundIndex, matchup.slotIndex);
+  const { rowStart, rowSpan } = getMatchupGridPlacement(
+    round.roundIndex,
+    matchup.slotIndex,
+    gridRowCount,
+  );
   const key = `${round.roundIndex}-${matchup.slotIndex}`;
   const scoreSignature = `${matchup.contestantA.scoreSignature}|${matchup.contestantB.scoreSignature}`;
   const bumping = useBumpOnChange(scoreSignature);
+  const visualState = getMatchupVisualState(matchup, round.isActive);
 
   const classes = [
     'contest-display__matchup',
-    round.isActive && matchup.phase === 'shake' ? 'contest-display__matchup--active' : '',
+    visualState === 'live' ? 'contest-display__matchup--active' : '',
+    visualState === 'bye' ? 'contest-display__matchup--bye' : '',
+    visualState === 'tbd' ? 'contest-display__matchup--tbd' : '',
     bumping ? 'contest-display__matchup--score-bump' : '',
   ]
     .filter(Boolean)
@@ -195,11 +205,12 @@ function BracketMatchupCard({
       ref={(el) => onRef(key, el)}
       data-matchup-key={key}
       data-phase={matchup.phase ?? 'empty'}
+      data-bye={matchup.isBye || undefined}
     >
       <MatchupSparkles surface={surface} />
       <ContestantRow contestant={matchup.contestantA} surface={surface} />
       {matchup.isBye ? (
-        <p className="contest-display__bye-label">Bye</p>
+        <p className="contest-display__bye-label">Bye — auto-advances</p>
       ) : (
         <ContestantRow contestant={matchup.contestantB} surface={surface} />
       )}
@@ -212,23 +223,26 @@ function BracketMatchupCard({
 
 function BracketColumn({
   round,
-  totalRounds,
+  gridRowCount,
   surface,
   onMatchupRef,
 }: {
   round: DisplayRound;
-  totalRounds: number;
+  gridRowCount: number;
   surface: ContestDisplaySurface;
   onMatchupRef: (key: string, el: HTMLElement | null) => void;
 }) {
-  const totalRows = getBracketGridRowCount(totalRounds);
   const classes = ['contest-display__column'];
   if (round.isActive) classes.push('contest-display__column--active');
 
   return (
-    <section className={classes.join(' ')} aria-label={round.name}>
+    <section
+      className={classes.join(' ')}
+      aria-label={round.name}
+      data-round-index={round.roundIndex}
+    >
       <header className="contest-display__column-header">
-        <p className="contest-display__label">{round.isActive ? 'Now Playing' : 'Round'}</p>
+        <p className="contest-display__label">{getColumnHeaderLabel(round)}</p>
         <h2 className="contest-display__column-title">{round.name}</h2>
         <span className={`contest-display__status contest-display__status--${round.status}`}>
           {formatLabel(round.status)}
@@ -237,7 +251,7 @@ function BracketColumn({
       <div
         className="contest-display__column-grid"
         style={{
-          gridTemplateRows: `repeat(${totalRows}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${Math.max(gridRowCount, 2)}, minmax(0, 1fr))`,
         }}
       >
         {round.matchups.map((matchup) => (
@@ -245,6 +259,7 @@ function BracketColumn({
             key={matchup.id}
             matchup={matchup}
             round={round}
+            gridRowCount={gridRowCount}
             surface={surface}
             onRef={onMatchupRef}
           />
@@ -254,13 +269,14 @@ function BracketColumn({
   );
 }
 
-interface ConnectorPath {
+export interface ConnectorPath {
   id: string;
   d: string;
   feedsActive: boolean;
 }
 
-function computeConnectorPaths(
+/** Exported for unit tests — pure geometry over measured DOMRects. */
+export function computeConnectorPaths(
   rounds: DisplayRound[],
   rects: Map<string, DOMRect>,
   canvasRect: DOMRect | null,
@@ -306,10 +322,12 @@ function computeConnectorPaths(
 function BracketCanvas({
   rounds,
   totalRounds,
+  gridRowCount,
   surface,
 }: {
   rounds: DisplayRound[];
   totalRounds: number;
+  gridRowCount: number;
   surface: ContestDisplaySurface;
 }) {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -391,7 +409,7 @@ function BracketCanvas({
           <BracketColumn
             key={round.id}
             round={round}
-            totalRounds={totalRounds}
+            gridRowCount={gridRowCount}
             surface={surface}
             onMatchupRef={handleMatchupRef}
           />
@@ -518,10 +536,12 @@ function featuredPanelSubtitle(model: DisplayModel) {
 
 export function DisplayBracket({ model }: DisplayBracketProps) {
   const surface = getContestDisplaySurface(model.contestKind);
-  const bracketRounds = model.isFinalRoundActive ? model.rounds.slice(0, -1) : model.rounds;
-  const faceOffRound = model.isFinalRoundActive
-    ? model.rounds[model.rounds.length - 1]
+  // The face-off swap happens only for a true 1-matchup, non-bye final (the
+  // model decides); the sliced prefix keeps roundIndex aligned for connectors.
+  const faceOffRound = model.faceOffRoundId
+    ? model.rounds.find((round) => round.id === model.faceOffRoundId) ?? null
     : null;
+  const bracketRounds = faceOffRound ? model.rounds.slice(0, -1) : model.rounds;
   const activeRound = model.rounds.find((round) => round.id === model.activeRoundId) ?? null;
   const activeRoundIndex = activeRound
     ? model.rounds.findIndex((round) => round.id === activeRound.id)
@@ -655,6 +675,7 @@ export function DisplayBracket({ model }: DisplayBracketProps) {
             <BracketCanvas
               rounds={bracketRounds}
               totalRounds={bracketRounds.length}
+              gridRowCount={model.gridRowCount}
               surface={surface}
             />
           )}

@@ -327,6 +327,17 @@
   padding: 0.5rem 0.75rem;
 }
 
+.vote-sheet__closed-banner {
+  background: var(--c-red-100, #fee2e2);
+  border-left: 3px solid var(--c-red-500, #ef4444);
+  border-radius: 0 var(--r-button, 8px) var(--r-button, 8px) 0;
+  color: var(--text-strong);
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0.5rem 1rem 0;
+  padding: 0.625rem 0.75rem;
+}
+
 .vote-panel--disabled {
   opacity: 0.6;
 }

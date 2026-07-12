@@ -66,7 +66,7 @@ export function AdminDashboard() {
     return (
       <div className="admin-error">
         <p>Admin access required.</p>
-        <Button href="/contest" variant="secondary">
+        <Button href="/contests" variant="secondary">
           Return to contests
         </Button>
       </div>

@@ -7,7 +7,10 @@ import type {
   RoundStatus,
 } from '../../contexts/contest/contestTypes';
 import type { BracketStructure } from '../domain/bracketMath';
-import { computeBracketStructure } from '../domain/bracketMath';
+import {
+  computeBracketStructureFromShape,
+  getBracketGridRowCountForShape,
+} from '../domain/bracketMath';
 import {
   getContestRounds,
   getEntryScore,
@@ -37,8 +40,8 @@ export interface DisplayMatchup {
   contestantA: DisplayContestant;
   contestantB: DisplayContestant;
   winnerId: string | null;
-  /** Indices of the two feeder matchups from the previous round, or null for round 0. */
-  sourceMatchups: [number, number] | null;
+  /** Indices of the feeder matchups from the previous round (1-2), or null for round 0. */
+  sourceMatchups: number[] | null;
   /** Position within the round (for connector line layout). */
   slotIndex: number;
   /** Stored matchup document id (present when a stored matchup drives this slot). */
@@ -82,10 +85,19 @@ export interface DisplayModel {
   featuredMatchupMode: FeaturedMatchupMode;
   totalRounds: number;
   phase: MatchupPhase;
-  /** The computed ideal bracket structure. */
+  /** Bracket structure derived from the actual per-round matchup shape. */
   bracketStructure: BracketStructure;
+  /** Rows every bracket column's grid must declare (shared across rounds). */
+  gridRowCount: number;
   /** True when the active round is the final round in the bracket. */
   isFinalRoundActive: boolean;
+  /**
+   * Set when the last round is a true 1-matchup, non-bye final AND it is the
+   * active round — the display swaps that column for the face-off panel.
+   * Stays null for under-provisioned brackets whose "last" round still holds
+   * multiple matchups.
+   */
+  faceOffRoundId: string | null;
   /** Set when the final round's matchup is scored with a winner — drives the crowning UI. */
   champion: DisplayChampion | null;
 }
@@ -145,7 +157,26 @@ function getDisplayRoundName(contest: Contest, roundId: string | null): string |
  */
 export function buildDisplayModel(contest: Contest, matchups: Matchup[]): DisplayModel {
   const contestRounds = getContestRounds(contest);
-  const bracketStructure = computeBracketStructure(contestRounds.length);
+
+  // Derive the bracket shape from what seeding actually produces: round 0's
+  // real matchup count (falling back to ceil(contestants/2) pre-seed), then a
+  // ceil(n/2) cascade. Per-round actual counts overlay the cascade so manual
+  // over-filled rounds still render in-grid instead of spilling off it.
+  const roundMatchupCounts = contestRounds.map(
+    (round) => getMatchupsForRound(matchups, round.id).length,
+  );
+  const firstRoundCount =
+    (roundMatchupCounts[0] ?? 0) > 0
+      ? roundMatchupCounts[0]
+      : Math.max(1, Math.ceil((contest.contestants?.length ?? 0) / 2));
+  const shape: number[] = [];
+  for (let i = 0; i < contestRounds.length; i += 1) {
+    const derived = i === 0 ? firstRoundCount : Math.ceil(shape[i - 1] / 2);
+    shape.push(Math.max(derived, roundMatchupCounts[i] ?? 0));
+  }
+  const bracketStructure = computeBracketStructureFromShape(shape);
+  const gridRowCount = getBracketGridRowCountForShape(shape);
+
   const activeRoundId = getActiveRoundIdFromMatchups(contestRounds, matchups);
   const lastRoundId = contestRounds[contestRounds.length - 1]?.id ?? null;
   const contestantsById = new Map(contest.contestants.map((c) => [c.id, c]));
@@ -226,8 +257,14 @@ export function buildDisplayModel(contest: Contest, matchups: Matchup[]): Displa
   const finalRound = lastRoundId
     ? displayRounds.find((round) => round.id === lastRoundId) ?? null
     : null;
+  // A champion exists only when the LAST round is a true 1-matchup final. An
+  // under-provisioned bracket (last round still holds multiple matchups) has
+  // no final to crown from. A trailing bye CAN crown — the sole survivor won.
+  const lastRoundCapacity = shape[shape.length - 1] ?? 0;
   const finalMatchup =
-    finalRound?.matchups.find((m) => !m.isBye && m.phase === 'scored' && m.winnerId) ?? null;
+    lastRoundCapacity === 1
+      ? finalRound?.matchups.find((m) => m.phase === 'scored' && m.winnerId) ?? null
+      : null;
   const champion: DisplayChampion | null = finalMatchup
     ? (() => {
         const winner =
@@ -237,8 +274,9 @@ export function buildDisplayModel(contest: Contest, matchups: Matchup[]): Displa
               ? finalMatchup.contestantB
               : null;
         if (!winner) return null;
-        const runnerUp =
-          finalMatchup.contestantA.id === winner.id
+        const runnerUp = finalMatchup.isBye
+          ? null
+          : finalMatchup.contestantA.id === winner.id
             ? finalMatchup.contestantB
             : finalMatchup.contestantA;
         return {
@@ -248,6 +286,19 @@ export function buildDisplayModel(contest: Contest, matchups: Matchup[]): Displa
         };
       })()
     : null;
+
+  // The face-off panel replaces the last bracket column only for a real
+  // 1-matchup, non-bye final that is currently the active round.
+  const finalSlot = finalRound?.matchups[0] ?? null;
+  const faceOffRoundId =
+    activeRoundId != null &&
+    finalRound != null &&
+    activeRoundId === finalRound.id &&
+    lastRoundCapacity === 1 &&
+    finalSlot != null &&
+    !finalSlot.isBye
+      ? finalRound.id
+      : null;
 
   return {
     contestId: contest.id,
@@ -263,7 +314,9 @@ export function buildDisplayModel(contest: Contest, matchups: Matchup[]): Displa
     totalRounds: displayRounds.length,
     phase: derivePhaseFromMatchups(matchups, activeRoundId),
     bracketStructure,
+    gridRowCount,
     isFinalRoundActive: activeRoundId != null && activeRoundId === lastRoundId,
+    faceOffRoundId,
     champion,
   };
 }

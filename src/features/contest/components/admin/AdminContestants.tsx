@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Button } from '@/components/ui';
+import { Button, ConfirmDialog } from '@/components/ui';
 import type {
   Contest,
   Contestant,
@@ -11,6 +11,7 @@ import type {
   UserRole,
 } from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
+import { computeVotedRoundCount } from '../../lib/presentation/votingParticipation';
 import { MaterialSymbol } from '../ui/MaterialSymbol';
 
 interface AdminContestantsProps {
@@ -33,7 +34,13 @@ interface ParticipantDetails {
   role: UserRole;
   entries: MatchupEntryRef[];
   totalRounds: number;
-  votedRoundCount: number;
+  /** Distinct rounds this participant voted in; null when no account is linked. */
+  votedRoundCount: number | null;
+}
+
+function participationLabel(participant: ParticipantDetails): string {
+  if (participant.votedRoundCount === null) return 'No account linked';
+  return `Voted ${participant.votedRoundCount}/${participant.totalRounds} rounds`;
 }
 
 function ContestantCard({
@@ -49,7 +56,7 @@ function ContestantCard({
   expanded: boolean;
   onToggle: () => void;
   onSetEntryName: (matchupId: string, entryId: string, name: string) => Promise<boolean>;
-  onRemoveContestant: (() => Promise<void>) | null;
+  onRemoveContestant: (() => void) | null;
 }) {
   const namedCount = participant.entries.filter((e) => e.entry.name?.trim()).length;
   const placementSummary =
@@ -77,6 +84,7 @@ function ContestantCard({
           </div>
         </div>
         <div className="admin-participant-card__summary">
+          <span className="admin-detail-meta">{participationLabel(participant)}</span>
           <span className="admin-detail-meta">{placementSummary}</span>
           <MaterialSymbol
             name={expanded ? 'expand_less' : 'expand_more'}
@@ -110,7 +118,7 @@ function ContestantCard({
 
           {onRemoveContestant && (
             <div className="admin-entry-add">
-              <Button variant="danger" onClick={() => void onRemoveContestant()}>
+              <Button variant="danger" onClick={onRemoveContestant}>
                 Remove contestant
               </Button>
             </div>
@@ -161,14 +169,101 @@ function MatchupEntryEditor({
   );
 }
 
-export function AdminContestants({ contest, matchups }: AdminContestantsProps) {
-  const { removeContestant, setMatchupEntryName } = useContestStore();
+function AddContestantForm({
+  firstRoundSeeded,
+  onSubmit,
+}: {
+  firstRoundSeeded: boolean;
+  onSubmit: (displayName: string) => Promise<boolean>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [displayName, setDisplayName] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  if (!open) {
+    return (
+      <div className="admin-entry-add">
+        <button
+          type="button"
+          className="button-secondary"
+          onClick={() => {
+            setDisplayName('');
+            setError(null);
+            setOpen(true);
+          }}
+        >
+          Add contestant
+        </button>
+      </div>
+    );
+  }
+
+  const submit = async () => {
+    const trimmed = displayName.trim();
+    if (!trimmed) {
+      setError('Display name is required.');
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    const ok = await onSubmit(trimmed);
+    setBusy(false);
+    if (!ok) {
+      setError('Failed to add contestant.');
+      return;
+    }
+    setOpen(false);
+  };
+
+  return (
+    <div className="admin-entry-add admin-add-contestant">
+      <div className="admin-round-add-matchup__row">
+        <input
+          className="admin-contestant-input"
+          value={displayName}
+          onChange={(event) => setDisplayName(event.target.value)}
+          placeholder="Display name"
+          aria-label="New contestant display name"
+          disabled={busy}
+        />
+        <button type="button" className="button-primary" onClick={() => void submit()} disabled={busy}>
+          Add
+        </button>
+        <button
+          type="button"
+          className="button-secondary"
+          onClick={() => setOpen(false)}
+          disabled={busy}
+        >
+          Cancel
+        </button>
+      </div>
+      {firstRoundSeeded && (
+        <p className="admin-detail-meta" role="status">
+          Round 1 is already seeded — this contestant won&apos;t appear in any matchup until you
+          reseed Round 1 or add a matchup manually.
+        </p>
+      )}
+      {error && (
+        <p className="admin-round-error" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+export function AdminContestants({ contest, matchups, contestScores }: AdminContestantsProps) {
+  const { addContestant, removeContestant, setMatchupEntryName } = useContestStore();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [actionError, setActionError] = useState<string | null>(null);
+  const [pendingRemoval, setPendingRemoval] = useState<ParticipantDetails | null>(null);
 
   const rounds = contest.rounds ?? [];
   const contestants = contest.contestants ?? [];
   const voters = contest.voters ?? [];
+  const firstRoundSeeded = rounds.length > 0 && matchups.some((m) => m.roundId === rounds[0].id);
 
   const entriesByContestantId = useMemo(() => {
     const map = new Map<string, MatchupEntryRef[]>();
@@ -188,11 +283,9 @@ export function AdminContestants({ contest, matchups }: AdminContestantsProps) {
 
   const participants = useMemo<ParticipantDetails[]>(() => {
     const list: ParticipantDetails[] = [];
-    const seenContestantIds = new Set<string>();
 
     // Build contestant entries first (they're the per-matchup competitors)
     for (const c of contestants) {
-      seenContestantIds.add(c.id);
       const linkedVoter = c.userId ? voters.find((v) => v.id === c.userId) : null;
       list.push({
         id: c.id,
@@ -201,11 +294,11 @@ export function AdminContestants({ contest, matchups }: AdminContestantsProps) {
         role: linkedVoter?.role ?? 'competitor',
         entries: entriesByContestantId.get(c.id) ?? [],
         totalRounds: rounds.length,
-        votedRoundCount: 0,
+        votedRoundCount: computeVotedRoundCount(c.userId, contestScores, matchups, rounds),
       });
     }
 
-    // Append voters who are NOT contestants (so admin can see vote participation later)
+    // Append voters who are NOT contestants, with their vote participation.
     const linkedUserIds = new Set(contestants.map((c) => c.userId).filter(Boolean) as string[]);
     for (const voter of voters) {
       if (linkedUserIds.has(voter.id)) continue;
@@ -216,12 +309,12 @@ export function AdminContestants({ contest, matchups }: AdminContestantsProps) {
         role: voter.role,
         entries: [],
         totalRounds: rounds.length,
-        votedRoundCount: 0,
+        votedRoundCount: computeVotedRoundCount(voter.id, contestScores, matchups, rounds),
       });
     }
 
     return list.sort((a, b) => a.displayName.localeCompare(b.displayName));
-  }, [contestants, voters, entriesByContestantId, rounds.length]);
+  }, [contestants, voters, entriesByContestantId, rounds, matchups, contestScores]);
 
   const toggleExpanded = (id: string) => {
     setExpandedIds((prev) => {
@@ -242,6 +335,20 @@ export function AdminContestants({ contest, matchups }: AdminContestantsProps) {
     return true;
   };
 
+  const handleAddContestant = async (displayName: string): Promise<boolean> => {
+    setActionError(null);
+    const created = await addContestant(contest.id, { displayName });
+    return Boolean(created);
+  };
+
+  const confirmRemoval = async () => {
+    if (!pendingRemoval?.contestantId) return;
+    setActionError(null);
+    const ok = await removeContestant(contest.id, pendingRemoval.contestantId);
+    if (!ok) setActionError('Failed to remove contestant');
+    setPendingRemoval(null);
+  };
+
   return (
     <section className="admin-details-section">
       <header className="admin-participants-header">
@@ -256,29 +363,37 @@ export function AdminContestants({ contest, matchups }: AdminContestantsProps) {
         <p className="admin-empty">No participants yet.</p>
       ) : (
         <ul className="admin-participants-list">
-          {participants.map((participant) => {
-            const removeFn: (() => Promise<void>) | null = participant.contestantId
-              ? async () => {
-                  if (!window.confirm(`Remove contestant ${participant.displayName}?`)) return;
-                  setActionError(null);
-                  const ok = await removeContestant(contest.id, participant.contestantId!);
-                  if (!ok) setActionError('Failed to remove contestant');
-                }
-              : null;
-            return (
-              <ContestantCard
-                key={participant.id}
-                participant={participant}
-                rounds={rounds}
-                expanded={expandedIds.has(participant.id)}
-                onToggle={() => toggleExpanded(participant.id)}
-                onSetEntryName={handleSetEntryName}
-                onRemoveContestant={removeFn}
-              />
-            );
-          })}
+          {participants.map((participant) => (
+            <ContestantCard
+              key={participant.id}
+              participant={participant}
+              rounds={rounds}
+              expanded={expandedIds.has(participant.id)}
+              onToggle={() => toggleExpanded(participant.id)}
+              onSetEntryName={handleSetEntryName}
+              onRemoveContestant={
+                participant.contestantId ? () => setPendingRemoval(participant) : null
+              }
+            />
+          ))}
         </ul>
       )}
+
+      <AddContestantForm firstRoundSeeded={firstRoundSeeded} onSubmit={handleAddContestant} />
+
+      <ConfirmDialog
+        open={pendingRemoval !== null}
+        title="Remove contestant?"
+        message={
+          pendingRemoval
+            ? `Removes ${pendingRemoval.displayName}'s ${pendingRemoval.entries.length === 1 ? 'entry' : 'entries'} from ${pendingRemoval.entries.length} matchup${pendingRemoval.entries.length === 1 ? '' : 's'} and recalculates winners (an abandoned opponent auto-advances as a bye). Votes they cast on other entries are kept. This cannot be undone.`
+            : ''
+        }
+        confirmLabel="Yes, remove"
+        cancelLabel="Keep contestant"
+        onConfirm={confirmRemoval}
+        onCancel={() => setPendingRemoval(null)}
+      />
     </section>
   );
 }

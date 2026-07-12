@@ -29,9 +29,9 @@ test('three voters complete a round concurrently — tally aggregates on every p
 
   await Promise.all(pages.map((p) => p.goto(url)));
 
-  // Hydration gate — confirm the active round's Vote CTA is present on each page.
+  // Hydration gate — confirm the matchup's vote button is present on each page.
   for (const p of pages) {
-    await expect(p.getByRole('button', { name: /vote this round/i }).first()).toBeVisible();
+    await expect(p.getByRole('button', { name: /^vote matchup 1:/i })).toBeVisible();
   }
 
   // Initial tally — no votes yet
@@ -56,7 +56,7 @@ test('three voters complete a round concurrently — tally aggregates on every p
 });
 
 async function submitVoteInUI(page: Page, scores: VoteScores): Promise<void> {
-  await page.getByRole('button', { name: /vote this round/i }).first().click();
+  await page.getByRole('button', { name: /^vote matchup 1:/i }).click();
 
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
@@ -80,13 +80,18 @@ async function submitVoteInUI(page: Page, scores: VoteScores): Promise<void> {
 }
 
 async function setSliderValue(slider: Locator, target: number): Promise<void> {
+  // The modal pre-fills existing votes asynchronously after opening, which can
+  // reset slider state mid-interaction (finding F-026) — so adjust-and-verify
+  // in a retrying block instead of firing a fixed number of key presses.
   await slider.focus();
-  const currentAttr = await slider.getAttribute('aria-valuenow');
-  const current = currentAttr ? Number(currentAttr) : 5;
-  const diff = target - current;
-  const key = diff > 0 ? 'ArrowRight' : 'ArrowLeft';
-  for (let i = 0; i < Math.abs(diff); i++) {
-    await slider.press(key);
-  }
-  await expect(slider).toHaveAttribute('aria-valuenow', String(target));
+  await expect(async () => {
+    let now = Number(await slider.getAttribute('aria-valuenow'));
+    let guard = 0;
+    while (now !== target && guard < 25) {
+      await slider.press(now < target ? 'ArrowRight' : 'ArrowLeft');
+      now = Number(await slider.getAttribute('aria-valuenow'));
+      guard += 1;
+    }
+    expect(now).toBe(target);
+  }).toPass({ timeout: 15_000 });
 }

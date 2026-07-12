@@ -44,6 +44,14 @@ export function createFirebaseScoresProvider(adapter: FirestoreAdapter): ScoresP
       }
     },
 
+    async submitBallot(contestId, input): Promise<ProviderResult<ScoreEntry[]>> {
+      try {
+        return success(await adapter.submitBallot(contestId, input));
+      } catch (err) {
+        return error(err instanceof Error ? err.message : String(err));
+      }
+    },
+
     async update(contestId, scoreId, updates): Promise<ProviderResult<ScoreEntry>> {
       try {
         return success(await adapter.updateScore(contestId, scoreId, updates));

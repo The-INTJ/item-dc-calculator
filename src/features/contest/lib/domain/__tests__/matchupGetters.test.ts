@@ -83,6 +83,30 @@ describe('getComputedRoundStatus', () => {
     const matchups = [makeMatchup('m1', 'r2', 'scored'), makeMatchup('m2', 'r2', 'scored')];
     expect(getComputedRoundStatus(round, matchups)).toBe('pending');
   });
+
+  it("keeps a freshly seeded odd round 'upcoming' despite its auto-scored bye", () => {
+    const matchups = [
+      makeMatchup('m1', 'r1', 'set'),
+      makeMatchup('m2', 'r1', 'set'),
+      makeMatchup('m-bye', 'r1', 'scored', { entries: [makeEntry('solo')] }),
+    ];
+    expect(getComputedRoundStatus(round, matchups)).toBe('upcoming');
+  });
+
+  it("treats a round of only byes as 'closed'", () => {
+    const matchups = [
+      makeMatchup('m-bye', 'r1', 'scored', { entries: [makeEntry('solo')] }),
+    ];
+    expect(getComputedRoundStatus(round, matchups)).toBe('closed');
+  });
+
+  it("closes a round once every contested matchup is scored, byes aside", () => {
+    const matchups = [
+      makeMatchup('m1', 'r1', 'scored'),
+      makeMatchup('m-bye', 'r1', 'scored', { entries: [makeEntry('solo')] }),
+    ];
+    expect(getComputedRoundStatus(round, matchups)).toBe('closed');
+  });
 });
 
 describe('getRoundWinnerEntryIds', () => {

@@ -8,12 +8,15 @@ import type {
   BracketRound,
   BracketRoundStatus,
 } from '@/contest/lib/presentation/buildBracketRoundsFromContest';
+import { getRoundVotingParticipation } from '@/contest/lib/presentation/votingParticipation';
 
 interface ContestRoundNavigatorProps {
   rounds: BracketRound[];
   activeRoundId: string | null;
   viewedRoundId: string | null;
   votedMatchupIds: Set<string>;
+  /** True when the viewer has an identity we can attribute votes to. */
+  participationKnown: boolean;
   onViewRound: (roundId: string) => void;
   onVoteMatchup: (matchupId: string) => void;
 }
@@ -60,10 +63,15 @@ function HeroMatchup({
   matchup,
   index,
   hasVoted,
+  votable,
+  onVote,
 }: {
   matchup: BracketMatchup;
   index: number;
   hasVoted: boolean;
+  /** True when this matchup is open (shake) and its round isn't closed. */
+  votable: boolean;
+  onVote: (matchupId: string) => void;
 }) {
   const matchupNumber = index + 1;
   const label = matchupLabel(matchup);
@@ -84,6 +92,17 @@ function HeroMatchup({
       <MatchupRow contestant={matchup.contestantA} winnerId={matchup.winnerId} />
       <MatchupRow contestant={matchup.contestantB} winnerId={matchup.winnerId} />
       {hasVoted && <span className="contest-rounds__matchup-voted">Voted</span>}
+      {votable && matchup.matchupId && (
+        <Button
+          variant="accent"
+          block
+          className="contest-rounds__vote-cta"
+          aria-label={`Vote matchup ${matchupNumber}: ${label}`}
+          onClick={() => onVote(matchup.matchupId!)}
+        >
+          {hasVoted ? 'Change vote' : 'Vote this matchup'}
+        </Button>
+      )}
     </li>
   );
 }
@@ -93,6 +112,7 @@ export function ContestRoundNavigator({
   activeRoundId,
   viewedRoundId,
   votedMatchupIds,
+  participationKnown,
   onViewRound,
   onVoteMatchup,
 }: ContestRoundNavigatorProps) {
@@ -103,11 +123,13 @@ export function ContestRoundNavigator({
     return rounds.find((round) => round.id === viewedRoundId) ?? rounds[0] ?? null;
   }, [rounds, viewedRoundId]);
 
-  const liveMatchup = useMemo(
-    () => viewedRound?.matchups.find((m) => m.phase === 'shake' && !m.isBye && m.matchupId) ?? null,
-    [viewedRound],
+  // A closed round is closed regardless of individual matchup phases — a
+  // force-closed round must never present a vote affordance.
+  const viewedRoundClosed = viewedRound?.status === 'closed';
+  const hasLiveMatchup = Boolean(
+    !viewedRoundClosed &&
+      viewedRound?.matchups.some((m) => m.phase === 'shake' && !m.isBye && m.matchupId),
   );
-  const hasLiveMatchup = Boolean(liveMatchup);
 
   // Scroll the viewed tab into view when it changes (helpful on mobile).
   useEffect(() => {
@@ -202,22 +224,11 @@ export function ContestRoundNavigator({
                   matchup={matchup}
                   index={index}
                   hasVoted={Boolean(matchup.matchupId && votedMatchupIds.has(matchup.matchupId))}
+                  votable={!viewedRoundClosed && matchup.phase === 'shake'}
+                  onVote={onVoteMatchup}
                 />
               ))}
             </ol>
-          )}
-
-          {liveMatchup && (
-            <Button
-              variant="accent"
-              block
-              className="contest-rounds__vote-cta"
-              onClick={() => onVoteMatchup(liveMatchup.matchupId!)}
-            >
-              {liveMatchup.matchupId && votedMatchupIds.has(liveMatchup.matchupId)
-                ? 'Change vote'
-                : 'Vote this matchup'}
-            </Button>
           )}
 
           {viewedRound.status === 'active' && !hasLiveMatchup && (
@@ -230,9 +241,28 @@ export function ContestRoundNavigator({
             <p className="contest-rounds__hint">Voting will open when this round becomes active.</p>
           )}
 
-          {viewedRound.status === 'closed' && (
-            <p className="contest-rounds__hint">Voting closed for this round.</p>
-          )}
+          {viewedRound.status === 'closed' &&
+            (() => {
+              const { votable, voted } = getRoundVotingParticipation(
+                viewedRound,
+                votedMatchupIds,
+              );
+              if (!participationKnown || votable === 0 || voted >= votable) {
+                return <p className="contest-rounds__hint">Voting closed for this round.</p>;
+              }
+              if (voted === 0) {
+                return (
+                  <p className="contest-rounds__hint contest-rounds__hint--missed">
+                    Voting closed — you didn&apos;t vote in this round.
+                  </p>
+                );
+              }
+              return (
+                <p className="contest-rounds__hint contest-rounds__hint--missed">
+                  Voting closed — you voted in {voted} of {votable} matchups.
+                </p>
+              );
+            })()}
         </article>
       )}
     </section>

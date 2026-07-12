@@ -19,10 +19,13 @@ import { test, expect } from '../fixtures/auth';
 import { createContest } from '../fixtures/createContest';
 import { test as anonymousTest } from '@playwright/test';
 
-test('admin can open /admin via the landing page link', async ({ adminPage }) => {
-  await adminPage.goto('/');
+test('admin can open /admin via the nav bar link', async ({ adminPage }) => {
+  // The contest landing lives at /contests (the root `/` is the experiments
+  // portal, outside the contest layout). Admins reach the dashboard through
+  // the NavBar "Admin" link, which only renders for the admin role.
+  await adminPage.goto('/contests');
 
-  const adminLink = adminPage.getByTestId('contest-admin-link');
+  const adminLink = adminPage.getByRole('link', { name: 'Admin' });
   await expect(adminLink).toBeVisible();
 
   await adminLink.click();
@@ -40,8 +43,10 @@ test('admin can deep-link directly to /admin without a redirect', async ({ admin
 });
 
 test('non-admin voter does not see the admin link', async ({ voter1Page }) => {
-  await voter1Page.goto('/');
-  await expect(voter1Page.getByTestId('contest-admin-link')).toHaveCount(0);
+  await voter1Page.goto('/contests');
+  // The page must actually render (not a blank shell) before we assert absence.
+  await expect(voter1Page.getByRole('link', { name: 'Account' })).toBeVisible();
+  await expect(voter1Page.getByRole('link', { name: 'Admin' })).toHaveCount(0);
 });
 
 test('non-admin voter deep-linking /admin is redirected away from /admin', async ({
@@ -85,14 +90,15 @@ test('admin sees per-matchup phase controls and a force-close round override', a
   await expect(roundHeader).toBeVisible();
   await roundHeader.click();
 
-  // Per-matchup phase selector — three toggle buttons labelled by phase.
+  // Per-matchup phase selector — three toggle buttons (accessible names come
+  // from their aria-labels).
   const matchupBlock = adminPage.locator('.admin-round-entry').first();
   await expect(matchupBlock).toBeVisible();
-  await expect(matchupBlock.getByRole('button', { name: /^Set$/ })).toBeVisible();
-  const shakeButton = matchupBlock.getByRole('button', { name: /^Shake$/ });
+  await expect(matchupBlock.getByRole('button', { name: 'Mark matchup 1 as Set' })).toBeVisible();
+  const shakeButton = matchupBlock.getByRole('button', { name: 'Mark matchup 1 as Shake' });
   await expect(shakeButton).toBeVisible();
   await expect(shakeButton).toHaveAttribute('aria-pressed', 'true');
-  await expect(matchupBlock.getByRole('button', { name: /^Scored$/ })).toBeVisible();
+  await expect(matchupBlock.getByRole('button', { name: 'Mark matchup 1 as Scored' })).toBeVisible();
 
   // Admin can force-close the round — the escape hatch is always visible when no override is set.
   await expect(adminPage.getByRole('button', { name: /force close/i })).toBeVisible();

@@ -16,6 +16,10 @@ import {
   signOut,
   onAuthStateChanged,
   onIdTokenChanged,
+  linkWithCredential,
+  linkWithPopup,
+  updateProfile as updateFirebaseProfile,
+  EmailAuthProvider,
   GoogleAuthProvider,
   type User,
 } from 'firebase/auth';
@@ -43,6 +47,18 @@ export async function getAuthToken(): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+/** Friendly messages for the account-linking failure modes users actually hit. */
+function mapLinkError(error: unknown): string {
+  const code = (error as { code?: string })?.code ?? '';
+  if (code === 'auth/email-already-in-use' || code === 'auth/credential-already-in-use') {
+    return 'That email already has an account. Sign in with it instead — your guest activity won’t carry over.';
+  }
+  if (code === 'auth/provider-already-linked') {
+    return 'This session is already linked to an account.';
+  }
+  return error instanceof Error ? error.message : 'Account upgrade failed';
 }
 
 export function createFirebaseAuthProvider(): AuthProvider {
@@ -78,10 +94,59 @@ export function createFirebaseAuthProvider(): AuthProvider {
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         currentUser = userCredential.user;
+        if (data.displayName.trim()) {
+          // Persist the display name onto the Firebase Auth record too, so
+          // token-derived names match the profile document.
+          await updateFirebaseProfile(userCredential.user, {
+            displayName: data.displayName.trim(),
+          }).catch(() => {});
+        }
         return { success: true, uid: userCredential.user.uid };
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Registration failed';
         return { success: false, error: message };
+      }
+    },
+
+    async linkWithEmail(data: RegistrationData): Promise<AuthResult> {
+      if (!isFirebaseConfigured() || !auth) {
+        return { success: false, error: 'Firebase not configured' };
+      }
+      const user = auth.currentUser;
+      if (!user) {
+        return { success: false, error: 'No active session to upgrade' };
+      }
+
+      try {
+        const credential = EmailAuthProvider.credential(data.email, data.password);
+        const userCredential = await linkWithCredential(user, credential);
+        currentUser = userCredential.user;
+        if (data.displayName.trim()) {
+          await updateFirebaseProfile(userCredential.user, {
+            displayName: data.displayName.trim(),
+          }).catch(() => {});
+        }
+        return { success: true, uid: userCredential.user.uid };
+      } catch (error: unknown) {
+        return { success: false, error: mapLinkError(error) };
+      }
+    },
+
+    async linkWithGoogle(): Promise<AuthResult> {
+      if (!isFirebaseConfigured() || !auth) {
+        return { success: false, error: 'Firebase not configured' };
+      }
+      const user = auth.currentUser;
+      if (!user) {
+        return { success: false, error: 'No active session to upgrade' };
+      }
+
+      try {
+        const userCredential = await linkWithPopup(user, new GoogleAuthProvider());
+        currentUser = userCredential.user;
+        return { success: true, uid: userCredential.user.uid };
+      } catch (error: unknown) {
+        return { success: false, error: mapLinkError(error) };
       }
     },
 
@@ -148,6 +213,10 @@ export function createFirebaseAuthProvider(): AuthProvider {
 
     isAuthenticated(): boolean {
       return currentUser !== null;
+    },
+
+    isAnonymous(): boolean {
+      return currentUser?.isAnonymous ?? false;
     },
 
     getCurrentUid(): string | null {

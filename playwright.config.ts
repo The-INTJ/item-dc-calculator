@@ -23,6 +23,14 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      testIgnore: /mobile-.*\.spec\.ts/,
+    },
+    {
+      // Mobile project runs only mobile-* specs (412px wide — below MUI's
+      // `sm`, so the vote modal goes fullscreen).
+      name: 'mobile',
+      use: { ...devices['Pixel 7'] },
+      testMatch: /mobile-.*\.spec\.ts/,
     },
   ],
   webServer: {

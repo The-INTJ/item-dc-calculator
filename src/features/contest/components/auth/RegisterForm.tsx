@@ -1,25 +1,39 @@
 'use client';
 
 /**
- * Registration form component
+ * Registration form. In `register` mode it creates a brand-new email/password
+ * account; in `upgrade` mode it links the credentials onto the CURRENT guest
+ * session (same Firebase uid — votes and registrations carry over).
  */
 
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../../contexts/auth/AuthContext';
 
 interface RegisterFormProps {
+  mode?: 'register' | 'upgrade';
+  initialDisplayName?: string;
   onSuccess?: () => void;
   onSwitchToLogin?: () => void;
 }
 
-export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) {
-  const { register } = useAuth();
-  const [displayName, setDisplayName] = useState('');
+export function RegisterForm({
+  mode = 'register',
+  initialDisplayName = '',
+  onSuccess,
+  onSwitchToLogin,
+}: RegisterFormProps) {
+  const { register, upgradeGuestWithEmail } = useAuth();
+  const [displayName, setDisplayName] = useState(initialDisplayName);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const isUpgrade = mode === 'upgrade';
+  const heading = isUpgrade ? 'Make your account permanent' : 'Create Account';
+  const submitLabel = isUpgrade ? 'Upgrade account' : 'Create Account';
+  const busyLabel = isUpgrade ? 'Upgrading...' : 'Creating account...';
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -36,19 +50,26 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
     }
 
     setLoading(true);
-    const result = await register({ email, password, displayName });
+    const action = isUpgrade ? upgradeGuestWithEmail : register;
+    const result = await action({ email, password, displayName });
 
     setLoading(false);
     if (result.success) {
       onSuccess?.();
     } else {
-      setError(result.error ?? 'Registration failed');
+      setError(result.error ?? (isUpgrade ? 'Account upgrade failed' : 'Registration failed'));
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="auth-form">
-      <h2>Create Account</h2>
+      <h2>{heading}</h2>
+      {isUpgrade && (
+        <p className="guest-note">
+          Your guest votes and registrations stay with you — this adds a sign-in to the same
+          account.
+        </p>
+      )}
 
       {error && <div className="auth-error">{error}</div>}
 
@@ -102,14 +123,14 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
       </div>
 
       <button type="submit" className="button-primary" disabled={loading}>
-        {loading ? 'Creating account...' : 'Create Account'}
+        {loading ? busyLabel : submitLabel}
       </button>
 
       {onSwitchToLogin && (
         <p className="auth-switch">
-          Already have an account?{' '}
+          {isUpgrade ? 'Changed your mind?' : 'Already have an account?'}{' '}
           <button type="button" onClick={onSwitchToLogin} className="auth-link">
-            Sign in
+            {isUpgrade ? 'Keep browsing as a guest' : 'Back to sign in'}
           </button>
         </p>
       )}

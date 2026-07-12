@@ -3,6 +3,11 @@
  *
  * Each fixture opens a new `browser.newContext` seeded with the storageState
  * captured by e2e/global-setup.ts (IndexedDB-backed Firebase auth record).
+ * The project's `contextOptions` are spread in so device projects (e.g. the
+ * Pixel 7 mobile project) apply their viewport/UA to these contexts too.
+ *
+ * Playwright statically analyzes these fixtures, so each MUST destructure its
+ * dependencies inline in the first argument (no extracted factory helpers).
  *
  * This is test INFRASTRUCTURE — specs still drive the app through real UI,
  * per the no-drift rule in e2e/README.md.
@@ -35,68 +40,61 @@ interface RoleFixtures {
 }
 
 export const test = base.extend<RoleFixtures>({
-  adminContext: async ({ browser }, use) => {
-    const ctx = await browser.newContext({ storageState: storageStateFor('admin') });
+  adminContext: async ({ browser, contextOptions }, use) => {
+    const ctx = await browser.newContext({ ...contextOptions, storageState: storageStateFor('admin') });
     await use(ctx);
     await ctx.close();
   },
   adminPage: async ({ adminContext }, use) => {
-    const page = await adminContext.newPage();
-    await use(page);
+    await use(await adminContext.newPage());
   },
-  voterContext: async ({ browser }, use) => {
-    const ctx = await browser.newContext({ storageState: storageStateFor('voter') });
+  voterContext: async ({ browser, contextOptions }, use) => {
+    const ctx = await browser.newContext({ ...contextOptions, storageState: storageStateFor('voter') });
     await use(ctx);
     await ctx.close();
   },
   voterPage: async ({ voterContext }, use) => {
-    const page = await voterContext.newPage();
-    await use(page);
+    await use(await voterContext.newPage());
   },
-  voter1Context: async ({ browser }, use) => {
-    const ctx = await browser.newContext({ storageState: storageStateFor('voter1') });
+  voter1Context: async ({ browser, contextOptions }, use) => {
+    const ctx = await browser.newContext({ ...contextOptions, storageState: storageStateFor('voter1') });
     await use(ctx);
     await ctx.close();
   },
   voter1Page: async ({ voter1Context }, use) => {
-    const page = await voter1Context.newPage();
-    await use(page);
+    await use(await voter1Context.newPage());
   },
-  voter2Context: async ({ browser }, use) => {
-    const ctx = await browser.newContext({ storageState: storageStateFor('voter2') });
+  voter2Context: async ({ browser, contextOptions }, use) => {
+    const ctx = await browser.newContext({ ...contextOptions, storageState: storageStateFor('voter2') });
     await use(ctx);
     await ctx.close();
   },
   voter2Page: async ({ voter2Context }, use) => {
-    const page = await voter2Context.newPage();
-    await use(page);
+    await use(await voter2Context.newPage());
   },
-  voter3Context: async ({ browser }, use) => {
-    const ctx = await browser.newContext({ storageState: storageStateFor('voter3') });
+  voter3Context: async ({ browser, contextOptions }, use) => {
+    const ctx = await browser.newContext({ ...contextOptions, storageState: storageStateFor('voter3') });
     await use(ctx);
     await ctx.close();
   },
   voter3Page: async ({ voter3Context }, use) => {
-    const page = await voter3Context.newPage();
-    await use(page);
+    await use(await voter3Context.newPage());
   },
-  voter4Context: async ({ browser }, use) => {
-    const ctx = await browser.newContext({ storageState: storageStateFor('voter4') });
+  voter4Context: async ({ browser, contextOptions }, use) => {
+    const ctx = await browser.newContext({ ...contextOptions, storageState: storageStateFor('voter4') });
     await use(ctx);
     await ctx.close();
   },
   voter4Page: async ({ voter4Context }, use) => {
-    const page = await voter4Context.newPage();
-    await use(page);
+    await use(await voter4Context.newPage());
   },
-  voter5Context: async ({ browser }, use) => {
-    const ctx = await browser.newContext({ storageState: storageStateFor('voter5') });
+  voter5Context: async ({ browser, contextOptions }, use) => {
+    const ctx = await browser.newContext({ ...contextOptions, storageState: storageStateFor('voter5') });
     await use(ctx);
     await ctx.close();
   },
   voter5Page: async ({ voter5Context }, use) => {
-    const page = await voter5Context.newPage();
-    await use(page);
+    await use(await voter5Context.newPage());
   },
 });
 

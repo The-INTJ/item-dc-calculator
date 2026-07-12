@@ -176,6 +176,26 @@ export const contestApi = {
     );
   },
 
+  /**
+   * Submit a complete matchup ballot atomically. If the matchup closed while
+   * the voter was scoring, the whole ballot is rejected with
+   * `errorCode: MATCHUP_CLOSED` — no partial ballots.
+   */
+  async submitBallot(
+    contestId: string,
+    matchupId: string,
+    data: {
+      userName?: string;
+      userRole?: UserRole;
+      scores: Array<{ entryId: string; breakdown: ScoreBreakdown }>;
+    },
+  ): Promise<ProviderResult<{ scores: ScoreEntry[] }>> {
+    return fetchProviderResult<{ scores: ScoreEntry[] }>(
+      `${API}/contests/${encodeURIComponent(contestId)}/matchups/${encodeURIComponent(matchupId)}/ballot`,
+      { method: 'POST', body: JSON.stringify(data) },
+    );
+  },
+
   // ── Matchups ────────────────────────────────────────────────────────────
   async listMatchups(
     contestId: string,

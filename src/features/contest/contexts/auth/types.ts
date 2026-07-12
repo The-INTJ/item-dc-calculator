@@ -90,6 +90,13 @@ export interface AuthContextValue {
   register: (data: RegistrationData) => Promise<AuthResult>;
   login: (credentials: LoginCredentials) => Promise<AuthResult>;
   loginWithGoogle: () => Promise<AuthResult>;
+  /**
+   * Link email/password credentials onto the current guest session. The
+   * Firebase uid is preserved, so votes and registrations carry over.
+   */
+  upgradeGuestWithEmail: (data: RegistrationData) => Promise<AuthResult>;
+  /** Link a Google account onto the current guest session (uid preserved). */
+  upgradeGuestWithGoogle: () => Promise<AuthResult>;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   resetSessionForNewAccount: () => Promise<void>;

@@ -120,7 +120,12 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
         </div>
       ) : null}
 
-      {!hasScores && <ContestConfigEditor contest={contest} onSave={handleSaveConfig} />}
+      {!hasScores && (
+        <details className="admin-config-disclosure">
+          <summary className="admin-config-disclosure__summary">Scoring setup</summary>
+          <ContestConfigEditor contest={contest} onSave={handleSaveConfig} />
+        </details>
+      )}
       <AdminContestRounds
         contest={contest}
         config={config}

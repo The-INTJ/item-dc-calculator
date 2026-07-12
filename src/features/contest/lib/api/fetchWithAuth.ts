@@ -51,7 +51,11 @@ export async function fetchProviderResult<T>(
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({ message: 'Request failed' }));
-      return { success: false, error: body.message ?? 'Request failed' };
+      return {
+        success: false,
+        error: body.message ?? 'Request failed',
+        ...(body.code ? { errorCode: body.code } : {}),
+      };
     }
 
     if (res.status === 204) {

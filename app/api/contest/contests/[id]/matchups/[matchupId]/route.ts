@@ -3,6 +3,7 @@ import { fromProviderResult, jsonError, jsonSuccess, parseBody } from '../../../
 import { getContestByParam } from '@/contest/lib/backend/serverProvider';
 import { requireAdmin } from '../../../../_lib/requireAdmin';
 import { UpdateMatchupBodySchema } from '@/contest/lib/schemas';
+import { resolveMatchupWinner } from '@/contest/lib/domain/winnerResolution';
 
 interface RouteParams {
   params: Promise<{ id: string; matchupId: string }>;
@@ -40,7 +41,22 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return body.response;
   }
 
-  const result = await provider.matchups.update(contest.id, matchupId, body.data);
+  const updates = { ...body.data };
+
+  // Closing a matchup persists the winner at close time: when no explicit
+  // winner is supplied and none is recorded, derive one from the current
+  // score aggregates. Ties stay winnerless (admin resolves; seed backstops).
+  if (updates.phase === 'scored' && updates.winnerEntryId === undefined) {
+    const existing = await provider.matchups.getById(contest.id, matchupId);
+    if (existing.success && existing.data && !existing.data.winnerEntryId) {
+      const resolution = resolveMatchupWinner(existing.data);
+      if (resolution.ok) {
+        updates.winnerEntryId = resolution.winnerEntryId;
+      }
+    }
+  }
+
+  const result = await provider.matchups.update(contest.id, matchupId, updates);
   return fromProviderResult(result, { failureStatus: 404 });
 }
 

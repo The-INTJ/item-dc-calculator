@@ -19,6 +19,8 @@ export interface ProviderResult<T> {
   success: boolean;
   data?: T;
   error?: string;
+  /** Machine-readable error code (see lib/domain/errorCodes.ts) when the API supplied one. */
+  errorCode?: string;
 }
 
 /**
@@ -52,6 +54,14 @@ export interface ContestantsProvider {
     updates: Partial<Contestant>,
   ): Promise<ProviderResult<Contestant>>;
   delete(contestId: string, contestantId: string): Promise<ProviderResult<void>>;
+  /**
+   * Remove a contestant AND their participation: entries stripped from every
+   * matchup (2-entry matchups collapse to a scored bye; empty matchups are
+   * deleted), winners recomputed, votes ON their entries purged. Votes they
+   * cast on other entries and their Voter record are kept.
+   * See domain/contestantRemoval.ts for the pure planning logic.
+   */
+  removeCascade(contestId: string, contestantId: string): Promise<ProviderResult<void>>;
 }
 
 /**
@@ -73,6 +83,22 @@ export interface ScoreUpdatePayload {
   notes?: string;
 }
 
+/** One entry's scores within an atomic ballot. */
+export interface BallotScoreInput {
+  entryId: string;
+  breakdown: ScoreBreakdown;
+}
+
+/**
+ * A voter's complete ballot for one matchup — every entry's breakdown,
+ * committed atomically (all land or none do).
+ */
+export interface BallotInput {
+  matchupId: string;
+  userId: string;
+  scores: BallotScoreInput[];
+}
+
 /**
  * Scores provider interface - manage scores/ratings
  */
@@ -84,6 +110,12 @@ export interface ScoresProvider {
     contestId: string,
     score: Omit<ScoreEntry, 'id'>
   ): Promise<ProviderResult<ScoreEntry>>;
+  /**
+   * Submit a whole matchup ballot in one transaction. The matchup phase is
+   * re-checked inside the transaction, so a ballot racing a round close
+   * either fully lands or is fully rejected — never a partial ballot.
+   */
+  submitBallot(contestId: string, input: BallotInput): Promise<ProviderResult<ScoreEntry[]>>;
   update(
     contestId: string,
     scoreId: string,

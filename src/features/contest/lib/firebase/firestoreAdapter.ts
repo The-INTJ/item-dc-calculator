@@ -26,10 +26,11 @@ import {
   type Firestore,
 } from 'firebase/firestore';
 import type { Contest, ContestConfigItem, Entry, Matchup, ScoreBreakdown, ScoreEntry } from '../../contexts/contest/contestTypes';
-import type { MatchupCreateInput, ScoreUpdatePayload, UserProfile } from '../backend/types';
+import type { BallotInput, MatchupCreateInput, ScoreUpdatePayload, UserProfile } from '../backend/types';
 import { generateId as makeId } from '../backend/providerUtils';
 import { generateId } from '../backend/providerUtils';
 import { normalizeContest } from '../domain/normalizeContest';
+import { planContestantRemoval } from '../domain/contestantRemoval';
 import { computeVoteTotal, docToScoreEntry, makeVoteDocId } from './scoreHelpers';
 
 const CONTESTS_COLLECTION = 'contests';
@@ -95,8 +96,14 @@ export interface FirestoreAdapter {
   listScoresByUser(contestId: string, userId: string): Promise<ScoreEntry[]>;
   getScore(contestId: string, scoreId: string): Promise<ScoreEntry | null>;
   submitScore(contestId: string, input: Omit<ScoreEntry, 'id'>): Promise<ScoreEntry>;
+  /** Submit a whole matchup ballot atomically — all entries land or none do. */
+  submitBallot(contestId: string, input: BallotInput): Promise<ScoreEntry[]>;
   updateScore(contestId: string, scoreId: string, updates: ScoreUpdatePayload): Promise<ScoreEntry>;
   deleteScore(contestId: string, scoreId: string): Promise<void>;
+
+  // ---- Contestant cascade ----
+  /** Remove a contestant plus their matchup entries/votes-on-entries. */
+  removeContestantCascade(contestId: string, contestantId: string): Promise<void>;
 
   // ---- Matchups ----
   listMatchups(contestId: string): Promise<Matchup[]>;
@@ -350,6 +357,105 @@ export function createFirestoreAdapter(getDb: () => Firestore | null): Firestore
           breakdown: input.breakdown,
         });
       });
+    },
+
+    async submitBallot(contestId, input): Promise<ScoreEntry[]> {
+      const db = requireDb();
+      const { userId, matchupId, scores } = input;
+      if (!matchupId) throw new Error('matchupId is required');
+      if (scores.length === 0) throw new Error('Ballot must contain at least one score');
+
+      return runTransaction(db, async (transaction) => {
+        const matchupRef = doc(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION, matchupId);
+        const voteRefs = scores.map((s) =>
+          doc(db, CONTESTS_COLLECTION, contestId, VOTES_SUBCOLLECTION, makeVoteDocId(userId, matchupId, s.entryId)),
+        );
+
+        const [matchupSnap, ...voteSnaps] = await Promise.all([
+          transaction.get(matchupRef),
+          ...voteRefs.map((ref) => transaction.get(ref)),
+        ]);
+
+        if (!matchupSnap.exists()) throw new Error('Matchup not found');
+        const matchupData = matchupSnap.data() as Record<string, unknown>;
+        if (matchupData.phase !== 'shake') throw new Error('Matchup is not open for scoring');
+        const entries = ((matchupData.entries as Entry[] | undefined) ?? []).map((e) => ({ ...e }));
+
+        const results: ScoreEntry[] = [];
+        for (let i = 0; i < scores.length; i += 1) {
+          const { entryId, breakdown } = scores[i];
+          const entryIndex = entries.findIndex((e) => e.id === entryId);
+          if (entryIndex === -1) throw new Error('Entry is not part of this matchup');
+
+          const voteSnap = voteSnaps[i];
+          const newTotal = computeVoteTotal(breakdown);
+          const isNewVote = !voteSnap.exists();
+          const delta = isNewVote
+            ? newTotal
+            : newTotal - computeVoteTotal((voteSnap.data()?.breakdown ?? {}) as ScoreBreakdown);
+
+          const voteData: Record<string, unknown> = {
+            userId,
+            entryId,
+            matchupId,
+            breakdown,
+            updatedAt: serverTimestamp(),
+          };
+          if (isNewVote) voteData.createdAt = serverTimestamp();
+          transaction.set(voteRefs[i], voteData, { merge: true });
+
+          entries[entryIndex].sumScore = (entries[entryIndex].sumScore ?? 0) + delta;
+          entries[entryIndex].voteCount = (entries[entryIndex].voteCount ?? 0) + (isNewVote ? 1 : 0);
+          results.push(docToScoreEntry(voteRefs[i].id, { userId, entryId, matchupId, breakdown }));
+        }
+
+        transaction.update(matchupRef, { entries, updatedAt: serverTimestamp() });
+        return results;
+      });
+    },
+
+    async removeContestantCascade(contestId, contestantId): Promise<void> {
+      const db = requireDb();
+      const contestRef = doc(db, CONTESTS_COLLECTION, contestId);
+      const contestSnap = await getDoc(contestRef);
+      if (!contestSnap.exists()) throw new Error('Contest not found');
+      const contest = normalizeContest(contestSnap.id, contestSnap.data());
+      if (!(contest.contestants ?? []).some((c) => c.id === contestantId)) {
+        throw new Error('Contestant not found');
+      }
+
+      const matchupsSnap = await getDocs(
+        collection(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION),
+      );
+      const matchups = matchupsSnap.docs.map((d) => normalizeMatchupDoc(contestId, d.id, d.data()));
+      const plan = planContestantRemoval(contestantId, matchups);
+
+      const batch = writeBatch(db);
+      for (const entryId of plan.purgedEntryIds) {
+        const votes = await getDocs(
+          query(
+            collection(db, CONTESTS_COLLECTION, contestId, VOTES_SUBCOLLECTION),
+            where('entryId', '==', entryId),
+          ),
+        );
+        for (const voteDoc of votes.docs) batch.delete(voteDoc.ref);
+      }
+      for (const update of plan.updates) {
+        batch.update(doc(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION, update.matchupId), {
+          entries: update.entries,
+          phase: update.phase,
+          winnerEntryId: update.winnerEntryId,
+          updatedAt: serverTimestamp(),
+        });
+      }
+      for (const matchupId of plan.deletes) {
+        batch.delete(doc(db, CONTESTS_COLLECTION, contestId, MATCHUPS_SUBCOLLECTION, matchupId));
+      }
+      batch.update(contestRef, {
+        contestants: (contest.contestants ?? []).filter((c) => c.id !== contestantId),
+        updatedAt: serverTimestamp(),
+      });
+      await batch.commit();
     },
 
     async updateScore(contestId, scoreId, updates): Promise<ScoreEntry> {

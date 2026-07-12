@@ -3,8 +3,9 @@ import { getContestByParam } from '@/contest/lib/backend/serverProvider';
 import { requireAdmin } from '../../../../../_lib/requireAdmin';
 import { SeedRoundBodySchema } from '@/contest/lib/schemas';
 import type { MatchupCreateInput } from '@/contest/lib/backend/types';
-import type { Contest, Entry, Matchup } from '@/contest/contexts/contest/contestTypes';
+import type { Contest } from '@/contest/contexts/contest/contestTypes';
 import { pairWithByes } from '@/contest/lib/domain/bracketMath';
+import { resolveMatchupWinner } from '@/contest/lib/domain/winnerResolution';
 
 type SeedSlot = [string, string] | [string];
 
@@ -177,14 +178,14 @@ async function resolveSeedSlots(args: {
 
     let resolvedWinnerEntryId = matchup.winnerEntryId ?? null;
     if (typeof resolvedWinnerEntryId !== 'string' || resolvedWinnerEntryId.length === 0) {
-      const healed = healWinnerFromScores(matchup);
+      const healed = resolveMatchupWinner(matchup);
       if (healed.ok) {
         resolvedWinnerEntryId = healed.winnerEntryId;
         void provider.matchups.update(contest.id, matchup.id, {
           winnerEntryId: healed.winnerEntryId,
         });
       } else {
-        problems.push(`${slotLabel}: ${healed.reason}`);
+        problems.push(`${slotLabel}: ${WINNER_PROBLEM_MESSAGES[healed.reason]}`);
         continue;
       }
     }
@@ -215,47 +216,9 @@ async function resolveSeedSlots(args: {
   return { ok: true, slots };
 }
 
-type HealResult =
-  | { ok: true; winnerEntryId: string }
-  | { ok: false; reason: string };
-
-/**
- * Self-heal a 'scored' matchup with a missing winnerEntryId by picking the
- * leading entry by aggregate score (sumScore / voteCount). Returns ok:false
- * when scores are tied or missing — admin still needs to choose.
- */
-function healWinnerFromScores(matchup: Matchup): HealResult {
-  const entries = matchup.entries ?? [];
-  if (entries.length === 0) {
-    return { ok: false, reason: 'no winner set and matchup has no entries to derive from.' };
-  }
-
-  let leaderId: string | null = null;
-  let leaderScore = Number.NEGATIVE_INFINITY;
-  let tied = false;
-
-  for (const entry of entries) {
-    const score = getEntryAverage(entry);
-    if (score == null) continue;
-    if (score > leaderScore) {
-      leaderId = entry.id;
-      leaderScore = score;
-      tied = false;
-    } else if (score === leaderScore) {
-      tied = true;
-    }
-  }
-
-  if (leaderId == null) {
-    return { ok: false, reason: 'no winner set and no scores recorded yet.' };
-  }
-  if (tied) {
-    return { ok: false, reason: 'no winner set and scores are tied — pick a winner manually.' };
-  }
-  return { ok: true, winnerEntryId: leaderId };
-}
-
-function getEntryAverage(entry: Entry): number | null {
-  if (!entry.voteCount || entry.voteCount === 0) return null;
-  return Math.round((entry.sumScore ?? 0) / entry.voteCount);
-}
+/** Human-readable messages for winner-resolution failures at seed time. */
+const WINNER_PROBLEM_MESSAGES: Record<'no-entries' | 'no-scores' | 'tied', string> = {
+  'no-entries': 'no winner set and matchup has no entries to derive from.',
+  'no-scores': 'no winner set and no scores recorded yet.',
+  tied: 'no winner set and scores are tied — pick a winner manually.',
+};

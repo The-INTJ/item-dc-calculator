@@ -15,6 +15,11 @@ export default [
       'TEMP-new-designs/**',
       '*.tsbuildinfo',
       'scripts/**',
+      // Generated test artifacts (Playwright reports, traces, saved auth state).
+      'playwright-report/**',
+      'test-results/**',
+      'e2e/.auth/**',
+      'emulator-data/**',
     ],
   },
   {

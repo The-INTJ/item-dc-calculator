@@ -54,7 +54,10 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     return jsonError(error ?? 'Contest not found', 404);
   }
 
-  const result = await provider.contestants.delete(contest.id, contestantId);
+  // Cascade semantics: removes their matchup entries (2-entry matchups
+  // collapse to a scored bye), recomputes winners, purges votes on their
+  // entries. Votes they cast on other entries and their Voter record remain.
+  const result = await provider.contestants.removeCascade(contest.id, contestantId);
   if (!result.success) {
     return jsonError(result.error ?? 'Contestant not found', 404);
   }

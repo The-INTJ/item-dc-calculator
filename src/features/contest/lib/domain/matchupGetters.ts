@@ -57,20 +57,27 @@ export function getContestantTotals(
 /**
  * Compute a round's status from its matchups and admin override.
  *
- *   no matchups                       → 'pending'
- *   adminOverride === 'closed'        → 'closed'
- *   adminOverride === 'active'        → 'active'
- *   every matchup phase === 'scored'  → 'closed'
- *   every matchup phase === 'set'     → 'upcoming'
- *   otherwise                         → 'active'
+ *   no matchups                          → 'pending'
+ *   adminOverride === 'closed'           → 'closed'
+ *   adminOverride === 'active'           → 'active'
+ *   every contested matchup 'scored'     → 'closed'
+ *   every contested matchup 'set'        → 'upcoming'
+ *   otherwise                            → 'active'
+ *
+ * Byes (single-entry matchups) are auto-scored the moment a round is seeded,
+ * so they're excluded from the phase math — otherwise a freshly seeded odd
+ * round would read 'active' ("Now voting") before anything opened. A round
+ * containing only byes is already decided → 'closed'.
  */
 export function getComputedRoundStatus(round: ContestRound, matchups: Matchup[]): RoundStatus {
   const scoped = matchups.filter((m) => m.roundId === round.id);
   if (scoped.length === 0) return 'pending';
   if (round.adminOverride === 'closed') return 'closed';
   if (round.adminOverride === 'active') return 'active';
-  if (scoped.every((m) => m.phase === 'scored')) return 'closed';
-  if (scoped.every((m) => m.phase === 'set')) return 'upcoming';
+  const contested = scoped.filter((m) => (m.entries?.length ?? 0) !== 1);
+  if (contested.length === 0) return 'closed';
+  if (contested.every((m) => m.phase === 'scored')) return 'closed';
+  if (contested.every((m) => m.phase === 'set')) return 'upcoming';
   return 'active';
 }
 

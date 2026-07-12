@@ -27,9 +27,15 @@ export function VoteModal({ open, onClose, onSubmitted, contest, matchup }: Vote
     status,
     message,
     isSubmitting,
+    isMatchupOpen,
     selfEntryId,
   } = useMatchupVoting(contest, matchup);
   const [activeEntryIndex, setActiveEntryIndex] = useState(0);
+
+  // The matchup closed while the modal was open (live phase flip via the
+  // realtime subscription), or a submit raced the close and was rejected.
+  // Keep the "Scores submitted!" confirmation when the vote landed in time.
+  const votingClosed = (!isMatchupOpen || status === 'closed') && status !== 'success';
 
   useEffect(() => {
     setActiveEntryIndex(0);
@@ -54,7 +60,7 @@ export function VoteModal({ open, onClose, onSubmitted, contest, matchup }: Vote
     return categories.reduce((sum, category) => sum + (activeScores[category.id] ?? category.min ?? 0), 0);
   }, [activeScores, categories, isSelfEntry, maxTotal]);
 
-  const canSubmit = drinks.length > 0 && categories.length > 0 && !isSubmitting;
+  const canSubmit = drinks.length > 0 && categories.length > 0 && !isSubmitting && !votingClosed;
   const isLastEntry = activeEntryIndex >= drinks.length - 1;
 
   const handlePrimaryAction = () => {
@@ -127,6 +133,14 @@ export function VoteModal({ open, onClose, onSubmitted, contest, matchup }: Vote
             </p>
           )}
 
+          {votingClosed && (
+            <p className="vote-sheet__closed-banner" role="status">
+              {status === 'closed' && message
+                ? message
+                : 'Voting just closed for this matchup — scores can no longer be submitted.'}
+            </p>
+          )}
+
           <div className="vote-sheet__scores">
             {categories.map((category) => {
               const min = category.min ?? 0;
@@ -151,9 +165,9 @@ export function VoteModal({ open, onClose, onSubmitted, contest, matchup }: Vote
                     step={1}
                     value={value}
                     valueLabelDisplay="auto"
-                    disabled={isSelfEntry}
+                    disabled={isSelfEntry || votingClosed}
                     onChange={(_, nextValue) => {
-                      if (isSelfEntry) return;
+                      if (isSelfEntry || votingClosed) return;
                       const normalized = Array.isArray(nextValue) ? nextValue[0] : nextValue;
                       updateScore(activeEntry.id, category.id, normalized);
                     }}
@@ -168,7 +182,7 @@ export function VoteModal({ open, onClose, onSubmitted, contest, matchup }: Vote
             })}
           </div>
 
-          {message && (
+          {message && status !== 'closed' && (
             <p className={`contest-vote-actions__message contest-vote-actions__message--${status}`}>
               {message}
             </p>

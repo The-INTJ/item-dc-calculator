@@ -1,8 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import {
+  computeBracketShape,
   computeBracketStructure,
+  computeBracketStructureFromShape,
   getBracketGridRowCount,
+  getBracketGridRowCountForShape,
   getMatchupGridPlacement,
+  getRequiredRoundCount,
   pairMatchupsAcrossRounds,
   pairWithByes,
 } from './bracketMath';
@@ -126,6 +130,120 @@ describe('pairMatchupsAcrossRounds', () => {
     const to: { id: string; slotIndex: number }[] = [];
     const pairs = pairMatchupsAcrossRounds(from, to);
     expect(pairs.size).toBe(0);
+  });
+});
+
+describe('computeBracketShape', () => {
+  it('cascades ceil(n/2) from the first-round matchup count', () => {
+    expect(computeBracketShape(3, 3)).toEqual([3, 2, 1]);
+    expect(computeBracketShape(2, 2)).toEqual([2, 1]);
+    expect(computeBracketShape(4, 3)).toEqual([4, 2, 1]);
+    expect(computeBracketShape(6, 4)).toEqual([6, 3, 2, 1]);
+  });
+
+  it('keeps trailing rounds at 1 once the cascade converges', () => {
+    // 4 contestants (2 matchups) with a surplus third round → [2, 1, 1].
+    expect(computeBracketShape(2, 3)).toEqual([2, 1, 1]);
+  });
+
+  it('propagates zero for unseeded shapes', () => {
+    expect(computeBracketShape(0, 2)).toEqual([0, 0]);
+  });
+
+  it('returns empty for zero rounds', () => {
+    expect(computeBracketShape(3, 0)).toEqual([]);
+  });
+});
+
+describe('computeBracketStructureFromShape', () => {
+  it('filters phantom feeders for odd shapes', () => {
+    // Shape [3, 2, 1] — round-1 slot 1 is fed only by round-0 slot 2 (the bye).
+    const structure = computeBracketStructureFromShape([3, 2, 1]);
+    expect(structure.rounds.map((r) => r.matchupCount)).toEqual([3, 2, 1]);
+    expect(structure.rounds[1].slots[0].sourceMatchups).toEqual([0, 1]);
+    expect(structure.rounds[1].slots[1].sourceMatchups).toEqual([2]);
+    expect(structure.rounds[2].slots[0].sourceMatchups).toEqual([0, 1]);
+  });
+
+  it('handles single-feeder trailing rounds', () => {
+    // Shape [2, 1, 1] — the surplus final is fed by the lone round-1 matchup.
+    const structure = computeBracketStructureFromShape([2, 1, 1]);
+    expect(structure.rounds[2].slots[0].sourceMatchups).toEqual([0]);
+  });
+
+  it('matches the power-of-2 structure for power-of-2 shapes', () => {
+    const fromShape = computeBracketStructureFromShape([4, 2, 1]);
+    const classic = computeBracketStructure(3);
+    expect(fromShape.rounds.map((r) => r.matchupCount)).toEqual(
+      classic.rounds.map((r) => r.matchupCount),
+    );
+    expect(fromShape.rounds[1].slots[1].sourceMatchups).toEqual([2, 3]);
+  });
+
+  it('round 0 has no sources', () => {
+    const structure = computeBracketStructureFromShape([3, 2, 1]);
+    for (const slot of structure.rounds[0].slots) {
+      expect(slot.sourceMatchups).toBeNull();
+    }
+  });
+});
+
+describe('getBracketGridRowCountForShape', () => {
+  it('gives every slot at least its two-row footprint', () => {
+    expect(getBracketGridRowCountForShape([1])).toBe(2);
+    expect(getBracketGridRowCountForShape([2, 1])).toBe(4);
+    expect(getBracketGridRowCountForShape([3, 2, 1])).toBe(6);
+    expect(getBracketGridRowCountForShape([6, 3, 2, 1])).toBe(12);
+  });
+
+  it('matches 2^n for power-of-2 shapes', () => {
+    expect(getBracketGridRowCountForShape([4, 2, 1])).toBe(8);
+    expect(getBracketGridRowCountForShape([8, 4, 2, 1])).toBe(16);
+  });
+
+  it('returns 0 for empty shapes', () => {
+    expect(getBracketGridRowCountForShape([])).toBe(0);
+    expect(getBracketGridRowCountForShape([0, 0])).toBe(0);
+  });
+});
+
+describe('getMatchupGridPlacement with grid clamping', () => {
+  it('clamps over-capacity slots to the grid (the 5-contestant bug case)', () => {
+    // Shape [3, 2] → 6-row grid. Round-0 slot 2 was previously placed at
+    // rows 5-6 of a 4-row grid (off-grid); with the derived 6-row grid it fits.
+    const grid = getBracketGridRowCountForShape([3, 2]);
+    expect(grid).toBe(6);
+    expect(getMatchupGridPlacement(0, 2, grid)).toEqual({ rowStart: 5, rowSpan: 2 });
+    // Round-1 slot 1 (fed only by the bye) clamps its 4-row span to the grid.
+    expect(getMatchupGridPlacement(1, 1, grid)).toEqual({ rowStart: 5, rowSpan: 2 });
+  });
+
+  it('clamps a surplus final to the full grid height', () => {
+    // Shape [2, 1, 1] → 4-row grid; the final's natural 8-row span clamps to 4.
+    expect(getMatchupGridPlacement(2, 0, 4)).toEqual({ rowStart: 1, rowSpan: 4 });
+  });
+
+  it('preserves legacy behavior when no grid bound is passed', () => {
+    expect(getMatchupGridPlacement(1, 1)).toEqual({ rowStart: 5, rowSpan: 4 });
+  });
+});
+
+describe('getRequiredRoundCount', () => {
+  it('computes ceil(log2(n)) rounds to crown a champion', () => {
+    expect(getRequiredRoundCount(2)).toBe(1);
+    expect(getRequiredRoundCount(3)).toBe(2);
+    expect(getRequiredRoundCount(4)).toBe(2);
+    expect(getRequiredRoundCount(5)).toBe(3);
+    expect(getRequiredRoundCount(7)).toBe(3);
+    expect(getRequiredRoundCount(8)).toBe(3);
+    expect(getRequiredRoundCount(9)).toBe(4);
+    expect(getRequiredRoundCount(12)).toBe(4);
+    expect(getRequiredRoundCount(16)).toBe(4);
+  });
+
+  it('returns 0 when there is nothing to bracket', () => {
+    expect(getRequiredRoundCount(0)).toBe(0);
+    expect(getRequiredRoundCount(1)).toBe(0);
   });
 });
 

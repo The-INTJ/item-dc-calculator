@@ -10,9 +10,10 @@
 
 import { FieldValue, type Firestore as AdminFirestore } from 'firebase-admin/firestore';
 import type { Contest, ContestConfigItem, Entry, Matchup, ScoreBreakdown, ScoreEntry } from '../../contexts/contest/contestTypes';
-import type { MatchupCreateInput, ScoreUpdatePayload, UserProfile } from '../backend/types';
+import type { BallotInput, MatchupCreateInput, ScoreUpdatePayload, UserProfile } from '../backend/types';
 import { generateId } from '../backend/providerUtils';
 import { normalizeContest } from '../domain/normalizeContest';
+import { planContestantRemoval } from '../domain/contestantRemoval';
 import type { FirestoreAdapter } from './firestoreAdapter';
 import { buildInlineEntriesFromContestantIds } from './firestoreAdapter';
 import { computeVoteTotal, docToScoreEntry, makeVoteDocId } from './scoreHelpers';
@@ -266,6 +267,107 @@ export function createFirestoreAdminAdapter(getDb: () => AdminFirestore | null):
           breakdown: input.breakdown,
         });
       });
+    },
+
+    async submitBallot(contestId, input: BallotInput): Promise<ScoreEntry[]> {
+      const db = requireDb();
+      const { userId, matchupId, scores } = input;
+      if (!matchupId) throw new Error('matchupId is required');
+      if (scores.length === 0) throw new Error('Ballot must contain at least one score');
+
+      return db.runTransaction(async (transaction) => {
+        const contestRef = db.collection(CONTESTS_COLLECTION).doc(contestId);
+        const matchupRef = contestRef.collection(MATCHUPS_SUBCOLLECTION).doc(matchupId);
+        const voteRefs = scores.map((s) =>
+          contestRef.collection(VOTES_SUBCOLLECTION).doc(makeVoteDocId(userId, matchupId, s.entryId)),
+        );
+
+        const [matchupSnap, ...voteSnaps] = await Promise.all([
+          transaction.get(matchupRef),
+          ...voteRefs.map((ref) => transaction.get(ref)),
+        ]);
+
+        if (!matchupSnap.exists) throw new Error('Matchup not found');
+        const matchupData = matchupSnap.data() as Record<string, unknown>;
+        if (matchupData.phase !== 'shake') throw new Error('Matchup is not open for scoring');
+        const entries = ((matchupData.entries as Entry[] | undefined) ?? []).map((e) => ({ ...e }));
+
+        const results: ScoreEntry[] = [];
+        for (let i = 0; i < scores.length; i += 1) {
+          const { entryId, breakdown } = scores[i];
+          const entryIndex = entries.findIndex((e) => e.id === entryId);
+          if (entryIndex === -1) throw new Error('Entry is not part of this matchup');
+
+          const voteSnap = voteSnaps[i];
+          const newTotal = computeVoteTotal(breakdown);
+          const isNewVote = !voteSnap.exists;
+          const delta = isNewVote
+            ? newTotal
+            : newTotal -
+              computeVoteTotal(
+                ((voteSnap.data() as Record<string, unknown>)?.breakdown ?? {}) as ScoreBreakdown,
+              );
+
+          const voteData: Record<string, unknown> = {
+            userId,
+            entryId,
+            matchupId,
+            breakdown,
+            updatedAt: FieldValue.serverTimestamp(),
+          };
+          if (isNewVote) voteData.createdAt = FieldValue.serverTimestamp();
+          transaction.set(voteRefs[i], voteData, { merge: true });
+
+          entries[entryIndex].sumScore = (entries[entryIndex].sumScore ?? 0) + delta;
+          entries[entryIndex].voteCount = (entries[entryIndex].voteCount ?? 0) + (isNewVote ? 1 : 0);
+          results.push(docToScoreEntry(voteRefs[i].id, { userId, entryId, matchupId, breakdown }));
+        }
+
+        transaction.update(matchupRef, { entries, updatedAt: FieldValue.serverTimestamp() });
+        return results;
+      });
+    },
+
+    async removeContestantCascade(contestId, contestantId): Promise<void> {
+      const db = requireDb();
+      const contestRef = db.collection(CONTESTS_COLLECTION).doc(contestId);
+      const contestSnap = await contestRef.get();
+      if (!contestSnap.exists) throw new Error('Contest not found');
+      const contest = normalizeContest(contestSnap.id, contestSnap.data() as Record<string, unknown>);
+      if (!(contest.contestants ?? []).some((c) => c.id === contestantId)) {
+        throw new Error('Contestant not found');
+      }
+
+      const matchupsSnap = await contestRef.collection(MATCHUPS_SUBCOLLECTION).get();
+      const matchups = matchupsSnap.docs.map((d) =>
+        normalizeMatchupDoc(contestId, d.id, d.data() as Record<string, unknown>),
+      );
+      const plan = planContestantRemoval(contestantId, matchups);
+
+      const batch = db.batch();
+      for (const entryId of plan.purgedEntryIds) {
+        const votes = await contestRef
+          .collection(VOTES_SUBCOLLECTION)
+          .where('entryId', '==', entryId)
+          .get();
+        for (const voteDoc of votes.docs) batch.delete(voteDoc.ref);
+      }
+      for (const update of plan.updates) {
+        batch.update(contestRef.collection(MATCHUPS_SUBCOLLECTION).doc(update.matchupId), {
+          entries: update.entries,
+          phase: update.phase,
+          winnerEntryId: update.winnerEntryId,
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      }
+      for (const matchupId of plan.deletes) {
+        batch.delete(contestRef.collection(MATCHUPS_SUBCOLLECTION).doc(matchupId));
+      }
+      batch.update(contestRef, {
+        contestants: (contest.contestants ?? []).filter((c) => c.id !== contestantId),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      await batch.commit();
     },
 
     async updateScore(contestId, scoreId, updates): Promise<ScoreEntry> {
