@@ -1,0 +1,20 @@
+.overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* The time-track area: after the label track, before the controls column. */
+  left: var(--wb-lane-label-width);
+  right: calc(var(--wb-lane-controls-width) + 0.6rem);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--wb-line-strong);
+  opacity: 0.5;
+}

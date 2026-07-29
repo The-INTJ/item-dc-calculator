@@ -1,0 +1,53 @@
+@use '@/features/harmonizer/components/shared/controls' as *;
+
+.switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.name {
+  appearance: none;
+  border: none;
+  background: transparent;
+  font-family: var(--wb-font-solfege);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--wb-ink);
+  cursor: text;
+  padding: 0.15rem 0.35rem;
+  border-radius: var(--wb-radius-chip);
+
+  &:hover {
+    background: var(--wb-accent-soft);
+  }
+}
+
+.nameInput {
+  @include wb-button;
+  cursor: text;
+  font-family: var(--wb-font-solfege);
+  font-weight: 600;
+  min-width: 12rem;
+}
+
+.saveDot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--wb-ink-soft);
+  transition: background 200ms ease;
+}
+
+.saveDotSaved {
+  background: #65775a;
+}
+
+.saveDotError {
+  background: #a03030;
+}
+
+.menuTrigger {
+  @include wb-button;
+  padding-inline: 0.5rem;
+}

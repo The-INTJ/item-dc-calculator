@@ -1,23 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import type { HarmonyEvent, MelodyEvent } from './music-types';
-import {
-  acceptedHarmonySignature,
-  boundarySignature,
-  durationToCode,
-  melodySignature,
-} from './signatures';
+import { acceptedHarmonySignature, durationToCode, melodySignature } from './signatures';
 
 function makeMelodyEvent(
   id: string,
   syllable: MelodyEvent['scaleDegree']['syllable'],
   octave: number,
   denominator: number,
+  beat = 1,
 ): MelodyEvent {
   return {
     id,
     pitch: { letter: 'C', accidental: 'natural', octave, midi: 60, pitchClass: 0 },
     scaleDegree: { degree: 1, chromaticOffset: 0, syllable },
-    start: { measure: 1, beat: 1, subdivision: 0 },
+    start: { measure: 1, beat, subdivision: 0 },
     duration: { numerator: 1, denominator },
     tieFromPrevious: false,
   };
@@ -60,23 +56,26 @@ describe('signatures', () => {
     expect(durationToCode({ numerator: 3, denominator: 8 })).toBe('3/8');
   });
 
-  it('builds the melody signature for sol–fa–mi', () => {
+  it('builds the melody signature for sol–fa–mi (gapless output is the historical format)', () => {
     const events = [
-      makeMelodyEvent('m1', 'sol', 4, 4),
-      makeMelodyEvent('m2', 'fa', 4, 4),
-      makeMelodyEvent('m3', 'mi', 4, 2),
+      makeMelodyEvent('m1', 'sol', 4, 4, 1),
+      makeMelodyEvent('m2', 'fa', 4, 4, 2),
+      makeMelodyEvent('m3', 'mi', 4, 2, 3),
     ];
     expect(melodySignature(events)).toBe('sol4:q|fa4:q|mi4:h');
     expect(melodySignature([])).toBe('');
   });
 
-  it('builds the boundary signature in melody order', () => {
+  it('encodes rests for leading and internal gaps', () => {
+    // Note on beat 2 only: a leading quarter rest.
+    expect(melodySignature([makeMelodyEvent('m1', 'do', 4, 4, 2)])).toBe('r:q|do4:q');
+    // Gap between beat 1 and beat 4 notes: an internal half rest.
     expect(
-      boundarySignature([
-        { afterMelodyEventId: 'm1', policy: 'hold' },
-        { afterMelodyEventId: 'm2', policy: 'allowed' },
+      melodySignature([
+        makeMelodyEvent('m1', 'sol', 4, 4, 1),
+        makeMelodyEvent('m2', 'mi', 4, 4, 4),
       ]),
-    ).toBe('hold|allowed');
+    ).toBe('sol4:q|r:h|mi4:q');
   });
 
   it('builds the accepted-harmony signature', () => {

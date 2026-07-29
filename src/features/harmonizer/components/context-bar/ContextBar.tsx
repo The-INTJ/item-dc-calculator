@@ -3,48 +3,70 @@
 import { useState } from 'react';
 import { content } from '../../content';
 import type { PhraseIntent, TonalContext } from '../../domain/music-types';
+import { listTonalContexts } from '../../fixtures/registry';
+import { INSTRUMENTS, type InstrumentId } from '../../services/instruments';
 import { MAX_TEMPO_BPM, MIN_TEMPO_BPM } from '../../state/workbenchReducer';
 import { classes } from '../shared/format';
+import { contextLabel, SamplesMenu } from '../samples/SamplesMenu';
 import styles from './ContextBar.module.scss';
 
 interface ContextBarProps {
   tonalContext: TonalContext;
   phraseIntent: PhraseIntent;
   tempoBpm: number;
+  currentFixtureId: string | null;
+  soundId: InstrumentId;
   onTempoChange: (tempoBpm: number) => void;
+  onKeyChange: (context: TonalContext) => void;
+  onIntentChange: (intent: PhraseIntent) => void;
+  onLoadSample: (fixtureId: string) => void;
+  onSoundChange: (id: InstrumentId) => void;
 }
 
 const PHRASE_INTENTS: PhraseIntent[] = ['continue', 'build', 'approach_cadence', 'close'];
 
-function keyDisplay(tonalContext: TonalContext): string {
-  return `${tonalContext.tonic.letter}${content.accidentalLabels[tonalContext.tonic.accidental]}`;
+function contextKey(context: TonalContext): string {
+  return `${context.tonicPitchClass}:${context.mode}:${context.minorDoSystem ?? ''}`;
 }
 
-/** Inert until the stale-suggestions milestone (M4): key, mode, intent. Tempo is live. */
-function KeySelector({ tonalContext }: { tonalContext: TonalContext }) {
+/** One live Key select over the registry's contexts (C major, A minor). */
+function KeySelector({
+  tonalContext,
+  onKeyChange,
+}: {
+  tonalContext: TonalContext;
+  onKeyChange: (context: TonalContext) => void;
+}) {
+  const contexts = listTonalContexts();
+  const currentKey = contextKey(tonalContext);
   return (
     <label className={styles.field}>
       <span className={styles.fieldLabel}>{content.contextBar.keyLabel}</span>
-      <select className={styles.select} disabled title={content.comingSoon}>
-        <option>{keyDisplay(tonalContext)}</option>
+      <select
+        className={styles.select}
+        value={currentKey}
+        onChange={(event) => {
+          const next = contexts.find((context) => contextKey(context) === event.target.value);
+          if (next) onKeyChange(next);
+        }}
+      >
+        {contexts.map((context) => (
+          <option key={contextKey(context)} value={contextKey(context)}>
+            {contextLabel(context)}
+          </option>
+        ))}
       </select>
     </label>
   );
 }
 
-function ModeSelector({ tonalContext }: { tonalContext: TonalContext }) {
-  const label = content.contextBar.modeLabels[tonalContext.mode];
-  return (
-    <label className={styles.field}>
-      <span className={styles.fieldLabel}>{content.contextBar.modeLabel}</span>
-      <select className={styles.select} disabled title={content.comingSoon}>
-        <option>{label}</option>
-      </select>
-    </label>
-  );
-}
-
-function PhraseIntentControl({ phraseIntent }: { phraseIntent: PhraseIntent }) {
+function PhraseIntentControl({
+  phraseIntent,
+  onIntentChange,
+}: {
+  phraseIntent: PhraseIntent;
+  onIntentChange: (intent: PhraseIntent) => void;
+}) {
   return (
     <div className={styles.field}>
       <span className={styles.fieldLabel}>{content.contextBar.intentLabel}</span>
@@ -53,10 +75,10 @@ function PhraseIntentControl({ phraseIntent }: { phraseIntent: PhraseIntent }) {
           <button
             key={intent}
             type="button"
-            disabled
             aria-pressed={intent === phraseIntent}
             title={content.contextBar.intentDescriptions[intent]}
             className={classes(styles.segment, intent === phraseIntent && styles.segmentActive)}
+            onClick={() => onIntentChange(intent)}
           >
             {content.contextBar.intentOptions[intent]}
           </button>
@@ -106,16 +128,56 @@ function TempoControl({
   );
 }
 
-export function ContextBar({ tonalContext, phraseIntent, tempoBpm, onTempoChange }: ContextBarProps) {
+function SoundSelector({
+  soundId,
+  onSoundChange,
+}: {
+  soundId: InstrumentId;
+  onSoundChange: (id: InstrumentId) => void;
+}) {
+  return (
+    <label className={styles.field}>
+      <span className={styles.fieldLabel}>{content.contextBar.soundLabel}</span>
+      <select
+        className={styles.select}
+        value={soundId}
+        onChange={(event) => onSoundChange(event.target.value as InstrumentId)}
+      >
+        {INSTRUMENTS.map((instrument) => (
+          <option
+            key={instrument.id}
+            value={instrument.id}
+            title={instrument.requiresNetwork ? content.contextBar.soundNetworkHint : undefined}
+          >
+            {instrument.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+export function ContextBar({
+  tonalContext,
+  phraseIntent,
+  tempoBpm,
+  currentFixtureId,
+  soundId,
+  onTempoChange,
+  onKeyChange,
+  onIntentChange,
+  onLoadSample,
+  onSoundChange,
+}: ContextBarProps) {
   return (
     <div className={styles.bar}>
-      <KeySelector tonalContext={tonalContext} />
-      <ModeSelector tonalContext={tonalContext} />
-      <PhraseIntentControl phraseIntent={phraseIntent} />
+      <KeySelector tonalContext={tonalContext} onKeyChange={onKeyChange} />
+      <PhraseIntentControl phraseIntent={phraseIntent} onIntentChange={onIntentChange} />
       <TempoControl tempoBpm={tempoBpm} onTempoChange={onTempoChange} />
-      <button type="button" className={styles.playAccepted} disabled title={content.comingSoon}>
-        ▶ {content.contextBar.playAccepted}
-      </button>
+      <SoundSelector soundId={soundId} onSoundChange={onSoundChange} />
+      <div className={styles.barEnd}>
+        <SamplesMenu currentFixtureId={currentFixtureId} onLoadSample={onLoadSample} />
+      </div>
     </div>
   );
 }

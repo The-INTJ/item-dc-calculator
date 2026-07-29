@@ -4,7 +4,7 @@
  * strings are derived from candidate data — no musical values originate here.
  */
 
-import type { CandidatePath } from '../domain/analysis-types';
+import type { CandidatePath, DerivabilityNote } from '../domain/analysis-types';
 import type { VoiceEvent } from '../domain/music-types';
 import type { WorkbenchState } from '../domain/workbench-state';
 
@@ -19,6 +19,9 @@ export interface CandidatePathSummary {
   bassOutline: string;
   summary: string;
   descriptorLabels: string[];
+  /** The derivability probe's headline: where this reading came from. */
+  source: 'authored' | 'computed';
+  derivability: DerivabilityNote[];
 }
 
 export function getSelectedCandidate(state: WorkbenchState): CandidatePath | null {
@@ -65,5 +68,7 @@ export function toCandidatePathSummary(candidate: CandidatePath): CandidatePathS
     bassOutline: bassOutline(candidate),
     summary: candidate.summary,
     descriptorLabels: candidate.descriptors.map((descriptor) => descriptor.label),
+    source: candidate.provenance.fixtureAuthored ? 'authored' : 'computed',
+    derivability: candidate.derivability ?? [],
   };
 }

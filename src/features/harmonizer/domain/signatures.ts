@@ -2,15 +2,14 @@
  * Signature strings used to match workbench input against authored fixtures
  * (spec §17.1). A fixture's stored match values must equal the signatures
  * computed from its own initial state — enforced by fixtures/registry.test.ts.
+ *
+ * Rests are encoded as `r:<code>` tokens so melodies with gaps (delete-created
+ * or authored) never false-match contiguous fixtures. Gapless melodies produce
+ * exactly the historical format (e.g. "sol4:q|fa4:q|mi4:h").
  */
 
-import type {
-  BoundaryConstraint,
-  HarmonyEvent,
-  MelodyEvent,
-  RationalDuration,
-} from './music-types';
-import { durationToUnits } from './timing';
+import type { HarmonyEvent, MelodyEvent, RationalDuration } from './music-types';
+import { durationToUnits, toTimelineSpan, unitsToDuration } from './timing';
 
 const DURATION_CODES: Record<number, string> = {
   16: 'w',
@@ -25,16 +24,22 @@ export function durationToCode(duration: RationalDuration): string {
   return code ?? `${duration.numerator}/${duration.denominator}`;
 }
 
-/** e.g. "sol4:q|fa4:q|mi4:h" */
+/** e.g. "sol4:q|fa4:q|mi4:h"; with a gap: "sol4:q|r:q|mi4:h" */
 export function melodySignature(events: MelodyEvent[]): string {
-  return events
-    .map((event) => `${event.scaleDegree.syllable}${event.pitch.octave}:${durationToCode(event.duration)}`)
-    .join('|');
-}
-
-/** e.g. "hold|allowed" — policies in melody order. */
-export function boundarySignature(constraints: BoundaryConstraint[]): string {
-  return constraints.map((constraint) => constraint.policy).join('|');
+  const parts: string[] = [];
+  let cursor = 0;
+  for (const event of events) {
+    const span = toTimelineSpan(event.start, event.duration);
+    const start = span.startUnit - 1;
+    if (start > cursor) {
+      parts.push(`r:${durationToCode(unitsToDuration(start - cursor))}`);
+    }
+    parts.push(
+      `${event.scaleDegree.syllable}${event.pitch.octave}:${durationToCode(event.duration)}`,
+    );
+    cursor = start + span.spanUnits;
+  }
+  return parts.join('|');
 }
 
 const INVERSION_CODES = ['root', 'first', 'second', 'third'] as const;

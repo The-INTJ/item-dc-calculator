@@ -5,6 +5,7 @@ import { content } from '../../content';
 import type { VoiceEvent, VoiceId } from '../../domain/music-types';
 import { toTimelineSpan } from '../../domain/timing';
 import { classes, pitchDisplay } from '../shared/format';
+import { newId } from '../shared/ids';
 import { isUnitActive, timeSpanStyle } from '../shared/timeGrid';
 import styles from './CandidateInspector.module.scss';
 
@@ -25,11 +26,15 @@ interface VoiceLaneProps {
   onEditNote: (eventId: string | null) => void;
   lockedEventIds: ReadonlySet<string>;
   onToggleLock: (event: VoiceEvent) => void;
+  onStepNote: (eventId: string, direction: 1 | -1) => void;
+  onInsertNote: (neighborEventId: string, side: 'before' | 'after') => void;
+  onDeleteNote: (eventId: string) => void;
   onResize: (
     eventId: string,
     edge: 'left' | 'right',
     targetBoundary: number,
     ripple: boolean,
+    gestureId: string,
   ) => void;
 }
 
@@ -48,6 +53,9 @@ export function VoiceLane({
   onEditNote,
   lockedEventIds,
   onToggleLock,
+  onStepNote,
+  onInsertNote,
+  onDeleteNote,
   onResize,
 }: VoiceLaneProps) {
   const voiceLabel = content.inspector.voiceLabels[voice];
@@ -73,6 +81,7 @@ export function VoiceLane({
     const trackWidth = grid.getBoundingClientRect().right - trackLeft;
     if (trackWidth <= 0 || gridUnits <= 0) return;
     const unitWidth = trackWidth / gridUnits;
+    const gestureId = newId(); // one undo entry per drag
     let lastBoundary: number | null = null;
     try {
       handle.setPointerCapture(pointerEvent.pointerId);
@@ -83,7 +92,7 @@ export function VoiceLane({
       const boundary = Math.round((moveEvent.clientX - trackLeft) / unitWidth);
       if (boundary !== lastBoundary) {
         lastBoundary = boundary;
-        onResize(eventId, edge, boundary, moveEvent.shiftKey);
+        onResize(eventId, edge, boundary, moveEvent.shiftKey, gestureId);
       }
     };
     const onEnd = () => {
@@ -167,18 +176,20 @@ export function VoiceLane({
                     <button
                       type="button"
                       className={styles.noteTool}
-                      disabled
-                      title={content.comingSoon}
+                      disabled={locked}
+                      title={locked ? content.inspector.noteTools.lockedHint : undefined}
                       aria-label={tools.raise}
+                      onClick={() => onStepNote(event.id, 1)}
                     >
                       ▲
                     </button>
                     <button
                       type="button"
                       className={styles.noteTool}
-                      disabled
-                      title={content.comingSoon}
+                      disabled={locked}
+                      title={locked ? content.inspector.noteTools.lockedHint : undefined}
                       aria-label={tools.lower}
+                      onClick={() => onStepNote(event.id, -1)}
                     >
                       ▼
                     </button>
@@ -206,9 +217,16 @@ export function VoiceLane({
                     <button
                       type="button"
                       className={styles.noteTool}
-                      disabled
-                      title={content.comingSoon}
+                      disabled={locked || events.length <= 1}
+                      title={
+                        events.length <= 1
+                          ? content.inspector.noteTools.keepOneHint
+                          : locked
+                            ? content.inspector.noteTools.lockedHint
+                            : undefined
+                      }
                       aria-label={tools.remove}
+                      onClick={() => onDeleteNote(event.id)}
                     >
                       ✕
                     </button>
@@ -216,20 +234,22 @@ export function VoiceLane({
                   <button
                     type="button"
                     className={classes(styles.addNoteEdge, styles.addNoteBefore)}
-                    disabled
-                    title={content.comingSoon}
                     aria-label={tools.addBefore}
-                    onClick={(clickEvent) => clickEvent.stopPropagation()}
+                    onClick={(clickEvent) => {
+                      clickEvent.stopPropagation();
+                      onInsertNote(event.id, 'before');
+                    }}
                   >
                     +
                   </button>
                   <button
                     type="button"
                     className={classes(styles.addNoteEdge, styles.addNoteAfter)}
-                    disabled
-                    title={content.comingSoon}
                     aria-label={tools.addAfter}
-                    onClick={(clickEvent) => clickEvent.stopPropagation()}
+                    onClick={(clickEvent) => {
+                      clickEvent.stopPropagation();
+                      onInsertNote(event.id, 'after');
+                    }}
                   >
                     +
                   </button>

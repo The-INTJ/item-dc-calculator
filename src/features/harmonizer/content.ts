@@ -14,11 +14,13 @@ export const content = {
   comingSoon: 'Coming in a later milestone',
   contextBar: {
     keyLabel: 'Key',
-    modeLabel: 'Mode',
     intentLabel: 'Phrase intent',
     tempoLabel: 'Tempo',
     tempoUnit: 'bpm',
-    playAccepted: 'Play accepted context',
+    samplesLabel: 'Samples',
+    samplesHeading: 'Sample fragments',
+    soundLabel: 'Sound',
+    soundNetworkHint: 'Sampled — fetches audio samples over the network on first use',
     intentOptions: {
       continue: 'Continue',
       build: 'Build',
@@ -49,15 +51,13 @@ export const content = {
   acceptedRail: {
     arrow: 'active fragment',
     bassPrefix: 'bass',
+    appliedLabel: 'Applied so far',
+    editHeading: 'Previous harmony',
+    none: 'None — opens the piece',
   },
   melody: {
     addNote: 'Add note',
     alwaysLocked: 'The melody is always locked',
-  },
-  boundaries: {
-    hold: 'hold harmony',
-    allowed: 'change allowed',
-    required: 'change required',
   },
   candidates: {
     refresh: 'Refresh alternatives',
@@ -94,7 +94,57 @@ export const content = {
       remove: 'Delete note',
       addBefore: 'Add note before',
       addAfter: 'Add note after',
+      lockedHint: 'Locked notes are frozen — unlock to edit',
+      keepOneHint: 'A part keeps at least one note',
     },
+  },
+  provenance: {
+    authored: 'Authored',
+    computed: 'Computed (naive)',
+    legend: '✓ computed · ✎ needs data · ? unsure',
+  },
+  derivabilityStatus: {
+    computed: '✓',
+    needs_data: '✎',
+    unsure: '?',
+  },
+  derivabilityAspects: {
+    chord_path: 'chord path',
+    voicing: 'voicing',
+    ranking: 'ranking',
+    interpretation: 'interpretation',
+    effects: 'effects',
+  },
+  notices: {
+    locksUnsatisfied:
+      'No authored POC alternative satisfies these locks. Unlock one element or restore the previous candidate.',
+  },
+  emptyState: {
+    message:
+      'This UI proof of concept does not contain a harmonization fixture for the current fragment. Restore a sample, or continue editing the interface without suggestions.',
+    restore: 'Restore nearest sample',
+    choose: 'Choose sample fragment',
+    keep: 'Keep editing',
+  },
+  addNoteMenu: {
+    heading: 'Add a note to',
+  },
+  projects: {
+    menuHeading: 'Projects',
+    newProject: 'New project',
+    deleteProject: 'Delete this project…',
+    confirmDelete: 'Really delete? This cannot be undone.',
+    untitled: 'Untitled hymn',
+    renameHint: 'Rename project',
+    saved: 'Saved',
+    saving: 'Saving…',
+    error: 'Save failed — storage may be full',
+  },
+  nextFragment: {
+    heading: 'Next fragment',
+    hint: 'The applied harmony becomes the accepted context for what comes next.',
+    blank: 'Blank — a single tonic note',
+    dismiss: 'Keep working here',
   },
   inversionLabels: ['root position', 'first inversion', 'second inversion', 'third inversion'],
   evidenceSources: {

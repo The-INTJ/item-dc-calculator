@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { MusicalTime, RationalDuration } from './music-types';
 import { durationToUnits, timeToUnits } from './timing';
-import { resizeTimedEvents, type TimedEvent } from './voice-editing';
+import {
+  deleteTimedEvent,
+  insertAdjacentTimedEvent,
+  resizeTimedEvents,
+  type TimedEvent,
+} from './voice-editing';
 
 function makeEvent(id: string, startUnits: number, units: number): TimedEvent {
   const measure = Math.floor(startUnits / 16) + 1;
@@ -126,6 +131,69 @@ describe('resizeTimedEvents', () => {
   it('returns null for no-ops and unknown events', () => {
     expect(resizeTimedEvents(base, 'a', 'right', 4)).toBeNull();
     expect(resizeTimedEvents(base, 'nope', 'right', 6)).toBeNull();
+  });
+
+  it('deletes an event leaving a rest gap, but never the last event', () => {
+    const result = deleteTimedEvent(base, 'b');
+    expect(spansOf(result ?? [])).toEqual([
+      [0, 4],
+      [8, 16],
+    ]);
+    expect(deleteTimedEvent(base, 'nope')).toBeNull();
+    expect(deleteTimedEvent([base[0]], 'a')).toBeNull();
+  });
+
+  it('inserts before by taking the neighbor placement and rippling right', () => {
+    const result = insertAdjacentTimedEvent(base, 'b', 'before', ({ startUnits, units }) =>
+      makeEvent('new', startUnits, units),
+    );
+    expect(result?.map((event) => event.id)).toEqual(['a', 'new', 'b', 'c']);
+    expect(spansOf(result ?? [])).toEqual([
+      [0, 4],
+      [4, 8],
+      [8, 12],
+      [12, 20],
+    ]);
+  });
+
+  it('inserts after, translating only strictly-later events', () => {
+    const result = insertAdjacentTimedEvent(base, 'a', 'after', ({ startUnits, units }) =>
+      makeEvent('new', startUnits, units),
+    );
+    expect(result?.map((event) => event.id)).toEqual(['a', 'new', 'b', 'c']);
+    expect(spansOf(result ?? [])).toEqual([
+      [0, 4],
+      [4, 8],
+      [8, 12],
+      [12, 20],
+    ]);
+    // Append at the very end: no translation needed.
+    const appended = insertAdjacentTimedEvent(base, 'c', 'after', ({ startUnits, units }) =>
+      makeEvent('tail', startUnits, units),
+    );
+    expect(spansOf(appended ?? [])).toEqual([
+      [0, 4],
+      [4, 8],
+      [8, 16],
+      [16, 24],
+    ]);
+  });
+
+  it('rejects inserts that would exceed the total-units cap', () => {
+    expect(
+      insertAdjacentTimedEvent(
+        base,
+        'c',
+        'after',
+        ({ startUnits, units }) => makeEvent('tail', startUnits, units),
+        { maxTotalUnits: 16 },
+      ),
+    ).toBeNull();
+    expect(
+      insertAdjacentTimedEvent(base, 'nope', 'after', ({ startUnits, units }) =>
+        makeEvent('x', startUnits, units),
+      ),
+    ).toBeNull();
   });
 
   it('preserves extra fields on resized events', () => {

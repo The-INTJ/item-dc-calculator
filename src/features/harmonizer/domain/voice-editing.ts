@@ -53,6 +53,52 @@ function placed<T extends TimedEvent>(event: T, left: number, right: number): T 
   return { ...event, start: unitsToTime(left), duration: unitsToDuration(right - left) };
 }
 
+/** Delete an event; the gap becomes a rest. Null when missing or it is the part's only event. */
+export function deleteTimedEvent<T extends TimedEvent>(events: T[], eventId: string): T[] | null {
+  if (events.length <= 1) return null;
+  const index = events.findIndex((event) => event.id === eventId);
+  if (index === -1) return null;
+  return events.filter((event) => event.id !== eventId);
+}
+
+/**
+ * Insert a new event adjacent to a neighbor. 'before': the new event takes the
+ * neighbor's placement and the neighbor plus everything later translates right
+ * by the new event's length. 'after': the new event lands at the neighbor's
+ * end and strictly-later events translate right. The part grows; null when the
+ * neighbor is missing or the translated end exceeds maxTotalUnits.
+ */
+export function insertAdjacentTimedEvent<T extends TimedEvent>(
+  events: T[],
+  neighborId: string,
+  side: 'before' | 'after',
+  build: (placement: { startUnits: number; units: number }) => T,
+  options: { maxTotalUnits?: number } = {},
+): T[] | null {
+  const maxTotal = options.maxTotalUnits ?? DEFAULT_MAX_TOTAL_UNITS;
+  const index = events.findIndex((event) => event.id === neighborId);
+  if (index === -1) return null;
+  const spans = events.map(spanOf);
+  const neighbor = spans[index];
+  const units = neighbor.right - neighbor.left;
+  const insertAt = side === 'before' ? neighbor.left : neighbor.right;
+  const lastRight = spans[spans.length - 1].right;
+  if (lastRight + units > maxTotal) return null;
+
+  const created = build({ startUnits: insertAt, units });
+  const result: T[] = [];
+  for (let i = 0; i < events.length; i += 1) {
+    const shift =
+      (side === 'before' && i >= index) || (side === 'after' && i > index) ? units : 0;
+    if (side === 'before' && i === index) result.push(created);
+    result.push(
+      shift > 0 ? placed(events[i], spans[i].left + shift, spans[i].right + shift) : events[i],
+    );
+    if (side === 'after' && i === index) result.push(created);
+  }
+  return result;
+}
+
 /**
  * Returns the new event array, or null when the drag resolves to no change
  * (so callers can keep the existing state reference). `events` must be

@@ -3,18 +3,15 @@
 import { useEffect, useState } from 'react';
 import { content } from '../../content';
 import type { CandidatePath } from '../../domain/analysis-types';
-import type {
-  BoundaryConstraint,
-  MelodyFragment,
-  VoiceEvent,
-  VoiceId,
-} from '../../domain/music-types';
-import { totalUnits, toTimelineSpan, voicingUnits } from '../../domain/timing';
-import type { PlaybackState } from '../../domain/workbench-state';
-import { HarmonyEventBlock } from '../shared/HarmonyEventBlock';
-import { cssVars, isUnitActive } from '../shared/timeGrid';
+import type { MelodyFragment, VoiceEvent, VoiceId } from '../../domain/music-types';
+import { totalUnits, voicingUnits } from '../../domain/timing';
+import type { PlaybackState, SuggestionSource } from '../../domain/workbench-state';
+import { BoundaryThroughLines } from '../workspace/BoundaryThroughLines';
+import { ChordStrip } from '../workspace/ChordStrip';
+import { newUserEventId } from '../shared/ids';
+import { cssVars } from '../shared/timeGrid';
+import { AddNoteMenu } from './AddNoteMenu';
 import { AnalysisDrawer } from './AnalysisDrawer';
-import { BoundaryRow } from './BoundaryRow';
 import { EffectSummary } from './EffectSummary';
 import { VoiceLane } from './VoiceLane';
 import { classes } from '../shared/format';
@@ -24,17 +21,28 @@ interface CandidateInspectorProps {
   candidate: CandidatePath | null;
   candidateLetter: string | null;
   fragment: MelodyFragment;
-  boundaryConstraints: BoundaryConstraint[];
   playback: PlaybackState;
   loopEnabled: boolean;
   checkedVoices: VoiceId[];
   lockedEventIds: ReadonlySet<string>;
+  suggestionSource: SuggestionSource | null;
+  suggestionNotice: 'locks_unsatisfied' | null;
   onToggleVoice: (voice: VoiceId, checked: boolean) => void;
   onPlayChecked: () => void;
   onPlayVoice: (candidateId: string, voice: VoiceId) => void;
   onStop: () => void;
   onToggleLoop: () => void;
   onToggleNoteLock: (candidateId: string, event: VoiceEvent) => void;
+  onStepNote: (candidateId: string, voice: VoiceId, eventId: string, direction: 1 | -1) => void;
+  onInsertNote: (
+    candidateId: string,
+    voice: VoiceId,
+    neighborEventId: string,
+    side: 'before' | 'after',
+    newEventId: string,
+  ) => void;
+  onDeleteNote: (candidateId: string, voice: VoiceId, eventId: string) => void;
+  onApply: () => void;
   onResizeNote: (
     candidateId: string,
     voice: VoiceId,
@@ -42,6 +50,7 @@ interface CandidateInspectorProps {
     edge: 'left' | 'right',
     targetBoundary: number,
     ripple: boolean,
+    gestureId: string,
   ) => void;
 }
 
@@ -57,17 +66,22 @@ export function CandidateInspector({
   candidate,
   candidateLetter,
   fragment,
-  boundaryConstraints,
   playback,
   loopEnabled,
   checkedVoices,
   lockedEventIds,
+  suggestionSource,
+  suggestionNotice,
   onToggleVoice,
   onPlayChecked,
   onPlayVoice,
   onStop,
   onToggleLoop,
   onToggleNoteLock,
+  onStepNote,
+  onInsertNote,
+  onDeleteNote,
+  onApply,
   onResizeNote,
 }: CandidateInspectorProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -110,7 +124,12 @@ export function CandidateInspector({
             </span>
           ) : null}
         </h2>
-        <button type="button" className={styles.apply} disabled title={content.comingSoon}>
+        <button
+          type="button"
+          className={styles.apply}
+          disabled={!candidate}
+          onClick={onApply}
+        >
           {content.inspector.apply}
         </button>
       </div>
@@ -148,55 +167,81 @@ export function CandidateInspector({
             >
               {content.inspector.loop}
             </button>
-            <button type="button" className={styles.addNote} disabled title={content.comingSoon}>
-              + {content.melody.addNote}
-            </button>
+            <div className={styles.addNoteSlot}>
+              <AddNoteMenu
+                onAddNote={(voice) => {
+                  const events = candidate.voicing[voice];
+                  const last = events[events.length - 1];
+                  if (!last) return;
+                  const newEventId = newUserEventId();
+                  onInsertNote(candidate.id, voice, last.id, 'after', newEventId);
+                  setEditing({ candidateId: candidate.id, eventId: newEventId });
+                }}
+              />
+            </div>
           </div>
 
-          {VOICES.map((voice) => (
-            <VoiceLane
-              key={voice}
-              voice={voice}
-              events={candidate.voicing[voice]}
-              melodyLocked={voice === 'soprano'}
-              activeUnit={activeUnit}
-              gridUnits={gridUnits}
-              checked={checkedVoices.includes(voice)}
-              onCheckedChange={(checked) => onToggleVoice(voice, checked)}
-              soloing={
-                playing &&
-                playback.candidateId === candidate.id &&
-                playback.voices.length === 1 &&
-                playback.voices[0] === voice
-              }
-              onPlayVoice={() => onPlayVoice(candidate.id, voice)}
-              onStop={onStop}
-              editingEventId={editingEventId}
-              onEditNote={editNote}
-              lockedEventIds={lockedEventIds}
-              onToggleLock={(event) => onToggleNoteLock(candidate.id, event)}
-              onResize={(eventId, edge, targetBoundary, ripple) =>
-                onResizeNote(candidate.id, voice, eventId, edge, targetBoundary, ripple)
-              }
-            />
-          ))}
+          {suggestionNotice === 'locks_unsatisfied' ? (
+            <p className={styles.notice} role="status">
+              {content.notices.locksUnsatisfied}
+            </p>
+          ) : null}
 
-          <BoundaryRow
-            fragment={fragment}
-            boundaryConstraints={boundaryConstraints}
-            gridUnits={gridUnits}
-          />
+          <div className={styles.laneStack}>
+            {VOICES.map((voice) => (
+              <VoiceLane
+                key={voice}
+                voice={voice}
+                events={candidate.voicing[voice]}
+                melodyLocked={voice === 'soprano'}
+                activeUnit={activeUnit}
+                gridUnits={gridUnits}
+                checked={checkedVoices.includes(voice)}
+                onCheckedChange={(checked) => onToggleVoice(voice, checked)}
+                soloing={
+                  playing &&
+                  playback.candidateId === candidate.id &&
+                  playback.voices.length === 1 &&
+                  playback.voices[0] === voice
+                }
+                onPlayVoice={() => onPlayVoice(candidate.id, voice)}
+                onStop={onStop}
+                editingEventId={editingEventId}
+                onEditNote={editNote}
+                lockedEventIds={lockedEventIds}
+                onToggleLock={(event) => onToggleNoteLock(candidate.id, event)}
+                onStepNote={(eventId, direction) =>
+                  onStepNote(candidate.id, voice, eventId, direction)
+                }
+                onInsertNote={(neighborEventId, side) => {
+                  const newEventId = newUserEventId();
+                  onInsertNote(candidate.id, voice, neighborEventId, side, newEventId);
+                  setEditing({ candidateId: candidate.id, eventId: newEventId });
+                }}
+                onDeleteNote={(eventId) => {
+                  onDeleteNote(candidate.id, voice, eventId);
+                  if (editingEventId === eventId) setEditing(null);
+                }}
+                onResize={(eventId, edge, targetBoundary, ripple, gestureId) =>
+                  onResizeNote(candidate.id, voice, eventId, edge, targetBoundary, ripple, gestureId)
+                }
+              />
+            ))}
+            <BoundaryThroughLines
+              harmonyEvents={candidate.harmonyEvents}
+              gridUnits={gridUnits}
+            />
+          </div>
 
           <div className={styles.lane}>
             <div className={styles.laneGrid}>
               <span className={styles.laneLabel}>{content.inspector.chords}</span>
-              {candidate.harmonyEvents.map((event) => (
-                <HarmonyEventBlock
-                  key={event.id}
-                  event={event}
-                  active={isUnitActive(toTimelineSpan(event.start, event.duration), activeUnit)}
-                />
-              ))}
+              <ChordStrip
+                harmonyEvents={candidate.harmonyEvents}
+                activeUnit={activeUnit}
+                gridUnits={gridUnits}
+                computed={suggestionSource === 'computed'}
+              />
             </div>
             <div className={styles.laneControls} aria-hidden="true" />
           </div>

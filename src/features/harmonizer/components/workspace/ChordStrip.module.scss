@@ -1,0 +1,49 @@
+.strip {
+  margin-inline: 0.3rem;
+  border: 1.5px solid var(--wb-line-strong);
+  border-radius: var(--wb-radius-chip);
+  background: var(--wb-accent-soft);
+  overflow: hidden;
+}
+
+.stripComputed {
+  border-style: dashed;
+  background: var(--wb-surface);
+}
+
+.segments {
+  display: grid;
+  grid-template-columns: repeat(var(--wb-time-units, 16), minmax(0, 1fr));
+  column-gap: 0;
+}
+
+.segment {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.55rem 0.9rem;
+  min-width: 0;
+  overflow: hidden;
+  transition: background 160ms ease;
+}
+
+/* The internal bar splitting chord labels — through-lines land exactly here. */
+.segmentDivided {
+  border-left: 2px solid var(--wb-line-strong);
+}
+
+.segmentActive {
+  background: var(--wb-active);
+}
+
+.numeral {
+  font-family: var(--wb-font-solfege);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.symbol {
+  font-size: 0.8125rem;
+  color: var(--wb-ink-soft);
+  white-space: nowrap;
+}

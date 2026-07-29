@@ -21,10 +21,9 @@ export interface FixtureMatchCriteria {
   tonalContext: TonalContextMatch;
   /** e.g. "sol4:q|fa4:q|mi4:h" — see domain/signatures.ts */
   melodySignature: string;
-  /** e.g. "hold|allowed" */
-  boundarySignature: string;
+  /** Ranking signal only — never used to filter matches (spec §9.2). */
   phraseIntent?: PhraseIntent;
-  /** e.g. "I:root" */
+  /** e.g. "I:root"; omitted = matches any accepted harmony (wildcard). */
   acceptedHarmonySignature?: string;
 }
 

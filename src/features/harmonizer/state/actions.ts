@@ -1,33 +1,34 @@
 /**
  * Workbench actions.
  *
- * WorkbenchActionType documents the full Phase 0 vocabulary (spec §14.2, plus
- * SET_TEMPO, PLAYBACK_PROGRESS, and RESIZE_VOICE_EVENT, which the spec's list
- * omits — tempo editing, the playback cursor, and drag-resize need them). WorkbenchAction carries only the actions
- * implemented so far (slice 1: milestones 1–3), so the reducer's exhaustive
- * switch has no dead branches and no silent no-ops. Each milestone extends the
- * union and the switch together; the AssertSubtype guard keeps the implemented
- * set inside the planned vocabulary at compile time.
+ * WorkbenchActionType documents the full-POC vocabulary. Relative to spec
+ * §14.2: ADD/UPDATE/DELETE_MELODY_EVENT are superseded by voice-event editing
+ * with soprano→melody mirroring; SET_BOUNDARY_POLICY died with the boundary
+ * UI; MARK_SUGGESTIONS_STALE and REFRESH_SUGGESTIONS died with live
+ * regeneration (every edit re-resolves synchronously); SET_TEMPO,
+ * PLAYBACK_PROGRESS, STEP/INSERT/RESIZE_VOICE_EVENT, LOAD_SAMPLE and
+ * LOAD_PROJECT are additions the spec's list omits. The AssertSubtype guard
+ * keeps the implemented union inside the vocabulary at compile time.
  */
 
 import type { HarmonizationFixture } from '../domain/fixture-types';
 import type { ConstraintLock } from '../domain/locks';
-import type { VoiceId } from '../domain/music-types';
+import type { HarmonyEvent, MelodyFragment, PhraseIntent, TonalContext, VoiceId } from '../domain/music-types';
+import type { PersistedWorkbench } from '../domain/workbench-state';
 
 export type WorkbenchActionType =
   | 'LOAD_FIXTURE'
+  | 'LOAD_SAMPLE'
+  | 'LOAD_PROJECT'
   | 'EDIT_TONAL_CONTEXT'
   | 'EDIT_PHRASE_INTENT'
-  | 'ADD_MELODY_EVENT'
-  | 'UPDATE_MELODY_EVENT'
-  | 'DELETE_MELODY_EVENT'
+  | 'SET_ACCEPTED_HARMONY'
+  | 'STEP_VOICE_EVENT_PITCH'
+  | 'INSERT_VOICE_EVENT'
+  | 'DELETE_VOICE_EVENT'
   | 'RESIZE_VOICE_EVENT'
-  | 'SET_BOUNDARY_POLICY'
-  | 'MARK_SUGGESTIONS_STALE'
-  | 'REFRESH_SUGGESTIONS'
   | 'SELECT_CANDIDATE'
   | 'TOGGLE_LOCK'
-  | 'CLEAR_LOCKS'
   | 'SET_TEMPO'
   | 'START_PLAYBACK'
   | 'STOP_PLAYBACK'
@@ -38,6 +39,33 @@ export type WorkbenchActionType =
 
 export type WorkbenchAction =
   | { type: 'LOAD_FIXTURE'; fixture: HarmonizationFixture }
+  | {
+      type: 'LOAD_SAMPLE';
+      source:
+        | { kind: 'fixture'; fixture: HarmonizationFixture }
+        | { kind: 'blank'; fragment: MelodyFragment };
+      keepAcceptedContext: boolean;
+    }
+  | { type: 'LOAD_PROJECT'; workbench: PersistedWorkbench }
+  | { type: 'EDIT_TONAL_CONTEXT'; tonalContext: TonalContext }
+  | { type: 'EDIT_PHRASE_INTENT'; phraseIntent: PhraseIntent }
+  | { type: 'SET_ACCEPTED_HARMONY'; harmony: HarmonyEvent | null }
+  | {
+      type: 'STEP_VOICE_EVENT_PITCH';
+      candidateId: string;
+      voice: VoiceId;
+      eventId: string;
+      direction: 1 | -1;
+    }
+  | {
+      type: 'INSERT_VOICE_EVENT';
+      candidateId: string;
+      voice: VoiceId;
+      neighborEventId: string;
+      side: 'before' | 'after';
+      newEventId: string;
+    }
+  | { type: 'DELETE_VOICE_EVENT'; candidateId: string; voice: VoiceId; eventId: string }
   | { type: 'SELECT_CANDIDATE'; candidateId: string }
   | { type: 'SET_TEMPO'; tempoBpm: number }
   | {
@@ -50,11 +78,16 @@ export type WorkbenchAction =
       targetBoundary: number;
       /** Shift-drag: translate later notes, changing the part's length. */
       ripple: boolean;
+      /** Minted per pointerdown; consecutive dispatches coalesce to one undo entry. */
+      gestureId: string;
     }
   | { type: 'TOGGLE_LOCK'; lock: ConstraintLock }
   | { type: 'START_PLAYBACK'; candidateId: string; voices: VoiceId[] }
   | { type: 'STOP_PLAYBACK' }
-  | { type: 'PLAYBACK_PROGRESS'; activeUnit: number | null };
+  | { type: 'PLAYBACK_PROGRESS'; activeUnit: number | null }
+  | { type: 'APPLY_CANDIDATE'; appliedId: string }
+  | { type: 'UNDO' }
+  | { type: 'REDO' };
 
 type AssertSubtype<T extends U, U> = T;
 export type ImplementedWorkbenchActionType = AssertSubtype<

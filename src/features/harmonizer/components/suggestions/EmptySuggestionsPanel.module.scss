@@ -1,0 +1,25 @@
+@use '@/features/harmonizer/components/shared/controls' as *;
+
+.panel {
+  border: 1.5px dashed var(--wb-unresolved);
+  border-radius: var(--wb-radius-card);
+  padding: 1.2rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.message {
+  margin: 0;
+  color: var(--wb-ink-soft);
+  max-width: 60ch;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action {
+  @include wb-button;
+}

@@ -54,8 +54,10 @@
 @mixin wb-button-primary {
   @include wb-button;
   background: var(--wb-accent);
-  border-color: var(--wb-accent);
+  border-color: var(--wb-accent-deep);
   color: var(--wb-on-accent);
+  font-weight: 600;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
 
   &:hover:not(:disabled) {
     background: var(--wb-accent-deep);

@@ -53,10 +53,15 @@
   appearance: none;
   border: none;
   background: transparent;
-  padding: 0.3rem 0.65rem;
-  font-size: 0.8125rem;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.875rem;
   color: var(--wb-ink-soft);
-  cursor: not-allowed;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+
+  &:hover {
+    color: var(--wb-accent-deep);
+  }
 
   & + & {
     border-left: 1px solid var(--wb-line);
@@ -86,7 +91,12 @@
   }
 }
 
-.playAccepted {
-  @include wb-button;
+.barEnd {
   margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.samplesTrigger {
+  @include wb-button;
 }

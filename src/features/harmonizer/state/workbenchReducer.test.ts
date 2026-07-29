@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { ConstraintLock } from '../domain/locks';
+import { melodySignature } from '../domain/signatures';
 import { durationToUnits, timeToUnits } from '../domain/timing';
+import type { PersistedWorkbench, WorkbenchState } from '../domain/workbench-state';
 import { getDefaultFixture } from '../fixtures/registry';
+import type { WorkbenchAction } from './actions';
 import {
   createInitialWorkbenchState,
   MAX_TEMPO_BPM,
@@ -10,167 +13,468 @@ import {
 } from './workbenchReducer';
 
 const fixture = getDefaultFixture();
+const initial = createInitialWorkbenchState(fixture);
+
+function lockFor(candidateId: string, targetId: string): ConstraintLock {
+  return {
+    id: `lock-${targetId}`,
+    targetType: 'voice_event',
+    targetId,
+    candidateId,
+    valueSnapshot: null,
+    createdAt: '2026-07-29T00:00:00.000Z',
+  };
+}
+
+function resize(
+  overrides: Partial<Extract<WorkbenchAction, { type: 'RESIZE_VOICE_EVENT' }>>,
+): WorkbenchAction {
+  return {
+    type: 'RESIZE_VOICE_EVENT',
+    candidateId: 'keep-moving',
+    voice: 'alto',
+    eventId: 'c-a-1',
+    edge: 'right',
+    targetBoundary: 6,
+    ripple: false,
+    gestureId: 'g1',
+    ...overrides,
+  };
+}
 
 describe('createInitialWorkbenchState', () => {
-  it('seeds the workbench from the fixture with candidate A preview-selected', () => {
-    const state = createInitialWorkbenchState(fixture);
-    expect(state.suggestionStatus).toBe('fresh');
-    expect(state.candidateSetId).toBe('default');
-    expect(state.candidates).toHaveLength(3);
-    expect(state.selectedCandidateId).toBe('grounded-descent');
-    expect(state.tempoBpm).toBe(76);
-    expect(state.phraseIntent).toBe('continue');
-    expect(state.locks).toEqual([]);
-    expect(state.history).toEqual([]);
-    expect(state.future).toEqual([]);
-    expect(state.playback).toEqual({ status: 'idle' });
-  });
-
-  it('reports an empty status when a fixture has no candidates', () => {
-    const emptyFixture = {
-      ...fixture,
-      id: 'empty-test',
-      candidateSets: [{ id: 'default', candidates: [] }],
-    };
-    const state = createInitialWorkbenchState(emptyFixture);
-    expect(state.suggestionStatus).toBe('empty');
-    expect(state.selectedCandidateId).toBeNull();
+  it('seeds the workbench with authored suggestions and the new fields', () => {
+    expect(initial.suggestionStatus).toBe('fresh');
+    expect(initial.suggestionSource).toBe('authored');
+    expect(initial.suggestionNotice).toBeNull();
+    expect(initial.sourceFixtureId).toBe(fixture.id);
+    expect(initial.candidateSetId).toBe('default');
+    expect(initial.candidates).toHaveLength(3);
+    expect(initial.selectedCandidateId).toBe('grounded-descent');
+    expect(initial.appliedFragments).toEqual([]);
+    expect(initial.history).toEqual([]);
+    expect(initial.lastGestureId).toBeNull();
   });
 });
 
-describe('workbenchReducer', () => {
-  const initial = createInitialWorkbenchState(fixture);
-
-  it('LOAD_FIXTURE resets from the given fixture', () => {
-    const emptyFixture = {
-      ...fixture,
-      id: 'other',
-      candidateSets: [{ id: 'default', candidates: [] }],
-    };
-    const midway = workbenchReducer(initial, {
-      type: 'SELECT_CANDIDATE',
-      candidateId: 'keep-moving',
-    });
-    const state = workbenchReducer(midway, { type: 'LOAD_FIXTURE', fixture: emptyFixture });
-    expect(state.suggestionStatus).toBe('empty');
-    expect(state.selectedCandidateId).toBeNull();
-  });
-
-  it('SELECT_CANDIDATE switches the selection', () => {
+describe('live regeneration', () => {
+  it('soprano pitch step mirrors the melody and regenerates (computed for unknown melodies)', () => {
     const state = workbenchReducer(initial, {
+      type: 'STEP_VOICE_EVENT_PITCH',
+      candidateId: 'grounded-descent',
+      voice: 'soprano',
+      eventId: 'a-s-1',
+      direction: 1,
+    });
+    // sol → la: melody changed, no fixture matches la–fa–mi.
+    expect(melodySignature(state.fragment.events)).toBe('la4:q|fa4:q|mi4:h');
+    expect(state.suggestionSource).toBe('computed');
+    expect(state.candidates.every((candidate) => !candidate.provenance.fixtureAuthored)).toBe(
+      true,
+    );
+    // The regenerated soprano mirrors the edited melody.
+    const soprano = state.candidates[0].voicing.soprano;
+    expect(soprano.map((event) => event.pitch.midi)).toEqual(
+      state.fragment.events.map((event) => event.pitch.midi),
+    );
+    expect(state.history).toHaveLength(1);
+  });
+
+  it('inner-voice edits do NOT regenerate', () => {
+    const state = workbenchReducer(initial, {
+      type: 'STEP_VOICE_EVENT_PITCH',
+      candidateId: 'grounded-descent',
+      voice: 'alto',
+      eventId: 'a-a-1',
+      direction: -1,
+    });
+    expect(state.suggestionSource).toBe('authored');
+    expect(state.candidates[0].id).toBe('grounded-descent');
+    // Alto E4 stepped down to D4.
+    expect(state.candidates[0].voicing.alto[0].pitch.midi).toBe(62);
+    expect(state.fragment).toBe(initial.fragment);
+  });
+
+  it('locked notes are frozen against step, resize, and delete', () => {
+    const locked = workbenchReducer(initial, {
+      type: 'TOGGLE_LOCK',
+      lock: lockFor('keep-moving', 'c-a-1'),
+    });
+    for (const action of [
+      {
+        type: 'STEP_VOICE_EVENT_PITCH',
+        candidateId: 'keep-moving',
+        voice: 'alto',
+        eventId: 'c-a-1',
+        direction: 1,
+      } as const,
+      resize({}),
+      {
+        type: 'DELETE_VOICE_EVENT',
+        candidateId: 'keep-moving',
+        voice: 'alto',
+        eventId: 'c-a-1',
+      } as const,
+    ]) {
+      expect(workbenchReducer(locked, action)).toBe(locked);
+    }
+  });
+
+  it('lock toggle regenerates: satisfiable locks go computed, unlock returns to authored', () => {
+    const locked = workbenchReducer(initial, {
+      type: 'TOGGLE_LOCK',
+      lock: lockFor('strong-arrival', 'b-b-1'),
+    });
+    expect(locked.locks).toHaveLength(1);
+    expect(locked.suggestionSource).toBe('computed');
+    expect(locked.suggestionNotice).toBeNull();
+
+    const unlocked = workbenchReducer(locked, {
+      type: 'TOGGLE_LOCK',
+      lock: { ...lockFor('strong-arrival', 'b-b-1'), id: 'other' },
+    });
+    expect(unlocked.locks).toHaveLength(0);
+    expect(unlocked.suggestionSource).toBe('authored');
+    expect(unlocked.candidateSetId).toBe('default');
+  });
+
+  it('adopting a lock set remaps locks so badges and unlocking survive the swap', () => {
+    const locked = workbenchReducer(initial, {
+      type: 'TOGGLE_LOCK',
+      lock: lockFor('grounded-descent', 'a-b-1'),
+    });
+    expect(locked.candidateSetId).toBe('locked-bass-grounded');
+    expect(locked.suggestionSource).toBe('authored');
+    // One lock per adopted candidate, each targeting a live note.
+    expect(locked.locks).toHaveLength(3);
+    const selected = locked.candidates.find(
+      (candidate) => candidate.id === locked.selectedCandidateId,
+    );
+    const selectedLock = locked.locks.find(
+      (lock) => lock.candidateId === selected?.id,
+    );
+    expect(selectedLock).toBeTruthy();
+
+    // Unlocking via the selected candidate's note removes the whole value-lock.
+    const unlocked = workbenchReducer(locked, {
+      type: 'TOGGLE_LOCK',
+      lock: lockFor(selectedLock?.candidateId ?? '', selectedLock?.targetId ?? ''),
+    });
+    expect(unlocked.locks).toHaveLength(0);
+    expect(unlocked.candidateSetId).toBe('default');
+    expect(unlocked.suggestionSource).toBe('authored');
+  });
+
+  it('unsatisfiable locks keep the current candidates with the notice', () => {
+    const state = workbenchReducer(initial, {
+      type: 'TOGGLE_LOCK',
+      lock: lockFor('grounded-descent', 'a-a-1'),
+    });
+    expect(state.suggestionNotice).toBe('locks_unsatisfied');
+    expect(state.candidates.map((candidate) => candidate.id)).toEqual(
+      initial.candidates.map((candidate) => candidate.id),
+    );
+    expect(state.locks).toHaveLength(1);
+  });
+
+  it('key change regenerates and an unknown-melody-in-key falls to computed', () => {
+    const aMinor = {
+      tonic: { letter: 'A' as const, accidental: 'natural' as const, pitchClass: 9 },
+      tonicPitchClass: 9,
+      mode: 'natural_minor' as const,
+      minorDoSystem: 'la_based' as const,
+      solfegeSystem: 'movable_do' as const,
+    };
+    const state = workbenchReducer(initial, {
+      type: 'EDIT_TONAL_CONTEXT',
+      tonalContext: aMinor,
+    });
+    expect(state.tonalContext.mode).toBe('natural_minor');
+    expect(state.suggestionSource).toBe('computed');
+    expect(
+      workbenchReducer(state, { type: 'EDIT_TONAL_CONTEXT', tonalContext: aMinor }),
+    ).toBe(state);
+  });
+});
+
+describe('structural editing', () => {
+  it('inserts an inner-voice note by ripple without regenerating', () => {
+    const state = workbenchReducer(initial, {
+      type: 'INSERT_VOICE_EVENT',
+      candidateId: 'grounded-descent',
+      voice: 'alto',
+      neighborEventId: 'a-a-1',
+      side: 'after',
+      newEventId: 'user-1',
+    });
+    const alto = state.candidates[0].voicing.alto;
+    expect(alto).toHaveLength(2);
+    expect(alto[1].id).toBe('user-1');
+    expect(timeToUnits(alto[1].start)).toBe(16);
+    expect(state.suggestionSource).toBe('authored');
+  });
+
+  it('inserts a soprano note, mirrors the melody, and regenerates', () => {
+    const state = workbenchReducer(initial, {
+      type: 'INSERT_VOICE_EVENT',
+      candidateId: 'grounded-descent',
+      voice: 'soprano',
+      neighborEventId: 'a-s-2',
+      side: 'before',
+      newEventId: 'user-2',
+    });
+    expect(state.fragment.events).toHaveLength(4);
+    expect(state.fragment.events[1].id).toBe('mel-user-2');
+    expect(state.fragment.events[1].scaleDegree.syllable).toBe('fa');
+    expect(state.suggestionSource).toBe('computed');
+  });
+
+  it('deletes a soprano note leaving a rest, drops its locks, and regenerates', () => {
+    const locked = workbenchReducer(initial, {
+      type: 'TOGGLE_LOCK',
+      lock: lockFor('strong-arrival', 'b-b-1'),
+    });
+    // Delete the soprano's middle note on the CURRENT (computed) candidates.
+    const soprano = locked.candidates[0].voicing.soprano;
+    const state = workbenchReducer(locked, {
+      type: 'DELETE_VOICE_EVENT',
+      candidateId: locked.candidates[0].id,
+      voice: 'soprano',
+      eventId: soprano[1].id,
+    });
+    expect(state.fragment.events).toHaveLength(2);
+    expect(melodySignature(state.fragment.events)).toBe('sol4:q|r:q|mi4:h');
+    expect(state.suggestionSource).toBe('computed');
+
+    // Deleting the only event of a part is a no-op.
+    expect(
+      workbenchReducer(initial, {
+        type: 'DELETE_VOICE_EVENT',
+        candidateId: 'grounded-descent',
+        voice: 'alto',
+        eventId: 'a-a-1',
+      }),
+    ).toBe(initial);
+  });
+
+  it('frozen locked notes block delete until unlocked; unlock returns to authored', () => {
+    const locked = workbenchReducer(initial, {
+      type: 'TOGGLE_LOCK',
+      lock: lockFor('keep-moving', 'c-a-2'),
+    });
+    // D (re) is satisfiable against the melody — computed alternatives appear.
+    expect(locked.suggestionSource).toBe('computed');
+    expect(locked.suggestionNotice).toBeNull();
+    // The note is frozen (and its candidate replaced): delete is a no-op.
+    expect(
+      workbenchReducer(locked, {
+        type: 'DELETE_VOICE_EVENT',
+        candidateId: 'keep-moving',
+        voice: 'alto',
+        eventId: 'c-a-2',
+      }),
+    ).toBe(locked);
+
+    const unlocked = workbenchReducer(locked, {
+      type: 'TOGGLE_LOCK',
+      lock: { ...lockFor('keep-moving', 'c-a-2'), id: 'again' },
+    });
+    expect(unlocked.suggestionSource).toBe('authored');
+    const deleted = workbenchReducer(unlocked, {
+      type: 'DELETE_VOICE_EVENT',
+      candidateId: 'keep-moving',
+      voice: 'alto',
+      eventId: 'c-a-2',
+    });
+    expect(deleted.locks).toHaveLength(0);
+    expect(
+      deleted.candidates.find((candidate) => candidate.id === 'keep-moving')?.voicing.alto,
+    ).toHaveLength(2);
+  });
+});
+
+describe('history', () => {
+  it('coalesces one drag into one undo entry, separate gestures into two', () => {
+    const move1 = workbenchReducer(initial, resize({ targetBoundary: 5, gestureId: 'g1' }));
+    const move2 = workbenchReducer(move1, resize({ targetBoundary: 6, gestureId: 'g1' }));
+    expect(move2.history).toHaveLength(1);
+    const gesture2 = workbenchReducer(move2, resize({ targetBoundary: 7, gestureId: 'g2' }));
+    expect(gesture2.history).toHaveLength(2);
+
+    // Undo the second gesture: boundary back at 6.
+    const undone = workbenchReducer(gesture2, { type: 'UNDO' });
+    const alto = undone.candidates[2].voicing.alto;
+    expect(durationToUnits(alto[0].duration)).toBe(6);
+    // Undo the first gesture: back to the fixture's 4.
+    const undoneTwice = workbenchReducer(undone, { type: 'UNDO' });
+    expect(
+      durationToUnits(undoneTwice.candidates[2].voicing.alto[0].duration),
+    ).toBe(4);
+    // Redo restores.
+    const redone = workbenchReducer(undoneTwice, { type: 'REDO' });
+    expect(durationToUnits(redone.candidates[2].voicing.alto[0].duration)).toBe(6);
+  });
+
+  it('selection is undoable; unknown and same-id selections are no-ops', () => {
+    const selected = workbenchReducer(initial, {
       type: 'SELECT_CANDIDATE',
       candidateId: 'keep-moving',
     });
-    expect(state.selectedCandidateId).toBe('keep-moving');
-  });
-
-  it('SELECT_CANDIDATE ignores unknown and already-selected ids', () => {
-    expect(
-      workbenchReducer(initial, { type: 'SELECT_CANDIDATE', candidateId: 'nope' }),
-    ).toBe(initial);
+    expect(selected.history).toHaveLength(1);
+    expect(workbenchReducer(initial, { type: 'SELECT_CANDIDATE', candidateId: 'nope' })).toBe(
+      initial,
+    );
     expect(
       workbenchReducer(initial, { type: 'SELECT_CANDIDATE', candidateId: 'grounded-descent' }),
     ).toBe(initial);
+    const undone = workbenchReducer(selected, { type: 'UNDO' });
+    expect(undone.selectedCandidateId).toBe('grounded-descent');
+    expect(workbenchReducer(initial, { type: 'UNDO' })).toBe(initial);
   });
 
-  it('SET_TEMPO rounds and clamps', () => {
-    expect(workbenchReducer(initial, { type: 'SET_TEMPO', tempoBpm: 88.4 }).tempoBpm).toBe(88);
+  it('tempo and playback stay out of history', () => {
+    const tempo = workbenchReducer(initial, { type: 'SET_TEMPO', tempoBpm: 96 });
+    expect(tempo.history).toHaveLength(0);
+    expect(tempo.tempoBpm).toBe(96);
     expect(workbenchReducer(initial, { type: 'SET_TEMPO', tempoBpm: 1 }).tempoBpm).toBe(
       MIN_TEMPO_BPM,
     );
     expect(workbenchReducer(initial, { type: 'SET_TEMPO', tempoBpm: 999 }).tempoBpm).toBe(
       MAX_TEMPO_BPM,
     );
-    expect(workbenchReducer(initial, { type: 'SET_TEMPO', tempoBpm: 76 })).toBe(initial);
-  });
-
-  it('RESIZE_VOICE_EVENT reshapes a voice and mirrors soprano edits onto the melody', () => {
-    // Candidate C's alto is three events (q q h); move the first boundary 4 → 6.
-    const altoResized = workbenchReducer(initial, {
-      type: 'RESIZE_VOICE_EVENT',
-      candidateId: 'keep-moving',
-      voice: 'alto',
-      eventId: 'c-a-1',
-      edge: 'right',
-      targetBoundary: 6,
-      ripple: false,
-    });
-    const alto = altoResized.candidates[2].voicing.alto;
-    expect(durationToUnits(alto[0].duration)).toBe(6);
-    expect(timeToUnits(alto[1].start)).toBe(6);
-    expect(durationToUnits(alto[1].duration)).toBe(2);
-    // Other voices, candidates, and the fragment are untouched.
-    expect(altoResized.candidates[2].voicing.bass).toBe(initial.candidates[2].voicing.bass);
-    expect(altoResized.candidates[0]).toBe(initial.candidates[0]);
-    expect(altoResized.fragment).toBe(initial.fragment);
-
-    // Soprano edits mirror onto the melody fragment (same index).
-    const sopranoResized = workbenchReducer(initial, {
-      type: 'RESIZE_VOICE_EVENT',
-      candidateId: 'grounded-descent',
-      voice: 'soprano',
-      eventId: 'a-s-1',
-      edge: 'right',
-      targetBoundary: 6,
-      ripple: false,
-    });
-    const soprano = sopranoResized.candidates[0].voicing.soprano;
-    const melody = sopranoResized.fragment.events;
-    expect(durationToUnits(soprano[0].duration)).toBe(6);
-    expect(durationToUnits(melody[0].duration)).toBe(6);
-    expect(timeToUnits(melody[1].start)).toBe(6);
-    expect(durationToUnits(melody[1].duration)).toBe(2);
-
-    // A no-op drag returns the same state reference.
-    expect(
-      workbenchReducer(initial, {
-        type: 'RESIZE_VOICE_EVENT',
-        candidateId: 'grounded-descent',
-        voice: 'soprano',
-        eventId: 'a-s-1',
-        edge: 'right',
-        targetBoundary: 4,
-        ripple: false,
-      }),
-    ).toBe(initial);
-  });
-
-  it('TOGGLE_LOCK adds a lock once and removes it on repeat', () => {
-    const lock: ConstraintLock = {
-      id: 'lock-c-a-1',
-      targetType: 'voice_event',
-      targetId: 'c-a-1',
-      candidateId: 'keep-moving',
-      valueSnapshot: null,
-      createdAt: '2026-07-29T00:00:00.000Z',
-    };
-    const locked = workbenchReducer(initial, { type: 'TOGGLE_LOCK', lock });
-    expect(locked.locks).toHaveLength(1);
-    const unlocked = workbenchReducer(locked, { type: 'TOGGLE_LOCK', lock: { ...lock, id: 'x' } });
-    expect(unlocked.locks).toHaveLength(0);
-  });
-
-  it('runs the playback lifecycle and drops late cursor updates', () => {
     const playing = workbenchReducer(initial, {
       type: 'START_PLAYBACK',
       candidateId: 'strong-arrival',
       voices: ['soprano', 'bass'],
     });
+    expect(playing.history).toHaveLength(0);
     expect(playing.playback).toEqual({
       status: 'playing',
       candidateId: 'strong-arrival',
       voices: ['soprano', 'bass'],
       activeUnit: null,
     });
-
-    const progressed = workbenchReducer(playing, { type: 'PLAYBACK_PROGRESS', activeUnit: 5 });
-    expect(progressed.playback).toMatchObject({ status: 'playing', activeUnit: 5 });
-
+    const progressed = workbenchReducer(playing, {
+      type: 'PLAYBACK_PROGRESS',
+      activeUnit: 5,
+    });
+    expect(progressed.playback).toMatchObject({ activeUnit: 5 });
     const stopped = workbenchReducer(progressed, { type: 'STOP_PLAYBACK' });
-    expect(stopped.playback).toEqual({ status: 'idle' });
-    expect(workbenchReducer(stopped, { type: 'STOP_PLAYBACK' })).toBe(stopped);
+    expect(workbenchReducer(stopped, { type: 'PLAYBACK_PROGRESS', activeUnit: 9 })).toBe(
+      stopped,
+    );
+  });
+});
 
-    const late = workbenchReducer(stopped, { type: 'PLAYBACK_PROGRESS', activeUnit: 9 });
-    expect(late).toBe(stopped);
+describe('apply and loading', () => {
+  it('APPLY commits the selected reading and UNDO restores everything', () => {
+    const selected = workbenchReducer(initial, {
+      type: 'SELECT_CANDIDATE',
+      candidateId: 'keep-moving',
+    });
+    const applied = workbenchReducer(selected, { type: 'APPLY_CANDIDATE', appliedId: 'ap1' });
+    expect(applied.appliedFragments).toHaveLength(1);
+    expect(applied.appliedFragments[0].candidate.id).toBe('keep-moving');
+    expect(applied.acceptedContext.previousHarmony?.analysis.romanNumeral).toBe('I6');
+    expect(applied.acceptedContext.previousHarmony?.id).toBe('applied-ap1');
+    expect(applied.acceptedContext.previousHarmony?.start.measure).toBe(0);
+
+    const undone = workbenchReducer(applied, { type: 'UNDO' });
+    expect(undone.appliedFragments).toHaveLength(0);
+    expect(undone.acceptedContext.previousHarmony?.analysis.romanNumeral).toBe('I');
+  });
+
+  it('LOAD_SAMPLE with kept accepted context resolves honestly against the fixture pin', () => {
+    const applied = workbenchReducer(
+      workbenchReducer(initial, { type: 'SELECT_CANDIDATE', candidateId: 'keep-moving' }),
+      { type: 'APPLY_CANDIDATE', appliedId: 'ap1' },
+    );
+    // Fixture A pins I:root, but the applied context is I6:first → computed.
+    const chained = workbenchReducer(applied, {
+      type: 'LOAD_SAMPLE',
+      source: { kind: 'fixture', fixture },
+      keepAcceptedContext: true,
+    });
+    expect(chained.appliedFragments).toHaveLength(1);
+    expect(chained.suggestionSource).toBe('computed');
+    expect(chained.acceptedContext.previousHarmony?.analysis.romanNumeral).toBe('I6');
+
+    // Without keeping the context, the fixture's own accepted context is adopted.
+    const restored = workbenchReducer(applied, {
+      type: 'LOAD_SAMPLE',
+      source: { kind: 'fixture', fixture },
+      keepAcceptedContext: false,
+    });
+    expect(restored.suggestionSource).toBe('authored');
+    expect(restored.candidateSetId).toBe('default');
+    expect(restored.appliedFragments).toHaveLength(1);
+  });
+
+  it('LOAD_SAMPLE blank resolves computed skeletons for the lone tonic note', () => {
+    const state = workbenchReducer(initial, {
+      type: 'LOAD_SAMPLE',
+      source: {
+        kind: 'blank',
+        fragment: {
+          id: 'blank',
+          events: [
+            {
+              id: 'blank-note',
+              pitch: { letter: 'C', accidental: 'natural', octave: 4, midi: 60, pitchClass: 0 },
+              scaleDegree: { degree: 1, chromaticOffset: 0, syllable: 'do' },
+              start: { measure: 1, beat: 1, subdivision: 0 },
+              duration: { numerator: 1, denominator: 1 },
+              tieFromPrevious: false,
+            },
+          ],
+        },
+      },
+      keepAcceptedContext: true,
+    });
+    expect(state.suggestionSource).toBe('computed');
+    expect(state.candidates.length).toBeGreaterThan(0);
+    expect(state.sourceFixtureId).toBeNull();
+  });
+
+  it('LOAD_PROJECT adopts a persisted workbench and resets history', () => {
+    const edited = workbenchReducer(initial, {
+      type: 'SELECT_CANDIDATE',
+      candidateId: 'strong-arrival',
+    });
+    const persisted: PersistedWorkbench = {
+      tonalContext: edited.tonalContext,
+      phraseIntent: edited.phraseIntent,
+      acceptedContext: edited.acceptedContext,
+      appliedFragments: edited.appliedFragments,
+      fragment: edited.fragment,
+      boundaryConstraints: edited.boundaryConstraints,
+      suggestionStatus: edited.suggestionStatus,
+      suggestionSource: edited.suggestionSource,
+      suggestionNotice: edited.suggestionNotice,
+      sourceFixtureId: edited.sourceFixtureId,
+      candidateSetId: edited.candidateSetId,
+      candidates: edited.candidates,
+      selectedCandidateId: edited.selectedCandidateId,
+      locks: edited.locks,
+      tempoBpm: 132,
+    };
+    const state = workbenchReducer(initial, { type: 'LOAD_PROJECT', workbench: persisted });
+    expect(state.selectedCandidateId).toBe('strong-arrival');
+    expect(state.tempoBpm).toBe(132);
+    expect(state.history).toEqual([]);
+    expect(state.playback).toEqual({ status: 'idle' });
+  });
+
+  it('LOAD_FIXTURE remains a hard reset', () => {
+    const midway = workbenchReducer(initial, {
+      type: 'SELECT_CANDIDATE',
+      candidateId: 'keep-moving',
+    });
+    const state: WorkbenchState = workbenchReducer(midway, {
+      type: 'LOAD_FIXTURE',
+      fixture,
+    });
+    expect(state.selectedCandidateId).toBe('grounded-descent');
+    expect(state.history).toEqual([]);
   });
 });

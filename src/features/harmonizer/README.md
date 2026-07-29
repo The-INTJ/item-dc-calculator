@@ -7,7 +7,49 @@ technical specification is [hymn_harmonization_workbench_spec.md](./hymn_harmoni
 
 Route: `/harmonizer` (route group `app/(harmonizer)/`, `noindex`).
 
-## Status — slice 1 (spec milestones 1–3) ✅ + first design review applied
+## Status — FULL POC ✅ (live regeneration + derivability probe + minor key + projects)
+
+Everything below plus: **live regeneration** (every soprano/key/intent/lock/
+accepted-harmony edit re-resolves suggestions synchronously — authored fixture
+match → authored lock-set → naive computed skeletons → honest notice; no stale
+state, no refresh button); **the derivability probe** (computed cards from
+`domain/enumerate.ts` label every aspect ✓ computed / ✎ needs data / ? unsure —
+the engine-vs-data question answered in the UI); working note tools (diatonic
+▲▼ via `domain/scale.ts`, insert/delete with rests); five fixture families
+(A + lock-alternative sets, B suspension, C I6, D build [arrow-reachable hero
+demo], E la-based A minor with si); one Key select (C major / A minor);
+Samples menu; boundary through-lines merging into the chord strip; apply →
+chips → next-fragment chooser; undo/redo with drag coalescing; **projects**
+(`projects/project-store.ts`: `harmonizer.projects.v1`, zod-guarded,
+corruption-safe, autosave + header switcher). Suggestion resolution lives in
+`domain/suggest.ts`; the reducer imports the static registry (pure data) by
+design.
+
+### Sound toggle (swappable instruments)
+
+The context bar's **Sound** select swaps the playback instrument live
+(persisted in `harmonizer.sound.v1`). Two engines behind one
+`ActiveInstrument` interface in `services/tone-playback-service.ts`, with the
+roster as pure data in `services/instruments.ts`:
+
+- **Synth patches (Tone.js, instant/offline):** *Soft organ* (default — a
+  "principal" voicing of sine fundamental + octave partials only, so low bass
+  can never imply a second pitch class; a triangle's 3rd harmonic is a twelfth,
+  which is exactly the old "bass sounds like two notes" artifact), *Warm reed*
+  (FM, harmonicity 1 so every sideband lands on an integer harmonic), and
+  *Warm synth* (the original triangle, kept for A/B).
+- **Sampled (smplr, fetched on first use):** *Piano* (SplendidGrandPiano),
+  *Church organ*, *Choir*, *Strings* (GM soundfonts, ~3 MB each). Samples are
+  cached in the browser Cache API (`CacheStorage`), and a failed load falls
+  back to the default synth with a console warning.
+
+Chord quality fixes that apply to every synth patch: per-voice velocities
+(inner voices tucked, bass forward), gain staging that keeps the summed peak
+under the `Limiter(-1)` so it never pumps, and a release trim (0.85) that
+lets each chord's tail decay before the next onset instead of flanging
+against retriggered common tones.
+
+## Historical status — slice 1 (spec milestones 1–3) + first design review
 
 Implemented: workspace-first single screen rendering the default fixture
 (`c-major-sol-fa-mi-continue`) — context bar, accepted-context rail, the
@@ -47,8 +89,9 @@ milestone" tooltip.
 ## Self-containment contract
 
 - No imports from other features, no MUI, no Firebase, no backend. The only
-  runtime dependencies beyond React are `zod` (fixture validation) and `tone`
-  (playback, dynamically imported inside `services/tone-playback-service.ts`).
+  runtime dependencies beyond React are `zod` (fixture validation), `tone`,
+  and `smplr` (playback engines, both dynamically imported inside
+  `services/tone-playback-service.ts` — never during SSR or in jsdom tests).
 - Design tokens are CSS custom properties scoped to the `.workbench` class in
   `components/HarmonizationWorkbench.module.scss` — never `:root`. A retheme
   is an edit to that one block.
@@ -66,7 +109,7 @@ milestone" tooltip.
 | `domain/` | Spec §15 music/analysis types, §14 state types, §16 locks, §17 fixture types, pure timing + signature math. Dependency-free. |
 | `fixtures/` | Zod schemas, parse-at-module-load registry, authoring helpers, and the authored fixture data. |
 | `state/` | Reducer (house pattern: module-private pure reducer + hook), actions, selectors. |
-| `services/` | `PlaybackService` contract + Tone.js implementation. |
+| `services/` | `PlaybackService` contract, the instrument roster (`instruments.ts`), and the dual-engine (Tone.js synth + smplr samples) implementation. |
 | `components/` | UI, organized by screen region; shared time-grid helpers in `components/shared/`. |
 
 ## Working on this feature

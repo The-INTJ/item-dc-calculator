@@ -42,14 +42,30 @@ export type PlaybackState =
 
 export type SuggestionStatus = 'fresh' | 'stale' | 'loading' | 'empty' | 'error';
 
+/** Where the current candidates came from — the derivability probe's headline. */
+export type SuggestionSource = 'authored' | 'computed';
+
+/** One applied (committed) fragment — a chip on the accepted rail. */
+export interface AppliedFragment {
+  id: string;
+  fragment: MelodyFragment;
+  candidate: CandidatePath;
+}
+
 export interface WorkbenchState {
   tonalContext: TonalContext;
   phraseIntent: PhraseIntent;
   tempoBpm: number;
   acceptedContext: AcceptedContext;
+  appliedFragments: AppliedFragment[];
   fragment: MelodyFragment;
   boundaryConstraints: BoundaryConstraint[];
+  /** With live regeneration only 'fresh' and 'empty' occur. */
   suggestionStatus: SuggestionStatus;
+  suggestionSource: SuggestionSource | null;
+  suggestionNotice: 'locks_unsatisfied' | null;
+  /** Fixture the current/last authored candidates came from (drives lock-set lookup + Restore). */
+  sourceFixtureId: string | null;
   candidateSetId: string | null;
   candidates: CandidatePath[];
   selectedCandidateId: string | null;
@@ -57,17 +73,28 @@ export interface WorkbenchState {
   playback: PlaybackState;
   history: WorkbenchSnapshot[];
   future: WorkbenchSnapshot[];
+  /** Drag-coalescing bookkeeping; transient — excluded from snapshots and persistence. */
+  lastGestureId: string | null;
 }
 
-/** The undoable slice of workbench state (undo/redo lands in a later milestone). */
+/** The undoable slice of workbench state. */
 export type WorkbenchSnapshot = Pick<
   WorkbenchState,
   | 'tonalContext'
   | 'phraseIntent'
   | 'acceptedContext'
+  | 'appliedFragments'
   | 'fragment'
   | 'boundaryConstraints'
+  | 'suggestionStatus'
+  | 'suggestionSource'
+  | 'suggestionNotice'
+  | 'sourceFixtureId'
+  | 'candidateSetId'
   | 'candidates'
   | 'selectedCandidateId'
   | 'locks'
 >;
+
+/** What a saved project stores (projects layer imports domain only). */
+export type PersistedWorkbench = WorkbenchSnapshot & Pick<WorkbenchState, 'tempoBpm'>;

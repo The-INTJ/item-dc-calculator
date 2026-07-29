@@ -1,10 +1,11 @@
-/**
- * Zod schemas for the fixture boundary (spec §17.2: validate at startup).
+﻿/**
+ * Zod schemas for the two trust boundaries: fixture data (validated at module
+ * load, spec 17.2) and localStorage project data (projects/project-store.ts
+ * imports the exported building blocks).
  *
  * Hand-written interfaces in domain/ are the source of truth; each schema is
  * annotated `z.ZodType<X>` so any drift between schema and interface is a
- * compile error. Schemas exist only for data reachable from
- * HarmonizationFixture — nothing else crosses a trust boundary in Phase 0.
+ * compile error.
  */
 
 import { z } from 'zod';
@@ -12,6 +13,7 @@ import type {
   AnalysisEvidence,
   CandidatePath,
   CandidateProvenance,
+  DerivabilityNote,
   EffectDescriptor,
   MelodyInterpretation,
   RankingDimensions,
@@ -116,7 +118,7 @@ const ModeIdSchema = z.enum([
   'mixolydian',
 ]);
 
-const TonalContextSchema: z.ZodType<TonalContext> = z.strictObject({
+export const TonalContextSchema: z.ZodType<TonalContext> = z.strictObject({
   tonic: SpelledPitchClassSchema,
   tonicPitchClass: PitchClassNumberSchema,
   mode: ModeIdSchema,
@@ -147,12 +149,12 @@ const MelodyEventSchema: z.ZodType<MelodyEvent> = z.strictObject({
   phraseBoundaryAfter: z.enum(['none', 'subphrase', 'phrase', 'stanza']).optional(),
 });
 
-const MelodyFragmentSchema: z.ZodType<MelodyFragment> = z.strictObject({
+export const MelodyFragmentSchema: z.ZodType<MelodyFragment> = z.strictObject({
   id: z.string().min(1),
   events: z.array(MelodyEventSchema),
 });
 
-const BoundaryConstraintSchema: z.ZodType<BoundaryConstraint> = z.strictObject({
+export const BoundaryConstraintSchema: z.ZodType<BoundaryConstraint> = z.strictObject({
   afterMelodyEventId: z.string().min(1),
   policy: z.enum(['hold', 'allowed', 'required']),
 });
@@ -314,9 +316,15 @@ const RankingDimensionsSchema: z.ZodType<RankingDimensions> = z.strictObject({
   confidence: z.number().optional(),
 });
 
-const PhraseIntentSchema = z.enum(['continue', 'build', 'approach_cadence', 'close']);
+export const PhraseIntentSchema = z.enum(['continue', 'build', 'approach_cadence', 'close']);
 
-const CandidatePathSchema: z.ZodType<CandidatePath> = z.strictObject({
+const DerivabilityNoteSchema: z.ZodType<DerivabilityNote> = z.strictObject({
+  aspect: z.enum(['chord_path', 'voicing', 'ranking', 'interpretation', 'effects']),
+  status: z.enum(['computed', 'needs_data', 'unsure']),
+  note: z.string().min(1),
+});
+
+export const CandidatePathSchema: z.ZodType<CandidatePath> = z.strictObject({
   id: z.string().min(1),
   fixtureId: z.string().optional(),
   title: z.string().min(1),
@@ -332,9 +340,10 @@ const CandidatePathSchema: z.ZodType<CandidatePath> = z.strictObject({
   rankingDimensions: RankingDimensionsSchema.optional(),
   provenance: CandidateProvenanceSchema,
   compatibilityTags: z.array(z.string()).optional(),
+  derivability: z.array(DerivabilityNoteSchema).optional(),
 });
 
-const AcceptedContextSchema: z.ZodType<AcceptedContext> = z.strictObject({
+export const AcceptedContextSchema: z.ZodType<AcceptedContext> = z.strictObject({
   previousHarmony: HarmonyEventSchema.nullable(),
   previousVoicing: SATBVoicingSchema.nullable(),
 });
@@ -347,7 +356,6 @@ const TonalContextMatchSchema: z.ZodType<TonalContextMatch> = z.strictObject({
 const FixtureMatchCriteriaSchema: z.ZodType<FixtureMatchCriteria> = z.strictObject({
   tonalContext: TonalContextMatchSchema,
   melodySignature: z.string().min(1),
-  boundarySignature: z.string(),
   phraseIntent: PhraseIntentSchema.optional(),
   acceptedHarmonySignature: z.string().optional(),
 });

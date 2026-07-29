@@ -36,6 +36,14 @@
   gap: 0.55rem;
 }
 
+/* The SATB stack hosts the boundary through-lines overlay. */
+.laneStack {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
 /* Each lane is [time grid | fixed-width controls]; the controls column is the
    same width on every lane so the time tracks stay aligned across rows. */
 .lane {
@@ -51,7 +59,7 @@
 }
 
 .laneControls {
-  width: 4.75rem;
+  width: var(--wb-lane-controls-width);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -94,7 +102,20 @@
 
 .addNote {
   @include wb-button;
+}
+
+.addNoteSlot {
   margin-left: auto;
+}
+
+.notice {
+  margin: 0 0 0.55rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--wb-accent);
+  border-radius: var(--wb-radius-chip);
+  background: var(--wb-accent-soft);
+  color: var(--wb-accent-deep);
+  font-size: 0.875rem;
 }
 
 .voiceCheck {
@@ -103,21 +124,6 @@
   margin: 0;
   accent-color: var(--wb-accent);
   cursor: pointer;
-}
-
-.boundaryTrack {
-  grid-column: 2 / -1;
-  position: relative;
-  height: 1.7rem;
-}
-
-.boundaryChip {
-  @include wb-chip;
-  position: absolute;
-  top: 0;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  background: var(--wb-surface);
 }
 
 /* Note cells are the edit surface: clickable body, draggable edges. */

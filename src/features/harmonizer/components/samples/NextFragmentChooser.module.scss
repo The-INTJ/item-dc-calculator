@@ -1,0 +1,55 @@
+@use '@/features/harmonizer/components/shared/controls' as *;
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(43, 38, 32, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.modal {
+  background: var(--wb-surface-raised);
+  border: 1px solid var(--wb-line-strong);
+  border-radius: var(--wb-radius-card);
+  box-shadow: var(--wb-shadow-raised);
+  padding: 1.4rem 1.6rem;
+  max-width: 30rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--wb-font-solfege);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--wb-ink-soft);
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.option {
+  @include wb-button;
+  text-align: left;
+}
+
+.dismiss {
+  @include wb-button;
+  align-self: flex-end;
+  border-color: var(--wb-line);
+}

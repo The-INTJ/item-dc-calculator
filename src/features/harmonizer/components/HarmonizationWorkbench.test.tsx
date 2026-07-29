@@ -9,6 +9,7 @@ vi.mock('../services/tone-playback-service', () => {
     playSATB = vi.fn(async () => {});
     playVoice = vi.fn(async () => {});
     playVoices = vi.fn(async () => {});
+    setInstrument = vi.fn();
     stop = vi.fn();
   }
   return { ToneJsPlaybackService: FakePlaybackService };
@@ -30,12 +31,12 @@ describe('HarmonizationWorkbench', () => {
   it('renders the workspace-first layout with candidate A preview-selected', () => {
     render(<HarmonizationWorkbench />);
 
-    // Workspace: heading, master play, four voice checkboxes, boundary chips.
+    // Workspace: heading, master play, four voice checkboxes; boundary pills are gone.
     expect(screen.getByRole('heading', { level: 2, name: /Grounded descent/ })).toBeTruthy();
     expect(screen.getByRole('button', { name: '▶ Play' })).toBeTruthy();
     expect(screen.getAllByRole('checkbox')).toHaveLength(4);
-    expect(screen.getByText('hold harmony')).toBeTruthy();
-    expect(screen.getByText('change allowed')).toBeTruthy();
+    expect(screen.queryByText('hold harmony')).toBeNull();
+    expect(screen.queryByText('change allowed')).toBeNull();
 
     // Palette below with three clickable cards; A selected, no Select buttons.
     expect(screen.getAllByRole('article')).toHaveLength(3);
@@ -56,7 +57,7 @@ describe('HarmonizationWorkbench', () => {
     expect(screen.getAllByText('C/E').length).toBeGreaterThan(0);
   });
 
-  it('opens the note tool cluster, toggles locks, and keeps the melody locked', () => {
+  it('note tools are live; locking regenerates honestly and freezes the note', () => {
     const { container } = render(<HarmonizationWorkbench />);
 
     const altoCell = container.querySelector('[data-event-id="a-a-1"]');
@@ -65,25 +66,31 @@ describe('HarmonizationWorkbench', () => {
 
     fireEvent.click(altoCell);
     expect(screen.getByRole('toolbar')).toBeTruthy();
-    // Pitch, delete, and add tools are exposed but inert this slice.
     expect(
       screen.getByRole('button', { name: 'Raise pitch' }).hasAttribute('disabled'),
+    ).toBe(false);
+    // A one-note part cannot lose its last note.
+    expect(
+      screen.getByRole('button', { name: 'Delete note' }).hasAttribute('disabled'),
     ).toBe(true);
     expect(
       screen.getByRole('button', { name: 'Add note before' }).hasAttribute('disabled'),
-    ).toBe(true);
+    ).toBe(false);
 
-    // Locking is live and per-note.
+    // Locking whole-bar E against the melody's fa is mathematically
+    // unsatisfiable — the honest notice appears and candidates stay.
     fireEvent.click(screen.getByRole('button', { name: 'Lock note' }));
     expect(altoCell.getAttribute('data-locked')).toBe('true');
+    expect(screen.getByText(/No authored POC alternative satisfies these locks/)).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Raise pitch' }).hasAttribute('disabled'),
+    ).toBe(true);
     fireEvent.click(screen.getByRole('button', { name: 'Unlock note' }));
-    expect(altoCell.getAttribute('data-locked')).toBeNull();
+    expect(screen.queryByText(/No authored POC alternative/)).toBeNull();
 
-    // Escape closes the cluster.
+    // Escape closes the cluster; soprano lock is shown but fixed.
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.queryByRole('toolbar')).toBeNull();
-
-    // Soprano notes are the melody: lock is shown but fixed.
     const sopranoCell = container.querySelector('[data-event-id="a-s-1"]');
     if (!(sopranoCell instanceof HTMLElement)) throw new Error('soprano note cell missing');
     fireEvent.click(sopranoCell);
@@ -92,6 +99,42 @@ describe('HarmonizationWorkbench', () => {
         .getByRole('button', { name: 'The melody is always locked' })
         .hasAttribute('disabled'),
     ).toBe(true);
+  });
+
+  it('hero flow: arrows carry the melody through computed skeletons into fixture D', () => {
+    const { container } = render(<HarmonizationWorkbench />);
+    const sopranoCells = () => {
+      const lane = container.querySelector('[data-lane-grid]');
+      if (!lane) throw new Error('soprano lane missing');
+      return [...lane.querySelectorAll('[data-event-id]')] as HTMLElement[];
+    };
+
+    // sol ▼ → fa: unknown melody → computed skeletons with derivability chips.
+    fireEvent.click(sopranoCells()[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Lower pitch' }));
+    expect(screen.getAllByText('Computed (naive)').length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/chord path/).length).toBeGreaterThan(0);
+
+    // ▼ again → mi.
+    fireEvent.click(sopranoCells()[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Lower pitch' }));
+
+    // Third note ▲ ▲ → sol: mi–fa–sol matches fixture D → authored cards.
+    fireEvent.click(sopranoCells()[2]);
+    fireEvent.click(screen.getByRole('button', { name: 'Raise pitch' }));
+    fireEvent.click(sopranoCells()[2]);
+    fireEvent.click(screen.getByRole('button', { name: 'Raise pitch' }));
+
+    expect(screen.getByRole('heading', { level: 3, name: 'Toward the dominant' })).toBeTruthy();
+    expect(screen.getAllByText('Authored').length).toBeGreaterThan(0);
+
+    // Undo walks the whole journey back.
+    const undo = () => fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+    undo();
+    undo();
+    undo();
+    undo();
+    expect(screen.getByRole('heading', { level: 3, name: 'Grounded descent' })).toBeTruthy();
   });
 
   it('expands the analysis drawer with interpretations and evidence', () => {

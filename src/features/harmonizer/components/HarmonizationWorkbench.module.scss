@@ -19,10 +19,10 @@
   --wb-ink-soft: rgba(43, 38, 32, 0.74);
   --wb-line: rgba(43, 38, 32, 0.22);
   --wb-line-strong: rgba(43, 38, 32, 0.5);
-  --wb-accent: #8a4a32; /* selection + interactive accents */
-  --wb-accent-deep: #6e3a26;
-  --wb-accent-soft: rgba(138, 74, 50, 0.1);
-  --wb-on-accent: #fff9f2;
+  --wb-accent: #7c3a20; /* selection + interactive accents (deep mahogany) */
+  --wb-accent-deep: #5e2b15;
+  --wb-accent-soft: rgba(124, 58, 32, 0.12);
+  --wb-on-accent: #ffffff;
   --wb-active: rgba(184, 134, 42, 0.24); /* playback-cursor wash */
   --wb-active-line: #a97d26;
   --wb-accepted: rgba(101, 119, 90, 0.16);
@@ -41,6 +41,7 @@
   /* Layout — generous max width; Drew works on a 4k display. */
   --wb-max-width: 1760px;
   --wb-lane-label-width: 0px;
+  --wb-lane-controls-width: 4.75rem;
 
   background: var(--wb-paper);
   color: var(--wb-ink);
@@ -50,16 +51,19 @@
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 
-  :where(button, input, select) {
-    font: inherit;
-    color: inherit;
-  }
-
   :focus-visible {
     outline: 2px solid var(--wb-accent);
     outline-offset: 2px;
     border-radius: 3px;
   }
+}
+
+/* Zero-specificity reset (wrapping .workbench in :where too) so component
+   classes ALWAYS win — a nested `.workbench :where(button)` ties class
+   specificity and, loading last, was overriding button colors/weights. */
+:where(.workbench) :where(button, input, select) {
+  font: inherit;
+  color: inherit;
 }
 
 .inner {

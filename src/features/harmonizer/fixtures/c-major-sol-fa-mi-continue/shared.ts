@@ -78,8 +78,11 @@ export const melodyFragment: MelodyFragment = {
   ],
 };
 
+// Boundary metadata predates Drew's redesign (boundaries now merely reflect
+// the selected reading). 'allowed' throughout so lock-alternative sets may
+// re-harmonize any beat; the hold/required machinery stays for future use.
 export const boundaryConstraints: BoundaryConstraint[] = [
-  { afterMelodyEventId: 'mel-sol', policy: 'hold' },
+  { afterMelodyEventId: 'mel-sol', policy: 'allowed' },
   { afterMelodyEventId: 'mel-fa', policy: 'allowed' },
 ];
 
@@ -115,7 +118,6 @@ export const initialState: FixtureInitialState = {
 export const match: FixtureMatchCriteria = {
   tonalContext: { tonicPitchClass: 0, mode: 'major' },
   melodySignature: 'sol4:q|fa4:q|mi4:h',
-  boundarySignature: 'hold|allowed',
   phraseIntent: 'continue',
   acceptedHarmonySignature: 'I:root',
 };

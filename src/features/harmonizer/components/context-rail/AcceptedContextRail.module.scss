@@ -9,17 +9,39 @@
   display: flex;
   align-items: center;
   gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.appliedGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.appliedChip {
+  @include wb-chip;
+  background: var(--wb-accepted);
+  font-family: var(--wb-font-solfege);
+  font-weight: 600;
 }
 
 .chip {
+  appearance: none;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   background: var(--wb-accepted);
-  border: 1px solid var(--wb-line);
+  border: 1px solid var(--wb-line-strong);
   border-radius: var(--wb-radius-chip);
   padding: 0.45rem 0.85rem;
   font-size: 0.875rem;
+  color: var(--wb-ink);
+  cursor: pointer;
+  transition: border-color 150ms ease;
+
+  &:hover {
+    border-color: var(--wb-accent);
+  }
 }
 
 .chipNumeral {

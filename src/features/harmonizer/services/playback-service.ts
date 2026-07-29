@@ -22,6 +22,8 @@ export interface PlaybackCallbacks {
   onEnded?: () => void;
 }
 
+import type { InstrumentId } from './instruments';
+
 export interface PlaybackService {
   playMelody(fragment: MelodyFragment, options?: PlaybackOptions): Promise<void>;
   playHarmony(candidate: CandidatePath, options?: PlaybackOptions): Promise<void>;
@@ -33,5 +35,7 @@ export interface PlaybackService {
     voices: VoiceId[],
     options?: PlaybackOptions,
   ): Promise<void>;
+  /** Choose the sound for subsequent playback (loaded lazily on first use). */
+  setInstrument(id: InstrumentId): void;
   stop(): void;
 }

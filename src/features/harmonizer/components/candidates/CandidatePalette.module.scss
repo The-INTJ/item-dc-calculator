@@ -126,6 +126,49 @@
   @include wb-chip;
 }
 
+.cardProvenance {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.provBadge {
+  @include wb-chip;
+  border-color: var(--wb-accent);
+  color: var(--wb-accent-deep);
+  font-weight: 600;
+}
+
+.provBadgeComputed {
+  border-style: dashed;
+  color: var(--wb-ink);
+}
+
+.derivChip {
+  @include wb-chip;
+  font-size: 0.72rem;
+
+  &[data-status='computed'] {
+    border-color: rgba(101, 119, 90, 0.7);
+  }
+
+  &[data-status='needs_data'] {
+    border-style: dashed;
+  }
+
+  &[data-status='unsure'] {
+    color: var(--wb-ink-soft);
+  }
+}
+
+.derivLegend {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--wb-ink-soft);
+}
+
 .cardActions {
   display: flex;
   align-items: center;

@@ -66,6 +66,31 @@ export function CandidateCard({
           ))}
         </p>
       ) : null}
+      <p className={styles.cardProvenance}>
+        <span
+          className={classes(
+            styles.provBadge,
+            summary.source === 'computed' && styles.provBadgeComputed,
+          )}
+        >
+          {summary.source === 'computed'
+            ? content.provenance.computed
+            : content.provenance.authored}
+        </span>
+        {summary.derivability.map((note) => (
+          <span
+            key={note.aspect}
+            className={styles.derivChip}
+            data-status={note.status}
+            title={note.note}
+          >
+            {content.derivabilityStatus[note.status]} {content.derivabilityAspects[note.aspect]}
+          </span>
+        ))}
+      </p>
+      {summary.source === 'computed' ? (
+        <p className={styles.derivLegend}>{content.provenance.legend}</p>
+      ) : null}
       <footer className={styles.cardActions}>
         {playing ? (
           <button

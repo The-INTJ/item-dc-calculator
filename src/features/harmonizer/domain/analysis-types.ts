@@ -95,6 +95,27 @@ export interface RankingDimensions {
   confidence?: number;
 }
 
+/**
+ * The derivability probe (full-POC amendment): computed skeleton candidates
+ * label every aspect of themselves as mechanically computed, needing curated
+ * data, or genuinely unsure — so the engine-vs-data question is answered by
+ * looking at the UI. Authored fixtures omit this field.
+ */
+export type DerivabilityAspect =
+  | 'chord_path'
+  | 'voicing'
+  | 'ranking'
+  | 'interpretation'
+  | 'effects';
+
+export type DerivabilityStatus = 'computed' | 'needs_data' | 'unsure';
+
+export interface DerivabilityNote {
+  aspect: DerivabilityAspect;
+  status: DerivabilityStatus;
+  note: string;
+}
+
 /** A complete proposed reading of the fragment — harmony, voicing, and interpretation. */
 export interface CandidatePath {
   id: string;
@@ -112,4 +133,5 @@ export interface CandidatePath {
   rankingDimensions?: RankingDimensions;
   provenance: CandidateProvenance;
   compatibilityTags?: string[];
+  derivability?: DerivabilityNote[];
 }
