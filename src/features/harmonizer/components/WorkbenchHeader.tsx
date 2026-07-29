@@ -38,7 +38,12 @@ export function WorkbenchHeader({
         >
           {content.header.redo}
         </button>
-        <button type="button" className={styles.headerButton} disabled title={content.comingSoon}>
+        <button
+          type="button"
+          className={styles.headerButtonOptional}
+          disabled
+          title={content.comingSoon}
+        >
           {content.header.help}
         </button>
       </div>

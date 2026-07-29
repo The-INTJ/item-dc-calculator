@@ -170,6 +170,21 @@ describe('HarmonizationWorkbench', () => {
     expect(screen.getByText('Playback stopped')).toBeTruthy();
   });
 
+  it('offers the note slider only once the track outgrows the four-note window', () => {
+    render(<HarmonizationWorkbench />);
+    // The default fragment is three notes — it fits, so there is nothing to slide.
+    expect(screen.queryByRole('slider')).toBeNull();
+
+    const addSopranoNote = () => {
+      fireEvent.click(screen.getByRole('button', { name: '+ Add note' }));
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Soprano' }));
+    };
+    addSopranoNote();
+    expect(screen.queryByRole('slider')).toBeNull(); // exactly four still fits
+    addSopranoNote();
+    expect(screen.getByRole('slider')).toBeTruthy();
+  });
+
   it('audition from a card plays all voices without changing the selection', () => {
     render(<HarmonizationWorkbench />);
 

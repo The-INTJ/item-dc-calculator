@@ -1,3 +1,4 @@
+@use '@/features/harmonizer/components/shared/breakpoints' as *;
 @use '@/features/harmonizer/components/shared/controls' as *;
 
 .switcher {
@@ -50,4 +51,20 @@
 .menuTrigger {
   @include wb-button;
   padding-inline: 0.5rem;
+}
+
+@include wb-mobile {
+  /* A long hymn name truncates instead of pushing undo/redo off-screen. */
+  .name {
+    max-width: 9.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.95rem;
+  }
+
+  .nameInput {
+    min-width: 0;
+    width: 9.5rem;
+  }
 }

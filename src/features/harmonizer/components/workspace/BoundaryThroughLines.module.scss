@@ -1,3 +1,5 @@
+@use '@/features/harmonizer/components/shared/breakpoints' as *;
+
 .overlay {
   position: absolute;
   top: 0;
@@ -17,4 +19,16 @@
   margin-left: -1px;
   background: var(--wb-line-strong);
   opacity: 0.5;
+}
+
+/**
+ * Mobile stacks a label row above each lane, so a single line through the SATB
+ * column would cut across that text — and under panning it would drift out of
+ * register with the tracks. The chord strip's internal bars carry the boundary
+ * on small screens.
+ */
+@include wb-mobile {
+  .overlay {
+    display: none;
+  }
 }

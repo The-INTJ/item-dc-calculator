@@ -1,3 +1,4 @@
+@use '@/features/harmonizer/components/shared/breakpoints' as *;
 @use '@/features/harmonizer/components/shared/controls' as *;
 
 .bar {
@@ -99,4 +100,46 @@
 
 .samplesTrigger {
   @include wb-button;
+}
+
+/**
+ * Mobile: every field becomes its own full-width row with the label above its
+ * control, and the phrase-intent group wraps instead of running off-screen
+ * (it was clipping "Close" at 390px).
+ */
+@include wb-mobile {
+  .bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.7rem;
+    padding: 0.7rem 0.85rem;
+  }
+
+  .field {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.3rem;
+  }
+
+  .segmented {
+    flex-wrap: wrap;
+  }
+
+  .segment {
+    flex: 1 1 auto;
+    padding-inline: 0.5rem;
+
+    /* Wrapped rows must not keep the single-row left divider. */
+    & + & {
+      border-left: none;
+    }
+  }
+
+  .select {
+    width: 100%;
+  }
+
+  .barEnd {
+    margin-left: 0;
+  }
 }

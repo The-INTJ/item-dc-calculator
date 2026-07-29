@@ -1,0 +1,8 @@
+// One mobile breakpoint for the whole workbench. Below it the chrome goes
+// single-column, the note surface loses its card so it can use the full width,
+// and the time track becomes slider-panned (see shared/pan.ts).
+@mixin wb-mobile {
+  @media (max-width: 720px) {
+    @content;
+  }
+}

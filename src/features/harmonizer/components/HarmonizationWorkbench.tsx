@@ -398,7 +398,7 @@ export function HarmonizationWorkbench() {
             }
           />
         </section>
-        <section className={styles.region}>
+        <section className={styles.regionNotes}>
           <CandidateInspector
             candidate={selectedCandidate}
             candidateLetter={candidateLetter}

@@ -9,6 +9,7 @@ import type { PlaybackState, SuggestionSource } from '../../domain/workbench-sta
 import { BoundaryThroughLines } from '../workspace/BoundaryThroughLines';
 import { ChordStrip } from '../workspace/ChordStrip';
 import { newUserEventId } from '../shared/ids';
+import { needsPan, panForUnit, panShiftPercent, trackScale } from '../shared/pan';
 import { cssVars } from '../shared/timeGrid';
 import { AddNoteMenu } from './AddNoteMenu';
 import { AnalysisDrawer } from './AnalysisDrawer';
@@ -84,6 +85,8 @@ export function CandidateInspector({
 }: CandidateInspectorProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<{ candidateId: string; eventId: string } | null>(null);
+  /** 0–1 slider position for the mobile note track (see shared/pan.ts). */
+  const [pan, setPan] = useState(0);
 
   const playing = playback.status === 'playing';
   const activeUnit = playing ? playback.activeUnit : null;
@@ -95,6 +98,31 @@ export function CandidateInspector({
     totalUnits(fragment),
     candidate ? voicingUnits(candidate.voicing) : 0,
   );
+
+  /**
+   * Mobile note panning. The densest row decides the track width, so every
+   * lane and the chord strip pan in lockstep. While playing, the pan is
+   * derived from the cursor so the view follows the music; when playback stops
+   * `activeUnit` goes null and the slider's own position takes over again.
+   */
+  const noteCount = candidate
+    ? Math.max(
+        candidate.voicing.soprano.length,
+        candidate.voicing.alto.length,
+        candidate.voicing.tenor.length,
+        candidate.voicing.bass.length,
+        candidate.harmonyEvents.length,
+      )
+    : 0;
+  const scale = trackScale(noteCount);
+  const effectivePan = activeUnit !== null ? panForUnit(activeUnit, gridUnits, scale) : pan;
+  const panVars = {
+    '--wb-time-units': gridUnits,
+    '--wb-track-scale': scale,
+    '--wb-pan-shift': panShiftPercent(effectivePan, scale),
+    '--wb-pan-shadow-left': scale > 1 && effectivePan > 0.002 ? 1 : 0,
+    '--wb-pan-shadow-right': scale > 1 && effectivePan < 0.998 ? 1 : 0,
+  };
 
   function editNote(eventId: string | null) {
     setEditing(eventId && candidate ? { candidateId: candidate.id, eventId } : null);
@@ -135,13 +163,7 @@ export function CandidateInspector({
       {!candidate ? (
         <p className={styles.noSelection}>{content.inspector.noSelection}</p>
       ) : (
-        <div
-          className={styles.lanes}
-          style={cssVars({
-            '--wb-time-units': gridUnits,
-            '--wb-lane-label-width': '7rem',
-          })}
-        >
+        <div className={styles.lanes} style={cssVars(panVars)}>
           <div className={styles.masterRow}>
             {playing ? (
               <button type="button" className={styles.masterButton} onClick={onStop}>
@@ -226,17 +248,37 @@ export function CandidateInspector({
           </div>
 
           <div className={styles.lane}>
-            <div className={styles.laneGrid}>
-              <span className={styles.laneLabel}>{content.inspector.chords}</span>
-              <ChordStrip
-                harmonyEvents={candidate.harmonyEvents}
-                activeUnit={activeUnit}
-                gridUnits={gridUnits}
-                computed={suggestionSource === 'computed'}
-              />
+            <span className={styles.laneLabelStacked}>{content.inspector.chords}</span>
+            <div className={styles.laneTrackClip}>
+              <div className={styles.laneGrid}>
+                <span className={styles.laneLabel}>{content.inspector.chords}</span>
+                <ChordStrip
+                  harmonyEvents={candidate.harmonyEvents}
+                  activeUnit={activeUnit}
+                  gridUnits={gridUnits}
+                  computed={suggestionSource === 'computed'}
+                />
+              </div>
             </div>
             <div className={styles.laneControls} aria-hidden="true" />
           </div>
+
+          {/* Mobile-only (CSS-gated): the sole way to move the note track. */}
+          {needsPan(noteCount) ? (
+            <div className={styles.panRow}>
+              <input
+                type="range"
+                className={styles.panSlider}
+                min={0}
+                max={100}
+                value={Math.round(effectivePan * 100)}
+                disabled={playing}
+                aria-label={content.inspector.panLabel}
+                title={playing ? content.inspector.panFollowing : content.inspector.panLabel}
+                onChange={(changeEvent) => setPan(Number(changeEvent.target.value) / 100)}
+              />
+            </div>
+          ) : null}
 
           <EffectSummary descriptors={candidate.descriptors} />
 

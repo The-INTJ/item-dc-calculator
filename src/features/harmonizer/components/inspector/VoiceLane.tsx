@@ -75,10 +75,15 @@ export function VoiceLane({
     pointerEvent.stopPropagation();
     const handle = pointerEvent.currentTarget;
     const grid = handle.closest('[data-lane-grid]');
-    const label = grid?.querySelector('[data-lane-label]');
-    if (!(grid instanceof HTMLElement) || !(label instanceof HTMLElement)) return;
-    const trackLeft = label.getBoundingClientRect().right;
-    const trackWidth = grid.getBoundingClientRect().right - trackLeft;
+    if (!(grid instanceof HTMLElement)) return;
+    // Measure from the grid itself so the math holds in both layouts: on
+    // mobile the in-grid label is hidden (zero width) and the lane label sits
+    // above the track instead. The rect already includes any pan transform.
+    const gridRect = grid.getBoundingClientRect();
+    const label = grid.querySelector('[data-lane-label]');
+    const labelWidth = label instanceof HTMLElement ? label.getBoundingClientRect().width : 0;
+    const trackLeft = gridRect.left + labelWidth;
+    const trackWidth = gridRect.right - trackLeft;
     if (trackWidth <= 0 || gridUnits <= 0) return;
     const unitWidth = trackWidth / gridUnits;
     const gestureId = newId(); // one undo entry per drag
@@ -107,157 +112,163 @@ export function VoiceLane({
 
   return (
     <div className={styles.lane}>
-      <div className={styles.laneGrid} data-lane-grid>
-        <span className={styles.laneLabel} data-lane-label>
-          {voiceLabel}
-        </span>
-        {events.map((event) => {
-          const span = toTimelineSpan(event.start, event.duration);
-          const active = isUnitActive(span, activeUnit);
-          const editing = editingEventId === event.id;
-          const locked = lockedEventIds.has(event.id);
-          return (
-            <div
-              key={event.id}
-              className={classes(
-                styles.voiceCell,
-                active && styles.cellActive,
-                editing && styles.cellEditing,
-                locked && styles.cellLocked,
-              )}
-              style={timeSpanStyle(span)}
-              data-active={active || undefined}
-              data-event-id={event.id}
-              data-locked={locked || undefined}
-              tabIndex={0}
-              onClick={() => onEditNote(editing ? null : event.id)}
-              onKeyDown={(keyEvent) => {
-                if (keyEvent.key === 'Enter') {
-                  keyEvent.preventDefault();
-                  keyEvent.stopPropagation();
-                  onEditNote(editing ? null : event.id);
-                }
-              }}
-            >
-              {locked ? (
-                <span className={styles.noteLockBadge} aria-hidden="true">
-                  🔒
-                </span>
-              ) : null}
-              <span className={styles.voiceSyllable}>
-                {event.tieFromPrevious ? (
-                  <span aria-hidden="true" className={styles.tieMark}>
-                    ‿
+      {/* Mobile puts the label (and the controls) above the track; desktop uses
+          the in-grid label below. Exactly one label is ever displayed, so only
+          one reaches the accessibility tree. */}
+      <span className={styles.laneLabelStacked}>{voiceLabel}</span>
+      <div className={styles.laneTrackClip}>
+        <div className={styles.laneGrid} data-lane-grid>
+          <span className={styles.laneLabel} data-lane-label>
+            {voiceLabel}
+          </span>
+          {events.map((event) => {
+            const span = toTimelineSpan(event.start, event.duration);
+            const active = isUnitActive(span, activeUnit);
+            const editing = editingEventId === event.id;
+            const locked = lockedEventIds.has(event.id);
+            return (
+              <div
+                key={event.id}
+                className={classes(
+                  styles.voiceCell,
+                  active && styles.cellActive,
+                  editing && styles.cellEditing,
+                  locked && styles.cellLocked,
+                )}
+                style={timeSpanStyle(span)}
+                data-active={active || undefined}
+                data-event-id={event.id}
+                data-locked={locked || undefined}
+                tabIndex={0}
+                onClick={() => onEditNote(editing ? null : event.id)}
+                onKeyDown={(keyEvent) => {
+                  if (keyEvent.key === 'Enter') {
+                    keyEvent.preventDefault();
+                    keyEvent.stopPropagation();
+                    onEditNote(editing ? null : event.id);
+                  }
+                }}
+              >
+                {locked ? (
+                  <span className={styles.noteLockBadge} aria-hidden="true">
+                    🔒
                   </span>
                 ) : null}
-                {event.scaleDegree.syllable}
-              </span>
-              <span className={styles.voicePitch}>{pitchDisplay(event.pitch)}</span>
-              <span
-                className={classes(styles.edgeHandle, styles.edgeHandleLeft)}
-                aria-hidden="true"
-                onClick={(clickEvent) => clickEvent.stopPropagation()}
-                onPointerDown={(downEvent) => handleEdgePointerDown(downEvent, event.id, 'left')}
-              />
-              <span
-                className={classes(styles.edgeHandle, styles.edgeHandleRight)}
-                aria-hidden="true"
-                onClick={(clickEvent) => clickEvent.stopPropagation()}
-                onPointerDown={(downEvent) => handleEdgePointerDown(downEvent, event.id, 'right')}
-              />
-              {editing ? (
-                <>
-                  <span
-                    className={styles.noteToolbar}
-                    role="toolbar"
-                    aria-label={content.inspector.noteToolsLabel}
-                    onClick={(clickEvent) => clickEvent.stopPropagation()}
-                  >
-                    <button
-                      type="button"
-                      className={styles.noteTool}
-                      disabled={locked}
-                      title={locked ? content.inspector.noteTools.lockedHint : undefined}
-                      aria-label={tools.raise}
-                      onClick={() => onStepNote(event.id, 1)}
+                <span className={styles.voiceSyllable}>
+                  {event.tieFromPrevious ? (
+                    <span aria-hidden="true" className={styles.tieMark}>
+                      ‿
+                    </span>
+                  ) : null}
+                  {event.scaleDegree.syllable}
+                </span>
+                <span className={styles.voicePitch}>{pitchDisplay(event.pitch)}</span>
+                <span
+                  className={classes(styles.edgeHandle, styles.edgeHandleLeft)}
+                  aria-hidden="true"
+                  onClick={(clickEvent) => clickEvent.stopPropagation()}
+                  onPointerDown={(downEvent) => handleEdgePointerDown(downEvent, event.id, 'left')}
+                />
+                <span
+                  className={classes(styles.edgeHandle, styles.edgeHandleRight)}
+                  aria-hidden="true"
+                  onClick={(clickEvent) => clickEvent.stopPropagation()}
+                  onPointerDown={(downEvent) => handleEdgePointerDown(downEvent, event.id, 'right')}
+                />
+                {editing ? (
+                  <>
+                    <span
+                      className={styles.noteToolbar}
+                      role="toolbar"
+                      aria-label={content.inspector.noteToolsLabel}
+                      onClick={(clickEvent) => clickEvent.stopPropagation()}
                     >
-                      ▲
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.noteTool}
-                      disabled={locked}
-                      title={locked ? content.inspector.noteTools.lockedHint : undefined}
-                      aria-label={tools.lower}
-                      onClick={() => onStepNote(event.id, -1)}
-                    >
-                      ▼
-                    </button>
-                    {melodyLocked ? (
                       <button
                         type="button"
                         className={styles.noteTool}
-                        disabled
-                        title={content.melody.alwaysLocked}
-                        aria-label={content.melody.alwaysLocked}
+                        disabled={locked}
+                        title={locked ? content.inspector.noteTools.lockedHint : undefined}
+                        aria-label={tools.raise}
+                        onClick={() => onStepNote(event.id, 1)}
                       >
-                        🔒
+                        ▲
                       </button>
-                    ) : (
                       <button
                         type="button"
                         className={styles.noteTool}
-                        aria-pressed={locked}
-                        aria-label={locked ? tools.unlock : tools.lock}
-                        onClick={() => onToggleLock(event)}
+                        disabled={locked}
+                        title={locked ? content.inspector.noteTools.lockedHint : undefined}
+                        aria-label={tools.lower}
+                        onClick={() => onStepNote(event.id, -1)}
                       >
-                        {locked ? '🔒' : '🔓'}
+                        ▼
                       </button>
-                    )}
+                      {melodyLocked ? (
+                        <button
+                          type="button"
+                          className={styles.noteTool}
+                          disabled
+                          title={content.melody.alwaysLocked}
+                          aria-label={content.melody.alwaysLocked}
+                        >
+                          🔒
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className={styles.noteTool}
+                          aria-pressed={locked}
+                          aria-label={locked ? tools.unlock : tools.lock}
+                          onClick={() => onToggleLock(event)}
+                        >
+                          {locked ? '🔒' : '🔓'}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className={styles.noteTool}
+                        disabled={locked || events.length <= 1}
+                        title={
+                          events.length <= 1
+                            ? content.inspector.noteTools.keepOneHint
+                            : locked
+                              ? content.inspector.noteTools.lockedHint
+                              : undefined
+                        }
+                        aria-label={tools.remove}
+                        onClick={() => onDeleteNote(event.id)}
+                      >
+                        ✕
+                      </button>
+                    </span>
                     <button
                       type="button"
-                      className={styles.noteTool}
-                      disabled={locked || events.length <= 1}
-                      title={
-                        events.length <= 1
-                          ? content.inspector.noteTools.keepOneHint
-                          : locked
-                            ? content.inspector.noteTools.lockedHint
-                            : undefined
-                      }
-                      aria-label={tools.remove}
-                      onClick={() => onDeleteNote(event.id)}
+                      className={classes(styles.addNoteEdge, styles.addNoteBefore)}
+                      aria-label={tools.addBefore}
+                      onClick={(clickEvent) => {
+                        clickEvent.stopPropagation();
+                        onInsertNote(event.id, 'before');
+                      }}
                     >
-                      ✕
+                      +
                     </button>
-                  </span>
-                  <button
-                    type="button"
-                    className={classes(styles.addNoteEdge, styles.addNoteBefore)}
-                    aria-label={tools.addBefore}
-                    onClick={(clickEvent) => {
-                      clickEvent.stopPropagation();
-                      onInsertNote(event.id, 'before');
-                    }}
-                  >
-                    +
-                  </button>
-                  <button
-                    type="button"
-                    className={classes(styles.addNoteEdge, styles.addNoteAfter)}
-                    aria-label={tools.addAfter}
-                    onClick={(clickEvent) => {
-                      clickEvent.stopPropagation();
-                      onInsertNote(event.id, 'after');
-                    }}
-                  >
-                    +
-                  </button>
-                </>
-              ) : null}
-            </div>
-          );
-        })}
+                    <button
+                      type="button"
+                      className={classes(styles.addNoteEdge, styles.addNoteAfter)}
+                      aria-label={tools.addAfter}
+                      onClick={(clickEvent) => {
+                        clickEvent.stopPropagation();
+                        onInsertNote(event.id, 'after');
+                      }}
+                    >
+                      +
+                    </button>
+                  </>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
       </div>
       <div className={styles.laneControls}>
         <input

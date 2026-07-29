@@ -53,6 +53,32 @@ corruption-safe, autosave + header switcher). Suggestion resolution lives in
 `domain/suggest.ts`; the reducer imports the static registry (pure data) by
 design.
 
+### Mobile (≤720px)
+
+One breakpoint, `components/shared/_breakpoints.scss`. The chrome goes
+single-column (context-bar fields stack label-over-control, the phrase-intent
+group wraps instead of running off-screen, the project name truncates, the
+disabled Help button hides). The note surface **drops its card** entirely so the
+time track gets the full width, and each lane becomes two rows: the part label
+plus its checkbox and play button on top, the full-width track underneath.
+
+Panning (`components/shared/pan.ts`, pure + unit-tested): past four notes the
+track is widened to `noteCount / 4 ×` its window and slid with `left` on a
+relatively-positioned grid, so **there is no scrollbar and a stray swipe cannot
+move it — the slider between CHORDS and EFFECT is the only control**. Edge
+shadows mark whichever side continues out of view. While playing, the pan is
+*derived* from the playback cursor (`panForUnit`) and the slider disables
+itself; when playback ends `activeUnit` goes null and the slider's own position
+takes over again, with no effect or timer involved. The boundary through-lines
+hide here — stacked label rows break the straight column, so the chord strip's
+internal bars carry the boundary instead.
+
+Two environment notes for anyone verifying in the in-app Browser pane: it does
+not composite frames, so **CSS transitions freeze at their start value** (a
+stuck transition also outranks inline `!important`, which makes it look like a
+property is ignored), and synthetic `computer` clicks may not reach React at
+narrow widths — call `.click()` on the element instead.
+
 ### Sound toggle (swappable instruments)
 
 The context bar's **Sound** select swaps the playback instrument live

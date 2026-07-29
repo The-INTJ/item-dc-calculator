@@ -86,6 +86,8 @@ export const content = {
     playVoice: 'Play voice',
     includeInPlay: 'include in playback',
     noteToolsLabel: 'Note tools',
+    panLabel: 'Slide the notes into view',
+    panFollowing: 'Following playback',
     noteTools: {
       raise: 'Raise pitch',
       lower: 'Lower pitch',

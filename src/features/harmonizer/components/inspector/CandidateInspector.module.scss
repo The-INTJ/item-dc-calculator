@@ -1,3 +1,4 @@
+@use '@/features/harmonizer/components/shared/breakpoints' as *;
 @use '@/features/harmonizer/components/shared/controls' as *;
 @use '@/features/harmonizer/components/shared/time-grid' as *;
 
@@ -34,6 +35,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
+  /* The label track width lives here (not inline) so mobile can zero it. */
+  --wb-lane-label-width: 7rem;
 }
 
 /* The SATB stack hosts the boundary through-lines overlay. */
@@ -52,10 +55,25 @@
   gap: 0.6rem;
 }
 
-.laneGrid {
-  @include time-row;
+/* Window over the time track. Only mobile clips it (and only then can it pan). */
+.laneTrackClip {
+  position: relative;
   flex: 1;
   min-width: 0;
+}
+
+.laneGrid {
+  @include time-row;
+}
+
+/* The label above the track — mobile only; desktop uses the in-grid label. */
+.laneLabelStacked {
+  display: none;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wb-ink-soft);
 }
 
 .laneControls {
@@ -106,6 +124,27 @@
 
 .addNoteSlot {
   margin-left: auto;
+}
+
+/* ---------- mobile note-track slider ---------- */
+
+.panRow {
+  display: none; /* desktop: the full track already fits */
+  align-items: center;
+  padding: 0.15rem 0.15rem 0.1rem;
+}
+
+.panSlider {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--wb-accent);
+  cursor: grab;
+  touch-action: manipulation;
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.75;
+  }
 }
 
 .notice {
@@ -422,4 +461,136 @@
   font-size: 0.7rem;
   color: var(--wb-ink-soft);
   font-variant-numeric: tabular-nums;
+}
+
+/* ---------- mobile ----------
+ * The lane becomes two rows: [label · checkbox + play] above [full-width
+ * track]. The track is a window onto a wider grid that only the slider can
+ * move, so there is never a scrollbar and a stray swipe can't shift the notes.
+ */
+@include wb-mobile {
+  .lanes {
+    --wb-lane-label-width: 0px;
+    gap: 0.7rem;
+  }
+
+  .headingRow {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .heading {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .apply {
+    flex: 1 1 100%;
+  }
+
+  .lane {
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+  }
+
+  .laneLabel {
+    display: none;
+  }
+
+  .laneLabelStacked {
+    display: block;
+    order: 1;
+  }
+
+  .laneControls {
+    order: 2;
+    width: auto;
+    margin-left: auto;
+
+    /* The chord row's spacer column has no controls to hold. */
+    &:empty {
+      display: none;
+    }
+  }
+
+  .laneTrackClip {
+    order: 3;
+    flex: 1 1 100%;
+  }
+
+  /* Stack syllable over pitch so a narrow cell never clips its own text. */
+  .voiceCell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    margin-inline: 0.15rem;
+    padding: 0.45rem 0.5rem 0.4rem;
+    min-height: 2.9rem;
+  }
+
+  .voiceSyllable {
+    font-size: 1.05rem;
+    line-height: 1.15;
+  }
+
+  .voicePitch {
+    font-size: 0.68rem;
+  }
+
+  .noteLockBadge {
+    right: 0.3rem;
+  }
+
+  /**
+   * `overflow-x: clip` (not `hidden`) keeps vertical overflow visible so the
+   * floating note toolbar still escapes the lane. Where it is unsupported the
+   * whole pan mechanism sits out rather than overflowing the page.
+   */
+  @supports (overflow-x: clip) {
+    .laneTrackClip {
+      overflow-x: clip;
+      overflow-y: visible;
+    }
+
+    /**
+     * The track is wider than its window and slides with `left` (percentages
+     * resolve against the window, which is what pan.ts computes). No
+     * transition — it must follow the slider thumb 1:1.
+     */
+    .laneGrid {
+      position: relative;
+      width: calc(100% * var(--wb-track-scale, 1));
+      left: var(--wb-pan-shift, 0%);
+    }
+
+    /* Edge shadows: the only cue that notes continue past the window. */
+    .laneTrackClip::before,
+    .laneTrackClip::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 18px;
+      z-index: 6;
+      pointer-events: none;
+    }
+
+    .laneTrackClip::before {
+      left: 0;
+      opacity: var(--wb-pan-shadow-left, 0);
+      background: linear-gradient(to right, rgba(43, 38, 32, 0.3), rgba(43, 38, 32, 0));
+    }
+
+    .laneTrackClip::after {
+      right: 0;
+      opacity: var(--wb-pan-shadow-right, 0);
+      background: linear-gradient(to left, rgba(43, 38, 32, 0.3), rgba(43, 38, 32, 0));
+    }
+
+    .panRow {
+      display: flex;
+    }
+  }
 }
