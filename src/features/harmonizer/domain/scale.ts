@@ -120,6 +120,27 @@ export function syllableForDegree(
   return null;
 }
 
+/** Best-effort scale degree for a bare pitch class: diatonic, else raised by one. */
+export function scaleDegreeForPitchClass(
+  context: TonalContext,
+  pitchClass: number,
+): ScaleDegreePitch | null {
+  const table = modeTable(context);
+  if (!table) return null;
+  for (const chromaticOffset of [0, 1] as const) {
+    for (let d = 1; d <= 7; d += 1) {
+      const degree = d as DiatonicDegree;
+      const pc = (context.tonicPitchClass + table.intervals[degree - 1] + chromaticOffset) % 12;
+      if (pc === pitchClass) {
+        const syllable = syllableForDegree(context, degree, chromaticOffset);
+        if (!syllable) return null;
+        return { degree, chromaticOffset, syllable };
+      }
+    }
+  }
+  return null;
+}
+
 /**
  * Step a note to the adjacent diatonic degree (chromatic sources land on the
  * adjacent diatonic degree — POC rule). Returns null when the context is

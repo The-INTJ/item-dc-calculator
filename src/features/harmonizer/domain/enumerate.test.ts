@@ -61,22 +61,49 @@ describe('assembleSkeletons', () => {
     }
   });
 
-  it('filters by locked pitches and returns [] when over-constrained', () => {
+  it('filters by locked pitches; over-constrained spans become ? sketches', () => {
     // Lock pitch-class 11 (B) across the whole fragment: only chords containing
-    // B survive; the melody note fa (F) shares no triad with B except V7/vii°.
+    // B survive at every span (V7/vii°/iii… as membership allows).
     const constrained = assembleSkeletons(fragment, C_MAJOR, 'continue', [
-      { startUnit: 0, units: 16, pitchClass: 11 },
+      {
+        startUnit: 0,
+        units: 16,
+        pitchClass: 11,
+        voice: 'tenor',
+        pitch: { letter: 'B', accidental: 'natural', pitchClass: 11, octave: 3, midi: 59 },
+      },
     ]);
+    expect(constrained.length).toBeGreaterThan(0);
     for (const candidate of constrained) {
       for (const harmony of candidate.harmonyEvents) {
         expect(harmony.chord.pitchClasses).toContain(11);
       }
     }
-    // An impossible lock (pitch class outside every supporting chord) → [].
+    // An impossible lock (C#3 shares no naive chord with any melody note) no
+    // longer fails — every span becomes an honest ? showing the sounding notes,
+    // with the pinned note kept in its lane and the gaps labeled.
     const impossible = assembleSkeletons(fragment, C_MAJOR, 'continue', [
-      { startUnit: 0, units: 16, pitchClass: 1 },
+      {
+        startUnit: 0,
+        units: 16,
+        pitchClass: 1,
+        voice: 'bass',
+        pitch: { letter: 'C', accidental: '#', pitchClass: 1, octave: 3, midi: 49 },
+      },
     ]);
-    expect(impossible).toEqual([]);
+    expect(impossible.length).toBeGreaterThan(0);
+    for (const candidate of impossible) {
+      expect(candidate.voicing.bass.map((event) => event.pitch.midi)).toEqual([49]);
+      expect(
+        candidate.harmonyEvents.every((event) => event.analysis.romanNumeral === '?'),
+      ).toBe(true);
+      expect(
+        candidate.harmonyEvents.every((event) => event.displaySymbol.includes('+')),
+      ).toBe(true);
+      expect(
+        candidate.derivability?.some((note) => note.status === 'needs_math'),
+      ).toBe(true);
+    }
   });
 
   it('returns [] for unsupported contexts and empty fragments', () => {

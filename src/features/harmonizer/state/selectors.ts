@@ -5,6 +5,7 @@
  */
 
 import type { CandidatePath, DerivabilityNote } from '../domain/analysis-types';
+import { USER_GENERATOR_ID } from '../domain/derive-harmony';
 import type { VoiceEvent } from '../domain/music-types';
 import type { WorkbenchState } from '../domain/workbench-state';
 
@@ -20,7 +21,7 @@ export interface CandidatePathSummary {
   summary: string;
   descriptorLabels: string[];
   /** The derivability probe's headline: where this reading came from. */
-  source: 'authored' | 'computed';
+  source: 'authored' | 'computed' | 'user';
   derivability: DerivabilityNote[];
 }
 
@@ -68,7 +69,11 @@ export function toCandidatePathSummary(candidate: CandidatePath): CandidatePathS
     bassOutline: bassOutline(candidate),
     summary: candidate.summary,
     descriptorLabels: candidate.descriptors.map((descriptor) => descriptor.label),
-    source: candidate.provenance.fixtureAuthored ? 'authored' : 'computed',
+    source: candidate.provenance.fixtureAuthored
+      ? 'authored'
+      : candidate.provenance.generatorId === USER_GENERATOR_ID
+        ? 'user'
+        : 'computed',
     derivability: candidate.derivability ?? [],
   };
 }

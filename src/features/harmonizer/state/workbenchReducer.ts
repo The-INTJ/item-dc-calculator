@@ -4,15 +4,18 @@
  * exported. The reducer imports only pure, deterministic modules (the static
  * fixture registry and the naive generator), so reducer purity holds.
  *
- * Live regeneration: every input edit (soprano notes, key, intent, accepted
- * harmony, locks) synchronously re-resolves suggestions via
- * domain/suggest.ts — there is no stale state and no manual refresh.
+ * THE SURFACE RULE (Drew): the selected reading's notes are the source of
+ * truth. An edit to one note NEVER moves another note and NEVER swaps the
+ * working reading — its chord analysis re-derives FROM the sounding notes
+ * (domain/derive-harmony.ts). Live regeneration only replaces the SUGGESTION
+ * cards around the surface; adopting one is an explicit card click.
  *
  * History: MAX_HISTORY undoable snapshots; drags coalesce per gestureId; ids
  * are always minted by callers (no Date/crypto here — purity + StrictMode).
  */
 
 import { useReducer } from 'react';
+import { withDerivedAnalysis } from '../domain/derive-harmony';
 import type { HarmonizationFixture } from '../domain/fixture-types';
 import type {
   MelodyEvent,
@@ -57,7 +60,6 @@ export function createInitialWorkbenchState(fixture: HarmonizationFixture): Work
     boundaryConstraints: fixture.initialState.boundaryConstraints,
     suggestionStatus: candidates.length > 0 ? 'fresh' : 'empty',
     suggestionSource: candidates.length > 0 ? 'authored' : null,
-    suggestionNotice: null,
     sourceFixtureId: fixture.id,
     candidateSetId: candidateSet ? candidateSet.id : null,
     candidates,
@@ -83,7 +85,6 @@ function takeSnapshot(state: WorkbenchState): WorkbenchSnapshot {
     boundaryConstraints: state.boundaryConstraints,
     suggestionStatus: state.suggestionStatus,
     suggestionSource: state.suggestionSource,
-    suggestionNotice: state.suggestionNotice,
     sourceFixtureId: state.sourceFixtureId,
     candidateSetId: state.candidateSetId,
     candidates: state.candidates,
@@ -112,40 +113,76 @@ function pushHistoryForGesture(state: WorkbenchState, gestureId: string): Workbe
 
 /* ---------- suggestion regeneration ---------- */
 
+/**
+ * Apply a suggestion resolution WITHOUT disturbing the working reading: the
+ * selected candidate survives every regeneration (the surface rule); only the
+ * cards around it are replaced. Remapped locks from the resolution are merged
+ * in, and locks pointing at candidates that no longer exist are pruned.
+ */
 function applyResolution(
   state: WorkbenchState,
   resolution: SuggestionResolution,
 ): WorkbenchState {
-  if (resolution.kind === 'keep_with_notice') {
-    return { ...state, suggestionNotice: resolution.notice };
-  }
+  const working =
+    state.candidates.find((candidate) => candidate.id === state.selectedCandidateId) ?? null;
   if (resolution.kind === 'empty') {
+    const candidates = working ? [working] : [];
     return {
       ...state,
-      candidates: [],
+      candidates,
       candidateSetId: null,
-      selectedCandidateId: null,
-      suggestionStatus: 'empty',
-      suggestionSource: null,
-      suggestionNotice: null,
+      selectedCandidateId: working?.id ?? null,
+      suggestionStatus: candidates.length > 0 ? 'fresh' : 'empty',
+      suggestionSource: working ? state.suggestionSource : null,
     };
   }
-  const selectedCandidateId = resolution.candidates.some(
-    (candidate) => candidate.id === state.selectedCandidateId,
-  )
-    ? state.selectedCandidateId
-    : (resolution.candidates[0]?.id ?? null);
+  // The working reading always leads; a suggestion with the same id is the
+  // working reading's pristine twin and yields to the surface.
+  const suggestions = resolution.candidates.filter(
+    (candidate) => candidate.id !== working?.id,
+  );
+  const candidates = working ? [working, ...suggestions] : resolution.candidates;
+  const merged = resolution.locks
+    ? [
+        ...state.locks,
+        ...resolution.locks.filter(
+          (incoming) =>
+            !state.locks.some(
+              (existing) =>
+                existing.candidateId === incoming.candidateId &&
+                existing.targetId === incoming.targetId,
+            ),
+        ),
+      ]
+    : state.locks;
+  const locks = merged.filter((lock) =>
+    candidates.some((candidate) => candidate.id === lock.candidateId),
+  );
   return {
     ...state,
-    candidates: resolution.candidates,
+    candidates,
     candidateSetId: resolution.candidateSetId,
     sourceFixtureId: resolution.sourceFixtureId,
-    selectedCandidateId,
+    selectedCandidateId: working?.id ?? (resolution.candidates[0]?.id ?? null),
     suggestionStatus: 'fresh',
     suggestionSource: resolution.suggestionSource,
-    suggestionNotice: null,
     boundaryConstraints: resolution.boundaryConstraints ?? state.boundaryConstraints,
-    locks: resolution.locks ?? state.locks,
+    locks,
+  };
+}
+
+/** Re-derive one candidate's analysis from its own notes (the surface rule). */
+function deriveCandidate(state: WorkbenchState, candidateId: string | null): WorkbenchState {
+  const index = state.candidates.findIndex((candidate) => candidate.id === candidateId);
+  if (index === -1) return state;
+  const derived = withDerivedAnalysis(
+    state.candidates[index],
+    state.fragment,
+    state.tonalContext,
+  );
+  return {
+    ...state,
+    candidates: state.candidates.map((candidate, i) => (i === index ? derived : candidate)),
   };
 }
 
@@ -251,7 +288,14 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
           pinned !== acceptedHarmonySignature(acceptedContext.previousHarmony)
         ) {
           // The kept context diverges from the fixture's pin — resolve honestly.
-          return regenerate(next);
+          // Loading a sample is an explicit replacement: clear the working
+          // reading so the resolution owns the whole workspace.
+          return regenerate({
+            ...next,
+            candidates: [],
+            selectedCandidateId: null,
+            candidateSetId: null,
+          });
         }
         const set = defaultCandidateSet(fixture);
         return {
@@ -261,7 +305,6 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
           selectedCandidateId: set.candidates[0]?.id ?? null,
           suggestionStatus: set.candidates.length > 0 ? 'fresh' : 'empty',
           suggestionSource: set.candidates.length > 0 ? 'authored' : null,
-          suggestionNotice: null,
         };
       }
       const next: WorkbenchState = {
@@ -273,6 +316,10 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
           ? state.acceptedContext
           : { previousHarmony: null, previousVoicing: null },
         sourceFixtureId: null,
+        // Explicit replacement — the blank sample owns the workspace.
+        candidates: [],
+        selectedCandidateId: null,
+        candidateSetId: null,
       };
       return regenerate(next);
     }
@@ -293,7 +340,10 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
         state.tonalContext.mode === action.tonalContext.mode &&
         state.tonalContext.minorDoSystem === action.tonalContext.minorDoSystem;
       if (same) return state;
-      return regenerate({ ...pushHistory(state), tonalContext: action.tonalContext });
+      // Key change re-ANALYZES the working notes (numerals, syllabic reading)
+      // and regenerates the cards — it never rewrites a note.
+      const next = { ...pushHistory(state), tonalContext: action.tonalContext };
+      return regenerate(deriveCandidate(next, next.selectedCandidateId));
     }
 
     case 'EDIT_PHRASE_INTENT': {
@@ -341,7 +391,7 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
         );
       });
       if (!result) return state;
-      const next = { ...pushHistory(state), ...result };
+      const next = deriveCandidate({ ...pushHistory(state), ...result }, action.candidateId);
       return action.voice === 'soprano' ? regenerate(next) : next;
     }
 
@@ -382,7 +432,7 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
         },
       );
       if (!result) return state;
-      const next = { ...pushHistory(state), ...result };
+      const next = deriveCandidate({ ...pushHistory(state), ...result }, action.candidateId);
       return action.voice === 'soprano' ? regenerate(next) : next;
     }
 
@@ -407,7 +457,10 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
       const locks = state.locks.filter(
         (lock) => !(lock.targetType === 'voice_event' && lock.targetId === action.eventId),
       );
-      const next = { ...pushHistory(state), ...result, locks };
+      const next = deriveCandidate(
+        { ...pushHistory(state), ...result, locks },
+        action.candidateId,
+      );
       return action.voice === 'soprano' ? regenerate(next) : next;
     }
 
@@ -434,7 +487,10 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
         },
       );
       if (!result) return state;
-      const next = { ...pushHistoryForGesture(state, action.gestureId), ...result };
+      const next = deriveCandidate(
+        { ...pushHistoryForGesture(state, action.gestureId), ...result },
+        action.candidateId,
+      );
       return action.voice === 'soprano' ? regenerate(next) : next;
     }
 

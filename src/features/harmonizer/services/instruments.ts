@@ -71,7 +71,7 @@ export interface InstrumentDef {
  * imply a second pitch (a triangle's 3rd harmonic is a twelfth — a different
  * pitch class — which is exactly the "more than one note" artifact). The
  * octave partials keep the bass audible on small speakers where the
- * fundamental itself rolls off. Default sound.
+ * fundamental itself rolls off. The offline fallback sound.
  */
 const SOFT_ORGAN: ToneInstrumentConfig = {
   kind: 'basic',
@@ -177,7 +177,11 @@ export const INSTRUMENTS: InstrumentDef[] = [
   },
 ];
 
-export const DEFAULT_INSTRUMENT_ID: InstrumentId = 'soft-organ';
+/** The sound a fresh visit starts with (sampled — needs one network fetch). */
+export const DEFAULT_INSTRUMENT_ID: InstrumentId = 'choir';
+
+/** Offline-safe synth used when a sampled instrument fails to load. */
+export const FALLBACK_INSTRUMENT_ID: InstrumentId = 'soft-organ';
 
 export function getInstrumentDef(id: InstrumentId): InstrumentDef {
   return INSTRUMENTS.find((def) => def.id === id) ?? INSTRUMENTS[0];

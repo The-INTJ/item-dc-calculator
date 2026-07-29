@@ -26,7 +26,6 @@ interface CandidateInspectorProps {
   checkedVoices: VoiceId[];
   lockedEventIds: ReadonlySet<string>;
   suggestionSource: SuggestionSource | null;
-  suggestionNotice: 'locks_unsatisfied' | null;
   onToggleVoice: (voice: VoiceId, checked: boolean) => void;
   onPlayChecked: () => void;
   onPlayVoice: (candidateId: string, voice: VoiceId) => void;
@@ -71,7 +70,6 @@ export function CandidateInspector({
   checkedVoices,
   lockedEventIds,
   suggestionSource,
-  suggestionNotice,
   onToggleVoice,
   onPlayChecked,
   onPlayVoice,
@@ -180,12 +178,6 @@ export function CandidateInspector({
               />
             </div>
           </div>
-
-          {suggestionNotice === 'locks_unsatisfied' ? (
-            <p className={styles.notice} role="status">
-              {content.notices.locksUnsatisfied}
-            </p>
-          ) : null}
 
           <div className={styles.laneStack}>
             {VOICES.map((voice) => (

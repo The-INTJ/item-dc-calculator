@@ -63,7 +63,6 @@ export interface WorkbenchState {
   /** With live regeneration only 'fresh' and 'empty' occur. */
   suggestionStatus: SuggestionStatus;
   suggestionSource: SuggestionSource | null;
-  suggestionNotice: 'locks_unsatisfied' | null;
   /** Fixture the current/last authored candidates came from (drives lock-set lookup + Restore). */
   sourceFixtureId: string | null;
   candidateSetId: string | null;
@@ -88,7 +87,6 @@ export type WorkbenchSnapshot = Pick<
   | 'boundaryConstraints'
   | 'suggestionStatus'
   | 'suggestionSource'
-  | 'suggestionNotice'
   | 'sourceFixtureId'
   | 'candidateSetId'
   | 'candidates'

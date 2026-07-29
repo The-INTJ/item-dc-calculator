@@ -7,14 +7,42 @@ technical specification is [hymn_harmonization_workbench_spec.md](./hymn_harmoni
 
 Route: `/harmonizer` (route group `app/(harmonizer)/`, `noindex`).
 
+## The surface rule (read this first)
+
+**The selected reading's SATB notes are the source of truth.** Everything else
+is derived from them, and Drew's constraint is absolute:
+
+- Editing one note **never moves another note**, and never swaps the
+  workspace out from under you. The melody is not a chord assigner — the whole
+  SATB is the surface we generate *around*.
+- The working reading's chord strip is **derived from its own sounding notes**
+  (`domain/derive-harmony.ts`). Change the melody's la to sol over an
+  alto/tenor/bass of mi/do/la and you get `Am7` — not a re-voiced C chord.
+  Naming a sonority is pure math; whether it *works* is judgment we never fake.
+- Spans whose notes form no shape the naive namer knows render as `?` plus the
+  sounding letters (`E+F`), never as a guess and never as an error.
+- Regeneration only replaces the **suggestion cards** around the surface.
+  Adopting one is an explicit click on that card. The working reading is always
+  card A, badged "Your reading".
+
+`domain/enumerate.ts` (suggestions) proposes; `domain/derive-harmony.ts`
+(surface) reports. Anything that would rewrite the user's notes belongs in
+neither.
+
 ## Status — FULL POC ✅ (live regeneration + derivability probe + minor key + projects)
 
 Everything below plus: **live regeneration** (every soprano/key/intent/lock/
 accepted-harmony edit re-resolves suggestions synchronously — authored fixture
 match → authored lock-set → naive computed skeletons → honest notice; no stale
 state, no refresh button); **the derivability probe** (computed cards from
-`domain/enumerate.ts` label every aspect ✓ computed / ✎ needs data / ? unsure —
-the engine-vs-data question answered in the UI); working note tools (diatonic
+`domain/enumerate.ts` label every aspect ✓ computed / ƒ needs math / ✎ needs
+custom / ? unknown — the engine-vs-data question answered in the UI). There is
+**no dead-end state**: when locks (or a chromatic melody note) rule out every
+chord in the naive vocabulary, that span becomes an honest `?` segment in a
+**constrained sketch** — the pinned notes stay in their lanes, the chord strip
+shows the sounding notes (e.g. `E+F`), the other lanes go blank, and the
+chips say which gap needs math vs. custom data (a full 4-voice sonority is
+always nameable — math; whether it *works* is custom); working note tools (diatonic
 ▲▼ via `domain/scale.ts`, insert/delete with rests); five fixture families
 (A + lock-alternative sets, B suspension, C I6, D build [arrow-reachable hero
 demo], E la-based A minor with si); one Key select (C major / A minor);
@@ -106,7 +134,7 @@ milestone" tooltip.
 
 | Folder | Contents |
 |---|---|
-| `domain/` | Spec §15 music/analysis types, §14 state types, §16 locks, §17 fixture types, pure timing + signature math. Dependency-free. |
+| `domain/` | Spec §15 music/analysis types, §14 state types, §16 locks, §17 fixture types, pure timing + signature math, plus the two analysis halves: `enumerate.ts` (suggestions proposed around the surface) and `derive-harmony.ts` (the surface's own chords, named from its notes). Dependency-free. |
 | `fixtures/` | Zod schemas, parse-at-module-load registry, authoring helpers, and the authored fixture data. |
 | `state/` | Reducer (house pattern: module-private pure reducer + hook), actions, selectors. |
 | `services/` | `PlaybackService` contract, the instrument roster (`instruments.ts`), and the dual-engine (Tone.js synth + smplr samples) implementation. |

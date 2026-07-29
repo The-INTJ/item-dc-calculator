@@ -97,9 +97,13 @@ export interface RankingDimensions {
 
 /**
  * The derivability probe (full-POC amendment): computed skeleton candidates
- * label every aspect of themselves as mechanically computed, needing curated
- * data, or genuinely unsure — so the engine-vs-data question is answered by
- * looking at the UI. Authored fixtures omit this field.
+ * label every aspect of themselves — so the engine-vs-data question is
+ * answered by looking at the UI. Authored fixtures omit this field.
+ *
+ * Statuses: `computed` = the naive layer derived it; `needs_math` = derivable
+ * in principle (a fuller engine would), just beyond the naive vocabulary;
+ * `needs_data` = needs curated/custom content or judgment; `unsure` = unknown
+ * which.
  */
 export type DerivabilityAspect =
   | 'chord_path'
@@ -108,7 +112,7 @@ export type DerivabilityAspect =
   | 'interpretation'
   | 'effects';
 
-export type DerivabilityStatus = 'computed' | 'needs_data' | 'unsure';
+export type DerivabilityStatus = 'computed' | 'needs_math' | 'needs_data' | 'unsure';
 
 export interface DerivabilityNote {
   aspect: DerivabilityAspect;

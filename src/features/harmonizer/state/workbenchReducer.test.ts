@@ -46,7 +46,6 @@ describe('createInitialWorkbenchState', () => {
   it('seeds the workbench with authored suggestions and the new fields', () => {
     expect(initial.suggestionStatus).toBe('fresh');
     expect(initial.suggestionSource).toBe('authored');
-    expect(initial.suggestionNotice).toBeNull();
     expect(initial.sourceFixtureId).toBe(fixture.id);
     expect(initial.candidateSetId).toBe('default');
     expect(initial.candidates).toHaveLength(3);
@@ -125,13 +124,18 @@ describe('live regeneration', () => {
       type: 'TOGGLE_LOCK',
       lock: lockFor('strong-arrival', 'b-b-1'),
     });
-    expect(locked.locks).toHaveLength(1);
+    expect(locked.locks.length).toBeGreaterThan(0);
     expect(locked.suggestionSource).toBe('computed');
-    expect(locked.suggestionNotice).toBeNull();
 
+    // Unlock through a live lock reference (the UI clicks the badge on the
+    // replacement candidates' note, never a stale pre-replacement id).
+    const liveLock =
+      locked.locks.find((lock) =>
+        locked.candidates.some((candidate) => candidate.id === lock.candidateId),
+      ) ?? locked.locks[0];
     const unlocked = workbenchReducer(locked, {
       type: 'TOGGLE_LOCK',
-      lock: { ...lockFor('strong-arrival', 'b-b-1'), id: 'other' },
+      lock: { ...lockFor(liveLock.candidateId ?? '', liveLock.targetId), id: 'other' },
     });
     expect(unlocked.locks).toHaveLength(0);
     expect(unlocked.suggestionSource).toBe('authored');
@@ -145,8 +149,9 @@ describe('live regeneration', () => {
     });
     expect(locked.candidateSetId).toBe('locked-bass-grounded');
     expect(locked.suggestionSource).toBe('authored');
-    // One lock per adopted candidate, each targeting a live note.
-    expect(locked.locks).toHaveLength(3);
+    // The original lock on the working reading plus one remapped lock per
+    // adopted card, each targeting a live note.
+    expect(locked.locks).toHaveLength(4);
     const selected = locked.candidates.find(
       (candidate) => candidate.id === locked.selectedCandidateId,
     );
@@ -165,16 +170,39 @@ describe('live regeneration', () => {
     expect(unlocked.suggestionSource).toBe('authored');
   });
 
-  it('unsatisfiable locks keep the current candidates with the notice', () => {
+  it('unsatisfiable locks produce constrained sketch cards; the surface never moves', () => {
+    // Whole-bar alto E4 against the melody's fa: no diatonic triad fits the
+    // middle span. The working reading stays EXACTLY as it is (the surface
+    // rule); sketch cards appear around it — pinned note kept, hole marked ?.
     const state = workbenchReducer(initial, {
       type: 'TOGGLE_LOCK',
       lock: lockFor('grounded-descent', 'a-a-1'),
     });
-    expect(state.suggestionNotice).toBe('locks_unsatisfied');
-    expect(state.candidates.map((candidate) => candidate.id)).toEqual(
-      initial.candidates.map((candidate) => candidate.id),
+    expect(state.suggestionSource).toBe('computed');
+    expect(state.selectedCandidateId).toBe('grounded-descent');
+    const working = state.candidates.find((candidate) => candidate.id === 'grounded-descent');
+    expect(working).toEqual(initial.candidates[0]); // untouched, note for note
+    const sketches = state.candidates.filter(
+      (candidate) => !candidate.provenance.fixtureAuthored,
     );
-    expect(state.locks).toHaveLength(1);
+    expect(sketches.length).toBeGreaterThan(0);
+    for (const sketch of sketches) {
+      expect(sketch.voicing.alto.map((event) => event.pitch.midi)).toEqual([64]);
+      expect(
+        sketch.harmonyEvents.some((event) => event.analysis.romanNumeral === '?'),
+      ).toBe(true);
+      expect(sketch.derivability?.some((note) => note.status === 'needs_math')).toBe(true);
+    }
+    // The original lock stays on the working note; unlocking it restores the
+    // authored default suggestions.
+    expect(state.locks.some((lock) => lock.candidateId === 'grounded-descent')).toBe(true);
+    const unlocked = workbenchReducer(state, {
+      type: 'TOGGLE_LOCK',
+      lock: lockFor('grounded-descent', 'a-a-1'),
+    });
+    expect(unlocked.locks).toHaveLength(0);
+    expect(unlocked.suggestionSource).toBe('authored');
+    expect(unlocked.candidateSetId).toBe('default');
   });
 
   it('key change regenerates and an unknown-melody-in-key falls to computed', () => {
@@ -258,14 +286,22 @@ describe('structural editing', () => {
   });
 
   it('frozen locked notes block delete until unlocked; unlock returns to authored', () => {
-    const locked = workbenchReducer(initial, {
+    // Locks live on the working reading — select C first (the UI can only
+    // lock notes in the workspace).
+    const onC = workbenchReducer(initial, {
+      type: 'SELECT_CANDIDATE',
+      candidateId: 'keep-moving',
+    });
+    const locked = workbenchReducer(onC, {
       type: 'TOGGLE_LOCK',
       lock: lockFor('keep-moving', 'c-a-2'),
     });
-    // D (re) is satisfiable against the melody — computed alternatives appear.
+    // D (re) is satisfiable — computed alternatives appear as cards, while
+    // the working reading (and its lock) stay put.
     expect(locked.suggestionSource).toBe('computed');
-    expect(locked.suggestionNotice).toBeNull();
-    // The note is frozen (and its candidate replaced): delete is a no-op.
+    expect(locked.selectedCandidateId).toBe('keep-moving');
+    expect(locked.locks.some((lock) => lock.candidateId === 'keep-moving')).toBe(true);
+    // The note is frozen: delete is a no-op.
     expect(
       workbenchReducer(locked, {
         type: 'DELETE_VOICE_EVENT',
@@ -450,7 +486,6 @@ describe('apply and loading', () => {
       boundaryConstraints: edited.boundaryConstraints,
       suggestionStatus: edited.suggestionStatus,
       suggestionSource: edited.suggestionSource,
-      suggestionNotice: edited.suggestionNotice,
       sourceFixtureId: edited.sourceFixtureId,
       candidateSetId: edited.candidateSetId,
       candidates: edited.candidates,

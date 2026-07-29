@@ -297,7 +297,6 @@ export function HarmonizationWorkbench() {
     state.boundaryConstraints,
     state.suggestionStatus,
     state.suggestionSource,
-    state.suggestionNotice,
     state.sourceFixtureId,
     state.candidateSetId,
     state.candidates,
@@ -409,7 +408,6 @@ export function HarmonizationWorkbench() {
             checkedVoices={checkedVoices}
             lockedEventIds={lockedEventIds}
             suggestionSource={state.suggestionSource}
-            suggestionNotice={state.suggestionNotice}
             onToggleVoice={toggleVoice}
             onPlayChecked={() => {
               if (selectedCandidate) void startPlayback(selectedCandidate.id, checkedVoices);

@@ -5,8 +5,10 @@
  *
  * Resolution order:
  * 1. Locks present → authored lock-signature set within the current fixture,
- *    else computed skeletons filtered by the locked pitches, else keep the
- *    current candidates with the spec §9.9.1 notice.
+ *    else computed skeletons filtered by the locked pitches. Spans no chord
+ *    satisfies become honest `?` segments inside the skeletons (never a
+ *    dead-end notice) — per Drew, the POC must SHOW what cannot be derived
+ *    and why, not refuse.
  * 2. No locks → exact registry match (melody + tonal context + accepted
  *    harmony, fixture-side optional = wildcard; phrase intent NEVER filters —
  *    spec §9.2 calls intents ranking signals, not commands) → authored.
@@ -17,7 +19,11 @@
 import type { CandidatePath } from './analysis-types';
 import { assembleSkeletons, type LockedPitchConstraint } from './enumerate';
 import type { FixtureCandidateSet, HarmonizationFixture } from './fixture-types';
-import { computeLockSignature, resolveLockEntries } from './lock-signature';
+import {
+  computeLockSignature,
+  resolveLockEntries,
+  type LockSignatureEntry,
+} from './lock-signature';
 import type { ConstraintLock } from './locks';
 import type {
   BoundaryConstraint,
@@ -89,11 +95,49 @@ export type SuggestionResolution =
       suggestionSource: 'authored' | 'computed';
       /** Non-null when a fixture was adopted — its boundary metadata rides along. */
       boundaryConstraints: BoundaryConstraint[] | null;
-      /** Non-null when adopting a lock set: locks remapped onto the new candidates' notes. */
+      /**
+       * Non-null when the new candidates contain the locked notes (authored
+       * lock sets, and sketches that keep pinned notes in their lanes): locks
+       * remapped onto those notes so badges and unlocking survive the swap.
+       */
       locks: ConstraintLock[] | null;
     }
-  | { kind: 'empty' }
-  | { kind: 'keep_with_notice'; notice: 'locks_unsatisfied' };
+  | { kind: 'empty' };
+
+/**
+ * Remap resolved lock values onto matching notes (same voice, span, pitch) in
+ * a new candidate list. Deterministic ids/dates — this runs inside the reducer.
+ */
+function remapLocksOnto(
+  entries: LockSignatureEntry[],
+  candidates: CandidatePath[],
+  createdAt: string,
+): ConstraintLock[] {
+  const remapped: ConstraintLock[] = [];
+  for (const candidate of candidates) {
+    for (const entry of entries) {
+      const event = candidate.voicing[entry.voice].find((voiceEvent) => {
+        const span = toTimelineSpan(voiceEvent.start, voiceEvent.duration);
+        return (
+          span.startUnit - 1 === entry.startUnit &&
+          span.spanUnits === entry.units &&
+          voiceEvent.pitch.midi === entry.pitch.midi
+        );
+      });
+      if (event) {
+        remapped.push({
+          id: `lockset-${candidate.id}-${event.id}`,
+          targetType: 'voice_event',
+          targetId: event.id,
+          candidateId: candidate.id,
+          valueSnapshot: event,
+          createdAt,
+        });
+      }
+    }
+  }
+  return remapped;
+}
 
 export function resolveSuggestions(input: SuggestInput): SuggestionResolution {
   if (input.fragment.events.length === 0) return { kind: 'empty' };
@@ -108,34 +152,9 @@ export function resolveSuggestions(input: SuggestInput): SuggestionResolution {
         ? (fixture.candidateSets.find((set) => set.lockSignature === signature) ?? null)
         : null;
     if (authoredSet && fixture) {
-      // Remap the locks onto the adopted candidates' matching notes (the
-      // signature guarantees each candidate contains them), so lock badges
-      // and value-based unlocking survive the swap. Deterministic ids/dates —
-      // this runs inside the reducer.
+      // The signature guarantees each adopted candidate contains the locked
+      // notes — remap so lock badges and value-based unlocking survive.
       const entries = resolveLockEntries(voiceLocks, input.candidates);
-      const remapped: ConstraintLock[] = [];
-      for (const candidate of authoredSet.candidates) {
-        for (const entry of entries) {
-          const event = candidate.voicing[entry.voice].find((voiceEvent) => {
-            const span = toTimelineSpan(voiceEvent.start, voiceEvent.duration);
-            return (
-              span.startUnit - 1 === entry.startUnit &&
-              span.spanUnits === entry.units &&
-              voiceEvent.pitch.midi === entry.pitch.midi
-            );
-          });
-          if (event) {
-            remapped.push({
-              id: `lockset-${candidate.id}-${event.id}`,
-              targetType: 'voice_event',
-              targetId: event.id,
-              candidateId: candidate.id,
-              valueSnapshot: event,
-              createdAt: 'authored-lock-set',
-            });
-          }
-        }
-      }
       return {
         kind: 'replace',
         candidates: authoredSet.candidates,
@@ -143,16 +162,17 @@ export function resolveSuggestions(input: SuggestInput): SuggestionResolution {
         sourceFixtureId: fixture.id,
         suggestionSource: 'authored',
         boundaryConstraints: null,
-        locks: remapped,
+        locks: remapLocksOnto(entries, authoredSet.candidates, 'authored-lock-set'),
       };
     }
-    const lockedPitches: LockedPitchConstraint[] = resolveLockEntries(
-      voiceLocks,
-      input.candidates,
-    ).map((entry) => ({
+    const entries = resolveLockEntries(voiceLocks, input.candidates);
+    const lockedPitches: LockedPitchConstraint[] = entries.map((entry) => ({
       startUnit: entry.startUnit,
       units: entry.units,
       pitchClass: entry.pitch.pitchClass,
+      voice: entry.voice,
+      pitch: entry.pitch,
+      scaleDegree: entry.scaleDegree,
     }));
     const skeletons = assembleSkeletons(
       input.fragment,
@@ -161,6 +181,9 @@ export function resolveSuggestions(input: SuggestInput): SuggestionResolution {
       lockedPitches,
     );
     if (skeletons.length > 0) {
+      // Sketches keep pinned notes in their lanes; when they do, remap the
+      // locks onto them so the badges (and unlocking) follow the replacement.
+      const remapped = remapLocksOnto(entries, skeletons, 'computed-sketch');
       return {
         kind: 'replace',
         candidates: skeletons,
@@ -168,10 +191,10 @@ export function resolveSuggestions(input: SuggestInput): SuggestionResolution {
         sourceFixtureId: input.sourceFixtureId,
         suggestionSource: 'computed',
         boundaryConstraints: null,
-        locks: null,
+        locks: remapped.length > 0 ? remapped : null,
       };
     }
-    return { kind: 'keep_with_notice', notice: 'locks_unsatisfied' };
+    return { kind: 'empty' };
   }
 
   const fixture = matchFixture(input.fixtures, {

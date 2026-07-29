@@ -12,7 +12,7 @@
 
 import type { CandidatePath } from './analysis-types';
 import type { ConstraintLock } from './locks';
-import type { Accidental, LetterName, SpelledPitch, VoiceId } from './music-types';
+import type { Accidental, LetterName, SpelledPitch, VoiceEvent, VoiceId } from './music-types';
 import { spellPitch } from './scale';
 import { toTimelineSpan } from './timing';
 
@@ -21,6 +21,8 @@ export interface LockSignatureEntry {
   startUnit: number;
   units: number;
   pitch: SpelledPitch;
+  /** Present when resolved from a live note (absent for parsed signatures). */
+  scaleDegree?: VoiceEvent['scaleDegree'];
 }
 
 const VOICE_ORDER: Record<VoiceId, number> = { soprano: 0, alto: 1, tenor: 2, bass: 3 };
@@ -53,6 +55,7 @@ export function resolveLockEntries(
         startUnit: span.startUnit - 1,
         units: span.spanUnits,
         pitch: event.pitch,
+        scaleDegree: event.scaleDegree,
       });
       break;
     }

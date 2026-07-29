@@ -154,6 +154,11 @@
     border-color: rgba(101, 119, 90, 0.7);
   }
 
+  &[data-status='needs_math'] {
+    border-color: rgba(124, 58, 32, 0.55);
+    color: var(--wb-accent-deep);
+  }
+
   &[data-status='needs_data'] {
     border-style: dashed;
   }

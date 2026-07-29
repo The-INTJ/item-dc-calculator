@@ -78,15 +78,20 @@ describe('HarmonizationWorkbench', () => {
     ).toBe(false);
 
     // Locking whole-bar E against the melody's fa is mathematically
-    // unsatisfiable — the honest notice appears and candidates stay.
+    // unsatisfiable — the WORKSPACE stays exactly as it is (the surface
+    // rule), while sketch cards appear showing the impossible span as ? with
+    // its sounding notes (never a dead-end notice).
     fireEvent.click(screen.getByRole('button', { name: 'Lock note' }));
+    expect(screen.getByRole('heading', { level: 2, name: /Grounded descent/ })).toBeTruthy();
     expect(altoCell.getAttribute('data-locked')).toBe('true');
-    expect(screen.getByText(/No authored POC alternative satisfies these locks/)).toBeTruthy();
+    expect(screen.getAllByText('Computed (naive)').length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/E\+F/).length).toBeGreaterThan(0);
+    // The locked note is frozen; the cluster never closed (workspace intact).
     expect(
       screen.getByRole('button', { name: 'Raise pitch' }).hasAttribute('disabled'),
     ).toBe(true);
     fireEvent.click(screen.getByRole('button', { name: 'Unlock note' }));
-    expect(screen.queryByText(/No authored POC alternative/)).toBeNull();
+    expect(screen.queryByText('Computed (naive)')).toBeNull();
 
     // Escape closes the cluster; soprano lock is shown but fixed.
     fireEvent.keyDown(window, { key: 'Escape' });
@@ -109,20 +114,21 @@ describe('HarmonizationWorkbench', () => {
       return [...lane.querySelectorAll('[data-event-id]')] as HTMLElement[];
     };
 
-    // sol ▼ → fa: unknown melody → computed skeletons with derivability chips.
+    // sol ▼ → fa: unknown melody → computed skeleton CARDS appear with
+    // derivability chips, while the workspace keeps its own (edited) notes.
     fireEvent.click(sopranoCells()[0]);
     fireEvent.click(screen.getByRole('button', { name: 'Lower pitch' }));
     expect(screen.getAllByText('Computed (naive)').length).toBeGreaterThan(0);
     expect(screen.getAllByText(/chord path/).length).toBeGreaterThan(0);
+    expect(screen.getByRole('heading', { level: 2, name: /Grounded descent/ })).toBeTruthy();
 
-    // ▼ again → mi.
-    fireEvent.click(sopranoCells()[0]);
+    // ▼ again → mi. The workspace never swapped, so the tool cluster is
+    // still open on the same note — press the arrow again directly.
     fireEvent.click(screen.getByRole('button', { name: 'Lower pitch' }));
 
     // Third note ▲ ▲ → sol: mi–fa–sol matches fixture D → authored cards.
     fireEvent.click(sopranoCells()[2]);
     fireEvent.click(screen.getByRole('button', { name: 'Raise pitch' }));
-    fireEvent.click(sopranoCells()[2]);
     fireEvent.click(screen.getByRole('button', { name: 'Raise pitch' }));
 
     expect(screen.getByRole('heading', { level: 3, name: 'Toward the dominant' })).toBeTruthy();

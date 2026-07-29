@@ -73,9 +73,7 @@ export function CandidateCard({
             summary.source === 'computed' && styles.provBadgeComputed,
           )}
         >
-          {summary.source === 'computed'
-            ? content.provenance.computed
-            : content.provenance.authored}
+          {content.provenance[summary.source]}
         </span>
         {summary.derivability.map((note) => (
           <span
@@ -88,7 +86,7 @@ export function CandidateCard({
           </span>
         ))}
       </p>
-      {summary.source === 'computed' ? (
+      {summary.source !== 'authored' ? (
         <p className={styles.derivLegend}>{content.provenance.legend}</p>
       ) : null}
       <footer className={styles.cardActions}>

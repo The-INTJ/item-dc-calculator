@@ -25,6 +25,7 @@ import type { VoiceId } from '../domain/music-types';
 import { toTimelineSpan, unitsToSeconds } from '../domain/timing';
 import {
   DEFAULT_INSTRUMENT_ID,
+  FALLBACK_INSTRUMENT_ID,
   getInstrumentDef,
   type InstrumentDef,
   type InstrumentId,
@@ -334,7 +335,7 @@ export class ToneJsPlaybackService implements PlaybackService {
     return new SmplrInstrument(context, soundfont);
   }
 
-  /** Load (or reuse) the selected instrument; fall back to the default synth. */
+  /** Load (or reuse) the selected instrument; fall back to the offline synth. */
   private async ensureInstrument(): Promise<ActiveInstrument> {
     const def = getInstrumentDef(this.desiredInstrumentId);
     const cached = this.instruments.get(def.id);
@@ -348,8 +349,8 @@ export class ToneJsPlaybackService implements PlaybackService {
       return instrument;
     } catch (error) {
       console.warn(`[harmonizer] instrument "${def.id}" failed to load; falling back`, error);
-      if (def.id !== DEFAULT_INSTRUMENT_ID) {
-        this.desiredInstrumentId = DEFAULT_INSTRUMENT_ID;
+      if (def.id !== FALLBACK_INSTRUMENT_ID) {
+        this.desiredInstrumentId = FALLBACK_INSTRUMENT_ID;
         return this.ensureInstrument();
       }
       throw error;

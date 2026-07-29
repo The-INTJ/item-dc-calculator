@@ -134,14 +134,39 @@ describe('resolveSuggestions', () => {
     }
   });
 
-  it('keeps current candidates with the notice when locks are unsatisfiable', () => {
+  it('builds constrained sketches with ? spans when no chord satisfies the locks', () => {
     // Candidate A's whole-bar alto E4: E and the melody's fa (F) never share a
-    // diatonic triad, so the computed layer honestly finds nothing.
+    // diatonic triad. Instead of a dead-end notice, the sketch keeps the
+    // pinned note, marks the impossible span ?, and labels the gaps.
     const result = resolveSuggestions({
       ...baseInput(),
       locks: [lockFor('grounded-descent', 'a-a-1')],
     });
-    expect(result).toEqual({ kind: 'keep_with_notice', notice: 'locks_unsatisfied' });
+    expect(result.kind).toBe('replace');
+    if (result.kind !== 'replace') return;
+    expect(result.suggestionSource).toBe('computed');
+    expect(result.candidates.length).toBeGreaterThan(0);
+    for (const candidate of result.candidates) {
+      // The pinned alto E4 is rendered verbatim as the whole alto lane.
+      expect(candidate.voicing.alto.map((event) => event.pitch.midi)).toEqual([64]);
+      // The fa span is an honest hole showing the sounding notes.
+      const hole = candidate.harmonyEvents.find(
+        (event) => event.analysis.romanNumeral === '?',
+      );
+      expect(hole).toBeTruthy();
+      expect(hole?.displaySymbol).toBe('E+F');
+      // Gaps are labeled needs-math / needs-custom, never silently filled.
+      expect(
+        candidate.derivability?.some((note) => note.status === 'needs_math'),
+      ).toBe(true);
+    }
+    // Locks are remapped onto the sketches' pinned notes.
+    expect(result.locks?.length).toBeGreaterThan(0);
+    expect(
+      result.locks?.every((lock) =>
+        result.candidates.some((candidate) => candidate.id === lock.candidateId),
+      ),
+    ).toBe(true);
   });
 
   it('returns empty for an empty fragment', () => {

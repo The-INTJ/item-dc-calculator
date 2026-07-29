@@ -8,6 +8,13 @@
  * its evidence is `computed` (one `rule` entry for the conventional raised
  * leading tone in minor), and its voicing is an explicitly naive root-position
  * stack. Fully deterministic: no randomness, ids derived from content.
+ *
+ * When a span has NO chord in the naive vocabulary that contains every
+ * sounding note (melody + pinned locks), the position does not fail — it
+ * becomes an "unresolved" segment: the chord strip shows the sounding notes
+ * with a `?` numeral, pinned notes stay in their lanes, the other lanes go
+ * blank, and the derivability notes say which gaps need math versus custom
+ * data. Showing the hole honestly is the point.
  */
 
 import type {
@@ -20,15 +27,15 @@ import type {
   ChordQuality,
   DiatonicDegree,
   HarmonyEvent,
-  MelodyEvent,
   MelodyFragment,
   PhraseIntent,
   SpelledPitch,
   SpelledPitchClass,
   TonalContext,
   VoiceEvent,
+  VoiceId,
 } from './music-types';
-import { diatonicPitch, syllableForDegree } from './scale';
+import { diatonicPitch, scaleDegreeForPitchClass, syllableForDegree } from './scale';
 import { toTimelineSpan, unitsToDuration, unitsToTime } from './timing';
 
 export interface EnumeratedChord {
@@ -45,7 +52,17 @@ export interface LockedPitchConstraint {
   startUnit: number;
   units: number;
   pitchClass: number;
+  /** Lane the pinned note lives in — sketches render it there verbatim. */
+  voice: VoiceId;
+  /** The pinned note itself, shown when no chord fits around it. */
+  pitch: SpelledPitch;
+  scaleDegree?: VoiceEvent['scaleDegree'];
 }
+
+/** One position in a candidate path: a chosen chord, or an honest hole. */
+type PathStep =
+  | { kind: 'chord'; chord: EnumeratedChord }
+  | { kind: 'unresolved'; eventIndex: number; locks: LockedPitchConstraint[] };
 
 const GENERATOR_ID = 'naive-enumerator';
 const GENERATOR_VERSION = '0.1.0';
@@ -76,6 +93,35 @@ export const DERIVABILITY_NOTES: DerivabilityNote[] = [
     aspect: 'voicing',
     status: 'unsure',
     note: 'Naive root-position stack — idiomatic SATB voicing needs a solver and/or curated data.',
+  },
+  {
+    aspect: 'interpretation',
+    status: 'needs_data',
+    note: 'Non-chord-tone readings (passing, suspension…) need rule packs.',
+  },
+  {
+    aspect: 'effects',
+    status: 'needs_data',
+    note: 'Feel and effect labels are curated content; nothing to compute here.',
+  },
+];
+
+/** Notes for sketches with unresolved (`?`) segments. */
+export const SKETCH_DERIVABILITY_NOTES: DerivabilityNote[] = [
+  {
+    aspect: 'chord_path',
+    status: 'needs_math',
+    note: 'The ? spans have no chord in the naive diatonic vocabulary containing every sounding note. Once all four voices are chosen, naming the chord is pure math — a fuller vocabulary (sevenths, chromatic chords) would fill these.',
+  },
+  {
+    aspect: 'voicing',
+    status: 'needs_data',
+    note: 'Blank lanes are left empty on purpose: filling them musically around pinned notes needs a voicing engine plus custom style data.',
+  },
+  {
+    aspect: 'ranking',
+    status: 'unsure',
+    note: 'Ordered by shared tones only; musical preference needs style rules or data.',
   },
   {
     aspect: 'interpretation',
@@ -225,19 +271,26 @@ function placeAbove(
 }
 
 interface Segment {
-  chord: EnumeratedChord;
+  step: PathStep;
   startUnit: number;
   units: number;
+  /** First melody-event index the segment covers (unresolved segments cover one). */
+  eventIndex: number;
 }
 
 function commonTones(a: EnumeratedChord, b: EnumeratedChord): number {
   return a.pitchClasses.filter((pc) => b.pitchClasses.includes(pc)).length;
 }
 
+function stepKey(step: PathStep): string {
+  return step.kind === 'chord' ? step.chord.key : `x${step.eventIndex}`;
+}
+
 /**
  * Enumerate skeleton candidates for a melody in a supported context. Returns
- * [] when the context is unsupported, any note has no supporting chord under
- * the lock constraints, or the fragment is empty.
+ * [] only when the context is unsupported or the fragment is empty — spans
+ * where no chord satisfies the constraints become unresolved `?` segments
+ * instead of failing.
  */
 export function assembleSkeletons(
   fragment: MelodyFragment,
@@ -254,29 +307,33 @@ export function assembleSkeletons(
     return { start: span.startUnit - 1, units: span.spanUnits };
   });
 
-  const optionsPerEvent = events.map((event, index) => {
+  const stepOptionsPerEvent: PathStep[][] = events.map((event, index) => {
     const span = spans[index];
     const overlappingLocks = lockedPitches.filter(
       (lock) => lock.startUnit < span.start + span.units && span.start < lock.startUnit + lock.units,
     );
-    return chords.filter(
+    const options = chords.filter(
       (chord) =>
         chord.pitchClasses.includes(event.pitch.pitchClass) &&
         overlappingLocks.every((lock) => chord.pitchClasses.includes(lock.pitchClass)),
     );
+    if (options.length > 0) {
+      return options.map((chord) => ({ kind: 'chord' as const, chord }));
+    }
+    return [{ kind: 'unresolved' as const, eventIndex: index, locks: overlappingLocks }];
   });
-  if (optionsPerEvent.some((options) => options.length === 0)) return [];
+  const hasUnresolved = stepOptionsPerEvent.some((options) => options[0].kind === 'unresolved');
 
   // Depth-first cross product, capped — stable order keeps this deterministic.
-  const rawPaths: EnumeratedChord[][] = [];
-  const walk = (index: number, path: EnumeratedChord[]) => {
+  const rawPaths: PathStep[][] = [];
+  const walk = (index: number, path: PathStep[]) => {
     if (rawPaths.length >= MAX_RAW_PATHS) return;
     if (index === events.length) {
       rawPaths.push([...path]);
       return;
     }
-    for (const chord of optionsPerEvent[index]) {
-      path.push(chord);
+    for (const step of stepOptionsPerEvent[index]) {
+      path.push(step);
       walk(index + 1, path);
       path.pop();
       if (rawPaths.length >= MAX_RAW_PATHS) return;
@@ -288,10 +345,13 @@ export function assembleSkeletons(
   const scored = rawPaths
     .map((path) => ({
       path,
-      keySequence: path.map((chord) => chord.key).join('.'),
-      commonToneSum: path
-        .slice(1)
-        .reduce((sum, chord, index) => sum + commonTones(path[index], chord), 0),
+      keySequence: path.map(stepKey).join('.'),
+      commonToneSum: path.slice(1).reduce((sum, step, index) => {
+        const previous = path[index];
+        return step.kind === 'chord' && previous.kind === 'chord'
+          ? sum + commonTones(previous.chord, step.chord)
+          : sum;
+      }, 0),
     }))
     .sort(
       (a, b) => b.commonToneSum - a.commonToneSum || a.keySequence.localeCompare(b.keySequence),
@@ -307,7 +367,7 @@ export function assembleSkeletons(
       const difference = picked.reduce(
         (sum, chosen) =>
           sum +
-          entry.path.filter((chord, index) => chosen.path[index]?.key !== chord.key).length,
+          entry.path.filter((step, index) => stepKey(chosen.path[index]) !== stepKey(step)).length,
         0,
       );
       if (difference > bestDifference) {
@@ -325,12 +385,14 @@ export function assembleSkeletons(
       context,
       phraseIntent,
       spans,
+      lockedPitches,
+      hasUnresolved,
     }))
     .filter((candidate): candidate is CandidatePath => candidate !== null);
 }
 
 function buildSkeleton(
-  path: EnumeratedChord[],
+  path: PathStep[],
   commonToneSum: number,
   index: number,
   input: {
@@ -338,31 +400,99 @@ function buildSkeleton(
     context: TonalContext;
     phraseIntent: PhraseIntent;
     spans: Array<{ start: number; units: number }>;
+    lockedPitches: LockedPitchConstraint[];
+    hasUnresolved: boolean;
   },
 ): CandidatePath | null {
-  const { fragment, context, phraseIntent, spans } = input;
-  const id = `gen-${index}-${path.map((chord) => chord.key).join('.')}`;
+  const { fragment, context, phraseIntent, spans, lockedPitches, hasUnresolved } = input;
+  const id = `gen-${index}-${path.map(stepKey).join('.')}`;
 
-  // Merge consecutive identical chords into single harmony segments.
+  // Merge consecutive identical chords into single harmony segments; unresolved
+  // spans never merge — each stays its own visible hole.
   const segments: Segment[] = [];
-  path.forEach((chord, eventIndex) => {
+  path.forEach((step, eventIndex) => {
     const span = spans[eventIndex];
     const last = segments[segments.length - 1];
-    if (last && last.chord.key === chord.key && last.startUnit + last.units === span.start) {
+    if (
+      last &&
+      last.step.kind === 'chord' &&
+      step.kind === 'chord' &&
+      last.step.chord.key === step.chord.key &&
+      last.startUnit + last.units === span.start
+    ) {
       last.units += span.units;
     } else {
-      segments.push({ chord, startUnit: span.start, units: span.units });
+      segments.push({ step, startUnit: span.start, units: span.units, eventIndex });
     }
   });
+
+  // In sketch mode, lanes holding pinned notes render exactly those notes.
+  const lockedVoices = new Set<VoiceId>(
+    hasUnresolved ? lockedPitches.map((lock) => lock.voice) : [],
+  );
 
   const harmonyEvents: HarmonyEvent[] = [];
   const alto: VoiceEvent[] = [];
   const tenor: VoiceEvent[] = [];
   const bass: VoiceEvent[] = [];
+  const lanes: Record<'alto' | 'tenor' | 'bass', VoiceEvent[]> = { alto, tenor, bass };
 
   for (let s = 0; s < segments.length; s += 1) {
     const segment = segments[s];
-    const chord = segment.chord;
+    const harmonyId = `${id}-h${s}`;
+
+    if (segment.step.kind === 'unresolved') {
+      // The sounding set we actually know: melody note + pinned notes.
+      const melodyEvent = fragment.events[segment.eventIndex];
+      const tones: SpelledPitch[] = [];
+      for (const tone of [melodyEvent.pitch, ...segment.step.locks.map((lock) => lock.pitch)]) {
+        if (!tones.some((existing) => existing.midi === tone.midi)) tones.push(tone);
+      }
+      tones.sort((a, b) => a.midi - b.midi);
+      const spelledTones: SpelledPitchClass[] = [];
+      for (const tone of tones) {
+        if (!spelledTones.some((existing) => existing.pitchClass === tone.pitchClass)) {
+          spelledTones.push({
+            letter: tone.letter,
+            accidental: tone.accidental,
+            pitchClass: tone.pitchClass,
+          });
+        }
+      }
+      const lowest = tones[0];
+      const lowestLock = segment.step.locks.find((lock) => lock.pitch.midi === lowest.midi);
+      const scaleDegreeRoot =
+        lowest.midi === melodyEvent.pitch.midi
+          ? melodyEvent.scaleDegree
+          : (lowestLock?.scaleDegree ??
+            scaleDegreeForPitchClass(context, lowest.pitchClass) ??
+            melodyEvent.scaleDegree);
+      harmonyEvents.push({
+        id: harmonyId,
+        start: unitsToTime(segment.startUnit),
+        duration: unitsToDuration(segment.units),
+        chord: {
+          id: `gen-chord-${stepKey(segment.step)}`,
+          root: spelledTones[0],
+          pitchClasses: spelledTones.map((tone) => tone.pitchClass),
+          spelledChordTones: spelledTones,
+          quality: 'other',
+        },
+        analysis: {
+          romanNumeral: '?',
+          scaleDegreeRoot,
+          functionTags: [],
+        },
+        inversion: 0,
+        bassPitch: lowest,
+        displaySymbol: tones
+          .map((tone) => `${tone.letter}${tone.accidental === 'natural' ? '' : tone.accidental}`)
+          .join('+'),
+      });
+      continue; // no naive voicing for a hole — the blank IS the information
+    }
+
+    const chord = segment.step.chord;
     const root = spellMember(context, chord.members[0]);
     const tones = chord.members.map((member) => spellMember(context, member));
     if (!root || tones.some((tone) => tone === null)) return null;
@@ -374,7 +504,6 @@ function buildSkeleton(
 
     const suffix = QUALITY_SUFFIX[chord.quality] ?? '';
     const accidentalText = root.accidental === 'natural' ? '' : root.accidental;
-    const harmonyId = `${id}-h${s}`;
     harmonyEvents.push({
       id: harmonyId,
       start: unitsToTime(segment.startUnit),
@@ -417,9 +546,39 @@ function buildSkeleton(
       duration: unitsToDuration(segment.units),
       tieFromPrevious: false,
     });
-    bass.push(makeVoiceEvent('bass', bassPitch, chord.members[0]));
-    tenor.push(makeVoiceEvent('tenor', tenorPitch, chord.members[1]));
-    alto.push(makeVoiceEvent('alto', altoPitch, chord.members[2]));
+    if (!lockedVoices.has('bass')) bass.push(makeVoiceEvent('bass', bassPitch, chord.members[0]));
+    if (!lockedVoices.has('tenor')) {
+      tenor.push(makeVoiceEvent('tenor', tenorPitch, chord.members[1]));
+    }
+    if (!lockedVoices.has('alto')) alto.push(makeVoiceEvent('alto', altoPitch, chord.members[2]));
+  }
+
+  // Pinned notes render verbatim in their own lanes (sketch mode only).
+  if (hasUnresolved) {
+    lockedPitches.forEach((lock, lockIndex) => {
+      if (lock.voice === 'soprano') return; // the melody lane is the melody
+      const scaleDegree =
+        lock.scaleDegree ??
+        scaleDegreeForPitchClass(context, lock.pitchClass) ?? {
+          degree: 1 as DiatonicDegree,
+          chromaticOffset: 0,
+          syllable: syllableForDegree(context, 1, 0) ?? 'do',
+        };
+      lanes[lock.voice].push({
+        id: `${id}-locked-${lockIndex}`,
+        voice: lock.voice,
+        pitch: lock.pitch,
+        scaleDegree,
+        start: unitsToTime(lock.startUnit),
+        duration: unitsToDuration(lock.units),
+        tieFromPrevious: false,
+      });
+    });
+    for (const lane of [alto, tenor, bass]) {
+      lane.sort(
+        (a, b) => toTimelineSpan(a.start, a.duration).startUnit - toTimelineSpan(b.start, b.duration).startUnit,
+      );
+    }
   }
 
   const soprano: VoiceEvent[] = fragment.events.map((event, i) => ({
@@ -438,8 +597,33 @@ function buildSkeleton(
         candidate.startUnit <= spans[i].start &&
         spans[i].start < candidate.startUnit + candidate.units,
     );
-    const member = segment?.chord.pitchClasses.includes(event.pitch.pitchClass) ?? false;
     const harmonyId = segment ? `${id}-h${segments.indexOf(segment)}` : '';
+    if (segment?.step.kind === 'unresolved') {
+      const pinned = segment.step.locks
+        .map(
+          (lock) => `${lock.pitch.letter}${lock.pitch.accidental === 'natural' ? '' : lock.pitch.accidental}`,
+        )
+        .join(', ');
+      const evidence: AnalysisEvidence = {
+        id: `${id}-int-${i}`,
+        source: 'computed',
+        featureId: 'lock_conflict',
+        value: false,
+        explanation: pinned
+          ? `No chord in the naive vocabulary contains ${event.pitch.letter} together with the pinned ${pinned}; the sounding notes are shown as ?.`
+          : `No chord in the naive vocabulary contains ${event.pitch.letter}; the sounding note is shown as ?.`,
+        providerId: GENERATOR_ID,
+        providerVersion: GENERATOR_VERSION,
+      };
+      return {
+        melodyEventId: event.id,
+        harmonyEventIds: harmonyId ? [harmonyId] : [],
+        role: 'unclassified',
+        explanation: evidence.explanation ?? '',
+        evidence: [evidence],
+      };
+    }
+    const member = segment?.step.chord.pitchClasses.includes(event.pitch.pitchClass) ?? false;
     const evidence: AnalysisEvidence = {
       id: `${id}-int-${i}`,
       source: 'computed',
@@ -471,7 +655,19 @@ function buildSkeleton(
       providerVersion: GENERATOR_VERSION,
     },
   ];
-  if (path.some((chord) => chord.key === 'd5raised')) {
+  const unresolvedCount = path.filter((step) => step.kind === 'unresolved').length;
+  if (unresolvedCount > 0) {
+    candidateEvidence.push({
+      id: `${id}-ev-lock-conflict`,
+      source: 'computed',
+      featureId: 'lock_conflict',
+      value: unresolvedCount,
+      explanation: `${unresolvedCount} span(s) have no naive chord containing every sounding note — shown as ? with the notes that ARE known.`,
+      providerId: GENERATOR_ID,
+      providerVersion: GENERATOR_VERSION,
+    });
+  }
+  if (path.some((step) => step.kind === 'chord' && step.chord.key === 'd5raised')) {
     candidateEvidence.push({
       id: `${id}-ev-raised-seventh`,
       source: 'rule',
@@ -489,7 +685,9 @@ function buildSkeleton(
   return {
     id,
     title,
-    summary: 'Enumerated from chord-tone membership; ordered by shared tones.',
+    summary: hasUnresolved
+      ? 'Pinned notes kept. ? spans and blank lanes mark what the naive layer cannot derive — see the chips below.'
+      : 'Enumerated from chord-tone membership; ordered by shared tones.',
     tonalContext: context,
     phraseIntent,
     harmonyEvents,
@@ -503,6 +701,6 @@ function buildSkeleton(
       knowledgePackIds: [],
       fixtureAuthored: false,
     },
-    derivability: DERIVABILITY_NOTES,
+    derivability: hasUnresolved ? SKETCH_DERIVABILITY_NOTES : DERIVABILITY_NOTES,
   };
 }

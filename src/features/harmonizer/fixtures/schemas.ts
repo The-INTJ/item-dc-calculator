@@ -320,7 +320,7 @@ export const PhraseIntentSchema = z.enum(['continue', 'build', 'approach_cadence
 
 const DerivabilityNoteSchema: z.ZodType<DerivabilityNote> = z.strictObject({
   aspect: z.enum(['chord_path', 'voicing', 'ranking', 'interpretation', 'effects']),
-  status: z.enum(['computed', 'needs_data', 'unsure']),
+  status: z.enum(['computed', 'needs_math', 'needs_data', 'unsure']),
   note: z.string().min(1),
 });
 

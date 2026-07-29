@@ -101,10 +101,12 @@ export const content = {
   provenance: {
     authored: 'Authored',
     computed: 'Computed (naive)',
-    legend: '✓ computed · ✎ needs data · ? unsure',
+    user: 'Your reading',
+    legend: '✓ computed · ƒ needs math · ✎ needs custom · ? unknown',
   },
   derivabilityStatus: {
     computed: '✓',
+    needs_math: 'ƒ',
     needs_data: '✎',
     unsure: '?',
   },
@@ -114,10 +116,6 @@ export const content = {
     ranking: 'ranking',
     interpretation: 'interpretation',
     effects: 'effects',
-  },
-  notices: {
-    locksUnsatisfied:
-      'No authored POC alternative satisfies these locks. Unlock one element or restore the previous candidate.',
   },
   emptyState: {
     message:

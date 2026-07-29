@@ -73,7 +73,6 @@ const PersistedWorkbenchSchema: z.ZodType<PersistedWorkbench> = z.strictObject({
   boundaryConstraints: z.array(BoundaryConstraintSchema),
   suggestionStatus: z.enum(['fresh', 'stale', 'loading', 'empty', 'error']),
   suggestionSource: z.enum(['authored', 'computed']).nullable(),
-  suggestionNotice: z.enum(['locks_unsatisfied']).nullable(),
   sourceFixtureId: z.string().nullable(),
   candidateSetId: z.string().nullable(),
   candidates: z.array(CandidatePathSchema),
@@ -110,12 +109,33 @@ export function readProjects(): ProjectEnvelope {
     return cachedSnapshot;
   }
   try {
-    cachedSnapshot = ProjectEnvelopeSchema.parse(JSON.parse(raw));
+    const parsed: unknown = JSON.parse(raw);
+    stripLegacyFields(parsed);
+    cachedSnapshot = ProjectEnvelopeSchema.parse(parsed);
   } catch {
     // Corruption or version mismatch — start clean, never crash.
     cachedSnapshot = EMPTY_ENVELOPE;
   }
   return cachedSnapshot;
+}
+
+/**
+ * Early v1 saves persisted a `suggestionNotice` field that no longer exists in
+ * workbench state — drop it so strict parsing still accepts those saves.
+ */
+function stripLegacyFields(value: unknown): void {
+  if (!value || typeof value !== 'object') return;
+  const projects = (value as { projects?: unknown }).projects;
+  if (!Array.isArray(projects)) return;
+  for (const project of projects) {
+    const workbench =
+      project && typeof project === 'object'
+        ? (project as { workbench?: unknown }).workbench
+        : null;
+    if (workbench && typeof workbench === 'object') {
+      delete (workbench as Record<string, unknown>).suggestionNotice;
+    }
+  }
 }
 
 export function subscribeToProjects(onChange: () => void): () => void {
@@ -245,7 +265,6 @@ export function toPersistedWorkbench(state: WorkbenchState): PersistedWorkbench 
     boundaryConstraints: state.boundaryConstraints,
     suggestionStatus: state.suggestionStatus,
     suggestionSource: state.suggestionSource,
-    suggestionNotice: state.suggestionNotice,
     sourceFixtureId: state.sourceFixtureId,
     candidateSetId: state.candidateSetId,
     candidates: state.candidates,
