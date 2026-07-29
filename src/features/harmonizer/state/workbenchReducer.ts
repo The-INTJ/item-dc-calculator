@@ -12,6 +12,8 @@
 
 import { useReducer } from 'react';
 import type { HarmonizationFixture } from '../domain/fixture-types';
+import type { SATBVoicing, VoiceEvent, VoiceId } from '../domain/music-types';
+import { resizeTimedEvents } from '../domain/voice-editing';
 import type { WorkbenchState } from '../domain/workbench-state';
 import type { WorkbenchAction } from './actions';
 
@@ -60,6 +62,61 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
       if (tempoBpm === state.tempoBpm) return state;
       return { ...state, tempoBpm };
     }
+    case 'RESIZE_VOICE_EVENT': {
+      const index = state.candidates.findIndex(
+        (candidate) => candidate.id === action.candidateId,
+      );
+      if (index === -1) return state;
+      const candidate = state.candidates[index];
+      const resized = resizeTimedEvents(
+        candidate.voicing[action.voice],
+        action.eventId,
+        action.edge,
+        action.targetBoundary,
+        { ripple: action.ripple },
+      );
+      if (!resized) return state;
+      const voicing = withVoice(candidate.voicing, action.voice, resized);
+      const candidates = state.candidates.map((entry, i) =>
+        i === index ? { ...entry, voicing } : entry,
+      );
+
+      // The soprano IS the melody: mirror the resize onto the fragment (events
+      // correspond by index) so boundary chips and signatures stay honest.
+      let fragment = state.fragment;
+      if (action.voice === 'soprano') {
+        const sopranoIndex = candidate.voicing.soprano.findIndex(
+          (event) => event.id === action.eventId,
+        );
+        const melodyEvent = state.fragment.events[sopranoIndex];
+        if (melodyEvent) {
+          const melodyEvents = resizeTimedEvents(
+            state.fragment.events,
+            melodyEvent.id,
+            action.edge,
+            action.targetBoundary,
+            { ripple: action.ripple },
+          );
+          if (melodyEvents) fragment = { ...state.fragment, events: melodyEvents };
+        }
+      }
+
+      return { ...state, candidates, fragment };
+    }
+    case 'TOGGLE_LOCK': {
+      const existing = state.locks.find(
+        (lock) =>
+          lock.targetType === action.lock.targetType &&
+          lock.targetId === action.lock.targetId &&
+          lock.candidateId === action.lock.candidateId,
+      );
+      return {
+        ...state,
+        locks: existing
+          ? state.locks.filter((lock) => lock !== existing)
+          : [...state.locks, action.lock],
+      };
+    }
     case 'START_PLAYBACK':
       return {
         ...state,
@@ -81,6 +138,15 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
       return { ...state, playback: { ...state.playback, activeUnit: action.activeUnit } };
     }
   }
+}
+
+function withVoice(voicing: SATBVoicing, voice: VoiceId, events: VoiceEvent[]): SATBVoicing {
+  return {
+    soprano: voice === 'soprano' ? events : voicing.soprano,
+    alto: voice === 'alto' ? events : voicing.alto,
+    tenor: voice === 'tenor' ? events : voicing.tenor,
+    bass: voice === 'bass' ? events : voicing.bass,
+  };
 }
 
 export function useWorkbenchReducer(initialFixture: HarmonizationFixture) {

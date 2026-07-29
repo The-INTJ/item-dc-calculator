@@ -1,12 +1,14 @@
 import { content } from '../../content';
 import type { BoundaryConstraint, MelodyFragment } from '../../domain/music-types';
-import { totalUnits, toTimelineSpan } from '../../domain/timing';
+import { toTimelineSpan } from '../../domain/timing';
 import { boundaryLeftPercent } from '../shared/timeGrid';
 import styles from './CandidateInspector.module.scss';
 
 interface BoundaryRowProps {
   fragment: MelodyFragment;
   boundaryConstraints: BoundaryConstraint[];
+  /** Shared grid width in units — must match the voice lanes' grid. */
+  gridUnits: number;
 }
 
 /**
@@ -15,8 +17,8 @@ interface BoundaryRowProps {
  * three-state control arrives with the editing milestone; this renders the
  * fixture's policies.
  */
-export function BoundaryRow({ fragment, boundaryConstraints }: BoundaryRowProps) {
-  const total = totalUnits(fragment);
+export function BoundaryRow({ fragment, boundaryConstraints, gridUnits }: BoundaryRowProps) {
+  const total = gridUnits;
   if (total === 0 || boundaryConstraints.length === 0) return null;
   return (
     <div className={styles.lane}>

@@ -52,7 +52,7 @@ export const content = {
   },
   melody: {
     addNote: 'Add note',
-    lockedMelody: 'locked: melody',
+    alwaysLocked: 'The melody is always locked',
   },
   boundaries: {
     hold: 'hold harmony',
@@ -61,8 +61,7 @@ export const content = {
   },
   candidates: {
     refresh: 'Refresh alternatives',
-    select: 'Select',
-    selected: 'Selected',
+    selectCard: 'Select reading',
     playFull: 'Full',
     stop: 'Stop',
     bassPrefix: 'Bass:',
@@ -78,7 +77,6 @@ export const content = {
       tenor: 'Tenor',
       bass: 'Bass',
     },
-    lockRow: 'Lock row',
     effectHeading: 'Effect',
     showEvidence: 'View analysis evidence',
     hideEvidence: 'Hide analysis evidence',
@@ -87,6 +85,16 @@ export const content = {
     stop: 'Stop',
     playVoice: 'Play voice',
     includeInPlay: 'include in playback',
+    noteToolsLabel: 'Note tools',
+    noteTools: {
+      raise: 'Raise pitch',
+      lower: 'Lower pitch',
+      lock: 'Lock note',
+      unlock: 'Unlock note',
+      remove: 'Delete note',
+      addBefore: 'Add note before',
+      addAfter: 'Add note after',
+    },
   },
   inversionLabels: ['root position', 'first inversion', 'second inversion', 'third inversion'],
   evidenceSources: {

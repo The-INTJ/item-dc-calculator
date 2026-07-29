@@ -37,30 +37,61 @@ describe('HarmonizationWorkbench', () => {
     expect(screen.getByText('hold harmony')).toBeTruthy();
     expect(screen.getByText('change allowed')).toBeTruthy();
 
-    // Palette below with three cards; A selected.
+    // Palette below with three clickable cards; A selected, no Select buttons.
     expect(screen.getAllByRole('article')).toHaveLength(3);
-    const cardA = getCardByTitle('Grounded descent');
-    expect(
-      within(cardA).getByRole('button', { name: 'Selected' }).getAttribute('aria-pressed'),
-    ).toBe('true');
-
-    // The old transport buttons are gone.
+    expect(getCardByTitle('Grounded descent').getAttribute('data-selected')).toBe('true');
+    expect(screen.queryByRole('button', { name: 'Select' })).toBeNull();
     expect(screen.queryByRole('button', { name: '▶ SATB' })).toBeNull();
-    expect(screen.queryByRole('button', { name: '▶ Harmony' })).toBeNull();
   });
 
-  it('updates the workspace when another candidate is selected', () => {
+  it('selects a reading by clicking its card', () => {
     render(<HarmonizationWorkbench />);
 
     const cardC = getCardByTitle('Keep moving');
-    fireEvent.click(within(cardC).getByRole('button', { name: 'Select' }));
+    fireEvent.click(cardC);
 
     expect(screen.getByRole('heading', { level: 2, name: /Keep moving/ })).toBeTruthy();
-    expect(
-      within(cardC).getByRole('button', { name: 'Selected' }).getAttribute('aria-pressed'),
-    ).toBe('true');
-    // The workspace shows candidate C's chord path from the wireframe voicing.
+    expect(cardC.getAttribute('data-selected')).toBe('true');
+    expect(getCardByTitle('Grounded descent').getAttribute('data-selected')).toBeNull();
     expect(screen.getAllByText('C/E').length).toBeGreaterThan(0);
+  });
+
+  it('opens the note tool cluster, toggles locks, and keeps the melody locked', () => {
+    const { container } = render(<HarmonizationWorkbench />);
+
+    const altoCell = container.querySelector('[data-event-id="a-a-1"]');
+    if (!(altoCell instanceof HTMLElement)) throw new Error('alto note cell missing');
+    expect(screen.queryByRole('toolbar')).toBeNull();
+
+    fireEvent.click(altoCell);
+    expect(screen.getByRole('toolbar')).toBeTruthy();
+    // Pitch, delete, and add tools are exposed but inert this slice.
+    expect(
+      screen.getByRole('button', { name: 'Raise pitch' }).hasAttribute('disabled'),
+    ).toBe(true);
+    expect(
+      screen.getByRole('button', { name: 'Add note before' }).hasAttribute('disabled'),
+    ).toBe(true);
+
+    // Locking is live and per-note.
+    fireEvent.click(screen.getByRole('button', { name: 'Lock note' }));
+    expect(altoCell.getAttribute('data-locked')).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: 'Unlock note' }));
+    expect(altoCell.getAttribute('data-locked')).toBeNull();
+
+    // Escape closes the cluster.
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('toolbar')).toBeNull();
+
+    // Soprano notes are the melody: lock is shown but fixed.
+    const sopranoCell = container.querySelector('[data-event-id="a-s-1"]');
+    if (!(sopranoCell instanceof HTMLElement)) throw new Error('soprano note cell missing');
+    fireEvent.click(sopranoCell);
+    expect(
+      screen
+        .getByRole('button', { name: 'The melody is always locked' })
+        .hasAttribute('disabled'),
+    ).toBe(true);
   });
 
   it('expands the analysis drawer with interpretations and evidence', () => {
@@ -90,13 +121,16 @@ describe('HarmonizationWorkbench', () => {
     expect(screen.getByText('Playback stopped')).toBeTruthy();
   });
 
-  it('audition from a card plays all four voices and can be stopped there', () => {
+  it('audition from a card plays all voices without changing the selection', () => {
     render(<HarmonizationWorkbench />);
 
     const cardB = getCardByTitle('Strong arrival');
     fireEvent.click(within(cardB).getByRole('button', { name: /Full/ }));
 
     expect(screen.getByText('Playing all four voices')).toBeTruthy();
+    // The play button stops propagation — the selection stays on A.
+    expect(screen.getByRole('heading', { level: 2, name: /Grounded descent/ })).toBeTruthy();
+
     fireEvent.click(within(cardB).getByRole('button', { name: /Stop/ }));
     expect(screen.getByText('Playback stopped')).toBeTruthy();
     expect(within(cardB).getByRole('button', { name: /Full/ })).toBeTruthy();

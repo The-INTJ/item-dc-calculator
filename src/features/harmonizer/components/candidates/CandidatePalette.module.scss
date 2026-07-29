@@ -29,10 +29,16 @@
   border-radius: var(--wb-radius-card);
   box-shadow: var(--wb-shadow);
   padding: 0.9rem 1rem 0.85rem;
+  cursor: pointer;
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease,
     transform 180ms ease;
+
+  &:hover:not([data-selected]) {
+    border-color: var(--wb-line-strong);
+    transform: translateY(-1px);
+  }
 }
 
 .cardSelected {
@@ -129,14 +135,4 @@
 
 .playButton {
   @include wb-button;
-}
-
-.selectButton {
-  @include wb-button;
-  margin-left: auto;
-}
-
-.selectButtonActive {
-  @include wb-button-primary;
-  margin-left: auto;
 }

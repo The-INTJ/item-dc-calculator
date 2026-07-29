@@ -16,9 +16,9 @@
   --wb-surface: #fcfaf4;
   --wb-surface-raised: #ffffff;
   --wb-ink: #2b2620;
-  --wb-ink-soft: rgba(43, 38, 32, 0.6);
-  --wb-line: rgba(43, 38, 32, 0.14);
-  --wb-line-strong: rgba(43, 38, 32, 0.3);
+  --wb-ink-soft: rgba(43, 38, 32, 0.74);
+  --wb-line: rgba(43, 38, 32, 0.22);
+  --wb-line-strong: rgba(43, 38, 32, 0.5);
   --wb-accent: #8a4a32; /* selection + interactive accents */
   --wb-accent-deep: #6e3a26;
   --wb-accent-soft: rgba(138, 74, 50, 0.1);
@@ -38,14 +38,14 @@
   --wb-shadow: 0 1px 2px rgba(43, 38, 32, 0.05), 0 6px 22px rgba(43, 38, 32, 0.07);
   --wb-shadow-raised: 0 2px 4px rgba(43, 38, 32, 0.09), 0 14px 34px rgba(43, 38, 32, 0.13);
 
-  /* Layout */
-  --wb-max-width: 1240px;
+  /* Layout — generous max width; Drew works on a 4k display. */
+  --wb-max-width: 1760px;
   --wb-lane-label-width: 0px;
 
   background: var(--wb-paper);
   color: var(--wb-ink);
   font-family: var(--wb-font-ui);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   line-height: 1.5;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;

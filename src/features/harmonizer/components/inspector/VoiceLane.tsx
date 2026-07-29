@@ -1,3 +1,6 @@
+'use client';
+
+import type { PointerEvent as ReactPointerEvent } from 'react';
 import { content } from '../../content';
 import type { VoiceEvent, VoiceId } from '../../domain/music-types';
 import { toTimelineSpan } from '../../domain/timing';
@@ -8,44 +11,130 @@ import styles from './CandidateInspector.module.scss';
 interface VoiceLaneProps {
   voice: VoiceId;
   events: VoiceEvent[];
-  /** The soprano is derived from the melody and is always locked (spec §9.8.2). */
-  locked: boolean;
+  /** Soprano = the melody; its notes are always locked (pitch tools disabled). */
+  melodyLocked: boolean;
   activeUnit: number | null;
-  /** Whether this part is included when the master Play button fires. */
+  /** Total grid units — needed to convert drag pixels to boundaries. */
+  gridUnits: number;
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
-  /** True while this voice plays alone. */
   soloing: boolean;
   onPlayVoice: () => void;
   onStop: () => void;
+  editingEventId: string | null;
+  onEditNote: (eventId: string | null) => void;
+  lockedEventIds: ReadonlySet<string>;
+  onToggleLock: (event: VoiceEvent) => void;
+  onResize: (
+    eventId: string,
+    edge: 'left' | 'right',
+    targetBoundary: number,
+    ripple: boolean,
+  ) => void;
 }
 
 export function VoiceLane({
   voice,
   events,
-  locked,
+  melodyLocked,
   activeUnit,
+  gridUnits,
   checked,
   onCheckedChange,
   soloing,
   onPlayVoice,
   onStop,
+  editingEventId,
+  onEditNote,
+  lockedEventIds,
+  onToggleLock,
+  onResize,
 }: VoiceLaneProps) {
   const voiceLabel = content.inspector.voiceLabels[voice];
+  const tools = content.inspector.noteTools;
+
+  /**
+   * Edge drag: convert pointer x to a 0-based sixteenth boundary using the
+   * lane's own grid geometry, dispatch on every snapped change. Audio-free and
+   * stateless — the reducer owns clamping and neighbor semantics.
+   */
+  function handleEdgePointerDown(
+    pointerEvent: ReactPointerEvent<HTMLElement>,
+    eventId: string,
+    edge: 'left' | 'right',
+  ) {
+    pointerEvent.preventDefault();
+    pointerEvent.stopPropagation();
+    const handle = pointerEvent.currentTarget;
+    const grid = handle.closest('[data-lane-grid]');
+    const label = grid?.querySelector('[data-lane-label]');
+    if (!(grid instanceof HTMLElement) || !(label instanceof HTMLElement)) return;
+    const trackLeft = label.getBoundingClientRect().right;
+    const trackWidth = grid.getBoundingClientRect().right - trackLeft;
+    if (trackWidth <= 0 || gridUnits <= 0) return;
+    const unitWidth = trackWidth / gridUnits;
+    let lastBoundary: number | null = null;
+    try {
+      handle.setPointerCapture(pointerEvent.pointerId);
+    } catch {
+      // jsdom has no pointer capture; harmless.
+    }
+    const onMove = (moveEvent: PointerEvent) => {
+      const boundary = Math.round((moveEvent.clientX - trackLeft) / unitWidth);
+      if (boundary !== lastBoundary) {
+        lastBoundary = boundary;
+        onResize(eventId, edge, boundary, moveEvent.shiftKey);
+      }
+    };
+    const onEnd = () => {
+      handle.removeEventListener('pointermove', onMove);
+      handle.removeEventListener('pointerup', onEnd);
+      handle.removeEventListener('pointercancel', onEnd);
+    };
+    handle.addEventListener('pointermove', onMove);
+    handle.addEventListener('pointerup', onEnd);
+    handle.addEventListener('pointercancel', onEnd);
+  }
+
   return (
     <div className={styles.lane}>
-      <div className={styles.laneGrid}>
-        <span className={styles.laneLabel}>{voiceLabel}</span>
+      <div className={styles.laneGrid} data-lane-grid>
+        <span className={styles.laneLabel} data-lane-label>
+          {voiceLabel}
+        </span>
         {events.map((event) => {
           const span = toTimelineSpan(event.start, event.duration);
           const active = isUnitActive(span, activeUnit);
+          const editing = editingEventId === event.id;
+          const locked = lockedEventIds.has(event.id);
           return (
-            <span
+            <div
               key={event.id}
-              className={classes(styles.voiceCell, active && styles.cellActive)}
+              className={classes(
+                styles.voiceCell,
+                active && styles.cellActive,
+                editing && styles.cellEditing,
+                locked && styles.cellLocked,
+              )}
               style={timeSpanStyle(span)}
               data-active={active || undefined}
+              data-event-id={event.id}
+              data-locked={locked || undefined}
+              tabIndex={0}
+              onClick={() => onEditNote(editing ? null : event.id)}
+              onKeyDown={(keyEvent) => {
+                if (keyEvent.key === 'Enter') {
+                  keyEvent.preventDefault();
+                  keyEvent.stopPropagation();
+                  onEditNote(editing ? null : event.id);
+                }
+              }}
             >
+              {locked ? (
+                <span className={styles.noteLockBadge} aria-hidden="true">
+                  🔒
+                </span>
+              ) : null}
               <span className={styles.voiceSyllable}>
                 {event.tieFromPrevious ? (
                   <span aria-hidden="true" className={styles.tieMark}>
@@ -55,7 +144,98 @@ export function VoiceLane({
                 {event.scaleDegree.syllable}
               </span>
               <span className={styles.voicePitch}>{pitchDisplay(event.pitch)}</span>
-            </span>
+              <span
+                className={classes(styles.edgeHandle, styles.edgeHandleLeft)}
+                aria-hidden="true"
+                onClick={(clickEvent) => clickEvent.stopPropagation()}
+                onPointerDown={(downEvent) => handleEdgePointerDown(downEvent, event.id, 'left')}
+              />
+              <span
+                className={classes(styles.edgeHandle, styles.edgeHandleRight)}
+                aria-hidden="true"
+                onClick={(clickEvent) => clickEvent.stopPropagation()}
+                onPointerDown={(downEvent) => handleEdgePointerDown(downEvent, event.id, 'right')}
+              />
+              {editing ? (
+                <>
+                  <span
+                    className={styles.noteToolbar}
+                    role="toolbar"
+                    aria-label={content.inspector.noteToolsLabel}
+                    onClick={(clickEvent) => clickEvent.stopPropagation()}
+                  >
+                    <button
+                      type="button"
+                      className={styles.noteTool}
+                      disabled
+                      title={content.comingSoon}
+                      aria-label={tools.raise}
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.noteTool}
+                      disabled
+                      title={content.comingSoon}
+                      aria-label={tools.lower}
+                    >
+                      ▼
+                    </button>
+                    {melodyLocked ? (
+                      <button
+                        type="button"
+                        className={styles.noteTool}
+                        disabled
+                        title={content.melody.alwaysLocked}
+                        aria-label={content.melody.alwaysLocked}
+                      >
+                        🔒
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.noteTool}
+                        aria-pressed={locked}
+                        aria-label={locked ? tools.unlock : tools.lock}
+                        onClick={() => onToggleLock(event)}
+                      >
+                        {locked ? '🔒' : '🔓'}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className={styles.noteTool}
+                      disabled
+                      title={content.comingSoon}
+                      aria-label={tools.remove}
+                    >
+                      ✕
+                    </button>
+                  </span>
+                  <button
+                    type="button"
+                    className={classes(styles.addNoteEdge, styles.addNoteBefore)}
+                    disabled
+                    title={content.comingSoon}
+                    aria-label={tools.addBefore}
+                    onClick={(clickEvent) => clickEvent.stopPropagation()}
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    className={classes(styles.addNoteEdge, styles.addNoteAfter)}
+                    disabled
+                    title={content.comingSoon}
+                    aria-label={tools.addAfter}
+                    onClick={(clickEvent) => clickEvent.stopPropagation()}
+                  >
+                    +
+                  </button>
+                </>
+              ) : null}
+            </div>
           );
         })}
       </div>
@@ -64,7 +244,7 @@ export function VoiceLane({
           type="checkbox"
           className={styles.voiceCheck}
           checked={checked}
-          onChange={(event) => onCheckedChange(event.target.checked)}
+          onChange={(changeEvent) => onCheckedChange(changeEvent.target.checked)}
           aria-label={`${voiceLabel}: ${content.inspector.includeInPlay}`}
           title={`${voiceLabel} — ${content.inspector.includeInPlay}`}
         />
@@ -85,15 +265,6 @@ export function VoiceLane({
             onClick={onPlayVoice}
           >
             ▶
-          </button>
-        )}
-        {locked ? (
-          <span className={styles.lockChip}>
-            <span aria-hidden="true">🔒</span> {content.melody.lockedMelody}
-          </span>
-        ) : (
-          <button type="button" className={styles.lockButton} disabled title={content.comingSoon}>
-            {content.inspector.lockRow}
           </button>
         )}
       </div>

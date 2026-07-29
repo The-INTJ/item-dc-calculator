@@ -1,18 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { content } from '../../content';
 import type { CandidatePath } from '../../domain/analysis-types';
-import type { BoundaryConstraint, MelodyFragment, VoiceId } from '../../domain/music-types';
-import { totalUnits, toTimelineSpan } from '../../domain/timing';
+import type {
+  BoundaryConstraint,
+  MelodyFragment,
+  VoiceEvent,
+  VoiceId,
+} from '../../domain/music-types';
+import { totalUnits, toTimelineSpan, voicingUnits } from '../../domain/timing';
 import type { PlaybackState } from '../../domain/workbench-state';
-import { classes } from '../shared/format';
 import { HarmonyEventBlock } from '../shared/HarmonyEventBlock';
 import { cssVars, isUnitActive } from '../shared/timeGrid';
 import { AnalysisDrawer } from './AnalysisDrawer';
 import { BoundaryRow } from './BoundaryRow';
 import { EffectSummary } from './EffectSummary';
 import { VoiceLane } from './VoiceLane';
+import { classes } from '../shared/format';
 import styles from './CandidateInspector.module.scss';
 
 interface CandidateInspectorProps {
@@ -23,11 +28,21 @@ interface CandidateInspectorProps {
   playback: PlaybackState;
   loopEnabled: boolean;
   checkedVoices: VoiceId[];
+  lockedEventIds: ReadonlySet<string>;
   onToggleVoice: (voice: VoiceId, checked: boolean) => void;
   onPlayChecked: () => void;
   onPlayVoice: (candidateId: string, voice: VoiceId) => void;
   onStop: () => void;
   onToggleLoop: () => void;
+  onToggleNoteLock: (candidateId: string, event: VoiceEvent) => void;
+  onResizeNote: (
+    candidateId: string,
+    voice: VoiceId,
+    eventId: string,
+    edge: 'left' | 'right',
+    targetBoundary: number,
+    ripple: boolean,
+  ) => void;
 }
 
 const VOICES: VoiceId[] = ['soprano', 'alto', 'tenor', 'bass'];
@@ -46,16 +61,42 @@ export function CandidateInspector({
   playback,
   loopEnabled,
   checkedVoices,
+  lockedEventIds,
   onToggleVoice,
   onPlayChecked,
   onPlayVoice,
   onStop,
   onToggleLoop,
+  onToggleNoteLock,
+  onResizeNote,
 }: CandidateInspectorProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editing, setEditing] = useState<{ candidateId: string; eventId: string } | null>(null);
 
   const playing = playback.status === 'playing';
   const activeUnit = playing ? playback.activeUnit : null;
+  // Editing selection is scoped to the candidate it was opened on.
+  const editingEventId =
+    editing && candidate && editing.candidateId === candidate.id ? editing.eventId : null;
+  // The grid must cover the melody AND any voice that was dragged longer.
+  const gridUnits = Math.max(
+    totalUnits(fragment),
+    candidate ? voicingUnits(candidate.voicing) : 0,
+  );
+
+  function editNote(eventId: string | null) {
+    setEditing(eventId && candidate ? { candidateId: candidate.id, eventId } : null);
+  }
+
+  // Escape closes the note tool cluster.
+  useEffect(() => {
+    if (!editingEventId) return;
+    function onKeyDown(keyEvent: KeyboardEvent) {
+      if (keyEvent.key === 'Escape') setEditing(null);
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  });
 
   return (
     <div>
@@ -80,8 +121,8 @@ export function CandidateInspector({
         <div
           className={styles.lanes}
           style={cssVars({
-            '--wb-time-units': totalUnits(fragment),
-            '--wb-lane-label-width': '6.5rem',
+            '--wb-time-units': gridUnits,
+            '--wb-lane-label-width': '7rem',
           })}
         >
           <div className={styles.masterRow}>
@@ -117,8 +158,9 @@ export function CandidateInspector({
               key={voice}
               voice={voice}
               events={candidate.voicing[voice]}
-              locked={voice === 'soprano'}
+              melodyLocked={voice === 'soprano'}
               activeUnit={activeUnit}
+              gridUnits={gridUnits}
               checked={checkedVoices.includes(voice)}
               onCheckedChange={(checked) => onToggleVoice(voice, checked)}
               soloing={
@@ -129,10 +171,21 @@ export function CandidateInspector({
               }
               onPlayVoice={() => onPlayVoice(candidate.id, voice)}
               onStop={onStop}
+              editingEventId={editingEventId}
+              onEditNote={editNote}
+              lockedEventIds={lockedEventIds}
+              onToggleLock={(event) => onToggleNoteLock(candidate.id, event)}
+              onResize={(eventId, edge, targetBoundary, ripple) =>
+                onResizeNote(candidate.id, voice, eventId, edge, targetBoundary, ripple)
+              }
             />
           ))}
 
-          <BoundaryRow fragment={fragment} boundaryConstraints={boundaryConstraints} />
+          <BoundaryRow
+            fragment={fragment}
+            boundaryConstraints={boundaryConstraints}
+            gridUnits={gridUnits}
+          />
 
           <div className={styles.lane}>
             <div className={styles.laneGrid}>

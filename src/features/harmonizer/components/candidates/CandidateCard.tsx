@@ -13,6 +13,7 @@ interface CandidateCardProps {
   onStop: () => void;
 }
 
+/** The whole card is the select target; the play button is the only inner control. */
 export function CandidateCard({
   summary,
   letter,
@@ -29,6 +30,17 @@ export function CandidateCard({
         selected && styles.cardSelected,
         playing && styles.cardPlaying,
       )}
+      tabIndex={0}
+      aria-label={`${content.candidates.selectCard}: ${summary.title}`}
+      data-selected={selected || undefined}
+      onClick={onSelect}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          event.stopPropagation();
+          onSelect();
+        }
+      }}
     >
       <header className={styles.cardHeader}>
         <span className={styles.cardLetter} aria-hidden="true">
@@ -56,22 +68,28 @@ export function CandidateCard({
       ) : null}
       <footer className={styles.cardActions}>
         {playing ? (
-          <button type="button" className={styles.playButton} onClick={onStop}>
+          <button
+            type="button"
+            className={styles.playButton}
+            onClick={(event) => {
+              event.stopPropagation();
+              onStop();
+            }}
+          >
             ■ {content.candidates.stop}
           </button>
         ) : (
-          <button type="button" className={styles.playButton} onClick={onPlayFull}>
+          <button
+            type="button"
+            className={styles.playButton}
+            onClick={(event) => {
+              event.stopPropagation();
+              onPlayFull();
+            }}
+          >
             ▶ {content.candidates.playFull}
           </button>
         )}
-        <button
-          type="button"
-          className={classes(styles.selectButton, selected && styles.selectButtonActive)}
-          aria-pressed={selected}
-          onClick={onSelect}
-        >
-          {selected ? content.candidates.selected : content.candidates.select}
-        </button>
       </footer>
     </article>
   );

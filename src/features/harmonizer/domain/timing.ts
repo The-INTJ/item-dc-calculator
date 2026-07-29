@@ -7,7 +7,7 @@
  * these constants are the single place that assumption lives.
  */
 
-import type { MelodyFragment, MusicalTime, RationalDuration } from './music-types';
+import type { MelodyFragment, MusicalTime, RationalDuration, SATBVoicing } from './music-types';
 
 /** 1 unit = one sixteenth note. */
 export const UNITS_PER_WHOLE_NOTE = 16;
@@ -50,6 +50,40 @@ export function totalUnits(fragment: MelodyFragment): number {
     const span = toTimelineSpan(event.start, event.duration);
     return Math.max(total, span.startUnit - 1 + span.spanUnits);
   }, 0);
+}
+
+/** Inverse of timeToUnits: 0-based absolute units → musical time. */
+export function unitsToTime(absoluteUnits: number): MusicalTime {
+  const unitsPerMeasure = BEATS_PER_MEASURE * UNITS_PER_BEAT;
+  const measure = Math.floor(absoluteUnits / unitsPerMeasure) + 1;
+  const remainder = ((absoluteUnits % unitsPerMeasure) + unitsPerMeasure) % unitsPerMeasure;
+  return {
+    measure,
+    beat: Math.floor(remainder / UNITS_PER_BEAT) + 1,
+    subdivision: remainder % UNITS_PER_BEAT,
+  };
+}
+
+function greatestCommonDivisor(a: number, b: number): number {
+  return b === 0 ? a : greatestCommonDivisor(b, a % b);
+}
+
+/** Sixteenth units → reduced rational duration (8 → 1/2, 6 → 3/8). */
+export function unitsToDuration(units: number): RationalDuration {
+  const divisor = greatestCommonDivisor(units, UNITS_PER_WHOLE_NOTE);
+  return { numerator: units / divisor, denominator: UNITS_PER_WHOLE_NOTE / divisor };
+}
+
+/** Furthest end unit across all four voices (0 when empty). */
+export function voicingUnits(voicing: SATBVoicing): number {
+  let max = 0;
+  for (const events of [voicing.soprano, voicing.alto, voicing.tenor, voicing.bass]) {
+    for (const event of events) {
+      const span = toTimelineSpan(event.start, event.duration);
+      max = Math.max(max, span.startUnit - 1 + span.spanUnits);
+    }
+  }
+  return max;
 }
 
 /** "beat 1" for a quarter on beat 1; "beats 3–4" for a half on beat 3. */

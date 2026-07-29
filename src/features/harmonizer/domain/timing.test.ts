@@ -6,7 +6,9 @@ import {
   timeToUnits,
   toTimelineSpan,
   totalUnits,
+  unitsToDuration,
   unitsToSeconds,
+  unitsToTime,
 } from './timing';
 
 const QUARTER: RationalDuration = { numerator: 1, denominator: 4 };
@@ -69,6 +71,21 @@ describe('timing', () => {
     expect(formatBeatRange(at(1, 2), QUARTER)).toBe('beat 2');
     expect(formatBeatRange(at(1, 3), HALF)).toBe('beats 3–4');
     expect(formatBeatRange(at(1, 1), WHOLE)).toBe('beats 1–4');
+  });
+
+  it('round-trips units through musical time and durations', () => {
+    expect(unitsToTime(0)).toEqual({ measure: 1, beat: 1, subdivision: 0 });
+    expect(unitsToTime(6)).toEqual({ measure: 1, beat: 2, subdivision: 2 });
+    expect(unitsToTime(16)).toEqual({ measure: 2, beat: 1, subdivision: 0 });
+    for (const units of [0, 3, 4, 7, 8, 15, 16, 21]) {
+      expect(timeToUnits(unitsToTime(units))).toBe(units);
+    }
+    expect(unitsToDuration(8)).toEqual({ numerator: 1, denominator: 2 });
+    expect(unitsToDuration(4)).toEqual({ numerator: 1, denominator: 4 });
+    expect(unitsToDuration(6)).toEqual({ numerator: 3, denominator: 8 });
+    for (const units of [1, 2, 3, 6, 8, 12, 16]) {
+      expect(durationToUnits(unitsToDuration(units))).toBe(units);
+    }
   });
 
   it('converts units to seconds via tempo', () => {

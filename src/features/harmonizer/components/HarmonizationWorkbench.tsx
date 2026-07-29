@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { content } from '../content';
 import type { CandidatePath } from '../domain/analysis-types';
-import type { VoiceId } from '../domain/music-types';
+import type { VoiceEvent, VoiceId } from '../domain/music-types';
 import { getDefaultFixture } from '../fixtures/registry';
 import type { PlaybackService } from '../services/playback-service';
 import { ToneJsPlaybackService } from '../services/tone-playback-service';
@@ -83,6 +83,48 @@ export function HarmonizationWorkbench() {
     );
   }
 
+  const lockedEventIds = new Set(
+    state.locks
+      .filter(
+        (lock) =>
+          lock.targetType === 'voice_event' && lock.candidateId === state.selectedCandidateId,
+      )
+      .map((lock) => lock.targetId),
+  );
+
+  function toggleNoteLock(candidateId: string, event: VoiceEvent) {
+    dispatch({
+      type: 'TOGGLE_LOCK',
+      lock: {
+        id: `lock-${event.id}`,
+        targetType: 'voice_event',
+        targetId: event.id,
+        candidateId,
+        valueSnapshot: event,
+        createdAt: new Date().toISOString(),
+      },
+    });
+  }
+
+  function resizeNote(
+    candidateId: string,
+    voice: VoiceId,
+    eventId: string,
+    edge: 'left' | 'right',
+    targetBoundary: number,
+    ripple: boolean,
+  ) {
+    dispatch({
+      type: 'RESIZE_VOICE_EVENT',
+      candidateId,
+      voice,
+      eventId,
+      edge,
+      targetBoundary,
+      ripple,
+    });
+  }
+
   function handleToggleLoop() {
     const next = !loopEnabled;
     setLoopEnabled(next);
@@ -160,6 +202,7 @@ export function HarmonizationWorkbench() {
             playback={playback}
             loopEnabled={loopEnabled}
             checkedVoices={checkedVoices}
+            lockedEventIds={lockedEventIds}
             onToggleVoice={toggleVoice}
             onPlayChecked={() => {
               if (selectedCandidate) void startPlayback(selectedCandidate.id, checkedVoices);
@@ -167,6 +210,8 @@ export function HarmonizationWorkbench() {
             onPlayVoice={(candidateId, voice) => void startPlayback(candidateId, [voice])}
             onStop={stopPlayback}
             onToggleLoop={handleToggleLoop}
+            onToggleNoteLock={toggleNoteLock}
+            onResizeNote={resizeNote}
           />
         </section>
         <section className={styles.region}>

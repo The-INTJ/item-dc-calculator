@@ -28,6 +28,15 @@ the spec's §9 five-region layout where they conflict:
 - Duration is communicated by visual spacing (grid spans), not notation. Keep it.
 - Voices may be silent for parts of the fragment (rests): fixture integrity
   requires in-bounds, non-overlapping events per voice — NOT full coverage.
+- **Notes are the edit surface** (second review, same day): click a note for
+  its tool cluster (▲▼ pitch, lock, delete, flanking "+" — only lock is live
+  this slice); drag its edges to resize. Drag semantics live in
+  `domain/voice-editing.ts`: an inner edge moves the shared boundary between
+  contiguous notes (total conserved), the first note's left edge can only
+  create a leading rest, the last note's right edge extends freely, and
+  Shift-drag ripples later notes (part length changes). Soprano edits mirror
+  onto the melody fragment. Locks are per-note ConstraintLocks — no row locks.
+- Suggested-reading cards are click-to-select (no Select buttons).
 
 Not yet implemented (spec milestones 4–6): note editing (the Add note button
 will open a pick-a-part dropdown), boundary editing, stale-suggestion
