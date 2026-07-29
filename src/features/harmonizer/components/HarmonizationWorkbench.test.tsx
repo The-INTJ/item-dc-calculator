@@ -170,18 +170,16 @@ describe('HarmonizationWorkbench', () => {
     expect(screen.getByText('Playback stopped')).toBeTruthy();
   });
 
-  it('offers the note slider only once the track outgrows the four-note window', () => {
+  it('offers the note slider only once the fragment outgrows the beat window', () => {
     render(<HarmonizationWorkbench />);
-    // The default fragment is three notes — it fits, so there is nothing to slide.
+    // The default fragment is exactly one measure (four beats), so it fits —
+    // note COUNT is irrelevant, only how many beats they span.
     expect(screen.queryByRole('slider')).toBeNull();
 
-    const addSopranoNote = () => {
-      fireEvent.click(screen.getByRole('button', { name: '+ Add note' }));
-      fireEvent.click(screen.getByRole('menuitem', { name: 'Soprano' }));
-    };
-    addSopranoNote();
-    expect(screen.queryByRole('slider')).toBeNull(); // exactly four still fits
-    addSopranoNote();
+    // Appending copies the last note's length (a half note), pushing the
+    // fragment past four beats.
+    fireEvent.click(screen.getByRole('button', { name: '+ Add note' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Soprano' }));
     expect(screen.getByRole('slider')).toBeTruthy();
   });
 

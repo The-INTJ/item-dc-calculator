@@ -100,21 +100,14 @@ export function CandidateInspector({
   );
 
   /**
-   * Mobile note panning. The densest row decides the track width, so every
-   * lane and the chord strip pan in lockstep. While playing, the pan is
-   * derived from the cursor so the view follows the music; when playback stops
-   * `activeUnit` goes null and the slider's own position takes over again.
+   * Mobile note panning, measured in beats: the window holds the default
+   * fragment's one measure and anything longer slides. Every lane and the
+   * chord strip share the scale, so they pan in lockstep. While playing, the
+   * pan is derived from the cursor so the view follows the music; when
+   * playback stops `activeUnit` goes null and the slider's own position takes
+   * over again.
    */
-  const noteCount = candidate
-    ? Math.max(
-        candidate.voicing.soprano.length,
-        candidate.voicing.alto.length,
-        candidate.voicing.tenor.length,
-        candidate.voicing.bass.length,
-        candidate.harmonyEvents.length,
-      )
-    : 0;
-  const scale = trackScale(noteCount);
+  const scale = trackScale(gridUnits);
   const effectivePan = activeUnit !== null ? panForUnit(activeUnit, gridUnits, scale) : pan;
   const panVars = {
     '--wb-time-units': gridUnits,
@@ -264,7 +257,7 @@ export function CandidateInspector({
           </div>
 
           {/* Mobile-only (CSS-gated): the sole way to move the note track. */}
-          {needsPan(noteCount) ? (
+          {needsPan(gridUnits) ? (
             <div className={styles.panRow}>
               <input
                 type="range"

@@ -1,21 +1,30 @@
 /**
  * Slider-panned note track (mobile only — CSS decides whether these values
  * apply). The time grid keeps its proportional percentage layout; we make the
- * track a multiple of its window width and shift it with a transform, so there
- * is never a scrollbar and the track cannot be swiped — the slider is the only
- * way to move it. Pure math, unit-tested without a DOM.
+ * track a multiple of its window width and slide it with `left`, so there is
+ * never a scrollbar and the track cannot be swiped — the slider is the only
+ * way to move it.
+ *
+ * The window is measured in BEATS, not notes: a note can be any length, so
+ * four whole notes need four times the room of four quarter notes. The window
+ * is one measure — the length of the default fragment — and anything longer
+ * slides. Pure math, unit-tested without a DOM.
  */
 
-/** How many notes the window shows before panning is offered. */
-export const VISIBLE_NOTES = 4;
+import { BEATS_PER_MEASURE, UNITS_PER_BEAT } from '../../domain/timing';
 
-export function needsPan(noteCount: number): boolean {
-  return noteCount > VISIBLE_NOTES;
+/** Beats visible at once before panning is offered (one 4/4 measure). */
+export const VISIBLE_BEATS = BEATS_PER_MEASURE;
+
+const VISIBLE_UNITS = VISIBLE_BEATS * UNITS_PER_BEAT;
+
+export function needsPan(totalUnits: number): boolean {
+  return totalUnits > VISIBLE_UNITS;
 }
 
 /** Track width as a multiple of the visible window. 1 = no panning. */
-export function trackScale(noteCount: number): number {
-  return needsPan(noteCount) ? noteCount / VISIBLE_NOTES : 1;
+export function trackScale(totalUnits: number): number {
+  return needsPan(totalUnits) ? totalUnits / VISIBLE_UNITS : 1;
 }
 
 function clamp01(value: number): number {

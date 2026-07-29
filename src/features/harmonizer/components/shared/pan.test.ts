@@ -1,18 +1,29 @@
 import { describe, expect, it } from 'vitest';
-import { needsPan, panForUnit, panShiftPercent, trackScale, VISIBLE_NOTES } from './pan';
+import { UNITS_PER_BEAT } from '../../domain/timing';
+import { needsPan, panForUnit, panShiftPercent, trackScale, VISIBLE_BEATS } from './pan';
+
+const beats = (count: number) => count * UNITS_PER_BEAT;
 
 describe('needsPan / trackScale', () => {
-  it('leaves four or fewer notes alone', () => {
-    for (const count of [0, 1, 3, VISIBLE_NOTES]) {
-      expect(needsPan(count)).toBe(false);
-      expect(trackScale(count)).toBe(1);
+  it('leaves the default measure-long fragment alone', () => {
+    for (const count of [1, 2, VISIBLE_BEATS]) {
+      expect(needsPan(beats(count))).toBe(false);
+      expect(trackScale(beats(count))).toBe(1);
     }
   });
 
-  it('widens the track proportionally past four notes', () => {
-    expect(needsPan(5)).toBe(true);
-    expect(trackScale(8)).toBe(2);
-    expect(trackScale(6)).toBe(1.5);
+  it('measures the window in beats, not notes', () => {
+    // Three whole notes are only three notes but twelve beats — it slides.
+    expect(needsPan(beats(12))).toBe(true);
+    expect(trackScale(beats(12))).toBe(3);
+    // Eight sixteenths are eight notes but two beats — it does not.
+    expect(needsPan(8)).toBe(false);
+  });
+
+  it('widens the track proportionally past the window', () => {
+    expect(trackScale(beats(8))).toBe(2);
+    expect(trackScale(beats(6))).toBe(1.5);
+    expect(needsPan(beats(4) + 1)).toBe(true);
   });
 });
 
