@@ -1,0 +1,66 @@
+@use '@/features/harmonizer/components/shared/controls' as *;
+
+.heading {
+  @include wb-region-heading;
+  margin-bottom: 0.85rem;
+}
+
+.rail {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--wb-accepted);
+  border: 1px solid var(--wb-line);
+  border-radius: var(--wb-radius-chip);
+  padding: 0.45rem 0.85rem;
+  font-size: 0.875rem;
+}
+
+.chipNumeral {
+  font-family: var(--wb-font-solfege);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.chipDivider {
+  color: var(--wb-ink-soft);
+}
+
+.chipSolfege {
+  font-family: var(--wb-font-solfege);
+  font-weight: 600;
+}
+
+.none {
+  color: var(--wb-ink-soft);
+}
+
+.arrow {
+  flex: 1;
+  height: 0;
+  border-top: 2px solid var(--wb-line-strong);
+  position: relative;
+  min-width: 3rem;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -5px;
+    border-left: 8px solid var(--wb-line-strong);
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+  }
+}
+
+.arrowLabel {
+  font-size: 0.75rem;
+  color: var(--wb-ink-soft);
+  white-space: nowrap;
+}

@@ -25,6 +25,11 @@ const experiences: Experience[] = [
     description: 'Legacy item DC calculator for tabletop sessions.',
     href: '/dc-calculator',
   },
+  {
+    title: 'Hymn Harmonization Workbench',
+    description: 'Audition four-part harmonizations of a hymn melody fragment (UI proof of concept).',
+    href: '/harmonizer',
+  },
 ];
 
 export default function PortalPage() {

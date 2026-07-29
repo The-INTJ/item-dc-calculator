@@ -1,0 +1,147 @@
+/**
+ * Workbench chrome copy — every non-musical string the UI shows (spec §13.1).
+ * Musical strings (titles, summaries, explanations, labels) come from fixture
+ * data, never from here.
+ */
+
+export const content = {
+  header: {
+    title: 'Hymn Harmonization Workbench',
+    undo: 'Undo',
+    redo: 'Redo',
+    help: 'Help',
+  },
+  comingSoon: 'Coming in a later milestone',
+  contextBar: {
+    keyLabel: 'Key',
+    modeLabel: 'Mode',
+    intentLabel: 'Phrase intent',
+    tempoLabel: 'Tempo',
+    tempoUnit: 'bpm',
+    playAccepted: 'Play accepted context',
+    intentOptions: {
+      continue: 'Continue',
+      build: 'Build',
+      approach_cadence: 'Approach cadence',
+      close: 'Close',
+    },
+    intentDescriptions: {
+      continue: 'Avoid strong closure; favor prolongation and forward availability.',
+      build: 'Favor increasing tension, rising energy, or dominant preparation.',
+      approach_cadence:
+        'Favor predominant and dominant preparation without necessarily completing the cadence.',
+      close: 'Favor convincing local or phrase-level arrival.',
+    },
+    modeLabels: {
+      major: 'Major',
+      natural_minor: 'Natural minor',
+      harmonic_minor: 'Harmonic minor',
+      melodic_minor: 'Melodic minor',
+      dorian: 'Dorian',
+      mixolydian: 'Mixolydian',
+    },
+  },
+  regions: {
+    acceptedContext: 'Accepted context',
+    candidates: 'Suggested readings',
+    inspector: 'Selected reading',
+  },
+  acceptedRail: {
+    arrow: 'active fragment',
+    bassPrefix: 'bass',
+  },
+  melody: {
+    addNote: 'Add note',
+    lockedMelody: 'locked: melody',
+  },
+  boundaries: {
+    hold: 'hold harmony',
+    allowed: 'change allowed',
+    required: 'change required',
+  },
+  candidates: {
+    refresh: 'Refresh alternatives',
+    select: 'Select',
+    selected: 'Selected',
+    playFull: 'Full',
+    stop: 'Stop',
+    bassPrefix: 'Bass:',
+  },
+  inspector: {
+    apply: 'Apply to composition',
+    noSelection: 'Select a reading to inspect it.',
+    candidateEvidence: 'Reading-level evidence',
+    chords: 'Chords',
+    voiceLabels: {
+      soprano: 'Soprano',
+      alto: 'Alto',
+      tenor: 'Tenor',
+      bass: 'Bass',
+    },
+    lockRow: 'Lock row',
+    effectHeading: 'Effect',
+    showEvidence: 'View analysis evidence',
+    hideEvidence: 'Hide analysis evidence',
+    play: 'Play',
+    loop: 'Loop',
+    stop: 'Stop',
+    playVoice: 'Play voice',
+    includeInPlay: 'include in playback',
+  },
+  inversionLabels: ['root position', 'first inversion', 'second inversion', 'third inversion'],
+  evidenceSources: {
+    computed: 'Computed',
+    rule: 'Rule pack',
+    corpus: 'Corpus',
+    curated: 'Curated',
+    user: 'User',
+    hybrid: 'Hybrid',
+  },
+  melodyRoles: {
+    chord_tone: 'chord tone',
+    passing_tone: 'passing tone',
+    neighbor_tone: 'neighbor tone',
+    suspension: 'suspension',
+    retardation: 'retardation',
+    anticipation: 'anticipation',
+    appoggiatura: 'appoggiatura',
+    escape_tone: 'escape tone',
+    pedal_tone: 'pedal tone',
+    unclassified: 'unclassified',
+    ambiguous: 'ambiguous',
+  },
+  playback: {
+    playingPrefix: 'Playing',
+    playingAll: 'Playing all four voices',
+    stopped: 'Playback stopped',
+  },
+  /** Duration glyphs by signature code (see domain/signatures.ts). */
+  durationGlyphs: {
+    w: '𝅝',
+    h: '𝅗𝅥',
+    q: '♩',
+    e: '♪',
+    s: '𝅘𝅥𝅯',
+  },
+  accidentalLabels: {
+    natural: '',
+    '#': '♯',
+    b: '♭',
+    bb: '𝄫',
+    x: '𝄪',
+  },
+  chordQualityLabels: {
+    major: 'major',
+    minor: 'minor',
+    diminished: 'diminished',
+    augmented: 'augmented',
+    dominant_seventh: 'dominant seventh',
+    major_seventh: 'major seventh',
+    minor_seventh: 'minor seventh',
+    half_diminished_seventh: 'half-diminished seventh',
+    fully_diminished_seventh: 'fully diminished seventh',
+    suspended_second: 'suspended second',
+    suspended_fourth: 'suspended fourth',
+    other: 'chord',
+  },
+} as const;

@@ -1,0 +1,92 @@
+@use '@/features/harmonizer/components/shared/controls' as *;
+
+.bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  background: var(--wb-surface);
+  border: 1px solid var(--wb-line);
+  border-radius: var(--wb-radius-card);
+  box-shadow: var(--wb-shadow);
+  padding: 0.7rem 1.25rem;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fieldLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wb-ink-soft);
+}
+
+.fieldUnit {
+  font-size: 0.75rem;
+  color: var(--wb-ink-soft);
+}
+
+.select {
+  @include wb-button;
+  padding-right: 1.6rem;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--wb-line-strong);
+  border-radius: var(--wb-radius-chip);
+  overflow: hidden;
+  background: var(--wb-surface-raised);
+}
+
+.segment {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.8125rem;
+  color: var(--wb-ink-soft);
+  cursor: not-allowed;
+
+  & + & {
+    border-left: 1px solid var(--wb-line);
+  }
+}
+
+.segmentActive {
+  background: var(--wb-accent-soft);
+  color: var(--wb-accent-deep);
+  font-weight: 600;
+}
+
+.tempoWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.tempoInput {
+  @include wb-button;
+  width: 4.2rem;
+  text-align: center;
+  cursor: text;
+
+  &:hover:not(:disabled) {
+    color: var(--wb-ink);
+  }
+}
+
+.playAccepted {
+  @include wb-button;
+  margin-left: auto;
+}

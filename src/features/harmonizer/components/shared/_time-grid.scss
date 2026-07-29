@@ -1,0 +1,14 @@
+// Shared time-row grid. Every time-aligned lane (melody strip, boundary row,
+// harmony lanes, inspector timeline, SATB voice rows) uses this mixin so their
+// columns resolve identically from the inherited custom properties.
+@mixin time-row {
+  display: grid;
+  grid-template-columns:
+    var(--wb-lane-label-width, 0px)
+    repeat(var(--wb-time-units, 16), minmax(0, 1fr));
+  // LOAD-BEARING: boundary chips are positioned with percentage offsets over
+  // the time tracks; any column-gap would break their alignment. Visual gaps
+  // between cards come from margins inside the cells, never from the grid.
+  column-gap: 0;
+  align-items: stretch;
+}

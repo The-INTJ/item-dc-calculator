@@ -1,0 +1,117 @@
+@use '@/features/harmonizer/components/shared/controls' as *;
+
+/**
+ * Workbench design tokens — scoped to .workbench, never :root (the contest
+ * design system owns :root custom properties in its own route group). The
+ * root class also re-declares font/background/color to neutralize the global
+ * body styles leaking from app/styles/_site-shell.scss. A retheme is an edit
+ * to this block alone; every component module consumes only var(--wb-*).
+ *
+ * Character (spec §12.1): warm paper + ink, one restrained mahogany accent,
+ * amber wash reserved for the playback cursor. Calm workbench, not dashboard.
+ */
+.workbench {
+  /* Color roles */
+  --wb-paper: #f5f1e8;
+  --wb-surface: #fcfaf4;
+  --wb-surface-raised: #ffffff;
+  --wb-ink: #2b2620;
+  --wb-ink-soft: rgba(43, 38, 32, 0.6);
+  --wb-line: rgba(43, 38, 32, 0.14);
+  --wb-line-strong: rgba(43, 38, 32, 0.3);
+  --wb-accent: #8a4a32; /* selection + interactive accents */
+  --wb-accent-deep: #6e3a26;
+  --wb-accent-soft: rgba(138, 74, 50, 0.1);
+  --wb-on-accent: #fff9f2;
+  --wb-active: rgba(184, 134, 42, 0.24); /* playback-cursor wash */
+  --wb-active-line: #a97d26;
+  --wb-accepted: rgba(101, 119, 90, 0.16);
+  --wb-unresolved: rgba(43, 38, 32, 0.38);
+
+  /* Type roles */
+  --wb-font-ui: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --wb-font-solfege: 'Fraunces', Georgia, serif;
+
+  /* Shape + elevation */
+  --wb-radius-card: 10px;
+  --wb-radius-chip: 6px;
+  --wb-shadow: 0 1px 2px rgba(43, 38, 32, 0.05), 0 6px 22px rgba(43, 38, 32, 0.07);
+  --wb-shadow-raised: 0 2px 4px rgba(43, 38, 32, 0.09), 0 14px 34px rgba(43, 38, 32, 0.13);
+
+  /* Layout */
+  --wb-max-width: 1240px;
+  --wb-lane-label-width: 0px;
+
+  background: var(--wb-paper);
+  color: var(--wb-ink);
+  font-family: var(--wb-font-ui);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+
+  :where(button, input, select) {
+    font: inherit;
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--wb-accent);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+}
+
+.inner {
+  margin-inline: auto;
+  max-width: var(--wb-max-width);
+  padding: 1.5rem clamp(1rem, 3vw, 2.5rem) 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.region {
+  background: var(--wb-surface);
+  border: 1px solid var(--wb-line);
+  border-radius: var(--wb-radius-card);
+  box-shadow: var(--wb-shadow);
+  padding: 1rem 1.25rem 1.1rem;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-inline: 0.25rem;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--wb-font-solfege);
+  font-size: 1.45rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.headerButton {
+  @include wb-button;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

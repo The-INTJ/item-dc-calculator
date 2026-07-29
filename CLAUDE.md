@@ -64,16 +64,17 @@ Anonymous "Continue as Guest" sign-in is also wired up (creates an anonymous Fir
 
 ```
 app/                          # Next.js App Router pages and API routes
-  (contest)/                  # Route group: contest UI pages
+  (contest)/                  # Route group: contest UI pages (providers/nav in ContestShell.tsx)
     admin/                    # Admin dashboard and contest setup
     contest/[id]/             # Contest detail + display pages
     account/                  # Account page
     onboard/                  # Onboarding
   (dc-calculator)/            # Route group: legacy DC calculator
+  (harmonizer)/               # Route group: hymn harmonization workbench POC
+  (pilates-mentors)/          # Route group: Pilates Mentors design preview
   api/contest/                # REST API routes (see below)
-  layout.tsx                  # Root layout (server component)
-  RootLayoutClient.tsx        # Client-side root wrapper
-  page.tsx                    # Home page (server component)
+  layout.tsx                  # Root layout (server component; no global providers)
+  page.tsx                    # Home page / experiences portal (server component)
 
 src/
   components/                 # Shared components (barrel exports via index.ts)
@@ -97,6 +98,7 @@ src/
       hooks/                  # Shared custom hooks
       presentation/           # UI mapping and display model logic
     styles/                   # SCSS partials organized by domain
+  features/harmonizer/        # Hymn Harmonization Workbench POC (self-contained; see its README.md)
 ```
 
 ## Path Aliases
@@ -116,7 +118,7 @@ Import restriction: `@/src/*` imports are banned by ESLint. Use the aliases abov
 
 - Server components by default; client components use `'use client'` directive.
 - Pages are async server components (e.g., `page.tsx` uses `await getCurrentUser()`).
-- Route groups `(contest)` and `(dc-calculator)` separate layout concerns.
+- Route groups `(contest)`, `(dc-calculator)`, `(harmonizer)`, and `(pilates-mentors)` separate layout concerns; each group owns its fonts, styles, and providers (nothing global lives in the root layout).
 - SCSS Modules for page/component styles (e.g., `page.module.scss`, `ContestList.module.scss`).
 - Shared components use barrel exports (`src/components/index.ts`).
 
