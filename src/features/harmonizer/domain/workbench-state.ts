@@ -100,5 +100,39 @@ export type WorkbenchSnapshot = Pick<
   | 'locks'
 >;
 
-/** What a saved project stores (projects layer imports domain only). */
-export type PersistedWorkbench = WorkbenchSnapshot & Pick<WorkbenchState, 'tempoBpm'>;
+/**
+ * A candidate as a saved project stores it — the Tier-1 strip: everything
+ * re-derivable from the notes (harmonyEvents, melodyInterpretations,
+ * derivability, approach) is DROPPED and rebuilt on load, so engine evolution
+ * never touches the persistence schema again. Curated-feeling fields (title,
+ * summary, descriptors, evidence, provenance) survive verbatim.
+ */
+export type PersistedCandidate = Omit<
+  CandidatePath,
+  'harmonyEvents' | 'melodyInterpretations' | 'derivability' | 'approach'
+>;
+
+export interface PersistedAppliedFragment {
+  id: string;
+  fragment: MelodyFragment;
+  candidate: PersistedCandidate;
+}
+
+/**
+ * What a saved project stores (projects layer imports domain only) — v2:
+ * suggestion cards are never persisted (they regenerate on load); only the
+ * WORKING reading is kept, stripped. Locks persist only when they point at
+ * the working reading's notes.
+ */
+export interface PersistedWorkbench {
+  tonalContext: TonalContext;
+  phraseIntent: PhraseIntent;
+  tempoBpm: number;
+  acceptedContext: AcceptedContext;
+  appliedFragments: PersistedAppliedFragment[];
+  fragment: MelodyFragment;
+  boundaryConstraints: BoundaryConstraint[];
+  sourceFixtureId: string | null;
+  workingCandidate: PersistedCandidate | null;
+  locks: ConstraintLock[];
+}

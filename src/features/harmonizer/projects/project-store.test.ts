@@ -18,8 +18,8 @@ afterEach(() => {
   window.localStorage.clear();
   vi.restoreAllMocks();
   // Bust the module cache by writing/removing a differing raw value.
-  window.localStorage.setItem('harmonizer.projects.v1', '');
-  window.localStorage.removeItem('harmonizer.projects.v1');
+  window.localStorage.setItem('harmonizer.projects.v2', '');
+  window.localStorage.removeItem('harmonizer.projects.v2');
 });
 
 describe('project store', () => {
@@ -52,19 +52,39 @@ describe('project store', () => {
     const project = createProject('Mid hymn', toPersistedWorkbench(midHymn));
     const restored = getActiveProject();
     expect(restored?.id).toBe(project.id);
-    expect(restored?.workbench.candidates[0].approach?.voices.soprano?.scaleDegree.syllable).toBe(
-      'mi',
-    );
+    // v2 strips the re-derivable approach from candidates; the seam DATA
+    // (previous voicing) persists on the accepted context and the approach is
+    // re-stamped on load.
     expect(restored?.workbench.acceptedContext.previousVoicing).not.toBeNull();
     expect(restored?.workbench.appliedFragments).toHaveLength(1);
+    expect(restored?.workbench.workingCandidate).not.toBeNull();
+  });
+
+  it('removes the retired v1 key on the first v2 write', () => {
+    window.localStorage.setItem('harmonizer.projects.v1', '{"version":1,"projects":[]}');
+    createProject('Fresh', workbench);
+    expect(window.localStorage.getItem('harmonizer.projects.v1')).toBeNull();
+    expect(window.localStorage.getItem('harmonizer.projects.v2')).not.toBeNull();
+  });
+
+  it('strips re-derivable analysis from saved candidates', () => {
+    const project = createProject('Strip', workbench);
+    const raw = window.localStorage.getItem('harmonizer.projects.v2')!;
+    expect(raw).not.toContain('"harmonyEvents"');
+    expect(raw).not.toContain('"melodyInterpretations"');
+    expect(raw).not.toContain('"derivability"');
+    expect(getActiveProject()?.id).toBe(project.id);
+    expect(getActiveProject()?.workbench.workingCandidate?.voicing.soprano.length).toBeGreaterThan(
+      0,
+    );
   });
 
   it('recovers cleanly from corruption and version mismatches', () => {
-    window.localStorage.setItem('harmonizer.projects.v1', '{not json');
-    expect(readProjects()).toEqual({ version: 1, activeProjectId: null, projects: [] });
+    window.localStorage.setItem('harmonizer.projects.v2', '{not json');
+    expect(readProjects()).toEqual({ version: 2, activeProjectId: null, projects: [] });
     window.localStorage.setItem(
-      'harmonizer.projects.v1',
-      JSON.stringify({ version: 2, activeProjectId: null, projects: [] }),
+      'harmonizer.projects.v2',
+      JSON.stringify({ version: 1, activeProjectId: null, projects: [] }),
     );
     expect(readProjects().projects).toEqual([]);
   });

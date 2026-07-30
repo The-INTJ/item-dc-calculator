@@ -333,10 +333,10 @@ export function HarmonizationWorkbench() {
     state.appliedFragments,
     state.fragment,
     state.boundaryConstraints,
-    state.suggestionStatus,
-    state.suggestionSource,
     state.sourceFixtureId,
-    state.candidateSetId,
+    // v2 persists only the WORKING reading — suggestion-card churn alone
+    // still schedules a save only because candidates identity changes; the
+    // selected candidate's identity is what the save actually captures.
     state.candidates,
     state.selectedCandidateId,
     state.locks,

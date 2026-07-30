@@ -40,7 +40,14 @@ import {
   insertAdjacentTimedEvent,
   resizeTimedEvents,
 } from '../domain/voice-editing';
-import type { WorkbenchSnapshot, WorkbenchState } from '../domain/workbench-state';
+import type {
+  PersistedAppliedFragment,
+  PersistedCandidate,
+  WorkbenchSnapshot,
+  WorkbenchState,
+} from '../domain/workbench-state';
+import type { CandidatePath } from '../domain/analysis-types';
+import { annotateVoicing } from '../domain/engine/annotate';
 import { listFixtures } from '../fixtures/registry';
 import { composeCandidateProse } from '../knowledge/compose/composer';
 import type { WorkbenchAction } from './actions';
@@ -196,6 +203,35 @@ function deriveCandidate(state: WorkbenchState, candidateId: string | null): Wor
   };
 }
 
+/* ---------- persistence-v2 rehydration ---------- */
+
+/** A stripped saved candidate back to a full CandidatePath stub; the caller
+ * re-derives the analysis fields. */
+function rehydrateCandidate(persisted: PersistedCandidate): CandidatePath {
+  return { ...persisted, harmonyEvents: [], melodyInterpretations: [] };
+}
+
+/**
+ * An applied rail piece keeps its saved identity (title, summary, curated
+ * descriptors, provenance) — only the re-derivable analysis is rebuilt, read
+ * in the piece's OWN key (mid-hymn modulation is a feature).
+ */
+function rehydrateAppliedCandidate(applied: PersistedAppliedFragment): CandidatePath {
+  const stub = rehydrateCandidate(applied.candidate);
+  const annotation = annotateVoicing(
+    stub.voicing,
+    applied.fragment,
+    applied.candidate.tonalContext,
+    null,
+    stub.id,
+  );
+  return {
+    ...stub,
+    harmonyEvents: annotation.harmonyEvents,
+    melodyInterpretations: annotation.melodyInterpretations,
+  };
+}
+
 /** Compose prose for the resolution's computed candidates (authored pass through). */
 function composeResolution(resolution: SuggestionResolution): SuggestionResolution {
   if (resolution.kind !== 'replace') return resolution;
@@ -344,16 +380,41 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
       return regenerate(next);
     }
 
-    case 'LOAD_PROJECT':
-      return {
-        ...state,
-        ...action.workbench,
+    case 'LOAD_PROJECT': {
+      // Rehydration (persistence v2): saved projects store the notes and the
+      // curated-feeling fields; ALL analysis re-derives here — the notes are
+      // the truth, and a newer engine reads them with its current eyes.
+      const saved = action.workbench;
+      const working = saved.workingCandidate
+        ? rehydrateCandidate(saved.workingCandidate)
+        : null;
+      const loaded: WorkbenchState = {
+        tonalContext: saved.tonalContext,
+        phraseIntent: saved.phraseIntent,
+        tempoBpm: saved.tempoBpm,
+        acceptedContext: saved.acceptedContext,
+        appliedFragments: saved.appliedFragments.map((applied) => ({
+          id: applied.id,
+          fragment: applied.fragment,
+          candidate: rehydrateAppliedCandidate(applied),
+        })),
+        fragment: saved.fragment,
+        boundaryConstraints: saved.boundaryConstraints,
+        suggestionStatus: 'empty',
+        suggestionSource: null,
+        sourceFixtureId: saved.sourceFixtureId,
+        candidateSetId: null,
+        candidates: working ? [working] : [],
+        selectedCandidateId: working?.id ?? null,
+        locks: saved.locks,
         playback: { status: 'idle' },
         history: [],
         future: [],
         lastGestureId: null,
         editingAppliedId: null,
       };
+      return regenerate(deriveCandidate(loaded, loaded.selectedCandidateId));
+    }
 
     case 'EDIT_TONAL_CONTEXT': {
       const same =

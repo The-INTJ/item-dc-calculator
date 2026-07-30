@@ -10,18 +10,25 @@
 
 import { useSyncExternalStore } from 'react';
 import { z } from 'zod';
+import type { CandidatePath } from '../domain/analysis-types';
 import type { ConstraintLock } from '../domain/locks';
-import type { PersistedWorkbench, WorkbenchState } from '../domain/workbench-state';
+import type {
+  PersistedCandidate,
+  PersistedWorkbench,
+  WorkbenchState,
+} from '../domain/workbench-state';
 import {
   AcceptedContextSchema,
   BoundaryConstraintSchema,
-  CandidatePathSchema,
   MelodyFragmentSchema,
+  PersistedCandidateSchema,
   PhraseIntentSchema,
   TonalContextSchema,
 } from '../fixtures/schemas';
 
-const STORAGE_KEY = 'harmonizer.projects.v1';
+const STORAGE_KEY = 'harmonizer.projects.v2';
+/** Retired keys are removed on the first successful v2 write (quota hygiene). */
+const LEGACY_KEYS = ['harmonizer.projects.v1'];
 const CHANGE_EVENT = 'harmonizer-projects:change';
 const MAX_PROJECTS = 20;
 const MAX_APPLIED_PER_PROJECT = 50;
@@ -35,7 +42,7 @@ export interface HarmonizerProject {
 }
 
 export interface ProjectEnvelope {
-  version: 1;
+  version: 2;
   activeProjectId: string | null;
   projects: HarmonizerProject[];
 }
@@ -66,22 +73,18 @@ const PersistedWorkbenchSchema: z.ZodType<PersistedWorkbench> = z.strictObject({
     z.strictObject({
       id: z.string().min(1),
       fragment: MelodyFragmentSchema,
-      candidate: CandidatePathSchema,
+      candidate: PersistedCandidateSchema,
     }),
   ),
   fragment: MelodyFragmentSchema,
   boundaryConstraints: z.array(BoundaryConstraintSchema),
-  suggestionStatus: z.enum(['fresh', 'stale', 'loading', 'empty', 'error']),
-  suggestionSource: z.enum(['authored', 'computed']).nullable(),
   sourceFixtureId: z.string().nullable(),
-  candidateSetId: z.string().nullable(),
-  candidates: z.array(CandidatePathSchema),
-  selectedCandidateId: z.string().nullable(),
+  workingCandidate: PersistedCandidateSchema.nullable(),
   locks: z.array(ConstraintLockSchema),
 });
 
 const ProjectEnvelopeSchema: z.ZodType<ProjectEnvelope> = z.strictObject({
-  version: z.literal(1),
+  version: z.literal(2),
   activeProjectId: z.string().nullable(),
   projects: z.array(
     z.strictObject({
@@ -94,7 +97,7 @@ const ProjectEnvelopeSchema: z.ZodType<ProjectEnvelope> = z.strictObject({
   ),
 });
 
-const EMPTY_ENVELOPE: ProjectEnvelope = { version: 1, activeProjectId: null, projects: [] };
+const EMPTY_ENVELOPE: ProjectEnvelope = { version: 2, activeProjectId: null, projects: [] };
 
 let cachedRaw: string | null = null;
 let cachedSnapshot: ProjectEnvelope = EMPTY_ENVELOPE;
@@ -109,33 +112,12 @@ export function readProjects(): ProjectEnvelope {
     return cachedSnapshot;
   }
   try {
-    const parsed: unknown = JSON.parse(raw);
-    stripLegacyFields(parsed);
-    cachedSnapshot = ProjectEnvelopeSchema.parse(parsed);
+    cachedSnapshot = ProjectEnvelopeSchema.parse(JSON.parse(raw));
   } catch {
     // Corruption or version mismatch — start clean, never crash.
     cachedSnapshot = EMPTY_ENVELOPE;
   }
   return cachedSnapshot;
-}
-
-/**
- * Early v1 saves persisted a `suggestionNotice` field that no longer exists in
- * workbench state — drop it so strict parsing still accepts those saves.
- */
-function stripLegacyFields(value: unknown): void {
-  if (!value || typeof value !== 'object') return;
-  const projects = (value as { projects?: unknown }).projects;
-  if (!Array.isArray(projects)) return;
-  for (const project of projects) {
-    const workbench =
-      project && typeof project === 'object'
-        ? (project as { workbench?: unknown }).workbench
-        : null;
-    if (workbench && typeof workbench === 'object') {
-      delete (workbench as Record<string, unknown>).suggestionNotice;
-    }
-  }
 }
 
 export function subscribeToProjects(onChange: () => void): () => void {
@@ -160,6 +142,7 @@ function writeEnvelope(envelope: ProjectEnvelope): 'saved' | 'error' {
   if (typeof window === 'undefined') return 'error';
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(envelope));
+    for (const key of LEGACY_KEYS) window.localStorage.removeItem(key);
     window.dispatchEvent(new Event(CHANGE_EVENT));
     return 'saved';
   } catch {
@@ -199,7 +182,7 @@ export function createProject(
   };
   const envelope = readProjects();
   writeEnvelope({
-    version: 1,
+    version: 2,
     activeProjectId: project.id,
     projects: [...envelope.projects, project].slice(-MAX_PROJECTS),
   });
@@ -226,7 +209,7 @@ export function deleteProject(id: string): ProjectEnvelope {
     envelope.activeProjectId === id
       ? (projects[projects.length - 1]?.id ?? null)
       : envelope.activeProjectId;
-  const next: ProjectEnvelope = { version: 1, activeProjectId, projects };
+  const next: ProjectEnvelope = { version: 2, activeProjectId, projects };
   writeEnvelope(next);
   return next;
 }
@@ -254,21 +237,37 @@ export function saveWorkbench(id: string, workbench: PersistedWorkbench): 'saved
   });
 }
 
+/** The Tier-1 strip: drop everything re-derivable from the notes. */
+export function toPersistedCandidate(candidate: CandidatePath): PersistedCandidate {
+  const {
+    harmonyEvents: _harmony,
+    melodyInterpretations: _interpretations,
+    derivability: _derivability,
+    approach: _approach,
+    ...persisted
+  } = candidate;
+  return persisted;
+}
+
 export function toPersistedWorkbench(state: WorkbenchState): PersistedWorkbench {
+  const working =
+    state.candidates.find((candidate) => candidate.id === state.selectedCandidateId) ?? null;
   return {
     tonalContext: state.tonalContext,
     phraseIntent: state.phraseIntent,
     tempoBpm: state.tempoBpm,
     acceptedContext: state.acceptedContext,
-    appliedFragments: state.appliedFragments,
+    appliedFragments: state.appliedFragments.map((applied) => ({
+      id: applied.id,
+      fragment: applied.fragment,
+      candidate: toPersistedCandidate(applied.candidate),
+    })),
     fragment: state.fragment,
     boundaryConstraints: state.boundaryConstraints,
-    suggestionStatus: state.suggestionStatus,
-    suggestionSource: state.suggestionSource,
     sourceFixtureId: state.sourceFixtureId,
-    candidateSetId: state.candidateSetId,
-    candidates: state.candidates,
-    selectedCandidateId: state.selectedCandidateId,
-    locks: state.locks,
+    workingCandidate: working ? toPersistedCandidate(working) : null,
+    // Suggestion cards are not persisted; only locks on the working notes
+    // mean anything after a reload.
+    locks: state.locks.filter((lock) => lock.candidateId === working?.id),
   };
 }

@@ -42,7 +42,7 @@ import type {
   TonalContext,
   VoiceEvent,
 } from '../domain/music-types';
-import type { AcceptedContext } from '../domain/workbench-state';
+import type { AcceptedContext, PersistedCandidate } from '../domain/workbench-state';
 import { computeMidi, computePitchClass } from './authoring';
 
 const LetterNameSchema = z.enum(['C', 'D', 'E', 'F', 'G', 'A', 'B']);
@@ -368,6 +368,27 @@ export const CandidatePathSchema: z.ZodType<CandidatePath> = z.strictObject({
 export const AcceptedContextSchema: z.ZodType<AcceptedContext> = z.strictObject({
   previousHarmony: HarmonyEventSchema.nullable(),
   previousVoicing: SATBVoicingSchema.nullable(),
+});
+
+/**
+ * A saved candidate (persistence v2, the Tier-1 strip): everything
+ * re-derivable from the notes is absent by construction — engine growth never
+ * touches this schema again.
+ */
+export const PersistedCandidateSchema: z.ZodType<PersistedCandidate> = z.strictObject({
+  id: z.string().min(1),
+  fixtureId: z.string().optional(),
+  title: z.string().min(1),
+  summary: z.string().min(1),
+  tonalContext: TonalContextSchema,
+  phraseIntent: PhraseIntentSchema,
+  voicing: SATBVoicingSchema,
+  descriptors: z.array(EffectDescriptorSchema),
+  evidence: z.array(AnalysisEvidenceSchema),
+  rank: z.number().optional(),
+  rankingDimensions: RankingDimensionsSchema.optional(),
+  provenance: CandidateProvenanceSchema,
+  compatibilityTags: z.array(z.string()).optional(),
 });
 
 const TonalContextMatchSchema: z.ZodType<TonalContextMatch> = z.strictObject({

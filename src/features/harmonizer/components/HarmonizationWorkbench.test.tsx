@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HarmonizationWorkbench } from './HarmonizationWorkbench';
 
 vi.mock('../services/tone-playback-service', () => {
@@ -17,6 +17,10 @@ vi.mock('../services/tone-playback-service', () => {
 
 // Vitest runs without `globals: true`, so RTL's automatic cleanup never hooks in.
 afterEach(cleanup);
+// Each spec starts from a pristine store: with a saved project present, mount
+// would rehydrate it (v2: engine cards regenerate around the saved reading)
+// instead of showing the default fixture's authored first paint.
+beforeEach(() => window.localStorage.clear());
 
 function getCardByTitle(title: string): HTMLElement {
   const cards = screen.getAllByRole('article');

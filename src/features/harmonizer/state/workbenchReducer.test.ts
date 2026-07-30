@@ -4,6 +4,7 @@ import { melodySignature } from '../domain/signatures';
 import { durationToUnits, timeToUnits } from '../domain/timing';
 import type { PersistedWorkbench, WorkbenchState } from '../domain/workbench-state';
 import { getDefaultFixture } from '../fixtures/registry';
+import { toPersistedWorkbench } from '../projects/project-store';
 import type { WorkbenchAction } from './actions';
 import {
   createInitialWorkbenchState,
@@ -674,32 +675,48 @@ describe('apply and loading', () => {
     expect(state.sourceFixtureId).toBeNull();
   });
 
-  it('LOAD_PROJECT adopts a persisted workbench and resets history', () => {
+  it('LOAD_PROJECT rehydrates a persisted workbench: notes verbatim, analysis re-derived', () => {
     const edited = workbenchReducer(initial, {
       type: 'SELECT_CANDIDATE',
       candidateId: 'strong-arrival',
     });
-    const persisted: PersistedWorkbench = {
-      tonalContext: edited.tonalContext,
-      phraseIntent: edited.phraseIntent,
-      acceptedContext: edited.acceptedContext,
-      appliedFragments: edited.appliedFragments,
-      fragment: edited.fragment,
-      boundaryConstraints: edited.boundaryConstraints,
-      suggestionStatus: edited.suggestionStatus,
-      suggestionSource: edited.suggestionSource,
-      sourceFixtureId: edited.sourceFixtureId,
-      candidateSetId: edited.candidateSetId,
-      candidates: edited.candidates,
-      selectedCandidateId: edited.selectedCandidateId,
-      locks: edited.locks,
-      tempoBpm: 132,
-    };
+    const persisted: PersistedWorkbench = toPersistedWorkbench({ ...edited, tempoBpm: 132 });
     const state = workbenchReducer(initial, { type: 'LOAD_PROJECT', workbench: persisted });
+    // The saved working reading survives as the selected surface…
     expect(state.selectedCandidateId).toBe('strong-arrival');
+    const working = state.candidates.find((candidate) => candidate.id === 'strong-arrival')!;
+    // …with its notes byte-identical and its analysis freshly re-derived.
+    expect(working.voicing.soprano.map((event) => event.pitch.midi)).toEqual(
+      edited.candidates
+        .find((candidate) => candidate.id === 'strong-arrival')!
+        .voicing.soprano.map((event) => event.pitch.midi),
+    );
+    expect(working.harmonyEvents.length).toBeGreaterThan(0);
+    expect(working.provenance.generatorId).toBe('user-surface');
+    // Suggestion cards regenerated around it.
+    expect(state.candidates.length).toBeGreaterThan(1);
     expect(state.tempoBpm).toBe(132);
     expect(state.history).toEqual([]);
     expect(state.playback).toEqual({ status: 'idle' });
+  });
+
+  it('LOAD_PROJECT keeps an applied piece’s saved identity while re-deriving its analysis', () => {
+    const applied = workbenchReducer(initial, { type: 'APPLY_CANDIDATE', appliedId: 'ap1' });
+    const persisted = toPersistedWorkbench(applied);
+    const state = workbenchReducer(initial, { type: 'LOAD_PROJECT', workbench: persisted });
+    expect(state.appliedFragments).toHaveLength(1);
+    const piece = state.appliedFragments[0].candidate;
+    // Curated-feeling fields survive verbatim…
+    expect(piece.title).toBe(applied.appliedFragments[0].candidate.title);
+    expect(piece.provenance.fixtureAuthored).toBe(
+      applied.appliedFragments[0].candidate.provenance.fixtureAuthored,
+    );
+    // …while the analysis is freshly derived from the piece's own notes.
+    expect(piece.harmonyEvents.length).toBeGreaterThan(0);
+    // The seam is re-stamped from the persisted accepted context.
+    expect(
+      state.candidates.every((candidate) => candidate.approach !== undefined),
+    ).toBe(true);
   });
 
   it('LOAD_FIXTURE remains a hard reset', () => {
