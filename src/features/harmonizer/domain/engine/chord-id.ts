@@ -274,5 +274,30 @@ export function identifySonority(input: IdentifySonorityInput): SonorityReading 
       tones: stackedTones(tones, match.rootPc, match.template),
     };
   }
+  // Fifth-less sevenths — the TEXTBOOK four-voice V7 drops its fifth, so
+  // {root, 3rd, 7th} must read as the seventh chord, not as `?`.
+  if (pcs.length === 3) {
+    const fifthless: Array<{ intervals: [number, number]; quality: ChordQuality }> = [
+      { intervals: [4, 10], quality: 'dominant_seventh' },
+      { intervals: [3, 10], quality: 'minor_seventh' },
+      { intervals: [4, 11], quality: 'major_seventh' },
+    ];
+    for (const rootPc of rootOrderFor(pcs, input.bassPc)) {
+      const relative = new Set(pcs.map((pc) => (pc - rootPc + 12) % 12));
+      for (const shape of fifthless) {
+        if (relative.has(shape.intervals[0]) && relative.has(shape.intervals[1])) {
+          const template = SONORITY_TEMPLATES.find((entry) => entry.quality === shape.quality)!;
+          return {
+            kind: 'subset',
+            root: tones.find((tone) => tone.pitchClass === rootPc) ?? tones[0],
+            quality: shape.quality,
+            template,
+            tones: stackedTones(tones, rootPc, template),
+            leftovers: [],
+          };
+        }
+      }
+    }
+  }
   return readSubset(input, tones);
 }

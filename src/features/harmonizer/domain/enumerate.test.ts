@@ -49,11 +49,15 @@ describe('assembleSkeletons', () => {
     expect(ids.size).toBe(3);
     for (const candidate of first) {
       expect(candidate.provenance.fixtureAuthored).toBe(false);
-      expect(candidate.provenance.generatorId).toBe('naive-enumerator');
+      expect(candidate.provenance.generatorId).toBe('engine-generator');
+      expect(candidate.provenance.knowledgePackIds).toContain('hymnal-default@1.0.0');
       expect(candidate.derivability?.length).toBeGreaterThan(0);
-      // Every chord chosen must contain its melody note (membership honesty).
+      // Every melody note is either a chord tone or a CLASSIFIED ornament —
+      // the annotator may hear a weak-beat chord as passing motion over a
+      // held harmony (fixture A's authored reading, found by math). Never
+      // 'unclassified' in a supported context.
       for (const interpretation of candidate.melodyInterpretations) {
-        expect(interpretation.role).toBe('chord_tone');
+        expect(interpretation.role).not.toBe('unclassified');
       }
       // Naive voicing exists for playback and renders in all four lanes.
       expect(candidate.voicing.soprano).toHaveLength(3);
@@ -93,12 +97,12 @@ describe('assembleSkeletons', () => {
     ]);
     expect(impossible.length).toBeGreaterThan(0);
     for (const candidate of impossible) {
+      // The pinned note is rendered verbatim — one sustained note, not slices.
       expect(candidate.voicing.bass.map((event) => event.pitch.midi)).toEqual([49]);
+      // Honest holes: at least one span shows ? — the namer still reports any
+      // TRUE incomplete shape it can (C#+E is a real fifth-less minor third).
       expect(
-        candidate.harmonyEvents.every((event) => event.analysis.romanNumeral === '?'),
-      ).toBe(true);
-      expect(
-        candidate.harmonyEvents.every((event) => event.displaySymbol.includes('+')),
+        candidate.harmonyEvents.some((event) => event.analysis.romanNumeral === '?'),
       ).toBe(true);
       expect(
         candidate.derivability?.some((note) => note.status === 'needs_math'),

@@ -1,26 +1,22 @@
 /**
- * Live suggestion resolution — the heart of the full POC. Pure and
- * deterministic; the reducer calls this on every relevant edit so suggestions
- * regenerate immediately (no stale state, no manual refresh).
+ * Live suggestion resolution — pure and deterministic; the reducer calls this
+ * on every relevant edit so suggestions regenerate immediately.
  *
- * Resolution order:
- * 1. Locks present → authored lock-signature set within the current fixture,
- *    else computed skeletons filtered by the locked pitches. Spans no chord
- *    satisfies become honest `?` segments inside the skeletons (never a
- *    dead-end notice) — per Drew, the POC must SHOW what cannot be derived
- *    and why, not refuse.
- * 2. No locks → exact registry match (melody + tonal context + accepted
- *    harmony, fixture-side optional = wildcard; phrase intent NEVER filters —
- *    spec §9.2 calls intents ranking signals, not commands) → authored.
- * 3. No match → naive computed skeletons (the derivability probe).
- * 4. Nothing to work with → empty.
+ * ENGINE-FIRST (v1): the generator is the suggestion path. With or without
+ * locks, candidates come from domain/engine/generate.ts — real chord choices,
+ * real voicings, honest `?` holes when locks (or a chromatic melody note)
+ * rule everything out. Authored fixtures no longer outrank live analysis:
+ * they remain reachable ONLY as explicit Samples-menu loads and as the
+ * fallback for tonal contexts the engine does not support yet (do-based
+ * minor, dorian…), where honest fixture content beats an empty screen.
+ * Phrase intent NEVER filters — it ranks (spec §9.2).
  */
 
 import type { CandidatePath } from './analysis-types';
+import { approachFromAccepted } from './approach';
 import { assembleSkeletons, type LockedPitchConstraint } from './enumerate';
 import type { FixtureCandidateSet, HarmonizationFixture } from './fixture-types';
 import {
-  computeLockSignature,
   resolveLockEntries,
   type LockSignatureEntry,
 } from './lock-signature';
@@ -33,7 +29,7 @@ import type {
   PhraseIntent,
   TonalContext,
 } from './music-types';
-import { acceptedHarmonySignature, melodySignature } from './signatures';
+import { melodySignature } from './signatures';
 import { toTimelineSpan } from './timing';
 import type { AcceptedContext } from './workbench-state';
 
@@ -41,9 +37,12 @@ export interface MatchCriteria {
   tonicPitchClass: number;
   mode: ModeId;
   melodySignature: string;
-  acceptedHarmonySignature: string;
 }
 
+/**
+ * Fixture lookup — used ONLY for unsupported-context fallback and by tests;
+ * live resolution in supported keys never consults it.
+ */
 export function matchFixture(
   fixtures: readonly HarmonizationFixture[],
   criteria: MatchCriteria,
@@ -53,9 +52,7 @@ export function matchFixture(
       (fixture) =>
         fixture.match.tonalContext.tonicPitchClass === criteria.tonicPitchClass &&
         fixture.match.tonalContext.mode === criteria.mode &&
-        fixture.match.melodySignature === criteria.melodySignature &&
-        (fixture.match.acceptedHarmonySignature === undefined ||
-          fixture.match.acceptedHarmonySignature === criteria.acceptedHarmonySignature),
+        fixture.match.melodySignature === criteria.melodySignature,
     ) ?? null
   );
 }
@@ -80,6 +77,7 @@ export interface SuggestInput {
   tonalContext: TonalContext;
   phraseIntent: PhraseIntent;
   acceptedContext: AcceptedContext;
+  boundaryConstraints: BoundaryConstraint[];
   locks: ConstraintLock[];
   candidates: CandidatePath[];
   sourceFixtureId: string | null;
@@ -96,8 +94,7 @@ export type SuggestionResolution =
       /** Non-null when a fixture was adopted — its boundary metadata rides along. */
       boundaryConstraints: BoundaryConstraint[] | null;
       /**
-       * Non-null when the new candidates contain the locked notes (authored
-       * lock sets, and sketches that keep pinned notes in their lanes): locks
+       * Non-null when the new candidates contain the locked notes: locks
        * remapped onto those notes so badges and unlocking survive the swap.
        */
       locks: ConstraintLock[] | null;
@@ -143,67 +140,45 @@ export function resolveSuggestions(input: SuggestInput): SuggestionResolution {
   if (input.fragment.events.length === 0) return { kind: 'empty' };
 
   const voiceLocks = input.locks.filter((lock) => lock.targetType === 'voice_event');
-  if (voiceLocks.length > 0) {
-    const signature = computeLockSignature(voiceLocks, input.candidates);
-    const fixture =
-      input.fixtures.find((entry) => entry.id === input.sourceFixtureId) ?? null;
-    const authoredSet =
-      fixture && signature
-        ? (fixture.candidateSets.find((set) => set.lockSignature === signature) ?? null)
-        : null;
-    if (authoredSet && fixture) {
-      // The signature guarantees each adopted candidate contains the locked
-      // notes — remap so lock badges and value-based unlocking survive.
-      const entries = resolveLockEntries(voiceLocks, input.candidates);
-      return {
-        kind: 'replace',
-        candidates: authoredSet.candidates,
-        candidateSetId: authoredSet.id,
-        sourceFixtureId: fixture.id,
-        suggestionSource: 'authored',
-        boundaryConstraints: null,
-        locks: remapLocksOnto(entries, authoredSet.candidates, 'authored-lock-set'),
-      };
-    }
-    const entries = resolveLockEntries(voiceLocks, input.candidates);
-    const lockedPitches: LockedPitchConstraint[] = entries.map((entry) => ({
-      startUnit: entry.startUnit,
-      units: entry.units,
-      pitchClass: entry.pitch.pitchClass,
-      voice: entry.voice,
-      pitch: entry.pitch,
-      scaleDegree: entry.scaleDegree,
-    }));
-    const skeletons = assembleSkeletons(
-      input.fragment,
-      input.tonalContext,
-      input.phraseIntent,
-      lockedPitches,
-    );
-    if (skeletons.length > 0) {
-      // Sketches keep pinned notes in their lanes; when they do, remap the
-      // locks onto them so the badges (and unlocking) follow the replacement.
-      const remapped = remapLocksOnto(entries, skeletons, 'computed-sketch');
-      return {
-        kind: 'replace',
-        candidates: skeletons,
-        candidateSetId: null,
-        sourceFixtureId: input.sourceFixtureId,
-        suggestionSource: 'computed',
-        boundaryConstraints: null,
-        locks: remapped.length > 0 ? remapped : null,
-      };
-    }
-    return { kind: 'empty' };
+  const entries = voiceLocks.length > 0 ? resolveLockEntries(voiceLocks, input.candidates) : [];
+  const lockedPitches: LockedPitchConstraint[] = entries.map((entry) => ({
+    startUnit: entry.startUnit,
+    units: entry.units,
+    pitchClass: entry.pitch.pitchClass,
+    voice: entry.voice,
+    pitch: entry.pitch,
+    scaleDegree: entry.scaleDegree,
+  }));
+  const approach = approachFromAccepted(input.acceptedContext);
+
+  // 1. The engine leads, locks or no locks.
+  const generated = assembleSkeletons(
+    input.fragment,
+    input.tonalContext,
+    input.phraseIntent,
+    lockedPitches,
+    input.boundaryConstraints,
+    approach,
+  );
+  if (generated.length > 0) {
+    const remapped =
+      entries.length > 0 ? remapLocksOnto(entries, generated, 'computed-sketch') : [];
+    return {
+      kind: 'replace',
+      candidates: generated,
+      candidateSetId: null,
+      sourceFixtureId: input.sourceFixtureId,
+      suggestionSource: 'computed',
+      boundaryConstraints: null,
+      locks: remapped.length > 0 ? remapped : null,
+    };
   }
 
+  // 2. Unsupported context — authored fixtures beat an empty screen.
   const fixture = matchFixture(input.fixtures, {
     tonicPitchClass: input.tonalContext.tonicPitchClass,
     mode: input.tonalContext.mode,
     melodySignature: melodySignature(input.fragment.events),
-    acceptedHarmonySignature: acceptedHarmonySignature(
-      input.acceptedContext.previousHarmony,
-    ),
   });
   if (fixture) {
     const set = defaultCandidateSet(fixture);
@@ -218,17 +193,5 @@ export function resolveSuggestions(input: SuggestInput): SuggestionResolution {
     };
   }
 
-  const skeletons = assembleSkeletons(input.fragment, input.tonalContext, input.phraseIntent);
-  if (skeletons.length > 0) {
-    return {
-      kind: 'replace',
-      candidates: skeletons,
-      candidateSetId: null,
-      sourceFixtureId: input.sourceFixtureId,
-      suggestionSource: 'computed',
-      boundaryConstraints: null,
-      locks: null,
-    };
-  }
   return { kind: 'empty' };
 }

@@ -204,6 +204,7 @@ function regenerate(state: WorkbenchState): WorkbenchState {
       tonalContext: state.tonalContext,
       phraseIntent: state.phraseIntent,
       acceptedContext: state.acceptedContext,
+      boundaryConstraints: state.boundaryConstraints,
       locks: state.locks,
       candidates: state.candidates,
       sourceFixtureId: state.sourceFixtureId,

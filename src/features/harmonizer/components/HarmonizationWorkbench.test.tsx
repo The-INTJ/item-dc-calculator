@@ -77,21 +77,23 @@ describe('HarmonizationWorkbench', () => {
       screen.getByRole('button', { name: 'Add note before' }).hasAttribute('disabled'),
     ).toBe(false);
 
-    // Locking whole-bar E against the melody's fa is mathematically
-    // unsatisfiable — the WORKSPACE stays exactly as it is (the surface
-    // rule), while sketch cards appear showing the impossible span as ? with
-    // its sounding notes (never a dead-end notice).
+    // Locking whole-bar E against the melody's fa: no vocabulary chord holds
+    // both — but the engine EXPLAINS the fa as passing motion over the held
+    // chord instead of dead-ending. The WORKSPACE stays exactly as it is
+    // (the surface rule) while computed cards appear around it.
     fireEvent.click(screen.getByRole('button', { name: 'Lock note' }));
     expect(screen.getByRole('heading', { level: 2, name: /Grounded descent/ })).toBeTruthy();
     expect(altoCell.getAttribute('data-locked')).toBe('true');
-    expect(screen.getAllByText('Computed (naive)').length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/E\+F/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Computed').length).toBeGreaterThan(0);
+    expect(screen.queryByText(/E\+F/)).toBeNull(); // the math filled the old hole
     // The locked note is frozen; the cluster never closed (workspace intact).
     expect(
       screen.getByRole('button', { name: 'Raise pitch' }).hasAttribute('disabled'),
     ).toBe(true);
     fireEvent.click(screen.getByRole('button', { name: 'Unlock note' }));
-    expect(screen.queryByText('Computed (naive)')).toBeNull();
+    // Engine-first: unlocking regenerates unconstrained computed cards.
+    expect(altoCell.getAttribute('data-locked')).not.toBe('true');
+    expect(screen.getAllByText('Computed').length).toBeGreaterThan(0);
 
     // Escape closes the cluster; soprano lock is shown but fixed.
     fireEvent.keyDown(window, { key: 'Escape' });
@@ -106,7 +108,7 @@ describe('HarmonizationWorkbench', () => {
     ).toBe(true);
   });
 
-  it('hero flow: arrows carry the melody through computed skeletons into fixture D', () => {
+  it('hero flow: arrows regenerate engine cards; fixture demos load from Samples', () => {
     const { container } = render(<HarmonizationWorkbench />);
     const sopranoCells = () => {
       const lane = container.querySelector('[data-lane-grid]');
@@ -114,11 +116,11 @@ describe('HarmonizationWorkbench', () => {
       return [...lane.querySelectorAll('[data-event-id]')] as HTMLElement[];
     };
 
-    // sol ▼ → fa: unknown melody → computed skeleton CARDS appear with
-    // derivability chips, while the workspace keeps its own (edited) notes.
+    // sol ▼ → fa: the engine regenerates computed CARDS with derivability
+    // chips, while the workspace keeps its own (edited) notes.
     fireEvent.click(sopranoCells()[0]);
     fireEvent.click(screen.getByRole('button', { name: 'Lower pitch' }));
-    expect(screen.getAllByText('Computed (naive)').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Computed').length).toBeGreaterThan(0);
     expect(screen.getAllByText(/chord path/).length).toBeGreaterThan(0);
     expect(screen.getByRole('heading', { level: 2, name: /Grounded descent/ })).toBeTruthy();
 
@@ -126,21 +128,20 @@ describe('HarmonizationWorkbench', () => {
     // still open on the same note — press the arrow again directly.
     fireEvent.click(screen.getByRole('button', { name: 'Lower pitch' }));
 
-    // Third note ▲ ▲ → sol: mi–fa–sol matches fixture D → authored cards.
+    // Third note ▲ ▲ → sol: engine-first means even mi–fa–sol (fixture D's
+    // melody) stays computed — authored demos never outrank live analysis.
     fireEvent.click(sopranoCells()[2]);
     fireEvent.click(screen.getByRole('button', { name: 'Raise pitch' }));
     fireEvent.click(screen.getByRole('button', { name: 'Raise pitch' }));
+    expect(screen.getAllByText('Computed').length).toBeGreaterThan(0);
+    expect(screen.queryByText('Authored')).toBeNull();
 
+    // The demo is one explicit click away: Samples → fixture D.
+    fireEvent.keyDown(window, { key: 'Escape' }); // close the tool cluster
+    fireEvent.click(screen.getByRole('button', { name: 'Samples' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /Rising melody — build/ }));
     expect(screen.getByRole('heading', { level: 3, name: 'Toward the dominant' })).toBeTruthy();
     expect(screen.getAllByText('Authored').length).toBeGreaterThan(0);
-
-    // Undo walks the whole journey back.
-    const undo = () => fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
-    undo();
-    undo();
-    undo();
-    undo();
-    expect(screen.getByRole('heading', { level: 3, name: 'Grounded descent' })).toBeTruthy();
   });
 
   it('expands the analysis drawer with interpretations and evidence', () => {

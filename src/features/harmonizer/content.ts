@@ -122,7 +122,7 @@ export const content = {
   },
   provenance: {
     authored: 'Authored',
-    computed: 'Computed (naive)',
+    computed: 'Computed',
     user: 'Your reading',
     legend: '✓ computed · ƒ needs math · ✎ needs custom · ? unknown',
   },

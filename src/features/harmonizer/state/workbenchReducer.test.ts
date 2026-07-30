@@ -138,20 +138,19 @@ describe('live regeneration', () => {
       lock: { ...lockFor(liveLock.candidateId ?? '', liveLock.targetId), id: 'other' },
     });
     expect(unlocked.locks).toHaveLength(0);
-    expect(unlocked.suggestionSource).toBe('authored');
-    expect(unlocked.candidateSetId).toBe('default');
+    expect(unlocked.suggestionSource).toBe('computed');
+    expect(unlocked.candidateSetId).toBeNull();
   });
 
-  it('adopting a lock set remaps locks so badges and unlocking survive the swap', () => {
+  it('locking remaps locks onto the engine cards so badges and unlocking survive', () => {
     const locked = workbenchReducer(initial, {
       type: 'TOGGLE_LOCK',
       lock: lockFor('grounded-descent', 'a-b-1'),
     });
-    expect(locked.candidateSetId).toBe('locked-bass-grounded');
-    expect(locked.suggestionSource).toBe('authored');
+    expect(locked.suggestionSource).toBe('computed');
     // The original lock on the working reading plus one remapped lock per
-    // adopted card, each targeting a live note.
-    expect(locked.locks).toHaveLength(4);
+    // engine card that keeps the pinned note, each targeting a live note.
+    expect(locked.locks.length).toBeGreaterThan(1);
     const selected = locked.candidates.find(
       (candidate) => candidate.id === locked.selectedCandidateId,
     );
@@ -166,14 +165,14 @@ describe('live regeneration', () => {
       lock: lockFor(selectedLock?.candidateId ?? '', selectedLock?.targetId ?? ''),
     });
     expect(unlocked.locks).toHaveLength(0);
-    expect(unlocked.candidateSetId).toBe('default');
-    expect(unlocked.suggestionSource).toBe('authored');
+    expect(unlocked.suggestionSource).toBe('computed');
   });
 
-  it('unsatisfiable locks produce constrained sketch cards; the surface never moves', () => {
-    // Whole-bar alto E4 against the melody's fa: no diatonic triad fits the
-    // middle span. The working reading stays EXACTLY as it is (the surface
-    // rule); sketch cards appear around it — pinned note kept, hole marked ?.
+  it('a lock no chord satisfies is explained, not dead-ended; the surface never moves', () => {
+    // Whole-bar alto E4 against the melody's fa: no vocabulary chord holds
+    // both. The working reading stays EXACTLY as it is (the surface rule);
+    // the engine cards around it keep the pinned note as one sustained tone
+    // and read the fa as ornamental motion over the held chord.
     const state = workbenchReducer(initial, {
       type: 'TOGGLE_LOCK',
       lock: lockFor('grounded-descent', 'a-a-1'),
@@ -190,19 +189,20 @@ describe('live regeneration', () => {
       expect(sketch.voicing.alto.map((event) => event.pitch.midi)).toEqual([64]);
       expect(
         sketch.harmonyEvents.some((event) => event.analysis.romanNumeral === '?'),
-      ).toBe(true);
-      expect(sketch.derivability?.some((note) => note.status === 'needs_math')).toBe(true);
+      ).toBe(false);
+      expect(
+        sketch.derivability?.find((note) => note.aspect === 'interpretation')?.status,
+      ).toBe('computed');
     }
-    // The original lock stays on the working note; unlocking it restores the
-    // authored default suggestions.
+    // The original lock stays on the working note; unlocking it regenerates
+    // unconstrained engine cards.
     expect(state.locks.some((lock) => lock.candidateId === 'grounded-descent')).toBe(true);
     const unlocked = workbenchReducer(state, {
       type: 'TOGGLE_LOCK',
       lock: lockFor('grounded-descent', 'a-a-1'),
     });
     expect(unlocked.locks).toHaveLength(0);
-    expect(unlocked.suggestionSource).toBe('authored');
-    expect(unlocked.candidateSetId).toBe('default');
+    expect(unlocked.suggestionSource).toBe('computed');
   });
 
   it('key change regenerates and an unknown-melody-in-key falls to computed', () => {
@@ -392,7 +392,7 @@ describe('structural editing', () => {
       type: 'TOGGLE_LOCK',
       lock: { ...lockFor('keep-moving', 'c-a-2'), id: 'again' },
     });
-    expect(unlocked.suggestionSource).toBe('authored');
+    expect(unlocked.suggestionSource).toBe('computed');
     const deleted = workbenchReducer(unlocked, {
       type: 'DELETE_VOICE_EVENT',
       candidateId: 'keep-moving',
