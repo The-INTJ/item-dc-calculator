@@ -5,12 +5,12 @@
  * the surface we generate around.
  *
  * Mechanical only: segment the timeline at every note boundary, name each
- * segment's sonority when its pitch-class set matches a known chord shape
- * (root preference: the bass note first — so A/C/E/G reads Am7, not C6), and
- * show `?` plus the sounding notes when nothing matches. Roman numerals only
- * where the root maps to a scale degree. Same honesty contract as
- * enumerate.ts: naming a full sonority is pure math; whether it WORKS is
- * judgment the naive layer never fakes.
+ * segment's sonority via the engine's fallback ladder (exact template →
+ * incomplete triad → open fifth → dyad-with-candidates → best-subset →
+ * honest `?`), and read it in the key (numerals with inversion figures,
+ * slash symbols, figured bass). Root preference: the bass note first — so
+ * A/C/E/G reads Am7, not C6. Naming a full sonority is pure math; whether it
+ * WORKS is judgment this layer never fakes.
  */
 
 import type {
@@ -20,7 +20,6 @@ import type {
   MelodyInterpretation,
 } from './analysis-types';
 import type {
-  ChordQuality,
   HarmonyEvent,
   MelodyFragment,
   SATBVoicing,
@@ -28,69 +27,12 @@ import type {
   SpelledPitchClass,
   TonalContext,
 } from './music-types';
-import { scaleDegreeForPitchClass } from './scale';
+import { identifySonority, type SonorityReading } from './engine/chord-id';
+import { analyzeInKey } from './engine/roman';
 import { toTimelineSpan, unitsToDuration, unitsToTime } from './timing';
 
 export const USER_GENERATOR_ID = 'user-surface';
-const GENERATOR_VERSION = '0.1.0';
-
-const DEGREE_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'] as const;
-
-interface SonorityTemplate {
-  intervals: number[];
-  quality: ChordQuality;
-  /** Chord-symbol suffix (Cm7, G7, Fdim…). */
-  suffix: string;
-  /** Roman-numeral suffix (V7, ii7, vii°7…). */
-  numeralSuffix: string;
-  lowercaseNumeral: boolean;
-}
-
-/** Every shape the naive namer recognizes, checked with each sounding pc as root. */
-const TEMPLATES: SonorityTemplate[] = [
-  { intervals: [0, 4, 7], quality: 'major', suffix: '', numeralSuffix: '', lowercaseNumeral: false },
-  { intervals: [0, 3, 7], quality: 'minor', suffix: 'm', numeralSuffix: '', lowercaseNumeral: true },
-  { intervals: [0, 3, 6], quality: 'diminished', suffix: 'dim', numeralSuffix: '°', lowercaseNumeral: true },
-  { intervals: [0, 4, 8], quality: 'augmented', suffix: 'aug', numeralSuffix: '+', lowercaseNumeral: false },
-  { intervals: [0, 4, 7, 10], quality: 'dominant_seventh', suffix: '7', numeralSuffix: '7', lowercaseNumeral: false },
-  { intervals: [0, 4, 7, 11], quality: 'major_seventh', suffix: 'maj7', numeralSuffix: 'maj7', lowercaseNumeral: false },
-  { intervals: [0, 3, 7, 10], quality: 'minor_seventh', suffix: 'm7', numeralSuffix: '7', lowercaseNumeral: true },
-  { intervals: [0, 3, 6, 10], quality: 'half_diminished_seventh', suffix: 'ø7', numeralSuffix: 'ø7', lowercaseNumeral: true },
-  { intervals: [0, 3, 6, 9], quality: 'fully_diminished_seventh', suffix: '°7', numeralSuffix: '°7', lowercaseNumeral: true },
-  { intervals: [0, 5, 7], quality: 'suspended_fourth', suffix: 'sus4', numeralSuffix: 'sus4', lowercaseNumeral: false },
-  { intervals: [0, 2, 7], quality: 'suspended_second', suffix: 'sus2', numeralSuffix: 'sus2', lowercaseNumeral: false },
-];
-
-interface IdentifiedSonority {
-  rootPc: number;
-  template: SonorityTemplate;
-}
-
-/** Name a distinct-pc set if it matches a template exactly; bass-first root scan. */
-function identifySonority(pcs: number[], bassPc: number): IdentifiedSonority | null {
-  if (pcs.length < 3) return null;
-  const rootOrder = [bassPc, ...pcs.filter((pc) => pc !== bassPc)];
-  for (const rootPc of rootOrder) {
-    const relative = new Set(pcs.map((pc) => (pc - rootPc + 12) % 12));
-    for (const template of TEMPLATES) {
-      if (
-        relative.size === template.intervals.length &&
-        template.intervals.every((interval) => relative.has(interval))
-      ) {
-        return { rootPc, template };
-      }
-    }
-  }
-  return null;
-}
-
-function toPitchClassSpelling(pitch: SpelledPitch): SpelledPitchClass {
-  return { letter: pitch.letter, accidental: pitch.accidental, pitchClass: pitch.pitchClass };
-}
-
-function accidentalText(pitch: SpelledPitchClass): string {
-  return pitch.accidental === 'natural' ? '' : pitch.accidental;
-}
+const GENERATOR_VERSION = '1.0.0';
 
 interface SoundingSegment {
   /** 0-based unit start. */
@@ -146,13 +88,52 @@ function segmentVoicing(voicing: SATBVoicing): SoundingSegment[] {
   return segments;
 }
 
-function numeralFor(context: TonalContext, sonority: IdentifiedSonority): string {
-  const info = scaleDegreeForPitchClass(context, sonority.rootPc);
-  if (!info) return '?';
-  const base = DEGREE_NUMERALS[info.degree - 1];
-  const cased = sonority.template.lowercaseNumeral ? base.toLowerCase() : base;
-  const prefix = info.chromaticOffset === 1 ? '#' : '';
-  return `${prefix}${cased}${sonority.template.numeralSuffix}`;
+function toPitchClassSpelling(pitch: SpelledPitch): SpelledPitchClass {
+  return { letter: pitch.letter, accidental: pitch.accidental, pitchClass: pitch.pitchClass };
+}
+
+/** The chord tones a reading asserts; sounding tones when it asserts none. */
+function chordTonesOf(reading: SonorityReading, segment: SoundingSegment): SpelledPitchClass[] {
+  switch (reading.kind) {
+    case 'exact':
+    case 'subset':
+    case 'incomplete_triad':
+    case 'open_fifth':
+      return reading.tones;
+    case 'monad':
+      return [reading.tone];
+    case 'dyad':
+    case 'unknown':
+      return reading.tones.length > 0
+        ? reading.tones
+        : segment.pitches.map(toPitchClassSpelling);
+  }
+}
+
+function chordQualityOf(reading: SonorityReading): HarmonyEvent['chord']['quality'] {
+  switch (reading.kind) {
+    case 'exact':
+    case 'subset':
+      return reading.quality;
+    case 'incomplete_triad':
+      return reading.quality;
+    default:
+      return 'other';
+  }
+}
+
+function chordRootOf(reading: SonorityReading, bass: SpelledPitch): SpelledPitchClass {
+  switch (reading.kind) {
+    case 'exact':
+    case 'subset':
+    case 'incomplete_triad':
+    case 'open_fifth':
+      return reading.root;
+    case 'monad':
+      return reading.tone;
+    default:
+      return toPitchClassSpelling(bass);
+  }
 }
 
 /**
@@ -166,88 +147,30 @@ export function deriveHarmonyFromVoicing(
 ): HarmonyEvent[] {
   return segmentVoicing(voicing).map((segment, index) => {
     const lowest = segment.pitches[0];
-    const bassSpelling = toPitchClassSpelling(lowest);
-    const sonority = identifySonority(segment.pcs, lowest.pitchClass);
-    const id = `${idPrefix}-dh${index}`;
-
-    if (!sonority) {
-      // Not a shape the namer knows — show exactly what sounds.
-      const tones = segment.pitches
-        .filter(
-          (pitch, i, all) => all.findIndex((p) => p.pitchClass === pitch.pitchClass) === i,
-        )
-        .map(toPitchClassSpelling);
-      return {
-        id,
-        start: unitsToTime(segment.start),
-        duration: unitsToDuration(segment.units),
-        chord: {
-          id: `${idPrefix}-son${index}`,
-          root: bassSpelling,
-          pitchClasses: tones.map((tone) => tone.pitchClass),
-          spelledChordTones: tones,
-          quality: 'other' as const,
-        },
-        analysis: {
-          romanNumeral: '?',
-          scaleDegreeRoot: scaleDegreeForPitchClass(context, lowest.pitchClass) ?? {
-            degree: 1,
-            chromaticOffset: 0,
-            syllable: 'do',
-          },
-          functionTags: [],
-        },
-        inversion: 0,
-        bassPitch: lowest,
-        displaySymbol: segment.pitches
-          .map((pitch) => `${pitch.letter}${pitch.accidental === 'natural' ? '' : pitch.accidental}`)
-          .filter((label, i, all) => all.indexOf(label) === i)
-          .join('+'),
-      };
-    }
-
-    const rootPitch =
-      segment.pitches.find((pitch) => pitch.pitchClass === sonority.rootPc) ?? lowest;
-    const rootSpelling = toPitchClassSpelling(rootPitch);
-    // Chord tones stacked from the root, spelled from the sounding instances.
-    const stackedTones: SpelledPitchClass[] = sonority.template.intervals.map((interval) => {
-      const pc = (sonority.rootPc + interval) % 12;
-      const instance = segment.pitches.find((pitch) => pitch.pitchClass === pc);
-      return instance ? toPitchClassSpelling(instance) : { ...rootSpelling, pitchClass: pc };
-    });
-    const bassRelative = (lowest.pitchClass - sonority.rootPc + 12) % 12;
-    const inversion = Math.min(
-      3,
-      Math.max(0, sonority.template.intervals.indexOf(bassRelative)),
-    ) as 0 | 1 | 2 | 3;
+    const reading = identifySonority({ pitches: segment.pitches, bassPc: lowest.pitchClass });
+    const key = analyzeInKey(context, reading, lowest);
+    const tones = chordTonesOf(reading, segment);
     return {
-      id,
+      id: `${idPrefix}-dh${index}`,
       start: unitsToTime(segment.start),
       duration: unitsToDuration(segment.units),
       chord: {
         id: `${idPrefix}-son${index}`,
-        root: rootSpelling,
-        pitchClasses: stackedTones.map((tone) => tone.pitchClass),
-        spelledChordTones: stackedTones,
-        quality: sonority.template.quality,
+        root: chordRootOf(reading, lowest),
+        pitchClasses: tones.map((tone) => tone.pitchClass),
+        spelledChordTones: tones,
+        quality: chordQualityOf(reading),
       },
-      analysis: {
-        romanNumeral: numeralFor(context, sonority),
-        scaleDegreeRoot: scaleDegreeForPitchClass(context, sonority.rootPc) ?? {
-          degree: 1,
-          chromaticOffset: 0,
-          syllable: 'do',
-        },
-        functionTags: [],
-      },
-      inversion,
+      analysis: key.analysis,
+      inversion: key.inversion,
       bassPitch: lowest,
-      displaySymbol: `${rootSpelling.letter}${accidentalText(rootSpelling)}${sonority.template.suffix}`,
+      displaySymbol: key.displaySymbol,
+      ...(key.figuredBass !== undefined ? { figuredBass: key.figuredBass } : {}),
     };
   });
 }
 
-/** Membership readings against derived harmony — mechanical, like enumerate's. */
+/** Membership readings against derived harmony — mechanical, until rule packs land. */
 function interpretMelody(
   fragment: MelodyFragment,
   harmonyEvents: HarmonyEvent[],
@@ -261,22 +184,25 @@ function interpretMelody(
       const harmonyStart = harmonySpan.startUnit - 1;
       return harmonyStart <= start && start < harmonyStart + harmonySpan.spanUnits;
     });
-    const named = covering !== undefined && covering.chord.quality !== 'other';
+    const member =
+      covering !== undefined && covering.chord.pitchClasses.includes(event.pitch.pitchClass);
     const evidence: AnalysisEvidence = {
       id: `${idPrefix}-dint-${index}`,
       source: 'computed',
-      featureId: 'derived_sonority_membership',
-      value: named,
-      explanation: named
-        ? `${event.pitch.letter} sounds inside the ${covering.displaySymbol} the voices form here.`
-        : `The notes sounding here form no shape the naive namer knows — shown as ? with the notes themselves.`,
+      featureId: 'chord_membership',
+      value: member,
+      explanation: member
+        ? `${event.pitch.letter} sounds inside the ${covering!.displaySymbol} the voices form here.`
+        : covering
+          ? `${event.pitch.letter} is not a tone of the ${covering.displaySymbol} sounding here; classifying it needs the non-chord-tone rules.`
+          : `No harmony covers this span yet.`,
       providerId: USER_GENERATOR_ID,
       providerVersion: GENERATOR_VERSION,
     };
     return {
       melodyEventId: event.id,
       harmonyEventIds: covering ? [covering.id] : [],
-      role: named ? 'chord_tone' : 'unclassified',
+      role: member ? 'chord_tone' : 'unclassified',
       explanation: evidence.explanation ?? '',
       evidence: [evidence],
     };
@@ -287,7 +213,7 @@ export const USER_EDIT_DERIVABILITY_NOTES: DerivabilityNote[] = [
   {
     aspect: 'chord_path',
     status: 'computed',
-    note: 'Chords are named from the sounding notes — pure math. Spans that form no known shape show ? with the notes.',
+    note: 'Chords are named from the sounding notes — pure math. Incomplete shapes are named for what they are (open fifth, missing fifth); spans that form no known shape show ? with the notes.',
   },
   {
     aspect: 'voicing',

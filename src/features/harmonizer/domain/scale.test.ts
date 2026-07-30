@@ -3,6 +3,10 @@ import type { ScaleDegreePitch, SpelledPitch, TonalContext } from './music-types
 import {
   diatonicPitch,
   MAX_MIDI,
+  raisedSeventh,
+  raisedSixth,
+  scaleDegreeForPitchClass,
+  spellDegree,
   spellPitch,
   stepDiatonic,
   syllableForDegree,
@@ -73,15 +77,23 @@ describe('scale', () => {
     expect(down?.scaleDegree.syllable).toBe('ti');
   });
 
-  it('steps chromatic sources to the adjacent diatonic degree', () => {
-    // si (raised 7 in A minor, G#4 = midi 68) steps up to la (A4).
+  it('steps chromatic sources with the inflection: against it lands same-degree natural', () => {
+    // si (raised 7 in A minor, G#4 = midi 68): stepping WITH the raise reaches
+    // la (A4); stepping AGAINST it steps off the inflection onto sol natural
+    // (G4), not down to fa — the raise un-raises before the line descends.
     const si = note(spellPitch('G', '#', 4), { degree: 7, chromaticOffset: 1, syllable: 'si' });
     const up = stepDiatonic(A_MINOR, si, 1);
     expect(up?.scaleDegree).toEqual({ degree: 1, chromaticOffset: 0, syllable: 'la' });
     expect(up?.pitch.midi).toBe(69);
     const down = stepDiatonic(A_MINOR, si, -1);
-    expect(down?.scaleDegree.syllable).toBe('fa');
-    expect(down?.pitch.midi).toBe(65);
+    expect(down?.scaleDegree).toEqual({ degree: 7, chromaticOffset: 0, syllable: 'sol' });
+    expect(down?.pitch.midi).toBe(67);
+
+    // Lowered sources mirror: me (Eb in C major) stepping up lands on mi natural.
+    const me = note(spellPitch('E', 'b', 4), { degree: 3, chromaticOffset: -1, syllable: 'me' });
+    const offLowered = stepDiatonic(C_MAJOR, me, 1);
+    expect(offLowered?.scaleDegree).toEqual({ degree: 3, chromaticOffset: 0, syllable: 'mi' });
+    expect(offLowered?.pitch.midi).toBe(64);
   });
 
   it('clamps at the MIDI range and rejects unsupported contexts', () => {
@@ -94,6 +106,27 @@ describe('scale', () => {
     expect(stepDiatonic(C_MAJOR, top, 1)).toBeNull();
     expect(stepDiatonic(UNSUPPORTED, top, -1)).toBeNull();
     expect(diatonicPitch(UNSUPPORTED, 1, 4)).toBeNull();
+  });
+
+  it('reads lowered chromatics when preferred (Bb in C major = te)', () => {
+    // pc 10 in C major is li (raised 6) on the sharp side, te (lowered 7) flat.
+    expect(scaleDegreeForPitchClass(C_MAJOR, 10)).toEqual({
+      degree: 6,
+      chromaticOffset: 1,
+      syllable: 'li',
+    });
+    expect(scaleDegreeForPitchClass(C_MAJOR, 10, 'lowered')).toEqual({
+      degree: 7,
+      chromaticOffset: -1,
+      syllable: 'te',
+    });
+  });
+
+  it('spells raised degrees keeping their letter (si in A minor is G#)', () => {
+    expect(spellDegree(A_MINOR, 7, 1)).toEqual({ letter: 'G', accidental: '#', pitchClass: 8 });
+    expect(raisedSeventh(A_MINOR)?.spelled.letter).toBe('G');
+    expect(raisedSixth(A_MINOR)?.spelled).toEqual({ letter: 'F', accidental: '#', pitchClass: 6 });
+    expect(raisedSeventh(C_MAJOR)).toBeNull();
   });
 
   it('builds the tonic whole-note blank fragment for both contexts', () => {

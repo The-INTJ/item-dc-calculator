@@ -87,8 +87,9 @@ describe('deriveHarmonyFromVoicing', () => {
       C_MAJOR,
       'x',
     );
-    expect(events[0].displaySymbol).toBe('C');
-    expect(events[0].analysis.romanNumeral).toBe('I');
+    expect(events[0].displaySymbol).toBe('C/E');
+    expect(events[0].analysis.romanNumeral).toBe('I6');
+    expect(events[0].figuredBass).toBe('6');
     expect(events[0].inversion).toBe(1);
     expect(events[0].bassPitch.letter).toBe('E');
   });
@@ -121,7 +122,8 @@ describe('deriveHarmonyFromVoicing', () => {
     );
     expect(events).toHaveLength(2);
     expect(events[0].analysis.romanNumeral).toBe('I');
-    expect(events[1].displaySymbol).toBe('Am');
+    expect(events[1].displaySymbol).toBe('Am/C');
+    expect(events[1].analysis.romanNumeral).toBe('vi6');
     expect(events[1].inversion).toBe(1); // C in the bass under an Am triad
   });
 });

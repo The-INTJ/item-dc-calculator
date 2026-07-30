@@ -1,38 +1,31 @@
 /**
  * Diatonic scale arithmetic for the supported tonal contexts: major, and
- * natural minor with la-based movable-do. Pure construction — interval tables
- * plus letter/accidental arithmetic, the same license as fixtures/authoring.ts.
- * Unsupported contexts return null; callers treat that as "tool disabled".
+ * natural minor with la-based movable-do — for ALL twelve tonics (the letter
+ * arithmetic in diatonicPitch generalizes; only the mode tables gate support).
+ * Pure construction — interval tables plus letter/accidental arithmetic from
+ * domain/pitch.ts. Unsupported contexts return null; callers treat that as
+ * "tool disabled".
  */
 
 import type {
   Accidental,
   DiatonicDegree,
-  LetterName,
   MelodyFragment,
   ScaleDegreePitch,
   SolfegeSyllable,
   SpelledPitch,
+  SpelledPitchClass,
   TonalContext,
 } from './music-types';
+import {
+  ACCIDENTAL_OFFSETS,
+  LETTERS,
+  LETTER_SEMITONES,
+  OFFSET_TO_ACCIDENTAL,
+  spellPitch,
+} from './pitch';
 
-const LETTERS: LetterName[] = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-const LETTER_SEMITONES: Record<LetterName, number> = {
-  C: 0,
-  D: 2,
-  E: 4,
-  F: 5,
-  G: 7,
-  A: 9,
-  B: 11,
-};
-const OFFSET_TO_ACCIDENTAL: Record<number, Accidental> = {
-  [-2]: 'bb',
-  [-1]: 'b',
-  0: 'natural',
-  1: '#',
-  2: 'x',
-};
+export { spellPitch };
 
 /** Hard range for pitch stepping — beyond it the arrows no-op. */
 export const MIN_MIDI = 36; // C2
@@ -77,13 +70,6 @@ const LOWERED: Partial<Record<SolfegeSyllable, SolfegeSyllable>> = {
   ti: 'te',
 };
 
-/** Spell a pitch from parts (arithmetic; octave is letter-based scientific notation). */
-export function spellPitch(letter: LetterName, accidental: Accidental, octave: number): SpelledPitch {
-  const offsets: Record<Accidental, number> = { bb: -2, b: -1, natural: 0, '#': 1, x: 2 };
-  const midi = (octave + 1) * 12 + LETTER_SEMITONES[letter] + offsets[accidental];
-  return { letter, accidental, octave, midi, pitchClass: ((midi % 12) + 12) % 12 };
-}
-
 /** The spelled pitch of a diatonic scale degree in a letter-based octave. */
 export function diatonicPitch(
   context: TonalContext,
@@ -105,6 +91,56 @@ export function diatonicPitch(
   return { letter, accidental, octave, midi, pitchClass: ((midi % 12) + 12) % 12 };
 }
 
+/**
+ * The spelled pitch class of a degree with a chromatic offset — a raised or
+ * lowered degree keeps its letter and inflects the accidental (si in A minor
+ * is G#, never Ab). Null when the spelling would need a triple accidental.
+ */
+export function spellDegree(
+  context: TonalContext,
+  degree: DiatonicDegree,
+  chromaticOffset: number,
+): SpelledPitchClass | null {
+  const base = diatonicPitch(context, degree, 4);
+  if (!base) return null;
+  if (chromaticOffset === 0) {
+    return { letter: base.letter, accidental: base.accidental, pitchClass: base.pitchClass };
+  }
+  const shifted = ACCIDENTAL_OFFSETS[base.accidental] + chromaticOffset;
+  const accidental = OFFSET_TO_ACCIDENTAL[shifted] as Accidental | undefined;
+  if (accidental === undefined) return null;
+  return {
+    letter: base.letter,
+    accidental,
+    pitchClass: (((base.pitchClass + chromaticOffset) % 12) + 12) % 12,
+  };
+}
+
+export interface DegreeMember {
+  degree: DiatonicDegree;
+  chromaticOffset: number;
+}
+
+/** The conventionally raised leading tone in la-based minor (si). Null elsewhere. */
+export function raisedSeventh(
+  context: TonalContext,
+): { member: DegreeMember; spelled: SpelledPitchClass } | null {
+  if (context.mode !== 'natural_minor') return null;
+  const spelled = spellDegree(context, 7, 1);
+  if (!spelled) return null;
+  return { member: { degree: 7, chromaticOffset: 1 }, spelled };
+}
+
+/** The raised sixth in la-based minor (fi — the dorian inflection). Null elsewhere. */
+export function raisedSixth(
+  context: TonalContext,
+): { member: DegreeMember; spelled: SpelledPitchClass } | null {
+  if (context.mode !== 'natural_minor') return null;
+  const spelled = spellDegree(context, 6, 1);
+  if (!spelled) return null;
+  return { member: { degree: 6, chromaticOffset: 1 }, spelled };
+}
+
 /** Syllable for a degree (+chromatic offset) in a context; null when unmapped. */
 export function syllableForDegree(
   context: TonalContext,
@@ -120,20 +156,29 @@ export function syllableForDegree(
   return null;
 }
 
-/** Best-effort scale degree for a bare pitch class: diatonic, else raised by one. */
+/**
+ * Best-effort scale degree for a bare pitch class: diatonic first, then the
+ * preferred chromatic side, then the other. `prefer` defaults to 'raised' so
+ * existing call sites keep their behavior; key-relative readings of flat-side
+ * roots (bVII, bVI) pass 'lowered'.
+ */
 export function scaleDegreeForPitchClass(
   context: TonalContext,
   pitchClass: number,
+  prefer: 'raised' | 'lowered' = 'raised',
 ): ScaleDegreePitch | null {
   const table = modeTable(context);
   if (!table) return null;
-  for (const chromaticOffset of [0, 1] as const) {
+  const offsets = prefer === 'raised' ? [0, 1, -1] : [0, -1, 1];
+  for (const chromaticOffset of offsets) {
     for (let d = 1; d <= 7; d += 1) {
       const degree = d as DiatonicDegree;
-      const pc = (context.tonicPitchClass + table.intervals[degree - 1] + chromaticOffset) % 12;
+      const pc =
+        (((context.tonicPitchClass + table.intervals[degree - 1] + chromaticOffset) % 12) + 12) %
+        12;
       if (pc === pitchClass) {
         const syllable = syllableForDegree(context, degree, chromaticOffset);
-        if (!syllable) return null;
+        if (!syllable) continue; // syllable gap (mi#/ti#) — try the other reading
         return { degree, chromaticOffset, syllable };
       }
     }
@@ -142,9 +187,11 @@ export function scaleDegreeForPitchClass(
 }
 
 /**
- * Step a note to the adjacent diatonic degree (chromatic sources land on the
- * adjacent diatonic degree — POC rule). Returns null when the context is
- * unsupported or the result leaves the MIDI range.
+ * Step a note to the adjacent diatonic degree. Chromatic sources follow the
+ * inflection: stepping AGAINST the inflection lands on the same degree natural
+ * (si ↓ → sol♮, se ↑ → sol♮); stepping WITH it lands on the adjacent diatonic
+ * degree (si ↑ → la). Returns null when the context is unsupported or the
+ * result leaves the MIDI range.
  */
 export function stepDiatonic(
   context: TonalContext,
@@ -153,10 +200,19 @@ export function stepDiatonic(
 ): { pitch: SpelledPitch; scaleDegree: ScaleDegreePitch } | null {
   const table = modeTable(context);
   if (!table) return null;
-  let degree = (from.scaleDegree.degree + direction) as number;
-  if (degree > 7) degree = 1;
-  if (degree < 1) degree = 7;
-  const nextDegree = degree as DiatonicDegree;
+
+  const inflection = from.scaleDegree.chromaticOffset;
+  const steppingAgainstInflection =
+    (inflection > 0 && direction === -1) || (inflection < 0 && direction === 1);
+  let nextDegree: DiatonicDegree;
+  if (steppingAgainstInflection) {
+    nextDegree = from.scaleDegree.degree; // the inflection steps off itself
+  } else {
+    let degree = (from.scaleDegree.degree + direction) as number;
+    if (degree > 7) degree = 1;
+    if (degree < 1) degree = 7;
+    nextDegree = degree as DiatonicDegree;
+  }
 
   // Try the same letter-octave first, then adjust one octave in the step's
   // direction until the midi moves the right way.

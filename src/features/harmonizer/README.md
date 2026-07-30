@@ -212,9 +212,13 @@ milestone" tooltip.
 ## Self-containment contract
 
 - No imports from other features, no MUI, no Firebase, no backend. The only
-  runtime dependencies beyond React are `zod` (fixture validation), `tone`,
+  runtime dependencies beyond React are `zod` (fixture validation), `tone`
   and `smplr` (playback engines, both dynamically imported inside
-  `services/tone-playback-service.ts` — never during SSR or in jsdom tests).
+  `services/tone-playback-service.ts` — never during SSR or in jsdom tests),
+  and `tonal` (pure music math — statically imported ONLY inside
+  `domain/engine/tonal-bridge.ts`, used for enharmonic interval arithmetic,
+  key facts, and as the test oracle for our own spelling/chord math; never
+  the source of numeric truth).
 - Design tokens are CSS custom properties scoped to the `.workbench` class in
   `components/HarmonizationWorkbench.module.scss` — never `:root`. A retheme
   is an edit to that one block.
