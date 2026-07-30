@@ -33,6 +33,10 @@
   --wb-font-ui: 'Inter', 'Helvetica Neue', Arial, sans-serif;
   --wb-font-solfege: 'Fraunces', Georgia, serif;
 
+  /* Glossary term marks + tip panels (components/shared/Term.tsx) */
+  --wb-term-mark: rgba(124, 58, 32, 0.55);
+  --wb-tip-width: 20rem;
+
   /* Shape + elevation */
   --wb-radius-card: 10px;
   --wb-radius-chip: 6px;

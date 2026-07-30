@@ -383,7 +383,8 @@ export function HarmonizationWorkbench() {
       : content.playback.stopped;
 
   return (
-    <div className={styles.workbench}>
+    // data-glossary-boundary: the edge glossary tips must not overflow (Term.tsx).
+    <div className={styles.workbench} data-glossary-boundary>
       <div className={styles.inner}>
         <WorkbenchHeader
           canUndo={state.history.length > 0}

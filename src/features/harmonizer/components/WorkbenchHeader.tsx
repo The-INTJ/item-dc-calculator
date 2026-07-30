@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { content } from '../content';
+import { GlossaryHelp } from './header/GlossaryPanel';
 import styles from './HarmonizationWorkbench.module.scss';
 
 interface WorkbenchHeaderProps {
@@ -38,14 +39,7 @@ export function WorkbenchHeader({
         >
           {content.header.redo}
         </button>
-        <button
-          type="button"
-          className={styles.headerButtonOptional}
-          disabled
-          title={content.comingSoon}
-        >
-          {content.header.help}
-        </button>
+        <GlossaryHelp triggerClassName={styles.headerButtonOptional} />
       </div>
     </header>
   );

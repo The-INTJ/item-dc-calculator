@@ -462,9 +462,14 @@
   color: var(--wb-ink-soft);
 }
 
+/* Hosts the role badge (plain span or Term trigger) at the heading's right. */
+.roleBadgeSlot {
+  margin-left: auto;
+  display: inline-flex;
+}
+
 .roleBadge {
   @include wb-chip;
-  margin-left: auto;
 }
 
 .drawerExplanation {

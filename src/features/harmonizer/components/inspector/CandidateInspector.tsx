@@ -246,7 +246,9 @@ export function CandidateInspector({
 
           <div className={styles.lane}>
             <span className={styles.laneLabelStacked}>{content.inspector.chords}</span>
-            <div className={styles.laneTrackClip}>
+            {/* data-glossary-boundary: on mobile this wrapper clips x-overflow,
+                so the numeral's glossary tip must flip inside it (Term.tsx). */}
+            <div className={styles.laneTrackClip} data-glossary-boundary>
               <div className={styles.laneGrid}>
                 <span className={styles.laneLabel}>
                   <span className={styles.laneLabelText}>{content.inspector.chords}</span>

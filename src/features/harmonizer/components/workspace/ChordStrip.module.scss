@@ -1,9 +1,10 @@
+/* No overflow clipping — the numeral's glossary tip panel must escape the
+   strip. First/last segments carry the radius themselves instead. */
 .strip {
   margin-inline: 0.3rem;
   border: 1.5px solid var(--wb-line-strong);
   border-radius: var(--wb-radius-chip);
   background: var(--wb-accent-soft);
-  overflow: hidden;
 }
 
 .stripComputed {
@@ -23,8 +24,17 @@
   gap: 0.5rem;
   padding: 0.55rem 0.9rem;
   min-width: 0;
-  overflow: hidden;
   transition: background 160ms ease;
+}
+
+.segment:first-child {
+  border-top-left-radius: calc(var(--wb-radius-chip) - 1.5px);
+  border-bottom-left-radius: calc(var(--wb-radius-chip) - 1.5px);
+}
+
+.segment:last-child {
+  border-top-right-radius: calc(var(--wb-radius-chip) - 1.5px);
+  border-bottom-right-radius: calc(var(--wb-radius-chip) - 1.5px);
 }
 
 /* The internal bar splitting chord labels — through-lines land exactly here. */
@@ -36,10 +46,19 @@
   background: var(--wb-active);
 }
 
-.numeral {
+/* Solfège-first: the root syllable leads each segment (same voice as the
+   note cells), then the numeral, then the letter symbol. */
+.rootSyllable {
   font-family: var(--wb-font-solfege);
   font-size: 1.1rem;
   font-weight: 600;
+}
+
+.numeral {
+  font-family: var(--wb-font-solfege);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--wb-ink-soft);
 }
 
 .symbol {

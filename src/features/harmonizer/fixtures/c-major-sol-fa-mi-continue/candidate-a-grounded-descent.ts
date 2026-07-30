@@ -20,7 +20,7 @@ export const candidateA: CandidatePath = {
   id: 'grounded-descent',
   fixtureId: FIXTURE_ID,
   title: 'Grounded descent',
-  summary: 'Hold tonic while fa passes through the soprano line.',
+  summary: 'Hold [tonic] while fa passes through the [soprano] line.',
   tonalContext: initialState.tonalContext,
   phraseIntent: initialState.phraseIntent,
   harmonyEvents: [
@@ -80,14 +80,14 @@ export const candidateA: CandidatePath = {
       melodyEventId: 'mel-sol',
       harmonyEventIds: ['a-harm-i'],
       role: 'chord_tone',
-      explanation: 'Sol is the fifth of the tonic triad and needs no new harmony.',
+      explanation: 'Sol is the fifth of the [tonic] [triad] and needs no new [harmony].',
       evidence: [
         {
           id: 'a-int-sol-1',
           source: 'computed',
           featureId: 'chord_membership',
           value: true,
-          explanation: 'G is a tone of the C major triad.',
+          explanation: 'G is a tone of the C major [triad].',
           providerId: 'fixture',
           providerVersion: '0.1.0',
         },
@@ -100,14 +100,14 @@ export const candidateA: CandidatePath = {
       preparationEventId: 'mel-sol',
       resolutionEventId: 'mel-mi',
       explanation:
-        'The melody moves sol–fa–mi while the underlying tonic remains in place. The fa is heard as a passing dissonance between two chord tones rather than as a demand for a separate chord.',
+        'The [melody] moves sol–fa–mi while the underlying [tonic] remains in place. The fa is heard as a passing [dissonance] between two [chord tones|chord-tone] rather than as a demand for a separate [chord].',
       evidence: [
         {
           id: 'a-int-fa-1',
           source: 'computed',
           featureId: 'chord_membership',
           value: false,
-          explanation: 'F is not a tone of the C major triad.',
+          explanation: 'F is not a tone of the C major [triad].',
           providerId: 'fixture',
           providerVersion: '0.1.0',
         },
@@ -116,7 +116,7 @@ export const candidateA: CandidatePath = {
           source: 'computed',
           featureId: 'stepwise_motion',
           value: true,
-          explanation: 'F is approached and left by descending step.',
+          explanation: 'F is approached and left by descending [step].',
           providerId: 'fixture',
           providerVersion: '0.1.0',
         },
@@ -125,7 +125,8 @@ export const candidateA: CandidatePath = {
           source: 'rule',
           featureId: 'passing_tone_rule',
           value: true,
-          explanation: 'An unaccented passing tone may connect two chord tones on a weak beat.',
+          explanation:
+            'An unaccented [passing tone|passing-tone] may connect two [chord tones|chord-tone] on a weak [beat].',
           providerId: 'poc-hymn-major-v1',
           providerVersion: '0.1.0',
         },
@@ -135,14 +136,15 @@ export const candidateA: CandidatePath = {
       melodyEventId: 'mel-mi',
       harmonyEventIds: ['a-harm-i'],
       role: 'chord_tone',
-      explanation: 'Mi is the third of the tonic triad; the line settles back onto chord tones.',
+      explanation:
+        'Mi is the third of the [tonic] [triad]; the line settles back onto [chord tones|chord-tone].',
       evidence: [
         {
           id: 'a-int-mi-1',
           source: 'computed',
           featureId: 'chord_membership',
           value: true,
-          explanation: 'E is a tone of the C major triad.',
+          explanation: 'E is a tone of the C major [triad].',
           providerId: 'fixture',
           providerVersion: '0.1.0',
         },
@@ -154,7 +156,8 @@ export const candidateA: CandidatePath = {
       id: 'a-desc-stability',
       dimension: 'stability',
       label: 'calm and grounded',
-      explanation: 'The harmony remains on tonic while the melody moves through a passing dissonance.',
+      explanation:
+        'The [harmony] remains on [tonic] while the [melody] moves through a passing [dissonance].',
       evidenceIds: ['a-ev-1', 'a-ev-2'],
       source: 'curated',
     },
