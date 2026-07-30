@@ -43,6 +43,30 @@ function resize(
   };
 }
 
+function addMeasure(id: string): WorkbenchAction {
+  return {
+    type: 'ADD_MEASURE',
+    appliedId: id,
+    fragmentId: `frag-${id}`,
+    candidateId: `cand-${id}`,
+    melodyEventId: `mel-${id}`,
+    voiceEventIds: {
+      soprano: `s-${id}`,
+      alto: `a-${id}`,
+      tenor: `t-${id}`,
+      bass: `b-${id}`,
+    },
+  };
+}
+
+/** The workspace's soprano note id — for edits that must hit the melody. */
+function sopranoEventId(state: WorkbenchState, index = 0): string {
+  const working = state.candidates.find(
+    (candidate) => candidate.id === state.selectedCandidateId,
+  );
+  return working!.voicing.soprano[index].id;
+}
+
 describe('createInitialWorkbenchState', () => {
   it('seeds the workbench with authored suggestions and the new fields', () => {
     expect(initial.suggestionStatus).toBe('fresh');
@@ -51,9 +75,94 @@ describe('createInitialWorkbenchState', () => {
     expect(initial.candidateSetId).toBe('default');
     expect(initial.candidates).toHaveLength(3);
     expect(initial.selectedCandidateId).toBe('grounded-descent');
-    expect(initial.appliedFragments).toEqual([]);
     expect(initial.history).toEqual([]);
     expect(initial.lastGestureId).toBeNull();
+  });
+
+  it('seeds the hymn with the working measure, selected and reference-synced', () => {
+    expect(initial.appliedFragments).toHaveLength(1);
+    const entry = initial.appliedFragments[0];
+    expect(initial.selectedMeasureId).toBe(entry.id);
+    // Same references as the workspace — the sync wrapper's short-circuit
+    // depends on this seed.
+    expect(entry.fragment).toBe(initial.fragment);
+    expect(entry.candidate).toBe(initial.candidates[0]);
+  });
+});
+
+describe('the measure mirror (write-through)', () => {
+  it('a soprano edit is mirrored into the selected measure entry live', () => {
+    const state = workbenchReducer(initial, {
+      type: 'STEP_VOICE_EVENT_PITCH',
+      candidateId: 'grounded-descent',
+      voice: 'soprano',
+      eventId: 'a-s-1',
+      direction: 1,
+    });
+    const entry = state.appliedFragments[0];
+    expect(entry.fragment).toBe(state.fragment);
+    expect(entry.candidate).toBe(
+      state.candidates.find((candidate) => candidate.id === state.selectedCandidateId),
+    );
+    // The rail pill reads this entry — its melody changed with the workspace.
+    expect(melodySignature(entry.fragment.events)).toBe('la4:q|fa4:q|mi4:h');
+  });
+
+  it('adopting a different reading writes through and UNDO restores it', () => {
+    const selected = workbenchReducer(initial, {
+      type: 'SELECT_CANDIDATE',
+      candidateId: 'keep-moving',
+    });
+    expect(selected.appliedFragments).toHaveLength(1);
+    expect(selected.appliedFragments[0].candidate.id).toBe('keep-moving');
+    expect(selected.appliedFragments[0].id).toBe(initial.selectedMeasureId);
+    const undone = workbenchReducer(selected, { type: 'UNDO' });
+    expect(undone.appliedFragments[0].candidate.id).toBe('grounded-descent');
+    expect(undone.selectedMeasureId).toBe(initial.selectedMeasureId);
+  });
+
+  it('non-mutating actions leave appliedFragments reference-identical', () => {
+    const tempo = workbenchReducer(initial, { type: 'SET_TEMPO', tempoBpm: 96 });
+    expect(tempo.appliedFragments).toBe(initial.appliedFragments);
+    const playing = workbenchReducer(initial, {
+      type: 'START_PLAYBACK',
+      candidateId: 'grounded-descent',
+      voices: ['soprano'],
+    });
+    expect(playing.appliedFragments).toBe(initial.appliedFragments);
+    const progressed = workbenchReducer(playing, {
+      type: 'PLAYBACK_PROGRESS',
+      activeUnit: 3,
+    });
+    expect(progressed.appliedFragments).toBe(initial.appliedFragments);
+  });
+
+  it('undo across a measure switch restores selection without cross-contamination', () => {
+    const two = workbenchReducer(initial, addMeasure('m2'));
+    const editedSecond = workbenchReducer(two, {
+      type: 'STEP_VOICE_EVENT_PITCH',
+      candidateId: two.selectedCandidateId!,
+      voice: 'soprano',
+      eventId: sopranoEventId(two),
+      direction: 1,
+    });
+    const firstId = two.appliedFragments[0].id;
+    const onFirst = workbenchReducer(editedSecond, { type: 'SELECT_MEASURE', appliedId: firstId });
+    const editedFirst = workbenchReducer(onFirst, {
+      type: 'STEP_VOICE_EVENT_PITCH',
+      candidateId: onFirst.selectedCandidateId!,
+      voice: 'soprano',
+      eventId: sopranoEventId(onFirst),
+      direction: 1,
+    });
+    // Undo the measure-1 edit: measure 1 reverts, measure 2 keeps its edit.
+    const undoEdit = workbenchReducer(editedFirst, { type: 'UNDO' });
+    expect(undoEdit.selectedMeasureId).toBe(firstId);
+    expect(undoEdit.appliedFragments).toBe(onFirst.appliedFragments);
+    // Undo the switch: back on measure 2, its edited melody intact.
+    const undoSwitch = workbenchReducer(undoEdit, { type: 'UNDO' });
+    expect(undoSwitch.selectedMeasureId).toBe('m2');
+    expect(undoSwitch.fragment).toBe(editedSecond.fragment);
   });
 });
 
@@ -305,7 +414,20 @@ describe('key change respell', () => {
 
 describe('structural editing', () => {
   it('inserts an inner-voice note by ripple without regenerating', () => {
-    const state = workbenchReducer(initial, {
+    // The alto's whole note fills the measure — shorten it first (the editor
+    // never grows a part past one measure).
+    const roomy = workbenchReducer(
+      initial,
+      resize({
+        candidateId: 'grounded-descent',
+        voice: 'alto',
+        eventId: 'a-a-1',
+        edge: 'right',
+        targetBoundary: 8,
+        gestureId: 'room',
+      }),
+    );
+    const state = workbenchReducer(roomy, {
       type: 'INSERT_VOICE_EVENT',
       candidateId: 'grounded-descent',
       voice: 'alto',
@@ -316,12 +438,26 @@ describe('structural editing', () => {
     const alto = state.candidates[0].voicing.alto;
     expect(alto).toHaveLength(2);
     expect(alto[1].id).toBe('user-1');
-    expect(timeToUnits(alto[1].start)).toBe(16);
+    expect(timeToUnits(alto[1].start)).toBe(8);
     expect(state.suggestionSource).toBe('authored');
   });
 
   it('inserts a soprano note, mirrors the melody, and regenerates', () => {
-    const state = workbenchReducer(initial, {
+    // Make room: the melody fills the measure, so shorten its final half note
+    // before inserting a copy of the quarter.
+    const half = initial.candidates[0].voicing.soprano[2];
+    const roomy = workbenchReducer(
+      initial,
+      resize({
+        candidateId: 'grounded-descent',
+        voice: 'soprano',
+        eventId: half.id,
+        edge: 'right',
+        targetBoundary: 12,
+        gestureId: 'room',
+      }),
+    );
+    const state = workbenchReducer(roomy, {
       type: 'INSERT_VOICE_EVENT',
       candidateId: 'grounded-descent',
       voice: 'soprano',
@@ -333,6 +469,35 @@ describe('structural editing', () => {
     expect(state.fragment.events[1].id).toBe('mel-user-2');
     expect(state.fragment.events[1].scaleDegree.syllable).toBe('fa');
     expect(state.suggestionSource).toBe('computed');
+  });
+
+  it('the editor never grows a part past one measure', () => {
+    // grounded-descent's alto whole note already fills the measure: dragging
+    // its right edge further is a no-op…
+    expect(
+      workbenchReducer(
+        initial,
+        resize({
+          candidateId: 'grounded-descent',
+          voice: 'alto',
+          eventId: 'a-a-1',
+          edge: 'right',
+          targetBoundary: 40,
+          gestureId: 'cap',
+        }),
+      ),
+    ).toBe(initial);
+    // …and so is inserting into the full measure.
+    expect(
+      workbenchReducer(initial, {
+        type: 'INSERT_VOICE_EVENT',
+        candidateId: 'grounded-descent',
+        voice: 'alto',
+        neighborEventId: 'a-a-1',
+        side: 'after',
+        newEventId: 'nope',
+      }),
+    ).toBe(initial);
   });
 
   it('deletes a soprano note leaving a rest, drops its locks, and regenerates', () => {
@@ -480,173 +645,172 @@ describe('history', () => {
   });
 });
 
-describe('apply and loading', () => {
-  it('APPLY commits the selected reading and UNDO restores everything', () => {
-    const selected = workbenchReducer(initial, {
-      type: 'SELECT_CANDIDATE',
-      candidateId: 'keep-moving',
-    });
-    const applied = workbenchReducer(selected, { type: 'APPLY_CANDIDATE', appliedId: 'ap1' });
-    expect(applied.appliedFragments).toHaveLength(1);
-    expect(applied.appliedFragments[0].candidate.id).toBe('keep-moving');
-    expect(applied.acceptedContext.previousHarmony?.analysis.romanNumeral).toBe('I6');
-    expect(applied.acceptedContext.previousHarmony?.id).toBe('applied-ap1');
-    expect(applied.acceptedContext.previousHarmony?.start.measure).toBe(0);
-
-    const undone = workbenchReducer(applied, { type: 'UNDO' });
-    expect(undone.appliedFragments).toHaveLength(0);
-    expect(undone.acceptedContext.previousHarmony?.analysis.romanNumeral).toBe('I');
+describe('measures and loading', () => {
+  it('ADD_MEASURE appends a continuation at the end and selects it', () => {
+    const added = workbenchReducer(initial, addMeasure('m2'));
+    expect(added.appliedFragments.map((entry) => entry.id)).toEqual([
+      initial.selectedMeasureId,
+      'm2',
+    ]);
+    expect(added.selectedMeasureId).toBe('m2');
+    // The workspace opens on the one-beat continuation, held on the tail's notes.
+    expect(added.fragment.events).toHaveLength(1);
+    expect(added.appliedFragments[1].fragment).toBe(added.fragment);
+    expect(added.suggestionSource).toBe('computed');
+    expect(added.sourceFixtureId).toBeNull();
+    // One undoable step back to the single-measure hymn.
+    const undone = workbenchReducer(added, { type: 'UNDO' });
+    expect(undone.appliedFragments).toHaveLength(1);
+    expect(undone.selectedMeasureId).toBe(initial.selectedMeasureId);
   });
 
-  it('carries the seam forward: applying records the notes the next snippet grows from', () => {
-    const applied = workbenchReducer(initial, { type: 'APPLY_CANDIDATE', appliedId: 'ap1' });
-    // The accepted context now holds the actual notes, not just the chord.
-    expect(applied.acceptedContext.previousVoicing).not.toBeNull();
+  it('carries the seam forward: the new measure grows from the tail notes', () => {
+    const added = workbenchReducer(initial, addMeasure('m2'));
+    // The accepted context holds the actual notes, not just the chord.
+    expect(added.acceptedContext.previousVoicing).not.toBeNull();
     expect(
-      applied.acceptedContext.previousVoicing?.soprano.at(-1)?.scaleDegree.syllable,
+      added.acceptedContext.previousVoicing?.soprano.at(-1)?.scaleDegree.syllable,
     ).toBe('mi');
-
-    // Moving to the next snippet stamps every reading with what it comes from,
-    // so the lanes, chord strip, and cards all describe the same seam.
-    const next = workbenchReducer(applied, {
-      type: 'LOAD_SAMPLE',
-      source: { kind: 'fixture', fixture },
-      keepAcceptedContext: true,
-    });
-    for (const candidate of next.candidates) {
+    expect(added.acceptedContext.previousHarmony?.start.measure).toBe(0);
+    // Every reading of the new measure is stamped with what it comes from, so
+    // the lanes, chord strip, and cards all describe the same seam.
+    for (const candidate of added.candidates) {
       expect(candidate.approach?.harmony?.analysis.romanNumeral).toBe('I');
       expect(candidate.approach?.voices.soprano?.scaleDegree.syllable).toBe('mi');
-      expect(candidate.approach?.voices.bass?.pitch.letter).toBe('C');
     }
   });
 
-  it('the opening snippet has no seam to show', () => {
+  it('the opening measure has no seam to show', () => {
     for (const candidate of initial.candidates) {
       expect(candidate.approach?.voices.soprano).toBeUndefined();
     }
   });
 
-  it('reworking a middle piece sees the piece before it', () => {
-    const first = workbenchReducer(initial, { type: 'APPLY_CANDIDATE', appliedId: 'ap1' });
-    const second = workbenchReducer(
-      workbenchReducer(first, { type: 'SELECT_CANDIDATE', candidateId: 'keep-moving' }),
-      { type: 'APPLY_CANDIDATE', appliedId: 'ap2' },
-    );
-    const editingSecond = workbenchReducer(second, {
-      type: 'EDIT_APPLIED_FRAGMENT',
-      appliedId: 'ap2',
-    });
-    // Piece 2 grows out of piece 1's final notes.
+  it('selecting a middle measure sees the measure before it', () => {
+    const two = workbenchReducer(initial, addMeasure('m2'));
+    const three = workbenchReducer(two, addMeasure('m3'));
+    const editing = workbenchReducer(three, { type: 'SELECT_MEASURE', appliedId: 'm2' });
+    expect(editing.selectedMeasureId).toBe('m2');
+    // Measure 2 grows out of measure 1's final notes.
     expect(
-      editingSecond.acceptedContext.previousVoicing?.soprano.at(-1)?.scaleDegree.syllable,
+      editing.acceptedContext.previousVoicing?.soprano.at(-1)?.scaleDegree.syllable,
     ).toBe('mi');
-    const working = editingSecond.candidates.find(
-      (candidate) => candidate.id === editingSecond.selectedCandidateId,
+    const working = editing.candidates.find(
+      (candidate) => candidate.id === editing.selectedCandidateId,
     );
     expect(working?.approach?.voices.soprano?.scaleDegree.syllable).toBe('mi');
   });
 
-  it('reworks an applied piece in place instead of appending a second copy', () => {
-    // Two pieces applied.
-    const first = workbenchReducer(initial, { type: 'APPLY_CANDIDATE', appliedId: 'ap1' });
-    const second = workbenchReducer(
-      workbenchReducer(first, { type: 'SELECT_CANDIDATE', candidateId: 'keep-moving' }),
-      { type: 'APPLY_CANDIDATE', appliedId: 'ap2' },
-    );
-    expect(second.appliedFragments.map((entry) => entry.id)).toEqual(['ap1', 'ap2']);
-    const contextAfterBoth = second.acceptedContext.previousHarmony?.analysis.romanNumeral;
-
-    // Click the FIRST piece: it loads for rework with the hymn's opening
-    // context, and the piece itself is the working reading.
-    const editing = workbenchReducer(second, {
-      type: 'EDIT_APPLIED_FRAGMENT',
-      appliedId: 'ap1',
+  it('switching measures preserves the outgoing measure in place; re-clicks are no-ops', () => {
+    const two = workbenchReducer(initial, addMeasure('m2'));
+    // Edit measure 2 so its entry visibly diverges from the continuation.
+    const edited = workbenchReducer(two, {
+      type: 'STEP_VOICE_EVENT_PITCH',
+      candidateId: two.selectedCandidateId!,
+      voice: 'soprano',
+      eventId: sopranoEventId(two),
+      direction: 1,
     });
-    expect(editing.editingAppliedId).toBe('ap1');
-    expect(editing.selectedCandidateId).toBe('grounded-descent');
-    expect(editing.acceptedContext.previousHarmony).toBeNull(); // first piece opens the hymn
-    expect(editing.fragment).toEqual(second.appliedFragments[0].fragment);
+    const editedEntry = edited.appliedFragments[1];
+    expect(editedEntry.fragment).toBe(edited.fragment);
 
-    // Apply replaces it where it stands — still two pieces, order preserved,
-    // and the tail's accepted context is untouched.
-    const reapplied = workbenchReducer(editing, {
-      type: 'APPLY_CANDIDATE',
-      appliedId: 'ignored-when-reworking',
+    // Click measure 1: it loads with the hymn's opening context, measure 2
+    // keeps its edited state where it stands.
+    const onFirst = workbenchReducer(edited, {
+      type: 'SELECT_MEASURE',
+      appliedId: edited.appliedFragments[0].id,
     });
-    expect(reapplied.appliedFragments.map((entry) => entry.id)).toEqual(['ap1', 'ap2']);
-    expect(reapplied.editingAppliedId).toBeNull();
-    expect(reapplied.acceptedContext.previousHarmony?.analysis.romanNumeral).toBe(
-      contextAfterBoth,
+    expect(onFirst.selectedMeasureId).toBe(edited.appliedFragments[0].id);
+    expect(onFirst.selectedCandidateId).toBe('grounded-descent');
+    expect(onFirst.acceptedContext.previousHarmony).toBeNull(); // opens the hymn
+    expect(onFirst.fragment).toEqual(edited.appliedFragments[0].fragment);
+    expect(onFirst.appliedFragments[1]).toBe(editedEntry);
+
+    // Same-id and unknown-id selections are no-ops.
+    expect(
+      workbenchReducer(onFirst, {
+        type: 'SELECT_MEASURE',
+        appliedId: onFirst.selectedMeasureId!,
+      }),
+    ).toBe(onFirst);
+    expect(workbenchReducer(onFirst, { type: 'SELECT_MEASURE', appliedId: 'nope' })).toBe(
+      onFirst,
     );
   });
 
-  it('reworking the LAST piece refreshes what comes next', () => {
-    const applied = workbenchReducer(initial, { type: 'APPLY_CANDIDATE', appliedId: 'ap1' });
-    const editing = workbenchReducer(applied, {
-      type: 'EDIT_APPLIED_FRAGMENT',
-      appliedId: 'ap1',
-    });
-    // Swap to whatever alternative the rework offered (the opening context no
-    // longer matches fixture A's pin, so these are computed sketches).
-    const alternative = editing.candidates.find(
-      (candidate) => candidate.id !== editing.selectedCandidateId,
-    );
-    expect(alternative).toBeTruthy();
-    if (!alternative) return;
-    const swapped = workbenchReducer(editing, {
+  it('ADD_MEASURE always appends at the end, even while an earlier measure is selected', () => {
+    const two = workbenchReducer(initial, addMeasure('m2'));
+    const firstId = two.appliedFragments[0].id;
+    const onFirst = workbenchReducer(two, { type: 'SELECT_MEASURE', appliedId: firstId });
+    const three = workbenchReducer(onFirst, addMeasure('m3'));
+    expect(three.appliedFragments.map((entry) => entry.id)).toEqual([firstId, 'm2', 'm3']);
+    expect(three.selectedMeasureId).toBe('m3');
+    // The new measure grows from the TAIL (m2), not the previously selected m1.
+    expect(three.acceptedContext.previousHarmony?.id).toBe('applied-m2');
+  });
+
+  it('adopting a different reading refreshes what the next measure grows from', () => {
+    const swapped = workbenchReducer(initial, {
       type: 'SELECT_CANDIDATE',
-      candidateId: alternative.id,
+      candidateId: 'keep-moving',
     });
-    const reapplied = workbenchReducer(swapped, {
-      type: 'APPLY_CANDIDATE',
-      appliedId: 'unused',
-    });
-    expect(reapplied.appliedFragments).toHaveLength(1);
-    expect(reapplied.appliedFragments[0].candidate.id).toBe(alternative.id);
-    const tailNumeral =
-      alternative.harmonyEvents[alternative.harmonyEvents.length - 1].analysis.romanNumeral;
-    expect(reapplied.acceptedContext.previousHarmony?.analysis.romanNumeral).toBe(tailNumeral);
+    const added = workbenchReducer(swapped, addMeasure('m2'));
+    // keep-moving lands on I6 — the seam records it.
+    expect(added.acceptedContext.previousHarmony?.analysis.romanNumeral).toBe('I6');
+    expect(added.appliedFragments[0].candidate.id).toBe('keep-moving');
   });
 
-  it('loading a different fragment leaves rework mode', () => {
-    const applied = workbenchReducer(initial, { type: 'APPLY_CANDIDATE', appliedId: 'ap1' });
-    const editing = workbenchReducer(applied, {
-      type: 'EDIT_APPLIED_FRAGMENT',
-      appliedId: 'ap1',
-    });
-    expect(editing.editingAppliedId).toBe('ap1');
-    const moved = workbenchReducer(editing, {
+  it('LOAD_SAMPLE loads into the selected measure and keeps the selection', () => {
+    const two = workbenchReducer(initial, addMeasure('m2'));
+    const moved = workbenchReducer(two, {
       type: 'LOAD_SAMPLE',
       source: { kind: 'fixture', fixture },
       keepAcceptedContext: true,
     });
-    expect(moved.editingAppliedId).toBeNull();
+    expect(moved.selectedMeasureId).toBe('m2');
+    expect(moved.appliedFragments).toHaveLength(2);
+    // The sample's reading is mirrored onto measure 2's entry.
+    expect(moved.appliedFragments[1].fragment).toBe(moved.fragment);
+    expect(moved.appliedFragments[1].candidate.id).toBe(moved.selectedCandidateId);
   });
 
-  it('LOAD_SAMPLE with kept accepted context resolves honestly against the fixture pin', () => {
-    const applied = workbenchReducer(
+  it('LOAD_SAMPLE resolves honestly against the fixture pin mid-hymn', () => {
+    // keep-moving lands on I6; the next measure's seam diverges from fixture
+    // A's I:root pin.
+    const two = workbenchReducer(
       workbenchReducer(initial, { type: 'SELECT_CANDIDATE', candidateId: 'keep-moving' }),
-      { type: 'APPLY_CANDIDATE', appliedId: 'ap1' },
+      addMeasure('m2'),
     );
-    // Fixture A pins I:root, but the applied context is I6:first → computed.
-    const chained = workbenchReducer(applied, {
+    const chained = workbenchReducer(two, {
       type: 'LOAD_SAMPLE',
       source: { kind: 'fixture', fixture },
       keepAcceptedContext: true,
     });
-    expect(chained.appliedFragments).toHaveLength(1);
+    expect(chained.appliedFragments).toHaveLength(2);
     expect(chained.suggestionSource).toBe('computed');
     expect(chained.acceptedContext.previousHarmony?.analysis.romanNumeral).toBe('I6');
 
-    // Without keeping the context, the fixture's own accepted context is adopted.
-    const restored = workbenchReducer(applied, {
+    // Without keeping the context, a mid-hymn measure STILL grows out of its
+    // predecessor (the sample's own opening seam is only for the first
+    // measure) — and the pin resolves honestly against that seam too.
+    const restored = workbenchReducer(two, {
       type: 'LOAD_SAMPLE',
       source: { kind: 'fixture', fixture },
       keepAcceptedContext: false,
     });
-    expect(restored.suggestionSource).toBe('authored');
-    expect(restored.candidateSetId).toBe('default');
-    expect(restored.appliedFragments).toHaveLength(1);
+    expect(restored.acceptedContext.previousHarmony?.analysis.romanNumeral).toBe('I6');
+    expect(restored.suggestionSource).toBe('computed');
+    expect(restored.appliedFragments).toHaveLength(2);
+
+    // On the FIRST measure, dropping the kept context adopts the sample's own
+    // opening seam and the authored set comes back.
+    const firstRestored = workbenchReducer(initial, {
+      type: 'LOAD_SAMPLE',
+      source: { kind: 'fixture', fixture },
+      keepAcceptedContext: false,
+    });
+    expect(firstRestored.suggestionSource).toBe('authored');
+    expect(firstRestored.candidateSetId).toBe('default');
   });
 
   it('LOAD_SAMPLE blank resolves computed skeletons for the lone tonic note', () => {
@@ -681,6 +845,7 @@ describe('apply and loading', () => {
       candidateId: 'strong-arrival',
     });
     const persisted: PersistedWorkbench = toPersistedWorkbench({ ...edited, tempoBpm: 132 });
+    expect(persisted.selectedMeasureId).toBe(edited.selectedMeasureId);
     const state = workbenchReducer(initial, { type: 'LOAD_PROJECT', workbench: persisted });
     // The saved working reading survives as the selected surface…
     expect(state.selectedCandidateId).toBe('strong-arrival');
@@ -698,18 +863,41 @@ describe('apply and loading', () => {
     expect(state.tempoBpm).toBe(132);
     expect(state.history).toEqual([]);
     expect(state.playback).toEqual({ status: 'idle' });
+    // The selection round-trips and its entry mirrors the derived workspace.
+    expect(state.selectedMeasureId).toBe(edited.selectedMeasureId);
+    expect(state.appliedFragments).toHaveLength(1);
+    expect(state.appliedFragments[0].candidate).toBe(working);
   });
 
-  it('LOAD_PROJECT keeps an applied piece’s saved identity while re-deriving its analysis', () => {
-    const applied = workbenchReducer(initial, { type: 'APPLY_CANDIDATE', appliedId: 'ap1' });
-    const persisted = toPersistedWorkbench(applied);
+  it('LOAD_PROJECT migrates an old save (no selectedMeasureId) by appending the working measure', () => {
+    const two = workbenchReducer(initial, addMeasure('m2'));
+    const persisted = toPersistedWorkbench(two);
+    // Simulate a pre-measures save: committed pieces only, the working
+    // reading separate, no selection field.
+    const { selectedMeasureId: _dropped, ...oldSave } = persisted;
+    const legacy: PersistedWorkbench = {
+      ...oldSave,
+      appliedFragments: persisted.appliedFragments.slice(0, 1),
+    };
+    const state = workbenchReducer(initial, { type: 'LOAD_PROJECT', workbench: legacy });
+    // The working reading was appended as the selected measure.
+    expect(state.appliedFragments).toHaveLength(2);
+    expect(state.selectedMeasureId).toBe(`measure-${legacy.fragment.id}`);
+    expect(state.appliedFragments[1].id).toBe(state.selectedMeasureId);
+    expect(state.appliedFragments[1].fragment).toBe(state.fragment);
+    expect(state.appliedFragments[0].id).toBe(persisted.appliedFragments[0].id);
+  });
+
+  it('LOAD_PROJECT keeps an applied measure’s saved identity while re-deriving its analysis', () => {
+    const two = workbenchReducer(initial, addMeasure('m2'));
+    const persisted = toPersistedWorkbench(two);
     const state = workbenchReducer(initial, { type: 'LOAD_PROJECT', workbench: persisted });
-    expect(state.appliedFragments).toHaveLength(1);
+    expect(state.appliedFragments).toHaveLength(2);
     const piece = state.appliedFragments[0].candidate;
     // Curated-feeling fields survive verbatim…
-    expect(piece.title).toBe(applied.appliedFragments[0].candidate.title);
+    expect(piece.title).toBe(two.appliedFragments[0].candidate.title);
     expect(piece.provenance.fixtureAuthored).toBe(
-      applied.appliedFragments[0].candidate.provenance.fixtureAuthored,
+      two.appliedFragments[0].candidate.provenance.fixtureAuthored,
     );
     // …while the analysis is freshly derived from the piece's own notes.
     expect(piece.harmonyEvents.length).toBeGreaterThan(0);

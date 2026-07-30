@@ -48,6 +48,11 @@ function getCurrentCard(): HTMLElement {
   return getCardByTitle('Current chords');
 }
 
+/** The workbench heading no longer names the reading — the card's chip does. */
+function expectWorkingReading(name: string) {
+  expect(within(getCurrentCard()).getByText(name)).toBeTruthy();
+}
+
 /** Note cells of the first lane (soprano), in time order. */
 function sopranoCells(container: HTMLElement): HTMLElement[] {
   const lane = container.querySelector('[data-lane-grid]');
@@ -59,19 +64,29 @@ describe('HarmonizationWorkbench', () => {
   it('renders the workspace-first layout with candidate A preview-selected', () => {
     render(<HarmonizationWorkbench />);
 
-    // Workspace: heading, master play, four voice checkboxes; boundary pills are gone.
-    expect(screen.getByRole('heading', { level: 2, name: /Grounded descent/ })).toBeTruthy();
+    // Workspace: the bare region heading with the transport in line (reading
+    // names live on the cards below), four voice checkboxes; boundary pills
+    // are gone.
+    expect(screen.getByRole('heading', { level: 2, name: 'Current measure' })).toBeTruthy();
+    expectWorkingReading('Grounded descent');
     expect(screen.getByRole('button', { name: 'Play' })).toBeTruthy();
     expect(screen.getAllByRole('checkbox')).toHaveLength(4);
     expect(screen.queryByText('hold harmony')).toBeNull();
     expect(screen.queryByText('change allowed')).toBeNull();
 
     // The transport is the only playback control here now — Loop and Add note
-    // are gone, and their space teaches the gestures instead.
+    // are gone. The gesture hints fold behind "How to use", closed by default.
     expect(screen.queryByRole('button', { name: 'Loop' })).toBeNull();
     expect(screen.queryByRole('button', { name: '+ Add note' })).toBeNull();
-    expect(screen.getByText(/Hold the bars and drag/)).toBeTruthy();
-    expect(screen.getByText(/Click a note to add a note/)).toBeTruthy();
+    expect(screen.queryByText(/Hold bars \+ drag/)).toBeNull();
+    const howToUse = screen.getByRole('button', { name: 'How to use' });
+    expect(howToUse.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(howToUse);
+    expect(howToUse.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByText(/Hold bars \+ drag to change note lengths/)).toBeTruthy();
+    expect(screen.getByText(/Click a note to change, add, or lock it/)).toBeTruthy();
+    fireEvent.click(howToUse);
+    expect(screen.queryByText(/Hold bars \+ drag/)).toBeNull();
 
     // Palette below with three cards; A selected. Each card carries an
     // explicit Select button (Drew, 2026-07-30: the card body hosts glossary
@@ -112,6 +127,14 @@ describe('HarmonizationWorkbench', () => {
     expect(screen.getAllByText('Authored').length).toBeGreaterThan(0);
   });
 
+  it('offers the time-signature seat: 4/4, the only option for now', () => {
+    render(<HarmonizationWorkbench />);
+    const select = screen.getByRole('combobox', { name: 'Time signature' });
+    const options = within(select).getAllByRole('option');
+    expect(options).toHaveLength(1);
+    expect(options[0].textContent).toBe('4/4');
+  });
+
   it('asks what the section should do, next to the readings it steers', () => {
     render(<HarmonizationWorkbench />);
     const intent = screen.getByRole('combobox', {
@@ -134,7 +157,7 @@ describe('HarmonizationWorkbench', () => {
     const cardC = getCardByTitle('Keep moving');
     fireEvent.click(within(cardC).getByRole('button', { name: 'Select' }));
 
-    expect(screen.getByRole('heading', { level: 2, name: /Keep moving/ })).toBeTruthy();
+    expectWorkingReading('Keep moving');
     expect(cardC.getAttribute('data-selected')).toBe('true');
     expect(getCardByTitle('Grounded descent').getAttribute('data-selected')).toBeNull();
     expect(screen.getAllByText('C/E').length).toBeGreaterThan(0);
@@ -166,7 +189,7 @@ describe('HarmonizationWorkbench', () => {
     // chord instead of dead-ending. The WORKSPACE stays exactly as it is
     // (the surface rule) while computed cards appear around it.
     fireEvent.click(screen.getByRole('button', { name: 'Lock note' }));
-    expect(screen.getByRole('heading', { level: 2, name: /Grounded descent/ })).toBeTruthy();
+    expectWorkingReading('Grounded descent');
     expect(altoCell.getAttribute('data-locked')).toBe('true');
     expect(screen.getAllByText('Computed').length).toBeGreaterThan(0);
     expect(screen.queryByText(/E\+F/)).toBeNull(); // the math filled the old hole
@@ -179,17 +202,24 @@ describe('HarmonizationWorkbench', () => {
     expect(altoCell.getAttribute('data-locked')).not.toBe('true');
     expect(screen.getAllByText('Computed').length).toBeGreaterThan(0);
 
-    // Escape closes the cluster; soprano lock is shown but fixed.
+    // Escape closes the cluster; the soprano lock is a LIVE toggle like every
+    // other voice — nothing defaults locked.
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.queryByRole('toolbar')).toBeNull();
     const sopranoCell = container.querySelector('[data-event-id="a-s-1"]');
     if (!(sopranoCell instanceof HTMLElement)) throw new Error('soprano note cell missing');
     fireEvent.click(sopranoCell);
+    expect(screen.queryByRole('button', { name: 'The melody is always locked' })).toBeNull();
+    const sopranoLock = screen.getByRole('button', { name: 'Lock note' });
+    expect(sopranoLock.hasAttribute('disabled')).toBe(false);
+    fireEvent.click(sopranoLock);
+    expect(sopranoCell.getAttribute('data-locked')).toBe('true');
+    // A locked soprano note is frozen against editing.
     expect(
-      screen
-        .getByRole('button', { name: 'The melody is always locked' })
-        .hasAttribute('disabled'),
+      screen.getByRole('button', { name: 'Raise pitch' }).hasAttribute('disabled'),
     ).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Unlock note' }));
+    expect(sopranoCell.getAttribute('data-locked')).not.toBe('true');
   });
 
   it('hero flow: arrows regenerate engine cards; fixture demos load from Samples', () => {
@@ -202,7 +232,7 @@ describe('HarmonizationWorkbench', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Lower pitch' }));
     expect(screen.getAllByText('Computed').length).toBeGreaterThan(0);
     expect(screen.getAllByText(/chord path/).length).toBeGreaterThan(0);
-    expect(screen.getByRole('heading', { level: 2, name: /Grounded descent/ })).toBeTruthy();
+    expectWorkingReading('Grounded descent');
 
     // ▼ again → mi. The workspace never swapped, so the tool cluster is
     // still open on the same note — press the arrow again directly.
@@ -253,54 +283,102 @@ describe('HarmonizationWorkbench', () => {
     expect(screen.getByText('Playback stopped')).toBeTruthy();
   });
 
-  it('offers the note slider only once the fragment outgrows the beat window', () => {
+  it('caps the editor at one measure, refusing further growth honestly', () => {
     const { container } = render(<HarmonizationWorkbench />);
-    // The default fragment is exactly one measure (four beats), so it fits —
-    // note COUNT is irrelevant, only how many beats they span.
+    // The default fragment fills exactly one measure; the grid never shrinks
+    // below a measure or grows past it, so there is nothing to pan.
     expect(screen.queryByRole('slider')).toBeNull();
 
-    // Clicking a note offers a ghost note on each side; taking the trailing
-    // one copies that note's length (a half note), pushing the fragment past
-    // four beats.
+    // A ghost note that would push the part past the measure is disabled and
+    // says why, instead of silently doing nothing.
     const cells = sopranoCells(container);
     fireEvent.click(cells[cells.length - 1]);
-    fireEvent.click(screen.getByRole('button', { name: 'Add note after' }));
-    expect(screen.getByRole('slider')).toBeTruthy();
+    const ghost = screen.getByRole('button', { name: 'Add note after' });
+    expect(ghost.hasAttribute('disabled')).toBe(true);
+    expect(ghost.getAttribute('title')).toBe('The measure is full — shorten a note first');
+    fireEvent.click(ghost);
+    expect(sopranoCells(container)).toHaveLength(3);
+    expect(screen.queryByRole('slider')).toBeNull();
   });
 
-  it('Add fragment commits the reading and opens the next one holding its chord', () => {
+  it('marks the beats with translucent dots in every voice lane', () => {
     const { container } = render(<HarmonizationWorkbench />);
-    // Nothing applied yet — there is no hymn to play.
-    expect(screen.queryByRole('button', { name: /Play hymn/ })).toBeNull();
+    // One measure of 4/4: four dots per voice lane (the chord lane has none),
+    // the downbeat one per lane.
+    expect(container.querySelectorAll('[data-beat-dot]')).toHaveLength(16);
+    expect(container.querySelectorAll('[data-downbeat]')).toHaveLength(4);
+  });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Add fragment' }));
+  it('the Current hymn starts folded with Play hymn reachable; play never expands it', () => {
+    render(<HarmonizationWorkbench />);
+    // The working measure IS the hymn from first paint…
     expect(screen.getByRole('button', { name: /Play hymn/ })).toBeTruthy();
+    // …but the fold starts closed: no pills, no Add measure.
+    const toggle = screen.getByRole('button', { name: 'Current hymn' });
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByRole('button', { name: 'Add measure' })).toBeNull();
 
-    // The next fragment opens on one beat per part, held on what the applied
-    // piece ended with — four notes, one per lane.
+    // Playing the hymn is reachable while folded and does not expand it.
+    fireEvent.click(screen.getByRole('button', { name: /Play hymn/ }));
+    expect(screen.getByText('Playing all four voices')).toBeTruthy();
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByRole('button', { name: 'Add measure' })).toBeNull();
+
+    // The toggle opens and closes the measure list.
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Add measure' })).toBeTruthy();
+    fireEvent.click(toggle);
+    expect(screen.queryByRole('button', { name: 'Add measure' })).toBeNull();
+  });
+
+  it('Add measure appends and selects; clicking a pill selects it in place', () => {
+    const { container } = render(<HarmonizationWorkbench />);
+    fireEvent.click(screen.getByRole('button', { name: 'Current hymn' }));
+
+    // The working measure renders as the selected pill from the start.
+    const firstPill = screen.getByRole('button', { name: /1\. I held/ });
+    expect(firstPill.closest('[data-selected]')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Hear this measure: 1/ })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add measure' }));
+    // The new measure opens on one beat per part, held on what the previous
+    // measure ended with — four notes, one per lane — and its pill selects.
     expect(container.querySelectorAll('[data-event-id]')).toHaveLength(4);
     expect(sopranoCells(container)).toHaveLength(1);
+    const secondPill = screen.getByRole('button', { name: /2\./ });
+    expect(secondPill.closest('[data-selected]')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /1\. I held/ }).closest('[data-selected]')).toBeNull();
 
-    // The committed piece is a chip with its own audition button.
-    const piece = screen.getByRole('button', { name: /1\. I held/ });
-    expect(screen.getByRole('button', { name: /Hear this piece/ })).toBeTruthy();
+    // Clicking pill 1 selects it immediately — its reading loads, the pill
+    // squares up, and there is no replace/rework language anywhere.
+    fireEvent.click(screen.getByRole('button', { name: /1\. I held/ }));
+    expectWorkingReading('Grounded descent');
+    expect(screen.getByRole('button', { name: /1\. I held/ }).closest('[data-selected]')).toBeTruthy();
+    expect(screen.queryByText(/replace this piece/)).toBeNull();
 
-    // Clicking the chip loads it back for rework and says so.
-    fireEvent.click(piece);
-    expect(screen.getByText(/replace this piece where it stands/)).toBeTruthy();
-    expect(screen.getByRole('heading', { level: 2, name: /Grounded descent/ })).toBeTruthy();
-
-    // Adding again replaces it: still one piece, no second chip.
-    fireEvent.click(screen.getByRole('button', { name: 'Add fragment' }));
-    expect(screen.queryByText(/replace this piece where it stands/)).toBeNull();
+    // Add measure ALWAYS appends at the end — never replaces the selection.
+    fireEvent.click(screen.getByRole('button', { name: 'Add measure' }));
     expect(screen.getByRole('button', { name: /1\. I held/ })).toBeTruthy();
-    expect(screen.queryByRole('button', { name: /2\./ })).toBeNull();
+    expect(screen.getByRole('button', { name: /2\./ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /3\./ }).closest('[data-selected]')).toBeTruthy();
+  });
+
+  it('the selected pill mirrors the workspace live', () => {
+    render(<HarmonizationWorkbench />);
+    fireEvent.click(screen.getByRole('button', { name: 'Current hymn' }));
+    expect(screen.getByRole('button', { name: /1\. I held/ })).toBeTruthy();
+
+    // Adopting a different reading rewrites the pill immediately — no Add
+    // click needed (write-through).
+    const cardC = getCardByTitle('Keep moving');
+    fireEvent.click(within(cardC).getByRole('button', { name: 'Select' }));
+    expect(screen.queryByRole('button', { name: /1\. I held/ })).toBeNull();
+    expect(screen.getByRole('button', { name: /^1\./ })).toBeTruthy();
   });
 
   it('whole-hymn playback leaves the workspace cursor alone', () => {
     const { container } = render(<HarmonizationWorkbench />);
-    fireEvent.click(screen.getByRole('button', { name: 'Add fragment' }));
-
     fireEvent.click(screen.getByRole('button', { name: /Play hymn/ }));
     expect(screen.getByText('Playing all four voices')).toBeTruthy();
     // The hymn runs on its own timeline, so no workspace note lights up.
@@ -316,7 +394,7 @@ describe('HarmonizationWorkbench', () => {
 
     expect(screen.getByText('Playing all four voices')).toBeTruthy();
     // The play button stops propagation — the selection stays on A.
-    expect(screen.getByRole('heading', { level: 2, name: /Grounded descent/ })).toBeTruthy();
+    expectWorkingReading('Grounded descent');
 
     fireEvent.click(within(cardB).getByRole('button', { name: 'Stop' }));
     expect(screen.getByText('Playback stopped')).toBeTruthy();

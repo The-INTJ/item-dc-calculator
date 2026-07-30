@@ -10,7 +10,14 @@
  * (domain/derive-harmony.ts). Live regeneration only replaces the SUGGESTION
  * cards around the surface; adopting one is an explicit card click.
  *
- * History: MAX_HISTORY undoable snapshots; drags coalesce per gestureId; ids
+ * THE UNIFIED MEASURE LIST: the hymn (appliedFragments) always contains every
+ * measure INCLUDING the one being edited; selectedMeasureId points at it.
+ * The exported reducer wraps the core switch in syncSelectedMeasure, which
+ * writes the workspace back into the selected entry after every action — the
+ * rail pill is live and nothing ever needs an explicit commit.
+ *
+ * History: MAX_HISTORY undoable snapshots (selection included — undo across a
+ * measure switch restores what you saw); drags coalesce per gestureId; ids
  * are always minted by callers (no Date/crypto here — purity + StrictMode).
  */
 
@@ -20,6 +27,8 @@ import { withDerivedAnalysis } from '../domain/derive-harmony';
 import type { HarmonizationFixture } from '../domain/fixture-types';
 import type {
   MelodyEvent,
+  MusicalTime,
+  RationalDuration,
   SATBVoicing,
   VoiceEvent,
   VoiceId,
@@ -35,13 +44,21 @@ import {
   resolveSuggestions,
   type SuggestionResolution,
 } from '../domain/suggest';
-import { unitsToDuration, unitsToTime } from '../domain/timing';
+import {
+  durationToUnits,
+  timeToUnits,
+  UNITS_PER_MEASURE,
+  unitsToDuration,
+  unitsToTime,
+} from '../domain/timing';
 import {
   deleteTimedEvent,
   insertAdjacentTimedEvent,
   resizeTimedEvents,
 } from '../domain/voice-editing';
 import type {
+  AcceptedContext,
+  AppliedFragment,
   PersistedAppliedFragment,
   PersistedCandidate,
   WorkbenchSnapshot,
@@ -63,12 +80,23 @@ export function createInitialWorkbenchState(fixture: HarmonizationFixture): Work
   const candidates = candidateSet
     ? stampApproach(candidateSet.candidates, fixture.initialState.acceptedContext)
     : [];
+  const first = candidates[0] ?? null;
+  // Deterministic measure id (reducer purity — no crypto): the `measure-`
+  // prefix cannot collide with caller-minted entry ids.
+  const measureId = first ? `measure-${fixture.initialState.fragment.id}` : null;
   return {
     tonalContext: fixture.initialState.tonalContext,
     phraseIntent: fixture.initialState.phraseIntent,
     tempoBpm: fixture.initialState.tempoBpm,
     acceptedContext: fixture.initialState.acceptedContext,
-    appliedFragments: [],
+    // The working fragment IS the hymn's first measure, selected from the
+    // start. (Spec §10.1's "preview-selected, not applied" distinction
+    // dissolved with the unified measure list.) Entry fields share references
+    // with fragment/candidates[0] so the sync wrapper short-circuits.
+    appliedFragments:
+      first && measureId
+        ? [{ id: measureId, fragment: fixture.initialState.fragment, candidate: first }]
+        : [],
     fragment: fixture.initialState.fragment,
     boundaryConstraints: fixture.initialState.boundaryConstraints,
     suggestionStatus: candidates.length > 0 ? 'fresh' : 'empty',
@@ -76,14 +104,13 @@ export function createInitialWorkbenchState(fixture: HarmonizationFixture): Work
     sourceFixtureId: fixture.id,
     candidateSetId: candidateSet ? candidateSet.id : null,
     candidates,
-    // Spec §10.1 step 7: the first candidate is preview-selected, not applied.
-    selectedCandidateId: candidates.length > 0 ? candidates[0].id : null,
+    selectedCandidateId: first ? first.id : null,
     locks: [],
     playback: { status: 'idle' },
     history: [],
     future: [],
     lastGestureId: null,
-    editingAppliedId: null,
+    selectedMeasureId: measureId,
   };
 }
 
@@ -104,6 +131,7 @@ function takeSnapshot(state: WorkbenchState): WorkbenchSnapshot {
     candidates: state.candidates,
     selectedCandidateId: state.selectedCandidateId,
     locks: state.locks,
+    selectedMeasureId: state.selectedMeasureId,
   };
 }
 
@@ -269,6 +297,24 @@ function withVoice(voicing: SATBVoicing, voice: VoiceId, events: VoiceEvent[]): 
   };
 }
 
+/** Where a part currently ends, in sixteenth units. */
+function voiceEndUnits(events: { start: MusicalTime; duration: RationalDuration }[]): number {
+  return events.reduce(
+    (max, event) => Math.max(max, timeToUnits(event.start) + durationToUnits(event.duration)),
+    0,
+  );
+}
+
+/**
+ * The one-measure editor cap: a part may shrink or rearrange freely but never
+ * GROW past a measure; legacy content that already exceeds a measure keeps its
+ * length editable in place. (4/4 assumption — see the meter ledger in
+ * domain/timing.ts.)
+ */
+function measureCap(events: { start: MusicalTime; duration: RationalDuration }[]): number {
+  return Math.max(UNITS_PER_MEASURE, voiceEndUnits(events));
+}
+
 function isNoteLocked(state: WorkbenchState, candidateId: string, eventId: string): boolean {
   return state.locks.some(
     (lock) =>
@@ -311,89 +357,52 @@ function editVoice(
   return { candidates, fragment };
 }
 
-/* ---------- applying the working reading ---------- */
-
-interface AppliedResult {
-  next: WorkbenchState;
-  /** The reading that was just committed — what the next fragment grows from. */
-  candidate: CandidatePath;
-}
+/* ---------- the measure seam ---------- */
 
 /**
- * Commit the working reading to the composition. Reworking an existing piece
- * replaces it where it stands (its id and position in the hymn survive); a
- * fresh piece appends. Null when there is nothing to commit.
+ * The seam a measure at `index` grows out of: its predecessor's final chord
+ * and notes (what the measure's first chord is read against —
+ * domain/approach.ts). Index 0 opens the hymn.
  */
-function applyWorkingReading(state: WorkbenchState, appliedId: string): AppliedResult | null {
-  const candidate = state.candidates.find((entry) => entry.id === state.selectedCandidateId);
-  if (!candidate) return null;
-  const finalHarmony = candidate.harmonyEvents[candidate.harmonyEvents.length - 1];
-  if (!finalHarmony) return null;
-
-  const editingIndex = state.editingAppliedId
-    ? state.appliedFragments.findIndex((entry) => entry.id === state.editingAppliedId)
-    : -1;
-  if (editingIndex >= 0) {
-    const existingId = state.appliedFragments[editingIndex].id;
-    const appliedFragments = state.appliedFragments.map((entry, index) =>
-      index === editingIndex
-        ? { id: existingId, fragment: state.fragment, candidate }
-        : entry,
-    );
-    // Finishing a rework puts you back at the end of the hymn: the accepted
-    // context is the tail's harmony again, not the reworked piece's own.
-    const tail = appliedFragments[appliedFragments.length - 1];
-    const tailFinal = tail.candidate.harmonyEvents[tail.candidate.harmonyEvents.length - 1];
-    return {
-      next: {
-        ...pushHistory(state),
-        appliedFragments,
-        editingAppliedId: null,
-        acceptedContext: tailFinal
-          ? {
-              previousHarmony: asAcceptedHarmony(tailFinal, tail.id),
-              // The notes the hymn leaves off on — what the next snippet's
-              // first chord is read against (domain/approach.ts).
-              previousVoicing: tail.candidate.voicing,
-            }
-          : state.acceptedContext,
-      },
-      candidate: tail.candidate,
-    };
-  }
-
+function acceptedContextForIndex(applied: AppliedFragment[], index: number): AcceptedContext {
+  const previous = index > 0 ? applied[index - 1] : null;
+  const previousFinal = previous
+    ? previous.candidate.harmonyEvents[previous.candidate.harmonyEvents.length - 1]
+    : null;
   return {
-    next: {
-      ...pushHistory(state),
-      appliedFragments: [
-        ...state.appliedFragments,
-        { id: appliedId, fragment: state.fragment, candidate },
-      ],
-      acceptedContext: {
-        previousHarmony: asAcceptedHarmony(finalHarmony, appliedId),
-        previousVoicing: candidate.voicing,
-      },
-    },
-    candidate,
+    previousHarmony:
+      previous && previousFinal ? asAcceptedHarmony(previousFinal, previous.id) : null,
+    previousVoicing: previous ? previous.candidate.voicing : null,
   };
 }
 
 /* ---------- reducer ---------- */
 
-function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): WorkbenchState {
+function coreReducer(state: WorkbenchState, action: WorkbenchAction): WorkbenchState {
   switch (action.type) {
     case 'LOAD_FIXTURE':
       return createInitialWorkbenchState(action.fixture);
 
     case 'LOAD_SAMPLE': {
-      // A new fragment is not the applied piece you were reworking.
-      const base = { ...pushHistory(state), editingAppliedId: null };
+      // The sample loads INTO the selected measure — selection survives, and
+      // the write-through sync mirrors the sample's reading onto its pill.
+      const base = pushHistory(state);
+      const selectedIndex = state.selectedMeasureId
+        ? state.appliedFragments.findIndex((entry) => entry.id === state.selectedMeasureId)
+        : -1;
+      // A fresh (non-kept) context still honors the hymn: a mid-hymn measure
+      // grows out of its predecessor; only the FIRST measure adopts the
+      // sample's own opening seam.
+      const freshContext = (opening: AcceptedContext): AcceptedContext =>
+        selectedIndex > 0
+          ? acceptedContextForIndex(state.appliedFragments, selectedIndex)
+          : opening;
       if (action.source.kind === 'fixture') {
         const fixture = action.source.fixture;
         const init = fixture.initialState;
         const acceptedContext = action.keepAcceptedContext
           ? state.acceptedContext
-          : init.acceptedContext;
+          : freshContext(init.acceptedContext);
         const next: WorkbenchState = {
           ...base,
           tonalContext: init.tonalContext,
@@ -407,11 +416,11 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
         };
         const pinned = fixture.match.acceptedHarmonySignature;
         if (
-          action.keepAcceptedContext &&
           pinned !== undefined &&
           pinned !== acceptedHarmonySignature(acceptedContext.previousHarmony)
         ) {
-          // The kept context diverges from the fixture's pin — resolve honestly.
+          // The context in force (kept, or a mid-hymn predecessor seam)
+          // diverges from the fixture's pin — resolve honestly.
           // Loading a sample is an explicit replacement: clear the working
           // reading so the resolution owns the whole workspace.
           return regenerate({
@@ -438,9 +447,13 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
         locks: [],
         acceptedContext: action.keepAcceptedContext
           ? state.acceptedContext
-          : { previousHarmony: null, previousVoicing: null },
+          : freshContext({ previousHarmony: null, previousVoicing: null }),
         sourceFixtureId: null,
-        // Explicit replacement — the blank sample owns the workspace.
+        // Explicit replacement — the blank sample owns the workspace. If the
+        // resolution comes back empty (unsupported mode), the selected
+        // measure's entry stays as it was, stale against the workspace melody
+        // until the next selection — rare, self-healing (sync skips when no
+        // candidate is selected).
         candidates: [],
         selectedCandidateId: null,
         candidateSetId: null,
@@ -456,22 +469,45 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
       const working = saved.workingCandidate
         ? rehydrateCandidate(saved.workingCandidate)
         : null;
+      const rehydrated = saved.appliedFragments.map((applied) => ({
+        id: applied.id,
+        fragment: applied.fragment,
+        candidate: rehydrateAppliedCandidate(applied),
+      }));
+      const savedSelection =
+        saved.selectedMeasureId &&
+        rehydrated.some((entry) => entry.id === saved.selectedMeasureId)
+          ? saved.selectedMeasureId
+          : null;
+      let appliedFragments = rehydrated;
+      let selectedMeasureId = savedSelection;
+      if (!selectedMeasureId && working) {
+        // Old save (pre-selectedMeasureId) or a selection lost to trimming:
+        // the separately-saved working reading becomes the selected measure,
+        // appended. Deterministic id (purity) — the `measure-` prefix cannot
+        // collide with caller-minted entry ids.
+        selectedMeasureId = `measure-${saved.fragment.id}`;
+        appliedFragments = [
+          ...rehydrated,
+          { id: selectedMeasureId, fragment: saved.fragment, candidate: working },
+        ];
+      }
       const loaded: WorkbenchState = {
         tonalContext: saved.tonalContext,
         phraseIntent: saved.phraseIntent,
         tempoBpm: saved.tempoBpm,
         acceptedContext: saved.acceptedContext,
-        appliedFragments: saved.appliedFragments.map((applied) => ({
-          id: applied.id,
-          fragment: applied.fragment,
-          candidate: rehydrateAppliedCandidate(applied),
-        })),
+        appliedFragments,
         fragment: saved.fragment,
         boundaryConstraints: saved.boundaryConstraints,
         suggestionStatus: 'empty',
         suggestionSource: null,
         sourceFixtureId: saved.sourceFixtureId,
         candidateSetId: null,
+        // The workspace loads from the top-level copies (identical to the
+        // selected entry via write-through; top-level wins if storage was
+        // hand-edited); the sync wrapper then re-points the entry at the
+        // freshly derived candidate.
         candidates: working ? [working] : [],
         selectedCandidateId: working?.id ?? null,
         locks: saved.locks,
@@ -479,7 +515,7 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
         history: [],
         future: [],
         lastGestureId: null,
-        editingAppliedId: null,
+        selectedMeasureId,
       };
       return regenerate(deriveCandidate(loaded, loaded.selectedCandidateId));
     }
@@ -511,19 +547,6 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
     case 'EDIT_PHRASE_INTENT': {
       if (state.phraseIntent === action.phraseIntent) return state;
       return regenerate({ ...pushHistory(state), phraseIntent: action.phraseIntent });
-    }
-
-    case 'SET_ACCEPTED_HARMONY': {
-      if (
-        acceptedHarmonySignature(action.harmony) ===
-        acceptedHarmonySignature(state.acceptedContext.previousHarmony)
-      ) {
-        return state;
-      }
-      return regenerate({
-        ...pushHistory(state),
-        acceptedContext: { previousHarmony: action.harmony, previousVoicing: null },
-      });
     }
 
     case 'STEP_VOICE_EVENT_PITCH': {
@@ -561,15 +584,21 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
       const insertEvents = (events: VoiceEvent[]): VoiceEvent[] | null => {
         const neighbor = events.find((event) => event.id === action.neighborEventId);
         if (!neighbor) return null;
-        return insertAdjacentTimedEvent(events, action.neighborEventId, action.side, (placement) => ({
-          id: action.newEventId,
-          voice: action.voice,
-          pitch: neighbor.pitch,
-          scaleDegree: neighbor.scaleDegree,
-          start: unitsToTime(placement.startUnits),
-          duration: unitsToDuration(placement.units),
-          tieFromPrevious: false,
-        }));
+        return insertAdjacentTimedEvent(
+          events,
+          action.neighborEventId,
+          action.side,
+          (placement) => ({
+            id: action.newEventId,
+            voice: action.voice,
+            pitch: neighbor.pitch,
+            scaleDegree: neighbor.scaleDegree,
+            start: unitsToTime(placement.startUnits),
+            duration: unitsToDuration(placement.units),
+            tieFromPrevious: false,
+          }),
+          { maxTotalUnits: measureCap(events) },
+        );
       };
       const sopranoNeighborIndex = state.candidates
         .find((candidate) => candidate.id === action.candidateId)
@@ -583,14 +612,20 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
           if (sopranoNeighborIndex === undefined || sopranoNeighborIndex < 0) return null;
           const neighbor = events[sopranoNeighborIndex];
           if (!neighbor) return null;
-          return insertAdjacentTimedEvent(events, neighbor.id, action.side, (placement) => ({
-            id: `mel-${action.newEventId}`,
-            pitch: neighbor.pitch,
-            scaleDegree: neighbor.scaleDegree,
-            start: unitsToTime(placement.startUnits),
-            duration: unitsToDuration(placement.units),
-            tieFromPrevious: false,
-          }));
+          return insertAdjacentTimedEvent(
+            events,
+            neighbor.id,
+            action.side,
+            (placement) => ({
+              id: `mel-${action.newEventId}`,
+              pitch: neighbor.pitch,
+              scaleDegree: neighbor.scaleDegree,
+              start: unitsToTime(placement.startUnits),
+              duration: unitsToDuration(placement.units),
+              tieFromPrevious: false,
+            }),
+            { maxTotalUnits: measureCap(events) },
+          );
         },
       );
       if (!result) return state;
@@ -638,6 +673,7 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
         (events) =>
           resizeTimedEvents(events, action.eventId, action.edge, action.targetBoundary, {
             ripple: action.ripple,
+            maxTotalUnits: measureCap(events),
           }),
         (events) => {
           if (sopranoIndex === undefined || sopranoIndex < 0) return null;
@@ -645,6 +681,7 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
           if (!melodyEvent) return null;
           return resizeTimedEvents(events, melodyEvent.id, action.edge, action.targetBoundary, {
             ripple: action.ripple,
+            maxTotalUnits: measureCap(events),
           });
         },
       );
@@ -702,29 +739,43 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
       return { ...state, tempoBpm };
     }
 
-    case 'APPLY_CANDIDATE': {
-      const applied = applyWorkingReading(state, action.appliedId);
-      return applied ? applied.next : state;
-    }
-
-    case 'START_NEXT_FRAGMENT': {
-      const applied = applyWorkingReading(state, action.appliedId);
-      if (!applied) return state;
-      const continuation = continuationFragment(applied.candidate, {
+    case 'ADD_MEASURE': {
+      // No commit step — the outgoing measure is already up to date via the
+      // write-through sync. The new measure always APPENDS at the end,
+      // continuing from the TAIL's final chord (even while an earlier measure
+      // is selected).
+      const tail = state.appliedFragments[state.appliedFragments.length - 1];
+      if (!tail) return state;
+      const continuation = continuationFragment(tail.candidate, {
         fragmentId: action.fragmentId,
         candidateId: action.candidateId,
         melodyEventId: action.melodyEventId,
         voiceEventIds: action.voiceEventIds,
       });
-      // A part with no notes has nothing to carry over — the commit still
-      // stands, you just stay where you are.
-      if (!continuation) return applied.next;
+      // A part with no notes has nothing to carry over — nothing to open.
+      if (!continuation) return state;
+      const appliedFragments = [
+        ...state.appliedFragments,
+        {
+          id: action.appliedId,
+          fragment: continuation.fragment,
+          candidate: continuation.candidate,
+        },
+      ];
       const opened: WorkbenchState = {
-        ...applied.next,
+        ...pushHistory(state),
+        appliedFragments,
+        selectedMeasureId: action.appliedId,
         fragment: continuation.fragment,
+        // Adopt the tail's key and intent — the continuation was derived in
+        // them, and the workbench may have been sitting in an earlier
+        // measure's different key (mid-hymn modulation).
+        tonalContext: tail.candidate.tonalContext,
+        phraseIntent: tail.candidate.phraseIntent,
+        acceptedContext: acceptedContextForIndex(appliedFragments, appliedFragments.length - 1),
         boundaryConstraints: [],
         locks: [],
-        // The new fragment is yours, not a sample's — Restore has nothing to
+        // The new measure is yours, not a sample's — Restore has nothing to
         // restore to and the lock-set lookup must not reach for one.
         sourceFixtureId: null,
         candidates: [continuation.candidate],
@@ -736,27 +787,19 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
       return regenerate(deriveCandidate(opened, opened.selectedCandidateId));
     }
 
-    case 'EDIT_APPLIED_FRAGMENT': {
+    case 'SELECT_MEASURE': {
+      // Rail clicks are casual navigation — re-clicking the selected measure
+      // must not spam history.
+      if (action.appliedId === state.selectedMeasureId) return state;
       const index = state.appliedFragments.findIndex((entry) => entry.id === action.appliedId);
       if (index === -1) return state;
       const applied = state.appliedFragments[index];
-      // The piece before it is this piece's harmonic context; the first piece
-      // opens the hymn.
-      const previous = index > 0 ? state.appliedFragments[index - 1] : null;
-      const previousFinal = previous
-        ? previous.candidate.harmonyEvents[previous.candidate.harmonyEvents.length - 1]
-        : null;
       const loaded: WorkbenchState = {
         ...pushHistory(state),
         fragment: applied.fragment,
         tonalContext: applied.candidate.tonalContext,
         phraseIntent: applied.candidate.phraseIntent,
-        acceptedContext: {
-          previousHarmony:
-            previous && previousFinal ? asAcceptedHarmony(previousFinal, previous.id) : null,
-          // Reworking a middle piece must see the notes it grows out of.
-          previousVoicing: previous ? previous.candidate.voicing : null,
-        },
+        acceptedContext: acceptedContextForIndex(state.appliedFragments, index),
         boundaryConstraints: [],
         locks: [],
         candidates: [applied.candidate],
@@ -764,10 +807,10 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
         selectedCandidateId: applied.candidate.id,
         suggestionStatus: 'fresh',
         suggestionSource: applied.candidate.provenance.fixtureAuthored ? 'authored' : 'computed',
-        editingAppliedId: applied.id,
+        selectedMeasureId: applied.id,
       };
-      // Suggestions re-resolve AROUND the loaded piece; the surface rule keeps
-      // the piece itself exactly as it was applied.
+      // Suggestions re-resolve AROUND the loaded measure; the surface rule
+      // keeps the measure itself exactly as it stands.
       return regenerate(loaded);
     }
 
@@ -818,6 +861,48 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
       return { ...state, playback: { ...state.playback, activeUnit: action.activeUnit } };
     }
   }
+}
+
+/* ---------- write-through sync ---------- */
+
+/**
+ * THE MEASURE MIRROR: after every action the selected measure's list entry is
+ * made to match the workspace ({fragment, selected candidate}), so the rail
+ * pill is always live and nothing ever needs an explicit commit.
+ *
+ * Keys on the MEASURE id, never the candidate id — candidate ids can repeat
+ * across measures (the same authored reading applied twice), and only
+ * selectedMeasureId says which entry mirrors the workspace.
+ *
+ * Reference short-circuit: when neither the fragment nor the selected
+ * candidate object changed, the SAME state object returns — playback ticks,
+ * tempo edits and no-op guards never churn appliedFragments (the autosave dep
+ * array and React memoization rely on this). Snapshots are only ever taken of
+ * already-synced states, so UNDO/REDO restore synced states by induction.
+ */
+function syncSelectedMeasure(state: WorkbenchState): WorkbenchState {
+  const id = state.selectedMeasureId;
+  if (!id) return state;
+  const index = state.appliedFragments.findIndex((entry) => entry.id === id);
+  // A dangling selection (hand-edited save) never invents an entry.
+  if (index === -1) return state;
+  const candidate =
+    state.candidates.find((entry) => entry.id === state.selectedCandidateId) ?? null;
+  // Empty-candidates corner (blank sample in an unsupported mode): leave the
+  // entry as it was rather than writing a measure with no reading.
+  if (!candidate) return state;
+  const entry = state.appliedFragments[index];
+  if (entry.fragment === state.fragment && entry.candidate === candidate) return state;
+  return {
+    ...state,
+    appliedFragments: state.appliedFragments.map((measure, i) =>
+      i === index ? { id, fragment: state.fragment, candidate } : measure,
+    ),
+  };
+}
+
+function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): WorkbenchState {
+  return syncSelectedMeasure(coreReducer(state, action));
 }
 
 export function useWorkbenchReducer(initialFixture: HarmonizationFixture) {

@@ -9,6 +9,8 @@
  */
 
 import type { SATBVoicing, SpelledPitch, VoiceId } from '../music-types';
+// metricStrengthAt: ornamental-continuation merging fires only on weak slices
+// of the 4/4 accent map — see the meter ledger in domain/timing.ts.
 import { metricStrengthAt, toTimelineSpan } from '../timing';
 import { SONORITY_TEMPLATES, identifySonority, type SonorityReading } from './chord-id';
 import { memberOfReading, resolvesByStepSoon, type PlacedNote } from './nct';

@@ -25,7 +25,12 @@ export interface CompositionSpan {
   units: number;
 }
 
-/** Where each applied fragment sits on the hymn timeline, in order. */
+/**
+ * Where each applied fragment sits on the hymn timeline, in order.
+ * Concatenates raw units and re-times with unitsToTime, which assumes one
+ * uniform meter — measures in different meters would need barline-aware
+ * offsets. See the meter ledger in domain/timing.ts.
+ */
 export function compositionSpans(applied: readonly AppliedFragment[]): CompositionSpan[] {
   const spans: CompositionSpan[] = [];
   let offset = 0;

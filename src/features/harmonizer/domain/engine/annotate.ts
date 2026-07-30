@@ -17,6 +17,8 @@ import type {
   SpelledPitchClass,
   TonalContext,
 } from '../music-types';
+// metricStrengthAt: cadential six-four gating and melody-event strengths read
+// the 4/4 accent map — see the meter ledger in domain/timing.ts.
 import { metricStrengthAt, toTimelineSpan, unitsToDuration, unitsToTime } from '../timing';
 import { templateForQuality, type SonorityReading } from './chord-id';
 import { makeEvidence } from './evidence';

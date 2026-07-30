@@ -57,10 +57,6 @@ export function HarmonizationWorkbench() {
   const playback = state.playback;
   const activeUnit = playback.status === 'playing' ? playback.activeUnit : null;
   const selectedCandidate = getSelectedCandidate(state);
-  const selectedIndex = state.candidates.findIndex(
-    (candidate) => candidate.id === state.selectedCandidateId,
-  );
-  const candidateLetter = selectedIndex >= 0 ? String.fromCharCode(65 + selectedIndex) : null;
 
   function getService(): PlaybackService {
     if (!serviceRef.current) {
@@ -156,13 +152,13 @@ export function HarmonizationWorkbench() {
   }
 
   /**
-   * Commit the working reading and open the next fragment already holding the
-   * chord it lands on — one beat per part (domain/next-fragment.ts).
+   * Append a fresh measure at the end of the hymn, already holding the chord
+   * the tail lands on — one beat per part (domain/next-fragment.ts). No
+   * commit step: the measure being left is already synced (write-through).
    */
-  function addFragment() {
-    if (!selectedCandidate) return;
+  function addMeasure() {
     dispatchStructural({
-      type: 'START_NEXT_FRAGMENT',
+      type: 'ADD_MEASURE',
       appliedId: newId(),
       fragmentId: newId(),
       candidateId: newId(),
@@ -308,6 +304,7 @@ export function HarmonizationWorkbench() {
     state.candidates,
     state.selectedCandidateId,
     state.locks,
+    state.selectedMeasureId,
   ]);
 
   function flushSave() {
@@ -393,29 +390,23 @@ export function HarmonizationWorkbench() {
         />
         <section className={styles.region}>
           <AcceptedContextRail
-            acceptedContext={state.acceptedContext}
             appliedFragments={state.appliedFragments}
-            tonalContext={state.tonalContext}
-            editingAppliedId={state.editingAppliedId}
+            selectedMeasureId={state.selectedMeasureId}
             soundingAppliedId={soundingAppliedId}
             hymnPlaying={hymnPlaying}
-            canAddFragment={selectedCandidate !== null}
-            onSetAcceptedHarmony={(harmony) =>
-              dispatchStructural({ type: 'SET_ACCEPTED_HARMONY', harmony })
-            }
+            canAddMeasure={state.appliedFragments.length > 0}
             onPlayHymn={playHymn}
             onPlayApplied={playApplied}
-            onEditApplied={(appliedId) =>
-              dispatchStructural({ type: 'EDIT_APPLIED_FRAGMENT', appliedId })
+            onSelectMeasure={(appliedId) =>
+              dispatchStructural({ type: 'SELECT_MEASURE', appliedId })
             }
-            onAddFragment={addFragment}
+            onAddMeasure={addMeasure}
             onStop={stopPlayback}
           />
         </section>
         <section className={styles.regionNotes}>
           <CandidateInspector
             candidate={selectedCandidate}
-            candidateLetter={candidateLetter}
             fragment={state.fragment}
             playback={playback}
             checkedVoices={checkedVoices}

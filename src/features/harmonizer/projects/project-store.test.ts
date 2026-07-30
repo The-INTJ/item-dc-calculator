@@ -37,15 +37,17 @@ describe('project store', () => {
   });
 
   it('round-trips a mid-hymn save, seam and all', () => {
-    // A snippet in the middle carries an `approach` on every candidate: the
+    // A measure in the middle carries an `approach` on every candidate: the
     // previous chord plus the note each voice arrives from. This is the shape
     // that silently wiped projects when its schema was too strict.
     const initial = createInitialWorkbenchState(getDefaultFixture());
-    const applied = workbenchReducer(initial, { type: 'APPLY_CANDIDATE', appliedId: 'ap1' });
-    const midHymn = workbenchReducer(applied, {
-      type: 'LOAD_SAMPLE',
-      source: { kind: 'fixture', fixture: getDefaultFixture() },
-      keepAcceptedContext: true,
+    const midHymn = workbenchReducer(initial, {
+      type: 'ADD_MEASURE',
+      appliedId: 'm2',
+      fragmentId: 'frag-m2',
+      candidateId: 'cand-m2',
+      melodyEventId: 'mel-m2',
+      voiceEventIds: { soprano: 's-m2', alto: 'a-m2', tenor: 't-m2', bass: 'b-m2' },
     });
     expect(midHymn.candidates[0].approach?.voices.soprano).toBeTruthy();
 
@@ -56,8 +58,56 @@ describe('project store', () => {
     // (previous voicing) persists on the accepted context and the approach is
     // re-stamped on load.
     expect(restored?.workbench.acceptedContext.previousVoicing).not.toBeNull();
-    expect(restored?.workbench.appliedFragments).toHaveLength(1);
+    expect(restored?.workbench.appliedFragments).toHaveLength(2);
     expect(restored?.workbench.workingCandidate).not.toBeNull();
+    expect(restored?.workbench.selectedMeasureId).toBe('m2');
+  });
+
+  it('parses a pre-measures envelope (no selectedMeasureId key)', () => {
+    const { selectedMeasureId: _dropped, ...oldShape } = workbench;
+    window.localStorage.setItem(
+      'harmonizer.projects.v2',
+      JSON.stringify({
+        version: 2,
+        activeProjectId: 'legacy',
+        projects: [
+          {
+            id: 'legacy',
+            name: 'Old save',
+            createdAt: '2026-07-01T00:00:00.000Z',
+            updatedAt: '2026-07-01T00:00:00.000Z',
+            workbench: oldShape,
+          },
+        ],
+      }),
+    );
+    expect(readProjects().projects).toHaveLength(1);
+    expect(readProjects().projects[0].workbench.selectedMeasureId).toBeUndefined();
+  });
+
+  it('trimming never drops the selected measure', () => {
+    const entry = workbench.appliedFragments[0];
+    const many = Array.from({ length: 55 }, (_, index) => ({ ...entry, id: `m${index}` }));
+
+    // Selection deep in the list: the head is trimmed to the cap as before.
+    const project = createProject('Long', {
+      ...workbench,
+      appliedFragments: many,
+      selectedMeasureId: 'm30',
+    });
+    let saved = getActiveProject()!.workbench;
+    expect(saved.appliedFragments).toHaveLength(50);
+    expect(saved.appliedFragments.some((m) => m.id === 'm30')).toBe(true);
+
+    // Selection inside the would-be-dropped head: the cut stops at it.
+    saveWorkbench(project.id, {
+      ...workbench,
+      appliedFragments: many,
+      selectedMeasureId: 'm0',
+    });
+    saved = getActiveProject()!.workbench;
+    expect(saved.appliedFragments).toHaveLength(55);
+    expect(saved.appliedFragments[0].id).toBe('m0');
   });
 
   it('removes the retired v1 key on the first v2 write', () => {

@@ -1,16 +1,70 @@
 @use '@/features/harmonizer/components/shared/breakpoints' as *;
 @use '@/features/harmonizer/components/shared/controls' as *;
 
+.root {
+  // data-open drives the fold styling below; the body itself is
+  // conditionally rendered (not CSS-hidden) so jsdom and screen readers see
+  // the truth.
+}
+
 .headingRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0;
   margin-bottom: 0.85rem;
 }
 
-.heading {
+/* Collapsed: no body below, so the heading row keeps the card tight. */
+.root:not([data-open]) .headingRow {
+  margin-bottom: 0;
+}
+
+.headingWrap {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+/* Same recipe as the settings toggle (ContextBar) at region-heading
+   typography — the two folds read as one idiom. */
+.sectionToggle {
+  appearance: none;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 2rem;
+  padding: 0.15rem 0;
+  cursor: pointer;
+}
+
+.headingText {
   @include wb-region-heading;
+}
+
+.chevron {
+  color: var(--wb-ink-soft);
+  font-size: 1.15rem;
+  transition: transform 160ms ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+/* The little light-brown bar: separates the fold zone from the transport,
+   floating clear of the row's top and bottom edges. */
+.headerDivider {
+  width: 2px;
+  height: 1.1rem;
+  border-radius: 1px;
+  background: var(--wb-accent);
+  opacity: 0.35;
+  margin-left: 0.6rem;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
 }
 
 /* Box-free like every other transport in the workbench — the glyph and its
@@ -24,7 +78,7 @@
 }
 
 /* Small by design — it advances the hymn, it does not dominate the rail. */
-.addFragment {
+.addMeasure {
   @include wb-button;
   display: inline-flex;
   align-items: center;
@@ -50,7 +104,7 @@
   flex-wrap: wrap;
 }
 
-/* One applied piece: click the label to rework it, ▶ to hear just this piece. */
+/* One measure: click the label to open it in the editor, ▶ to hear it. */
 .appliedPiece {
   display: inline-flex;
   align-items: stretch;
@@ -58,14 +112,6 @@
   border-radius: 999px;
   outline: 2px solid transparent;
   outline-offset: 2px;
-}
-
-.appliedPieceEditing {
-  outline-color: var(--wb-accent);
-}
-
-.appliedPieceSounding {
-  outline-color: var(--wb-active-line);
 }
 
 .appliedChip {
@@ -104,80 +150,40 @@
   }
 }
 
-.editingHint {
-  margin: 0.6rem 0 0;
-  font-size: 0.8rem;
-  color: var(--wb-accent-deep);
-}
-
-.chip {
-  appearance: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--wb-accepted);
-  border: 1px solid var(--wb-line-strong);
+/* The selected measure: boxy, raised, stronger green — the pill itself
+   changes shape and mirrors the workspace live (write-through). Promoted
+   from the old mobile-only rework treatment to every viewport. */
+.appliedPieceSelected {
+  outline: none;
   border-radius: var(--wb-radius-chip);
-  padding: 0.45rem 0.85rem;
-  font-size: 0.875rem;
-  color: var(--wb-ink);
-  cursor: pointer;
-  transition: border-color 150ms ease;
 
-  &:hover {
+  .appliedChip,
+  .piecePlay {
     border-color: var(--wb-accent);
+    border-width: 1.5px;
+    background: var(--wb-accepted-strong);
+    box-shadow: var(--wb-shadow-raised);
+  }
+
+  .appliedChip {
+    color: var(--wb-accent-deep);
+    border-right: none;
+    border-radius: var(--wb-radius-chip) 0 0 var(--wb-radius-chip);
+  }
+
+  .piecePlay {
+    border-left: none;
+    border-radius: 0 var(--wb-radius-chip) var(--wb-radius-chip) 0;
   }
 }
 
-.chipNumeral {
-  font-family: var(--wb-font-solfege);
-  font-size: 1.05rem;
-  font-weight: 600;
-}
-
-.chipDivider {
-  color: var(--wb-ink-soft);
-}
-
-.chipSolfege {
-  font-family: var(--wb-font-solfege);
-  font-weight: 600;
-}
-
-.none {
-  color: var(--wb-ink-soft);
-}
-
-.arrow {
-  flex: 1;
-  height: 0;
-  border-top: 2px solid var(--wb-line-strong);
-  position: relative;
-  min-width: 3rem;
-
-  &::after {
-    content: '';
-    position: absolute;
-    right: -1px;
-    top: -5px;
-    border-left: 8px solid var(--wb-line-strong);
-    border-top: 4px solid transparent;
-    border-bottom: 4px solid transparent;
-  }
-}
-
-.arrowLabel {
-  font-size: 0.75rem;
-  color: var(--wb-ink-soft);
-  white-space: nowrap;
+/* After .appliedPieceSelected so a selected measure still lights amber while
+   it sounds (full outline shorthand beats the selected outline: none). */
+.appliedPieceSounding {
+  outline: 2px solid var(--wb-active-line);
 }
 
 @include wb-mobile {
-  /* The arrow's job is decorative alignment; on a phone the chips need the room. */
-  .arrow {
-    display: none;
-  }
-
   .rail {
     flex-direction: column;
     align-items: stretch;
@@ -190,10 +196,10 @@
   }
 
   /**
-   * Fragments stack (Drew, 2026-07-30): a row of pills wrapped unreadably at
-   * phone widths. Each piece is a full-width row, and the one being reworked
-   * gains the boxy, raised look IN PLACE — it never jumps to the top, because
-   * where a fragment sits IS which part of the hymn it is.
+   * Measures stack (Drew, 2026-07-30): a row of pills wrapped unreadably at
+   * phone widths. Each measure is a full-width row, and the selected one
+   * keeps its boxy look IN PLACE — it never jumps to the top, because where
+   * a measure sits IS which part of the hymn it is.
    */
   .appliedGroup {
     display: flex;
@@ -220,33 +226,12 @@
     border-radius: 0 var(--wb-radius-chip) var(--wb-radius-chip) 0;
   }
 
-  .appliedPieceEditing {
-    outline: none;
-
-    .appliedChip,
-    .piecePlay {
-      border-color: var(--wb-accent);
-      border-width: 1.5px;
-      background: var(--wb-surface-raised);
-      box-shadow: var(--wb-shadow-raised);
-    }
-
-    .appliedChip {
-      color: var(--wb-accent-deep);
-      border-right: none;
-    }
-
-    .piecePlay {
-      border-left: none;
-    }
-  }
-
   .appliedPieceSounding {
     outline: 2px solid var(--wb-active-line);
     outline-offset: 1px;
   }
 
-  .addFragment {
+  .addMeasure {
     justify-content: center;
   }
 }

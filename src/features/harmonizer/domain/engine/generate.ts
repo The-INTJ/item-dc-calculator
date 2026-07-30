@@ -34,6 +34,9 @@ import type {
 } from '../music-types';
 import { computeMidi } from '../pitch';
 import { respellDegree, spellDegree } from '../scale';
+// metricStrengthAt: chord-change costs, unresolved-segment merging, and the
+// second-inversion gate all read the 4/4 accent map — see the meter ledger in
+// domain/timing.ts.
 import { metricStrengthAt, toTimelineSpan, unitsToDuration, unitsToTime } from '../timing';
 import { annotateVoicing } from './annotate';
 import { makeEvidence } from './evidence';
@@ -721,6 +724,12 @@ function buildCandidate(
       nextChordSegment !== undefined &&
       (nextChordSegment.step as Extract<PathStep, { kind: 'chord' }>).chord.rootDegree === 5 &&
       metricStrengthAt(segment.startUnit) !== 'weak';
+    // Soprano locks are filtered here because the soprano is the generator's
+    // melodic anchor — it is fixed to the fragment by construction, so a
+    // soprano lock is trivially satisfied. In the UI a soprano lock still
+    // freezes the note against editing (nothing defaults locked, all four
+    // voices carry live lock toggles); anchoring stays soprano until the
+    // melody-in-tenor option (deferred) re-parameterizes Stage B.
     const segmentLocks = lockedPitches.filter(
       (lock) =>
         lock.voice !== 'soprano' &&

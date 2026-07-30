@@ -18,6 +18,7 @@ export const content = {
   comingSoon: 'Coming in a later milestone',
   contextBar: {
     keyLabel: 'Key',
+    timeSignatureLabel: 'Time signature',
     tempoLabel: 'Tempo',
     tempoUnit: 'bpm',
     samplesLabel: 'Samples',
@@ -71,28 +72,21 @@ export const content = {
     },
   },
   regions: {
-    acceptedContext: 'Accepted context',
+    currentHymn: 'Current hymn',
     candidates: 'Suggested readings',
-    inspector: 'Selected reading',
+    inspector: 'Current measure',
   },
   acceptedRail: {
-    arrow: 'active fragment',
-    bassPrefix: 'bass',
-    appliedLabel: 'Applied so far',
-    editHeading: 'Previous harmony',
-    none: 'None — opens the piece',
+    /** Disclosure titles for the Current-hymn fold (starts closed). */
+    hymnShow: 'Show the measures',
+    hymnHide: 'Hide the measures',
     playHymn: 'Play hymn',
     stopHymn: 'Stop',
-    playPiece: 'Hear this piece',
-    editPiece: 'Rework this piece',
-    editingBadge: 'reworking',
-    editingHint: 'Add fragment will replace this piece where it stands.',
-    addFragment: 'Add fragment',
-    addFragmentHint:
-      'Save this fragment and start the next one, held on the notes this one ends with.',
-  },
-  melody: {
-    alwaysLocked: 'The melody is always locked',
+    playPiece: 'Hear this measure',
+    editPiece: 'Open this measure',
+    addMeasure: 'Add measure',
+    addMeasureHint:
+      'Save this measure and start the next one, held on the notes this one ends with.',
   },
   candidates: {
     refresh: 'Refresh alternatives',
@@ -127,11 +121,13 @@ export const content = {
     panFollowing: 'Following playback',
     approachPrefix: 'coming from',
     approachChordPrefix: 'from',
+    /** Disclosure over the gesture hints (starts closed). */
+    howToUse: 'How to use',
     /** The three things a first-time visitor cannot guess from looking. */
     hints: [
-      'Hold the bars and drag to change the length of notes',
-      'Click a note to add a note, change it, or lock it in',
-      'Check/uncheck parts to hear them when pressing this play button',
+      'Hold bars + drag to change note lengths',
+      'Click a note to change, add, or lock it',
+      'Check the parts you want to hear',
     ],
     /** Label inside the two ghost notes that flank the note being edited. */
     ghostAdd: '(click to add)',
@@ -145,6 +141,7 @@ export const content = {
       addAfter: 'Add note after',
       lockedHint: 'Locked notes are frozen — unlock to edit',
       keepOneHint: 'A part keeps at least one note',
+      measureFullHint: 'The measure is full — shorten a note first',
     },
   },
   provenance: {

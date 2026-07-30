@@ -1,0 +1,34 @@
+/* Covers the TRACK area only (the label column sits left of it); lives inside
+   .laneGrid so the mobile pan slides the dots in lockstep with the notes. */
+.overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--wb-lane-label-width, 0px);
+  right: 0;
+  pointer-events: none;
+}
+
+.dot {
+  position: absolute;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px; /* center on the boundary percentage */
+  border-radius: 50%;
+  background: var(--wb-accent);
+  opacity: 0.22;
+}
+
+.dotDownbeat {
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  opacity: 0.4;
+}
+
+/* The measure's opening dot hugs the inside of the left edge instead of
+   straddling it (it would half-clip under the mobile overflow clip). */
+.dotFirst {
+  margin-left: 1px;
+}

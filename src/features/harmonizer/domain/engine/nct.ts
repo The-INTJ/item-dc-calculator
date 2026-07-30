@@ -14,6 +14,8 @@
 
 import type { AnalysisEvidence, MelodyRole } from '../analysis-types';
 import type { SpelledPitch, VoiceId } from '../music-types';
+// UNITS_PER_BEAT: the resolves-by-step horizon defaults to "one beat", which
+// tracks the meter's beat note — see the meter ledger in domain/timing.ts.
 import { UNITS_PER_BEAT, type MetricStrength } from '../timing';
 import { LETTERS } from '../pitch';
 import type { SonorityReading } from './chord-id';

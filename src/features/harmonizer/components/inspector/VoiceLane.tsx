@@ -4,8 +4,9 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
 import { content } from '../../content';
 import type { ApproachVoice } from '../../domain/approach';
 import type { VoiceEvent, VoiceId } from '../../domain/music-types';
-import { toTimelineSpan } from '../../domain/timing';
+import { toTimelineSpan, UNITS_PER_MEASURE } from '../../domain/timing';
 import { voiceTermIds } from '../../knowledge/glossary';
+import { BeatDots } from '../workspace/BeatDots';
 import { classes, pitchDisplay } from '../shared/format';
 import { Icon } from '../shared/Icon';
 import { newId } from '../shared/ids';
@@ -16,8 +17,6 @@ import styles from './CandidateInspector.module.scss';
 interface VoiceLaneProps {
   voice: VoiceId;
   events: VoiceEvent[];
-  /** Soprano = the melody; its notes are always locked (pitch tools disabled). */
-  melodyLocked: boolean;
   /** The note this voice arrives from when the snippet sits mid-hymn. */
   approach?: ApproachVoice;
   activeUnit: number | null;
@@ -74,6 +73,7 @@ function GhostNote({
   side,
   inside,
   label,
+  disabled,
   onClick,
 }: {
   syllable: string;
@@ -81,6 +81,8 @@ function GhostNote({
   /** No neighbor to scoot aside: the ghost sits inside the note, shortening it. */
   inside: boolean;
   label: string;
+  /** The measure is full — the insert would be rejected, so say why. */
+  disabled: boolean;
   onClick: () => void;
 }) {
   return (
@@ -92,6 +94,8 @@ function GhostNote({
         inside && (side === 'before' ? styles.ghostInsideBefore : styles.ghostInsideAfter),
       )}
       aria-label={label}
+      disabled={disabled}
+      title={disabled ? content.inspector.noteTools.measureFullHint : undefined}
       onClick={(clickEvent) => {
         clickEvent.stopPropagation();
         onClick();
@@ -110,7 +114,6 @@ function GhostNote({
 export function VoiceLane({
   voice,
   events,
-  melodyLocked,
   approach,
   activeUnit,
   gridUnits,
@@ -131,6 +134,15 @@ export function VoiceLane({
   const voiceLabel = content.inspector.voiceLabels[voice];
   const tools = content.inspector.noteTools;
   const editingIndex = events.findIndex((event) => event.id === editingEventId);
+  // Mirror of the reducer's one-measure cap (see measureCap in
+  // workbenchReducer.ts): an insert grows the part by the clicked note's
+  // length, so a ghost that would push past the cap is disabled with the
+  // reason instead of silently no-oping.
+  const partEnd = events.reduce((max, event) => {
+    const span = toTimelineSpan(event.start, event.duration);
+    return Math.max(max, span.startUnit - 1 + span.spanUnits);
+  }, 0);
+  const partCap = Math.max(UNITS_PER_MEASURE, partEnd);
 
   /**
    * Edge drag: convert pointer x to a 0-based sixteenth boundary using the
@@ -196,6 +208,7 @@ export function VoiceLane({
       </span>
       <div className={styles.laneTrackClip}>
         <div className={styles.laneGrid} data-lane-grid>
+          <BeatDots gridUnits={gridUnits} />
           <span className={styles.laneLabel} data-lane-label>
             <Term termId={voiceTermIds[voice]} variant="chip" className={styles.laneLabelText}>
               {voiceLabel}
@@ -209,6 +222,9 @@ export function VoiceLane({
             const locked = lockedEventIds.has(event.id);
             const first = index === 0;
             const last = index === events.length - 1;
+            // An insert copies this note's length; blocked when that growth
+            // would push the part past the one-measure cap.
+            const ghostBlocked = partEnd + span.spanUnits > partCap;
             // Notes touch, so a ghost claims room by shrinking the neighbor it
             // abuts. With no neighbor (the lane's own ends) it moves inside and
             // the edited note shortens instead.
@@ -302,27 +318,18 @@ export function VoiceLane({
                       >
                         <Icon name="keyboard_arrow_down" />
                       </button>
-                      {melodyLocked ? (
-                        <button
-                          type="button"
-                          className={styles.noteTool}
-                          disabled
-                          title={content.melody.alwaysLocked}
-                          aria-label={content.melody.alwaysLocked}
-                        >
-                          <Icon name="lock" outlined />
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className={classes(styles.noteTool, locked && styles.noteToolOn)}
-                          aria-pressed={locked}
-                          aria-label={locked ? tools.unlock : tools.lock}
-                          onClick={() => onToggleLock(event)}
-                        >
-                          <Icon name={locked ? 'lock' : 'lock_open'} outlined />
-                        </button>
-                      )}
+                      {/* Every voice locks the same way — nothing defaults
+                          locked. (Soprano stays the generator's melodic
+                          anchor; that is engine behavior, not a UI freeze.) */}
+                      <button
+                        type="button"
+                        className={classes(styles.noteTool, locked && styles.noteToolOn)}
+                        aria-pressed={locked}
+                        aria-label={locked ? tools.unlock : tools.lock}
+                        onClick={() => onToggleLock(event)}
+                      >
+                        <Icon name={locked ? 'lock' : 'lock_open'} outlined />
+                      </button>
                       <button
                         type="button"
                         className={styles.noteTool}
@@ -345,6 +352,7 @@ export function VoiceLane({
                       side="before"
                       inside={first}
                       label={tools.addBefore}
+                      disabled={ghostBlocked}
                       onClick={() => onInsertNote(event.id, 'before')}
                     />
                     <GhostNote
@@ -352,6 +360,7 @@ export function VoiceLane({
                       side="after"
                       inside={last}
                       label={tools.addAfter}
+                      disabled={ghostBlocked}
                       onClick={() => onInsertNote(event.id, 'after')}
                     />
                   </>

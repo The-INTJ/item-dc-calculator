@@ -45,7 +45,11 @@ export type SuggestionStatus = 'fresh' | 'stale' | 'loading' | 'empty' | 'error'
 /** Where the current candidates came from — the derivability probe's headline. */
 export type SuggestionSource = 'authored' | 'computed';
 
-/** One applied (committed) fragment — a chip on the accepted rail. */
+/**
+ * One measure of the hymn — a pill on the Current-hymn rail. The SELECTED
+ * measure's entry mirrors the workspace live (the reducer's write-through
+ * sync), so the rail never shows a stale snapshot of what's being edited.
+ */
 export interface AppliedFragment {
   id: string;
   fragment: MelodyFragment;
@@ -75,11 +79,13 @@ export interface WorkbenchState {
   /** Drag-coalescing bookkeeping; transient — excluded from snapshots and persistence. */
   lastGestureId: string | null;
   /**
-   * The applied piece currently loaded for rework, if any: Apply replaces it
-   * in place instead of appending. Transient session intent — excluded from
-   * snapshots and persistence like lastGestureId.
+   * The always-on cursor into the hymn: which appliedFragments entry the
+   * workspace is editing. Core state — undoable (in snapshots) and persisted.
+   * Soft invariant: non-null whenever a working candidate exists; the only
+   * null corners are empty-candidate states (blank sample in an unsupported
+   * mode, an old save with no working reading).
    */
-  editingAppliedId: string | null;
+  selectedMeasureId: string | null;
 }
 
 /** The undoable slice of workbench state. */
@@ -98,6 +104,7 @@ export type WorkbenchSnapshot = Pick<
   | 'candidates'
   | 'selectedCandidateId'
   | 'locks'
+  | 'selectedMeasureId'
 >;
 
 /**
@@ -135,4 +142,14 @@ export interface PersistedWorkbench {
   sourceFixtureId: string | null;
   workingCandidate: PersistedCandidate | null;
   locks: ConstraintLock[];
+  /**
+   * Additive (2026-07-30): which appliedFragments entry the workspace was
+   * editing. Optional so pre-measures saves still parse under strictObject —
+   * when absent, LOAD_PROJECT appends fragment/workingCandidate as the
+   * selected measure (the one-time migration to the unified measure list).
+   * `fragment` and `workingCandidate` stay persisted even though write-through
+   * makes them copies of the selected entry: they are required keys in old
+   * saves and the migration source.
+   */
+  selectedMeasureId?: string;
 }

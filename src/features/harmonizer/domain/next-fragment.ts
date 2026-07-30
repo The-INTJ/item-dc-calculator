@@ -24,6 +24,9 @@ import type {
 import { metricStrengthAt } from './timing';
 
 const VOICES: VoiceId[] = ['soprano', 'alto', 'tenor', 'bass'];
+// A quarter-note literal — "one beat" only while the beat note is a quarter
+// (4/4). A real meter setting derives this from the beat unit — see the meter
+// ledger in domain/timing.ts.
 const ONE_BEAT = { numerator: 1, denominator: 4 } as const;
 const FRAGMENT_START = { measure: 1, beat: 1, subdivision: 0 } as const;
 
@@ -109,5 +112,14 @@ export function continuationFragment(
     },
   };
   const derived = withDerivedAnalysis(stub, fragment, previous.tonalContext);
-  return { fragment, candidate: { ...derived, title: titleFromHarmony(derived.harmonyEvents) } };
+  return {
+    fragment,
+    candidate: {
+      ...derived,
+      title: titleFromHarmony(derived.harmonyEvents),
+      // Non-empty by contract: PersistedCandidateSchema requires min(1), and
+      // this candidate reaches persistence the moment the measure is added.
+      summary: 'Opens holding the chord the previous measure landed on — the first move is yours.',
+    },
+  };
 }

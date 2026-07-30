@@ -8,7 +8,9 @@ test.describe('key change', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => window.localStorage.clear());
     await page.goto('/harmonizer');
-    await expect(page.getByRole('heading', { level: 2, name: /Grounded descent/ })).toBeVisible();
+    // The heading no longer names the reading — the current-chords card's
+    // chip carries it.
+    await expect(page.getByText('Grounded descent').first()).toBeVisible();
   });
 
   test('re-reads every note in the new key without moving a pitch, and undoes', async ({

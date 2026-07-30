@@ -11,6 +11,8 @@
  * slides. Pure math, unit-tested without a DOM.
  */
 
+// "One measure" of visible beats — meter-derived; see the meter ledger in
+// domain/timing.ts.
 import { BEATS_PER_MEASURE, UNITS_PER_BEAT } from '../../domain/timing';
 
 /** Beats visible at once before panning is offered (one 4/4 measure). */

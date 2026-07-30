@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { content } from '../../content';
 import type { CandidatePath } from '../../domain/analysis-types';
 import type { MelodyFragment, VoiceEvent, VoiceId } from '../../domain/music-types';
-import { totalUnits, voicingUnits } from '../../domain/timing';
+import { totalUnits, UNITS_PER_MEASURE, voicingUnits } from '../../domain/timing';
 import type { PlaybackState, SuggestionSource } from '../../domain/workbench-state';
 import { BoundaryThroughLines } from '../workspace/BoundaryThroughLines';
 import { ChordStrip } from '../workspace/ChordStrip';
+import { classes } from '../shared/format';
 import { Icon } from '../shared/Icon';
 import { newUserEventId } from '../shared/ids';
 import { needsPan, panForUnit, panShiftPercent, trackScale } from '../shared/pan';
@@ -19,7 +20,6 @@ import styles from './CandidateInspector.module.scss';
 
 interface CandidateInspectorProps {
   candidate: CandidatePath | null;
-  candidateLetter: string | null;
   fragment: MelodyFragment;
   playback: PlaybackState;
   checkedVoices: VoiceId[];
@@ -60,7 +60,6 @@ const VOICES: VoiceId[] = ['soprano', 'alto', 'tenor', 'bass'];
  */
 export function CandidateInspector({
   candidate,
-  candidateLetter,
   fragment,
   playback,
   checkedVoices,
@@ -80,6 +79,9 @@ export function CandidateInspector({
   const [editing, setEditing] = useState<{ candidateId: string; eventId: string } | null>(null);
   /** 0–1 slider position for the mobile note track (see shared/pan.ts). */
   const [pan, setPan] = useState(0);
+  /** The How-to-use gesture hints fold, closed by default (mobile concision). */
+  const [hintsOpen, setHintsOpen] = useState(false);
+  const hintsId = useId();
 
   /**
    * Scoped to THIS reading: whole-hymn playback runs on the rail's own
@@ -92,8 +94,13 @@ export function CandidateInspector({
   // Editing selection is scoped to the candidate it was opened on.
   const editingEventId =
     editing && candidate && editing.candidateId === candidate.id ? editing.eventId : null;
-  // The grid must cover the melody AND any voice that was dragged longer.
+  // The editor viewport is a fixed single measure: a fresh one-beat
+  // continuation renders inside the full four beats with all sixteen snap
+  // positions visible. The grid widens only for legacy content that outgrew
+  // a measure before the cap existed. (4/4 assumption — see the meter ledger
+  // in domain/timing.ts.)
   const gridUnits = Math.max(
+    UNITS_PER_MEASURE,
     totalUnits(fragment),
     candidate ? voicingUnits(candidate.voicing) : 0,
   );
@@ -132,63 +139,76 @@ export function CandidateInspector({
 
   return (
     <div>
-      <div className={styles.headingRow}>
-        <h2 className={styles.heading}>
-          {content.regions.inspector}
-          {candidate ? (
-            <span className={styles.headingTitle}>
-              {candidateLetter ? `${candidateLetter} — ` : ''}
-              {candidate.title}
-            </span>
+      {/* The three gestures you can't guess from looking, folded behind a
+          disclosure ABOVE the section title — open, they render large enough
+          to read while trying them. */}
+      {candidate ? (
+        <div className={styles.howToUse}>
+          <button
+            type="button"
+            className={styles.howToUseToggle}
+            aria-expanded={hintsOpen}
+            aria-controls={hintsId}
+            onClick={() => setHintsOpen((value) => !value)}
+          >
+            {content.inspector.howToUse}
+            <Icon
+              name="expand_more"
+              className={classes(styles.chevron, hintsOpen && styles.chevronOpen)}
+            />
+          </button>
+          {hintsOpen ? (
+            <ul className={styles.hints} id={hintsId}>
+              {content.inspector.hints.map((hint) => (
+                <li key={hint}>{hint}</li>
+              ))}
+            </ul>
           ) : null}
-        </h2>
+        </div>
+      ) : null}
+
+      {/* Just the region name and, in line with it, the transport — the
+          reading's own name lives below with the analysis, not up here. */}
+      <div className={styles.headingRow}>
+        <h2 className={styles.heading}>{content.regions.inspector}</h2>
+        {candidate ? (
+          <div className={styles.transport}>
+            {playing ? (
+              <button
+                type="button"
+                className={styles.masterButton}
+                aria-label={content.inspector.stop}
+                title={content.inspector.stop}
+                onClick={onStop}
+              >
+                <Icon name="stop" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={styles.masterButton}
+                aria-label={content.inspector.play}
+                title={content.inspector.play}
+                onClick={onPlayChecked}
+                disabled={checkedVoices.length === 0}
+              >
+                <Icon name="play_arrow" />
+              </button>
+            )}
+          </div>
+        ) : null}
       </div>
 
       {!candidate ? (
         <p className={styles.noSelection}>{content.inspector.noSelection}</p>
       ) : (
         <div className={styles.lanes} style={cssVars(panVars)}>
-          {/* The space the Add note / Loop / Apply buttons used to hold now
-              teaches the three gestures that aren't visible from looking. */}
-          <div className={styles.masterRow}>
-            <ul className={styles.hints}>
-              {content.inspector.hints.map((hint) => (
-                <li key={hint}>{hint}</li>
-              ))}
-            </ul>
-            <div className={styles.transport}>
-              {playing ? (
-                <button
-                  type="button"
-                  className={styles.masterButton}
-                  aria-label={content.inspector.stop}
-                  title={content.inspector.stop}
-                  onClick={onStop}
-                >
-                  <Icon name="stop" />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className={styles.masterButton}
-                  aria-label={content.inspector.play}
-                  title={content.inspector.play}
-                  onClick={onPlayChecked}
-                  disabled={checkedVoices.length === 0}
-                >
-                  <Icon name="play_arrow" />
-                </button>
-              )}
-            </div>
-          </div>
-
           <div className={styles.laneStack}>
             {VOICES.map((voice) => (
               <VoiceLane
                 key={voice}
                 voice={voice}
                 events={candidate.voicing[voice]}
-                melodyLocked={voice === 'soprano'}
                 approach={candidate.approach?.voices[voice]}
                 activeUnit={activeUnit}
                 gridUnits={gridUnits}

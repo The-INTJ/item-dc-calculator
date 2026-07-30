@@ -144,10 +144,22 @@ itself with the notes.
   run's own ends there is no neighbour to displace, so the ghost moves *inside*
   and the edited note shortens instead — which is also what happens to a note
   long enough to fill the whole track.
-- **One transport.** Loop is gone; Play is a big mahogany Material Symbol,
-  box-free, right-aligned in its own container. The space the old buttons held
-  now carries the three gestures you cannot guess by looking (drag the bars,
-  click a note, check the parts).
+- **One transport, in the title bar.** Loop is gone; Play is a big mahogany
+  Material Symbol, box-free, sitting directly in line with the CURRENT MEASURE
+  heading (the heading no longer names the reading — the current-chords card
+  below does). The three gestures you cannot guess by looking (drag the bars,
+  click a note, check the parts) fold behind a **How to use** disclosure above
+  the heading: closed by default for phone concision, enlarged when open.
+- **One measure, dotted.** The editor viewport is exactly one measure: the
+  grid floors at `UNITS_PER_MEASURE` (16 units), so a fresh one-beat
+  continuation shows all four beats with all sixteen snap positions, and a
+  part can never GROW past the measure (`measureCap` in the reducer caps
+  resize and insert; a ghost note that would overflow is disabled with "The
+  measure is full — shorten a note first" instead of silently no-oping;
+  legacy saves longer than a measure keep their length). Translucent brown
+  beat dots (`components/workspace/BeatDots.tsx`) mark every beat in each
+  voice lane — the downbeat strongest — painted under the note cells so they
+  surface exactly where there is room to drag.
 - **Every symbol is a Material Symbol** (`components/shared/Icon.tsx`, font
   loaded once by the route-group layout) and **no symbol sits in a white box**
   — icon-only controls use the `wb-icon-button` mixin: no background, no
@@ -164,11 +176,15 @@ itself with the notes.
   It never touches the workbench: the working reading survives every
   regeneration by the surface rule, so the card you are staring at is exactly
   the one that cannot change.
-- **Settings labels teach themselves.** Key/Tempo/Sound are glossary Terms
-  (`tempo` and `sound` are new core terms, allowlisted in
+- **Settings labels teach themselves.** Key/Time signature/Tempo/Sound are
+  glossary Terms (`tempo` and `sound` are allowlisted in
   `STANDALONE_TERM_IDS` because nothing in the harmonic vocabulary links to
-  them). Their field is a `div`, not a `<label>` — a label would forward the
-  Term button's click to the control it wraps.
+  them; `time-signature` is a core term reachable from `measure`). Their
+  field is a `div`, not a `<label>` — a label would forward the Term button's
+  click to the control it wraps. The **Time signature** select is a 4/4-only
+  SEAT: it names the assumption without changing anything; what a real meter
+  setting must touch is enumerated in the meter ledger at the head of
+  `domain/timing.ts`.
 - **Engine bookkeeping is a dev view.** Provenance badges and derivability
   chips ("chord path", "voicing", …) are hidden unless `?dev=1`
   (`components/shared/useDevFlag.ts`, remembered in localStorage, `?dev=0` to
@@ -188,35 +204,43 @@ itself with the notes.
   clears its own transform before measuring, so the maths is never against a
   previous nudge, and re-measures when nested navigation changes the panel.
 
-### The composition (accepted-context rail)
+### The hymn (Current-hymn rail, 2026-07-30 measures pass)
 
-The rail is the piece so far, not just a context chip. Each applied fragment is
-a chip you can **click to load back into the workspace** for rework, plus a ▶ to
-hear that piece alone; the rail header plays **the whole hymn** end to end.
+The hymn is a list of measures and **exactly one is always selected** — the
+workspace IS the selected measure. The reducer wraps every action in a
+write-through sync (`syncSelectedMeasure`): the selected entry in
+`appliedFragments` always mirrors `{fragment, selected candidate}`, so the
+pill's chord label updates live as you edit and nothing ever needs an explicit
+commit. Even a fresh page starts with the working measure in the rail,
+selected.
 
-- `domain/composition.ts` retimes the applied fragments onto one continuous
-  timeline (`compositionCandidate`) so playback is an ordinary
-  `PlaybackService` call on a synthetic reading whose id is
-  `COMPOSITION_CANDIDATE_ID`. It carries no interpretive claims — it is a
-  projection for playback and display, never an authored reading.
-- **Add fragment** (the rail's own button) is the only way a reading joins the
-  composition. It commits and continues in one undoable step
-  (`START_NEXT_FRAGMENT`): the working reading is applied, then the next
-  fragment opens already **holding the chord this one lands on** — one beat,
-  one note per part, at exactly the pitches the previous fragment ended with
-  (`domain/next-fragment.ts`). Starting from silence made every fragment feel
-  like a new piece; starting from the held chord makes the hymn continuous, and
-  the first thing you do is move away from it. `APPLY_CANDIDATE` survives as
-  the plain commit half (`applyWorkingReading`), no longer wired to a button.
-- Rework is edit-in-place: `EDIT_APPLIED_FRAGMENT` loads the piece with the
-  *preceding* piece as its accepted context (the first piece opens the hymn),
-  and applying then **replaces it where it stands** rather than appending,
-  keeping its id and position. Finishing a rework returns the accepted context
-  to the hymn's tail. `editingAppliedId` is transient session intent — like
-  `lastGestureId` it is excluded from snapshots and persistence.
+- The section starts **folded** ("Current hymn" + caret; clicking anywhere
+  left of the little divider bar toggles it). The header keeps **Play hymn**
+  reachable while closed; open, it shows the measure pills — the selected one
+  boxy, raised, and stronger green (`--wb-accepted-strong`) *in place* — and
+  the **Add measure** button.
+- **Add measure** (`ADD_MEASURE`) always APPENDS: it opens the next measure at
+  the end already **holding the chord the tail lands on** — one beat, one note
+  per part, at exactly the pitches the tail ended with
+  (`domain/next-fragment.ts`) — and selects it. There is no replace-in-place
+  mode and no `APPLY_CANDIDATE`; both dissolved with write-through.
+- Clicking any pill (`SELECT_MEASURE`) loads that measure immediately, with
+  its *preceding* measure as its accepted context (the first measure opens the
+  hymn). The measure you leave keeps its edits where it stands. Selection
+  (`selectedMeasureId`) is core state: in undo snapshots and persisted — an
+  additive **optional** field on the v2 schema, so old saves still parse and
+  migrate on load by appending their separately-saved working reading as the
+  selected measure.
+- `domain/composition.ts` retimes the measures onto one continuous timeline
+  (`compositionCandidate`) so playback is an ordinary `PlaybackService` call
+  on a synthetic reading whose id is `COMPOSITION_CANDIDATE_ID`. It carries no
+  interpretive claims — a projection for playback and display, never an
+  authored reading. Because the working measure is in the list, **Play hymn
+  includes the measure you are editing** — a freshly added one-beat measure
+  plays short until you fill it.
 - Playback scoping: the workspace cursor and transport only respond to the
   workspace's own reading (`playback.candidateId === candidate.id`), so a
-  whole-hymn pass highlights the sounding chip on the rail and leaves the note
+  whole-hymn pass highlights the sounding pill on the rail and leaves the note
   lanes alone.
 
 Deliberately deferred (Drew's future enhancements, both read-only analyses over
@@ -266,10 +290,10 @@ Three more things reflow rather than shrink: the chord strip stacks its label
 **under** the solfège (`flex: 1 0 100%` on the syllable wraps the numeral and
 symbol together onto a second line — no extra markup); the phrase-intent
 question and its select stack instead of sitting side by side with the select
-shoved to the far edge; and applied fragments **stack vertically**, each a
-full-width row. The fragment being reworked gains a raised, boxy look *in
-place* — it never jumps to the top, because where a fragment sits is which part
-of the hymn it is.
+shoved to the far edge; and measures **stack vertically**, each a full-width
+row. The selected measure keeps its raised, boxy look *in place* (the same
+treatment every viewport now uses) — it never jumps to the top, because where
+a measure sits is which part of the hymn it is.
 
 Every card that reads as a pill or panel uses Drew's measured phone spacing,
 `padding: 2px 2px 0 8px` — regions, the context bar, suggestion cards, and note
@@ -282,7 +306,9 @@ opened from mid-sentence card prose from hanging off either one.
 
 Panning (`components/shared/pan.ts`, pure + unit-tested): the window is
 measured in **beats, not notes** — a note can be any length, so four whole
-notes need four times the room of four quarter notes. The window holds one
+notes need four times the room of four quarter notes. With the one-measure
+editor cap the pan machinery is **dormant in practice** — it engages only for
+legacy saves whose parts exceed a measure. The window holds one
 measure (`BEATS_PER_MEASURE`, the length of the default fragment); anything
 longer widens the track to `totalUnits / 16 ×` its window and slides it with
 `left` on a relatively-positioned grid, so **there is no scrollbar and a stray

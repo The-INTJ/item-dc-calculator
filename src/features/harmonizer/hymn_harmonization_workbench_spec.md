@@ -361,7 +361,10 @@ Each melody-event card must display:
 - duration symbol or textual duration;
 - beat or metric position;
 - optional tie indicator;
-- lock state, with the melody always locked by definition.
+- lock state, with the melody always locked by definition. *(Superseded
+  2026-07-30: nothing defaults locked in the UI — all four voices carry live
+  lock toggles. "Melody locked" survives only as engine anchoring: the
+  generator builds around the soprano by construction.)*
 
 Clicking a melody card opens an inline or popover editor with:
 
@@ -479,7 +482,9 @@ The voice rows are ordered:
 3. Tenor
 4. Bass
 
-The soprano row is derived from the melody and is always locked.
+The soprano row is derived from the melody and is always locked. *(Superseded
+2026-07-30: the soprano row is editable and lockable like every other voice;
+the generator still anchors on it — see domain/engine/generate.ts.)*
 
 ### 9.8.3 Optional notation view
 

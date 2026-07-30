@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { content } from '../../content';
 import { keySignatureLabel, listMajorKeyContexts, listMinorKeyContexts } from '../../domain/keys';
+import { TIME_SIGNATURE_LABEL } from '../../domain/timing';
 import type { TonalContext } from '../../domain/music-types';
 import { INSTRUMENTS, type InstrumentId } from '../../services/instruments';
 import type { TermId } from '../../knowledge/glossary';
@@ -76,6 +77,26 @@ function KeySelector({
         <optgroup label={content.contextBar.minorKeysHeading}>{options(minors)}</optgroup>
       </select>
       <span className={styles.fieldHint}>{keySignatureLabel(tonalContext)}</span>
+    </div>
+  );
+}
+
+/**
+ * SEAT ONLY (2026-07-30): the meter is fixed 4/4 and this select changes
+ * nothing — it names the assumption where a user would look for it. When time
+ * signatures become real, this select gains options and dispatches a
+ * SET_TIME_SIGNATURE action; the full sweep that must accompany that is
+ * enumerated in the meter ledger at the head of domain/timing.ts. The select
+ * is deliberately enabled (uncontrolled, single option) so it reads and
+ * announces as a normal setting, not a broken one.
+ */
+function TimeSignatureSelector() {
+  return (
+    <div className={styles.field}>
+      <FieldLabel termId="time-signature">{content.contextBar.timeSignatureLabel}</FieldLabel>
+      <select className={styles.select} aria-label={content.contextBar.timeSignatureLabel}>
+        <option>{TIME_SIGNATURE_LABEL}</option>
+      </select>
     </div>
   );
 }
@@ -193,7 +214,10 @@ export function ContextBar({
         />
       </button>
       <div className={styles.fields}>
+        {/* Key and time signature are the two staff-signature facts; tempo
+            and sound are playback qualities. */}
         <KeySelector tonalContext={tonalContext} onKeyChange={onKeyChange} />
+        <TimeSignatureSelector />
         <TempoControl tempoBpm={tempoBpm} onTempoChange={onTempoChange} />
         <SoundSelector soundId={soundId} onSoundChange={onSoundChange} />
       </div>

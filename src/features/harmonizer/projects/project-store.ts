@@ -81,6 +81,10 @@ const PersistedWorkbenchSchema: z.ZodType<PersistedWorkbench> = z.strictObject({
   sourceFixtureId: z.string().nullable(),
   workingCandidate: PersistedCandidateSchema.nullable(),
   locks: z.array(ConstraintLockSchema),
+  // Additive (2026-07-30): optional so pre-measures saves still parse under
+  // strictObject. Absent ⇒ LOAD_PROJECT migrates (appends the working reading
+  // as the selected measure).
+  selectedMeasureId: z.string().min(1).optional(),
 });
 
 const ProjectEnvelopeSchema: z.ZodType<ProjectEnvelope> = z.strictObject({
@@ -151,10 +155,19 @@ function writeEnvelope(envelope: ProjectEnvelope): 'saved' | 'error' {
 }
 
 function trimWorkbench(workbench: PersistedWorkbench): PersistedWorkbench {
-  if (workbench.appliedFragments.length <= MAX_APPLIED_PER_PROJECT) return workbench;
+  const { appliedFragments, selectedMeasureId } = workbench;
+  if (appliedFragments.length <= MAX_APPLIED_PER_PROJECT) return workbench;
+  // Drop from the head as before, but never across the selected measure — a
+  // save may then exceed MAX only while the user is editing inside the
+  // would-be-dropped head (the quota guard still covers write failure).
+  const overflow = appliedFragments.length - MAX_APPLIED_PER_PROJECT;
+  const selectedIndex = selectedMeasureId
+    ? appliedFragments.findIndex((entry) => entry.id === selectedMeasureId)
+    : -1;
+  const cut = selectedIndex >= 0 ? Math.min(overflow, selectedIndex) : overflow;
   return {
     ...workbench,
-    appliedFragments: workbench.appliedFragments.slice(-MAX_APPLIED_PER_PROJECT),
+    appliedFragments: appliedFragments.slice(cut),
   };
 }
 
@@ -269,5 +282,8 @@ export function toPersistedWorkbench(state: WorkbenchState): PersistedWorkbench 
     // Suggestion cards are not persisted; only locks on the working notes
     // mean anything after a reload.
     locks: state.locks.filter((lock) => lock.candidateId === working?.id),
+    // Conditional spread: a null-selection corner save simply omits the key
+    // (the schema is optional, not nullable).
+    ...(state.selectedMeasureId ? { selectedMeasureId: state.selectedMeasureId } : {}),
   };
 }

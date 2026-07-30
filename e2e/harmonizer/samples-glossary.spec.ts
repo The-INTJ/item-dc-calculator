@@ -3,7 +3,9 @@ import { expect, test } from '@playwright/test';
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => window.localStorage.clear());
   await page.goto('/harmonizer');
-  await expect(page.getByRole('heading', { level: 2, name: /Grounded descent/ })).toBeVisible();
+  // The heading no longer names the reading — the current-chords card's chip
+  // is where the default fixture's reading shows up.
+  await expect(page.getByText('Grounded descent').first()).toBeVisible();
 });
 
 test('fixture demos load from the Samples menu (engine-first everywhere else)', async ({
@@ -11,8 +13,13 @@ test('fixture demos load from the Samples menu (engine-first everywhere else)', 
 }) => {
   await page.getByRole('button', { name: 'Samples' }).click();
   await page.getByRole('menuitem', { name: /Rising melody — build/ }).click();
-  await expect(page.getByRole('heading', { level: 3, name: 'Toward the dominant' })).toBeVisible();
-  await expect(page.getByText('Authored').first()).toBeVisible();
+  // Fixture D's first reading lands on the workbench, so its name reads as a
+  // chip on the Current-chords card; its authored siblings keep their own
+  // card titles. (Provenance badges are a dev view — the titles are the
+  // user-visible signal that the authored set loaded.)
+  const currentCard = page.getByRole('article', { name: 'Current chords' });
+  await expect(currentCard.getByText('Toward the dominant', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 3, name: 'Predominant lean' })).toBeVisible();
 });
 
 test('glossary toggletips open on term click and close on Escape', async ({ page }) => {

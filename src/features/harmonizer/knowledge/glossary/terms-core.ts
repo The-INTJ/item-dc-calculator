@@ -39,7 +39,16 @@ export const coreTerms = {
     tier: 'core',
     definition:
       'A small parcel of beats marked off by bar lines. Hymns usually count three or four beats to the measure, with the first beat carrying the most weight.',
-    seeAlso: ['beat'],
+    seeAlso: ['beat', 'time-signature'],
+  },
+  'time-signature': {
+    id: 'time-signature',
+    display: 'time signature',
+    matches: ['time signatures', 'meter', 'metre'],
+    tier: 'core',
+    definition:
+      'The sign at the head of a piece telling how the beats are parceled into measures — how many to count in each one, and which kind of note carries the count. Everything in this workbench moves in 4/4: four beats to a measure, a quarter note on each beat.',
+    seeAlso: ['measure', 'beat'],
   },
   melody: {
     id: 'melody',

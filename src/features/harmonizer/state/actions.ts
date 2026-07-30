@@ -5,15 +5,18 @@
  * §14.2: ADD/UPDATE/DELETE_MELODY_EVENT are superseded by voice-event editing
  * with soprano→melody mirroring; SET_BOUNDARY_POLICY died with the boundary
  * UI; MARK_SUGGESTIONS_STALE and REFRESH_SUGGESTIONS died with live
- * regeneration (every edit re-resolves synchronously); SET_TEMPO,
- * PLAYBACK_PROGRESS, STEP/INSERT/RESIZE_VOICE_EVENT, LOAD_SAMPLE and
- * LOAD_PROJECT are additions the spec's list omits. The AssertSubtype guard
- * keeps the implemented union inside the vocabulary at compile time.
+ * regeneration (every edit re-resolves synchronously); APPLY_CANDIDATE died
+ * with the unified measure list (the workspace writes through into the
+ * selected measure, so there is nothing left to "apply"); SET_TEMPO,
+ * PLAYBACK_PROGRESS, STEP/INSERT/RESIZE_VOICE_EVENT, LOAD_SAMPLE,
+ * LOAD_PROJECT, ADD_MEASURE and SELECT_MEASURE are additions/renames the
+ * spec's list omits. The AssertSubtype guard keeps the implemented union
+ * inside the vocabulary at compile time.
  */
 
 import type { HarmonizationFixture } from '../domain/fixture-types';
 import type { ConstraintLock } from '../domain/locks';
-import type { HarmonyEvent, MelodyFragment, PhraseIntent, TonalContext, VoiceId } from '../domain/music-types';
+import type { MelodyFragment, PhraseIntent, TonalContext, VoiceId } from '../domain/music-types';
 import type { PersistedWorkbench } from '../domain/workbench-state';
 
 export type WorkbenchActionType =
@@ -22,7 +25,6 @@ export type WorkbenchActionType =
   | 'LOAD_PROJECT'
   | 'EDIT_TONAL_CONTEXT'
   | 'EDIT_PHRASE_INTENT'
-  | 'SET_ACCEPTED_HARMONY'
   | 'STEP_VOICE_EVENT_PITCH'
   | 'INSERT_VOICE_EVENT'
   | 'DELETE_VOICE_EVENT'
@@ -33,9 +35,8 @@ export type WorkbenchActionType =
   | 'START_PLAYBACK'
   | 'STOP_PLAYBACK'
   | 'PLAYBACK_PROGRESS'
-  | 'APPLY_CANDIDATE'
-  | 'START_NEXT_FRAGMENT'
-  | 'EDIT_APPLIED_FRAGMENT'
+  | 'ADD_MEASURE'
+  | 'SELECT_MEASURE'
   | 'UNDO'
   | 'REDO';
 
@@ -51,7 +52,6 @@ export type WorkbenchAction =
   | { type: 'LOAD_PROJECT'; workbench: PersistedWorkbench }
   | { type: 'EDIT_TONAL_CONTEXT'; tonalContext: TonalContext }
   | { type: 'EDIT_PHRASE_INTENT'; phraseIntent: PhraseIntent }
-  | { type: 'SET_ACCEPTED_HARMONY'; harmony: HarmonyEvent | null }
   | {
       type: 'STEP_VOICE_EVENT_PITCH';
       candidateId: string;
@@ -87,22 +87,26 @@ export type WorkbenchAction =
   | { type: 'START_PLAYBACK'; candidateId: string; voices: VoiceId[] }
   | { type: 'STOP_PLAYBACK' }
   | { type: 'PLAYBACK_PROGRESS'; activeUnit: number | null }
-  /** Appends a new piece, or replaces the one being edited (see below). */
-  | { type: 'APPLY_CANDIDATE'; appliedId: string }
   /**
-   * Apply, then open the next fragment already holding what this one ended on
-   * (domain/next-fragment.ts). One undoable step — "Add fragment" on the rail.
+   * Append a fresh measure at the END of the hymn (continuing from the tail's
+   * final chord — domain/next-fragment.ts) and select it. Never replaces:
+   * the outgoing measure is already up to date via write-through. One
+   * undoable step — "Add measure" on the rail. `appliedId` names the NEW
+   * measure.
    */
   | {
-      type: 'START_NEXT_FRAGMENT';
+      type: 'ADD_MEASURE';
       appliedId: string;
       fragmentId: string;
       candidateId: string;
       melodyEventId: string;
       voiceEventIds: Record<VoiceId, string>;
     }
-  /** Load an applied piece back into the workspace so it can be reworked. */
-  | { type: 'EDIT_APPLIED_FRAGMENT'; appliedId: string }
+  /**
+   * Load a measure into the workspace for editing. No commit step — the
+   * measure being left already mirrors the workspace (write-through).
+   */
+  | { type: 'SELECT_MEASURE'; appliedId: string }
   | { type: 'UNDO' }
   | { type: 'REDO' };
 

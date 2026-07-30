@@ -33,6 +33,9 @@ export interface ResizeOptions {
 }
 
 export const MIN_NOTE_UNITS = 1;
+// "4 measures" is four measures OF 4/4; the reducer passes a tighter
+// one-measure cap (measureCap) in practice — see the meter ledger in
+// domain/timing.ts.
 const DEFAULT_MAX_TOTAL_UNITS = 64;
 
 interface Span {

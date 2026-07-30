@@ -5,6 +5,49 @@
  * out on a CSS grid of `totalUnits` columns, and events place themselves with
  * the 1-based spans computed here. The POC meter is fixed 4/4 (spec §4.1);
  * these constants are the single place that assumption lives.
+ *
+ * ================= THE METER LEDGER (Drew, 2026-07-30) =================
+ * Settings shows a Time-signature seat that is 4/4-only (ContextBar's
+ * TimeSignatureSelector). Making ANY time signature real is an architectural
+ * sweep, not a constant swap. Every seat listed here carries a pointer back
+ * to this ledger; the sweep must consider:
+ *
+ * 1. REPRESENTATION — meter becomes state, not module constants: a
+ *    `{ beatsPerMeasure, beatUnit }` value on TonalContext or its own
+ *    workbench + persisted field (zod strictObject lockstep — an optional
+ *    field keeps v2 saves parsing, see projects/project-store.ts). The `/4`
+ *    in UNITS_PER_BEAT hardcodes a quarter-note beat; x/8 meters redefine
+ *    the beat note, and UNITS_PER_MEASURE / TIME_SIGNATURE_LABEL become
+ *    derived values.
+ * 2. TIME ARITHMETIC (this file) — timeToUnits/unitsToTime assume a constant
+ *    measure length (a mid-piece meter change breaks the bijection);
+ *    unitsToDuration reduces against the 16-unit whole (compound meters want
+ *    dotted-friendly reduction); formatBeatRange and unitsToSeconds assume
+ *    quarter = one beat.
+ * 3. THE ACCENT MAP — metricStrengthAt IS the 4/4 pattern (beat 1 strong,
+ *    beat 3 medium). 3/4 has no medium beat; 6/8 accents beats 1 and 4. Its
+ *    consumers inherit whatever it returns: engine/segmentation.ts
+ *    (ornamental merging on weak slices), engine/nct.ts (one-beat resolution
+ *    horizon), engine/annotate.ts (cadential six-four gating),
+ *    engine/generate.ts (chord-change costs, unresolved-merge and
+ *    second-inversion gates).
+ * 4. THE EDITOR — the one-measure viewport floor
+ *    (components/inspector/CandidateInspector.tsx gridUnits), the growth cap
+ *    (state/workbenchReducer.ts measureCap; domain/voice-editing.ts
+ *    DEFAULT_MAX_TOTAL_UNITS), the beat-dot cadence
+ *    (components/workspace/BeatDots.tsx), the mobile pan window
+ *    (components/shared/pan.ts VISIBLE_BEATS), and the CSS fallback
+ *    `var(--wb-time-units, 16)` in components/shared/_time-grid.scss.
+ * 5. THE SEAM — domain/next-fragment.ts opens a continuation ONE_BEAT long
+ *    with a quarter-note literal; the opening length should track the meter's
+ *    beat note.
+ * 6. THE HYMN PROJECTION — domain/composition.ts concatenates raw units and
+ *    re-times with unitsToTime; measures in different meters need
+ *    barline-aware offsets (per-measure meter would live on AppliedFragment).
+ * 7. PERSISTENCE + FIXTURES — MusicalTimeSchema's subdivision range and every
+ *    fixture assume four subdivisions per beat; saved MusicalTime values are
+ *    only meaningful against the meter they were written in.
+ * =======================================================================
  */
 
 import type { MelodyFragment, MusicalTime, RationalDuration, SATBVoicing } from './music-types';
@@ -14,6 +57,10 @@ export const UNITS_PER_WHOLE_NOTE = 16;
 /** POC meter is fixed 4/4 (spec §4.1). */
 export const BEATS_PER_MEASURE = 4;
 export const UNITS_PER_BEAT = UNITS_PER_WHOLE_NOTE / 4;
+/** Units in one full measure of the fixed 4/4 meter. */
+export const UNITS_PER_MEASURE = BEATS_PER_MEASURE * UNITS_PER_BEAT;
+/** The Settings seat's display string (no musical values in JSX). */
+export const TIME_SIGNATURE_LABEL = '4/4';
 
 export interface TimelineSpan {
   /** 1-based unit index at which the event starts within the fragment. */
@@ -31,7 +78,7 @@ export function durationToUnits(duration: RationalDuration): number {
  */
 export function timeToUnits(time: MusicalTime): number {
   return (
-    (time.measure - 1) * BEATS_PER_MEASURE * UNITS_PER_BEAT +
+    (time.measure - 1) * UNITS_PER_MEASURE +
     (time.beat - 1) * UNITS_PER_BEAT +
     time.subdivision
   );
@@ -54,7 +101,7 @@ export function totalUnits(fragment: MelodyFragment): number {
 
 /** Inverse of timeToUnits: 0-based absolute units → musical time. */
 export function unitsToTime(absoluteUnits: number): MusicalTime {
-  const unitsPerMeasure = BEATS_PER_MEASURE * UNITS_PER_BEAT;
+  const unitsPerMeasure = UNITS_PER_MEASURE;
   const measure = Math.floor(absoluteUnits / unitsPerMeasure) + 1;
   const remainder = ((absoluteUnits % unitsPerMeasure) + unitsPerMeasure) % unitsPerMeasure;
   return {
@@ -94,7 +141,7 @@ export type MetricStrength = 'strong' | 'medium' | 'weak';
  * weak. The engine's segmentation and non-chord-tone rules read this.
  */
 export function metricStrengthAt(absoluteUnit: number): MetricStrength {
-  const unitsPerMeasure = BEATS_PER_MEASURE * UNITS_PER_BEAT;
+  const unitsPerMeasure = UNITS_PER_MEASURE;
   const inMeasure = ((absoluteUnit % unitsPerMeasure) + unitsPerMeasure) % unitsPerMeasure;
   if (inMeasure === 0) return 'strong';
   if (inMeasure === 2 * UNITS_PER_BEAT) return 'medium';

@@ -3,6 +3,8 @@
 // columns resolve identically from the inherited custom properties.
 @mixin time-row {
   display: grid;
+  // The `16` fallback is one 4/4 measure of sixteenths (the inline
+  // --wb-time-units always wins) — see the meter ledger in domain/timing.ts.
   grid-template-columns:
     var(--wb-lane-label-width, 0px)
     repeat(var(--wb-time-units, 16), minmax(0, 1fr));
