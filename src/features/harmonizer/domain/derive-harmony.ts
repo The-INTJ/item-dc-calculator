@@ -93,7 +93,9 @@ export function withDerivedAnalysis(
     summary: alreadyDerived
       ? candidate.summary
       : 'Your working reading — the notes are the source of truth; chords are identified from what sounds.',
-    descriptors: alreadyDerived ? candidate.descriptors : [],
+    // Always wiped: the composer refills them from the fresh facts, so stale
+    // prose can never outlive the notes it described.
+    descriptors: [],
     evidence: [
       {
         id: `${candidate.id}-ev-derived`,

@@ -42,6 +42,7 @@ import {
 } from '../domain/voice-editing';
 import type { WorkbenchSnapshot, WorkbenchState } from '../domain/workbench-state';
 import { listFixtures } from '../fixtures/registry';
+import { composeCandidateProse } from '../knowledge/compose/composer';
 import type { WorkbenchAction } from './actions';
 
 export const MIN_TEMPO_BPM = 40;
@@ -181,14 +182,13 @@ function applyResolution(
   };
 }
 
-/** Re-derive one candidate's analysis from its own notes (the surface rule). */
+/** Re-derive one candidate's analysis from its own notes (the surface rule),
+ * then compose beginner prose from the fresh facts. */
 function deriveCandidate(state: WorkbenchState, candidateId: string | null): WorkbenchState {
   const index = state.candidates.findIndex((candidate) => candidate.id === candidateId);
   if (index === -1) return state;
-  const derived = withDerivedAnalysis(
-    state.candidates[index],
-    state.fragment,
-    state.tonalContext,
+  const derived = composeCandidateProse(
+    withDerivedAnalysis(state.candidates[index], state.fragment, state.tonalContext),
   );
   return {
     ...state,
@@ -196,20 +196,28 @@ function deriveCandidate(state: WorkbenchState, candidateId: string | null): Wor
   };
 }
 
+/** Compose prose for the resolution's computed candidates (authored pass through). */
+function composeResolution(resolution: SuggestionResolution): SuggestionResolution {
+  if (resolution.kind !== 'replace') return resolution;
+  return { ...resolution, candidates: resolution.candidates.map(composeCandidateProse) };
+}
+
 function regenerate(state: WorkbenchState): WorkbenchState {
   return applyResolution(
     state,
-    resolveSuggestions({
-      fragment: state.fragment,
-      tonalContext: state.tonalContext,
-      phraseIntent: state.phraseIntent,
-      acceptedContext: state.acceptedContext,
-      boundaryConstraints: state.boundaryConstraints,
-      locks: state.locks,
-      candidates: state.candidates,
-      sourceFixtureId: state.sourceFixtureId,
-      fixtures: listFixtures(),
-    }),
+    composeResolution(
+      resolveSuggestions({
+        fragment: state.fragment,
+        tonalContext: state.tonalContext,
+        phraseIntent: state.phraseIntent,
+        acceptedContext: state.acceptedContext,
+        boundaryConstraints: state.boundaryConstraints,
+        locks: state.locks,
+        candidates: state.candidates,
+        sourceFixtureId: state.sourceFixtureId,
+        fixtures: listFixtures(),
+      }),
+    ),
   );
 }
 
