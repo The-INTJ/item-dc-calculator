@@ -120,3 +120,5 @@ and network calls — almost always enough to diagnose without re-running.
 4. Drive the app through `page.getByRole`/`getByText` — no MUI class
    selectors, no direct provider calls.
 5. Keep specs under ~150 lines. Split related flows into separate files.
+   (This is the spec-specific guidance — specs are otherwise exempt from the
+   repo file-length caps in `DEV_STANDARDS.md`.)

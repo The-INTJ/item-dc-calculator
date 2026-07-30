@@ -19,6 +19,7 @@ Follow these patterns observed in the existing test suite:
 - **API routes**: Import the route handler directly and call it with a constructed `Request` object. Assert on the response status and JSON body.
 - **Assertions**: Prefer `toEqual` for objects, `toBe` for primitives, `toHaveBeenCalledWith` for mock calls.
 - **File location**: Place test files co-located with the source file using a `.test.ts` or `.test.tsx` suffix. Use `__tests__/` subdirectory only if the module already follows that pattern.
+- **Length**: Test files are exempt from the repo file-length caps (`DEV_STANDARDS.md`), but keep each generated test file focused on one subject — split by subject rather than covering multiple modules in one file.
 
 ## Steps
 

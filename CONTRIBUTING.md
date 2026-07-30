@@ -41,4 +41,5 @@
 - No new `@/src/*` imports
 - Browser CRUD still matches the live Firebase client path
 - Route handlers and `openapi.json` still match each other
+- New and touched files within the length caps (fail at 200 logical lines, functions 60–80) and no `utils`-style dump files introduced — see `DEV_STANDARDS.md`
 - Tests and checks pass

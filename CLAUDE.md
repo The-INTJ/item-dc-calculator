@@ -122,6 +122,15 @@ Import restriction: `@/src/*` imports are banned by ESLint. Use the aliases abov
 - SCSS Modules for page/component styles (e.g., `page.module.scss`, `ContestList.module.scss`).
 - Shared components use barrel exports (`src/components/index.ts`).
 
+### File Length
+
+- Caps are measured in logical lines (non-blank, non-comment): soft check at 100, deliberate design review at 160, hard fail at 200 — never merge a new file over 200 logical lines.
+- Functions cap at 60–80 logical lines; this is the primary rule.
+- Ratchet: caps bind on files you touch; files already over 200 must not grow.
+- Exempt: hand-authored fixtures/data, types-only files, tests and E2E specs, generated files.
+- Split by concept with concept-named files — never create `utils`/`helpers` dump files to satisfy a cap.
+- Full split rules and rationale: `DEV_STANDARDS.md`, "File and function length".
+
 ### API Routes
 
 - Located under `app/api/contest/` following Next.js route handler conventions.

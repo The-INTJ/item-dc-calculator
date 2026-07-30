@@ -19,6 +19,13 @@
 - Prefer `@/components/*` for shared UI.
 - Do not add new `@/src/*` imports.
 
+## File length
+
+- Soft 100 / medium 160 / fail 200 logical lines (non-blank, non-comment); functions 60–80.
+- Ratchet: binds on files you touch; files already over 200 must not grow.
+- Fixtures, types-only files, tests, and generated files are exempt.
+- Split by concept, never into `utils`/`helpers` dumps. Full rules: `DEV_STANDARDS.md`.
+
 ## Data path rules
 
 - Live contest CRUD currently goes through the browser Firebase-backed provider in `src/features/contest/lib/api/`.
