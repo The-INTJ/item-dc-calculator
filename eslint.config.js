@@ -20,6 +20,8 @@ export default [
       'test-results/**',
       'e2e/.auth/**',
       'emulator-data/**',
+      // Claude-created git worktrees live inside the repo; each lints itself.
+      '.claude/worktrees/**',
     ],
   },
   {

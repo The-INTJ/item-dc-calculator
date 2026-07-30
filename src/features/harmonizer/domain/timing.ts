@@ -86,6 +86,21 @@ export function voicingUnits(voicing: SATBVoicing): number {
   return max;
 }
 
+export type MetricStrength = 'strong' | 'medium' | 'weak';
+
+/**
+ * Metric weight of a 0-based unit position in the fixed 4/4 meter: beat 1 is
+ * strong, beat 3 medium, everything else (beats 2/4 and off-beat sixteenths)
+ * weak. The engine's segmentation and non-chord-tone rules read this.
+ */
+export function metricStrengthAt(absoluteUnit: number): MetricStrength {
+  const unitsPerMeasure = BEATS_PER_MEASURE * UNITS_PER_BEAT;
+  const inMeasure = ((absoluteUnit % unitsPerMeasure) + unitsPerMeasure) % unitsPerMeasure;
+  if (inMeasure === 0) return 'strong';
+  if (inMeasure === 2 * UNITS_PER_BEAT) return 'medium';
+  return 'weak';
+}
+
 /** "beat 1" for a quarter on beat 1; "beats 3–4" for a half on beat 3. */
 export function formatBeatRange(start: MusicalTime, duration: RationalDuration): string {
   const beatsSpanned = durationToUnits(duration) / UNITS_PER_BEAT;
