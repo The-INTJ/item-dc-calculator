@@ -16,7 +16,6 @@ export const tonalContext: TonalContext = {
   tonic: pc('C'),
   tonicPitchClass: 0,
   mode: 'major',
-  keySignature: 'C',
   solfegeSystem: 'movable_do',
 };
 

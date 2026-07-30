@@ -42,6 +42,18 @@ export const content = {
       dorian: 'Dorian',
       mixolydian: 'Mixolydian',
     },
+    /** Short forms for key names ("A minor", "D dorian") — never collapse
+     * distinct modes to one word. */
+    modeShortLabels: {
+      major: 'major',
+      natural_minor: 'minor',
+      harmonic_minor: 'harmonic minor',
+      melodic_minor: 'melodic minor',
+      dorian: 'dorian',
+      mixolydian: 'mixolydian',
+    },
+    majorKeysHeading: 'Major keys',
+    minorKeysHeading: 'Minor keys',
   },
   regions: {
     acceptedContext: 'Accepted context',

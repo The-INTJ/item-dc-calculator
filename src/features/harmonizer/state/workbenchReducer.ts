@@ -25,6 +25,7 @@ import type {
   VoiceId,
 } from '../domain/music-types';
 import { resolveLockEntries } from '../domain/lock-signature';
+import { respellAccepted, respellCandidate, respellFragment } from '../domain/respell';
 import { stepDiatonic } from '../domain/scale';
 import { acceptedHarmonySignature } from '../domain/signatures';
 import {
@@ -348,12 +349,24 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
     case 'EDIT_TONAL_CONTEXT': {
       const same =
         state.tonalContext.tonicPitchClass === action.tonalContext.tonicPitchClass &&
+        state.tonalContext.tonic.letter === action.tonalContext.tonic.letter &&
+        state.tonalContext.tonic.accidental === action.tonalContext.tonic.accidental &&
         state.tonalContext.mode === action.tonalContext.mode &&
         state.tonalContext.minorDoSystem === action.tonalContext.minorDoSystem;
       if (same) return state;
-      // Key change re-ANALYZES the working notes (numerals, syllabic reading)
-      // and regenerates the cards — it never rewrites a note.
-      const next = { ...pushHistory(state), tonalContext: action.tonalContext };
+      // Key change re-READS everything and never rewrites a note: every pitch
+      // stays byte-identical while its scaleDegree metadata (fragment, every
+      // candidate's voicing, the accepted seam) is recomputed in the new key.
+      // Applied fragments are deliberately untouched — each carries its own
+      // tonalContext, so a mid-hymn key change is a feature, not corruption.
+      const context = action.tonalContext;
+      const next = {
+        ...pushHistory(state),
+        tonalContext: context,
+        fragment: respellFragment(context, state.fragment),
+        candidates: state.candidates.map((candidate) => respellCandidate(context, candidate)),
+        acceptedContext: respellAccepted(context, state.acceptedContext),
+      };
       return regenerate(deriveCandidate(next, next.selectedCandidateId));
     }
 

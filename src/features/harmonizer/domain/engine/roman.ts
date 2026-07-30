@@ -17,9 +17,9 @@ import type {
   SpelledPitchClass,
   TonalContext,
 } from '../music-types';
-import { ACCIDENTAL_OFFSETS, LETTERS, accidentalText, toPcName } from '../pitch';
+import { ACCIDENTAL_OFFSETS, LETTERS, toPcName } from '../pitch';
 import { diatonicPitch, syllableForDegree } from '../scale';
-import type { SonorityReading, SonorityTemplate } from './chord-id';
+import { SONORITY_TEMPLATES, type SonorityReading, type SonorityTemplate } from './chord-id';
 
 const DEGREE_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'] as const;
 
@@ -130,6 +130,49 @@ function fallbackScaleDegree(context: TonalContext, pc: SpelledPitchClass): Scal
 function joinedLetters(tones: SpelledPitchClass[]): string {
   const labels = tones.map(toPcName);
   return labels.filter((label, i) => labels.indexOf(label) === i).join('+');
+}
+
+/**
+ * Re-read a STORED harmony event in a (new) key: the chord structure, bass,
+ * and inversion stay verbatim — only the key-relative analysis (numeral,
+ * degree reading, function tags) is recomputed. Used when the tonal context
+ * changes under an accepted-context seam. Chords whose quality has no
+ * template (quality 'other') keep an honest '?' numeral.
+ */
+export function reanalyzeStoredHarmony(
+  context: TonalContext,
+  harmony: {
+    chord: { root: SpelledPitchClass; quality: string };
+    bassPitch: SpelledPitch;
+    inversion: 0 | 1 | 2 | 3;
+  },
+): Pick<HarmonicAnalysis, 'romanNumeral' | 'scaleDegreeRoot' | 'functionTags'> {
+  const spelled = degreeForSpelledRoot(context, harmony.chord.root);
+  const scaleDegreeRoot = fallbackScaleDegree(context, harmony.chord.root);
+  const template = SONORITY_TEMPLATES.find((entry) => entry.quality === harmony.chord.quality);
+  if (!spelled || !template) {
+    return { romanNumeral: '?', scaleDegreeRoot, functionTags: spelled ? [] : ['ambiguous'] };
+  }
+  const isSeventh = template.intervals.length === 4;
+  const figure = isSeventh
+    ? SEVENTH_FIGURES[harmony.inversion]
+    : TRIAD_FIGURES[harmony.inversion];
+  const qualityMarker = isSeventh
+    ? template.numeralSuffix.replace(/7$/, '')
+    : template.numeralSuffix;
+  return {
+    romanNumeral:
+      numeralPrefix(spelled.chromaticOffset) +
+      casedNumeral(spelled.degree, template.lowercaseNumeral) +
+      qualityMarker +
+      figure,
+    scaleDegreeRoot,
+    functionTags: functionTagsFor(
+      context,
+      spelled,
+      template.quality === 'diminished' ? 'diminished' : 'other-quality',
+    ),
+  };
 }
 
 /**

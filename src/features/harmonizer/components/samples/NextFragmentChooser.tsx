@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { content } from '../../content';
 import { listFixtureSummaries } from '../../fixtures/registry';
-import { contextLabel } from './SamplesMenu';
+import { contextLabel } from '../shared/format';
 import styles from './NextFragmentChooser.module.scss';
 
 interface NextFragmentChooserProps {

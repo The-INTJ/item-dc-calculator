@@ -61,7 +61,6 @@ export interface TonalContext {
   tonic: SpelledPitchClass;
   tonicPitchClass: number;
   mode: ModeId;
-  keySignature?: string;
   solfegeSystem: 'movable_do';
   minorDoSystem?: 'do_based' | 'la_based';
 }

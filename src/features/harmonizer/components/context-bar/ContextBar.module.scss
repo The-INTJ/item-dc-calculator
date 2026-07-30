@@ -32,6 +32,13 @@
   color: var(--wb-ink-soft);
 }
 
+/* Computed key-signature hint beside the Key select ("3 flats · B♭ E♭ A♭"). */
+.fieldHint {
+  font-size: 0.6875rem;
+  color: var(--wb-ink-soft);
+  white-space: nowrap;
+}
+
 .select {
   @include wb-button;
   padding-right: 1.6rem;

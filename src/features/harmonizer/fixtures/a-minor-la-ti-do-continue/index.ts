@@ -53,7 +53,6 @@ const tonalContext = {
   tonicPitchClass: 9,
   mode: 'natural_minor' as const,
   minorDoSystem: 'la_based' as const,
-  keySignature: 'Am',
   solfegeSystem: 'movable_do' as const,
 };
 

@@ -1,14 +1,8 @@
 import { content } from '../../content';
-import type { TonalContext } from '../../domain/music-types';
 import { listFixtureSummaries } from '../../fixtures/registry';
+import { contextLabel } from '../shared/format';
 import { PopoverMenu, PopoverMenuItem } from '../shared/PopoverMenu';
 import styles from '../context-bar/ContextBar.module.scss';
-
-export function contextLabel(context: TonalContext): string {
-  const accidental = content.accidentalLabels[context.tonic.accidental];
-  const quality = context.mode === 'major' ? 'major' : 'minor';
-  return `${context.tonic.letter}${accidental} ${quality}`;
-}
 
 interface SamplesMenuProps {
   currentFixtureId: string | null;

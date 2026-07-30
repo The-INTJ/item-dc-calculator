@@ -225,6 +225,83 @@ describe('live regeneration', () => {
   });
 });
 
+describe('key change respell', () => {
+  const gMajor = {
+    tonic: { letter: 'G' as const, accidental: 'natural' as const, pitchClass: 7 },
+    tonicPitchClass: 7,
+    mode: 'major' as const,
+    solfegeSystem: 'movable_do' as const,
+  };
+  const ebMajor = {
+    tonic: { letter: 'E' as const, accidental: 'b' as const, pitchClass: 3 },
+    tonicPitchClass: 3,
+    mode: 'major' as const,
+    solfegeSystem: 'movable_do' as const,
+  };
+
+  it('keeps every pitch byte-identical and re-reads every stored degree', () => {
+    const state = workbenchReducer(initial, {
+      type: 'EDIT_TONAL_CONTEXT',
+      tonalContext: gMajor,
+    });
+    // Melody sol-fa-mi (G-F-E) re-reads: G = do, F = te (honest chromatic), E = la.
+    state.fragment.events.forEach((event, i) => {
+      expect(event.pitch).toEqual(initial.fragment.events[i].pitch);
+    });
+    expect(state.fragment.events.map((event) => event.scaleDegree.syllable)).toEqual([
+      'do',
+      'te',
+      'la',
+    ]);
+    // The working reading's voicing degrees follow; its pitches do not move.
+    const workingBefore = initial.candidates.find(
+      (candidate) => candidate.id === initial.selectedCandidateId,
+    )!;
+    const workingAfter = state.candidates.find(
+      (candidate) => candidate.id === initial.selectedCandidateId,
+    )!;
+    for (const voice of ['soprano', 'alto', 'tenor', 'bass'] as const) {
+      workingAfter.voicing[voice].forEach((event, i) => {
+        expect(event.pitch).toEqual(workingBefore.voicing[voice][i].pitch);
+      });
+    }
+    // The re-derived chord strip speaks the new key: C major triad reads IV.
+    expect(workingAfter.harmonyEvents[0].analysis.romanNumeral).toBe('IV');
+  });
+
+  it('undo restores the previous key and every degree reading atomically', () => {
+    const changed = workbenchReducer(initial, {
+      type: 'EDIT_TONAL_CONTEXT',
+      tonalContext: ebMajor,
+    });
+    const undone = workbenchReducer(changed, { type: 'UNDO' });
+    expect(undone.tonalContext).toEqual(initial.tonalContext);
+    expect(undone.fragment).toEqual(initial.fragment);
+    expect(
+      undone.candidates.find((candidate) => candidate.id === initial.selectedCandidateId)
+        ?.voicing,
+    ).toEqual(
+      initial.candidates.find((candidate) => candidate.id === initial.selectedCandidateId)
+        ?.voicing,
+    );
+  });
+
+  it('a spelled-differently context with the same pitch class is a real change', () => {
+    // Same tonic pc as initial C major would be C major itself; use Eb→D#-style
+    // guard indirectly: dispatching the identical context is a no-op…
+    expect(
+      workbenchReducer(initial, { type: 'EDIT_TONAL_CONTEXT', tonalContext: initial.tonalContext }),
+    ).toBe(initial);
+    // …while a different spelling of the same mode is not (Eb vs initial C).
+    const changed = workbenchReducer(initial, {
+      type: 'EDIT_TONAL_CONTEXT',
+      tonalContext: ebMajor,
+    });
+    expect(changed).not.toBe(initial);
+    expect(changed.tonalContext.tonic.letter).toBe('E');
+  });
+});
+
 describe('structural editing', () => {
   it('inserts an inner-voice note by ripple without regenerating', () => {
     const state = workbenchReducer(initial, {

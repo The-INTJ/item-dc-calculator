@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { content } from '../../content';
+import { keySignatureLabel, listMajorKeyContexts, listMinorKeyContexts } from '../../domain/keys';
 import type { PhraseIntent, TonalContext } from '../../domain/music-types';
-import { listTonalContexts } from '../../fixtures/registry';
 import { INSTRUMENTS, type InstrumentId } from '../../services/instruments';
 import { MAX_TEMPO_BPM, MIN_TEMPO_BPM } from '../../state/workbenchReducer';
-import { classes } from '../shared/format';
-import { contextLabel, SamplesMenu } from '../samples/SamplesMenu';
+import { classes, contextLabel } from '../shared/format';
+import { SamplesMenu } from '../samples/SamplesMenu';
 import styles from './ContextBar.module.scss';
 
 interface ContextBarProps {
@@ -25,11 +25,12 @@ interface ContextBarProps {
 
 const PHRASE_INTENTS: PhraseIntent[] = ['continue', 'build', 'approach_cadence', 'close'];
 
+/** Spelling-aware identity — Db major and C# major are different options. */
 function contextKey(context: TonalContext): string {
-  return `${context.tonicPitchClass}:${context.mode}:${context.minorDoSystem ?? ''}`;
+  return `${context.tonic.letter}${context.tonic.accidental}:${context.mode}:${context.minorDoSystem ?? ''}`;
 }
 
-/** One live Key select over the registry's contexts (C major, A minor). */
+/** The Key select over every offered key (12 majors + 12 relative minors). */
 function KeySelector({
   tonalContext,
   onKeyChange,
@@ -37,8 +38,16 @@ function KeySelector({
   tonalContext: TonalContext;
   onKeyChange: (context: TonalContext) => void;
 }) {
-  const contexts = listTonalContexts();
+  const majors = listMajorKeyContexts();
+  const minors = listMinorKeyContexts();
+  const contexts = [...majors, ...minors];
   const currentKey = contextKey(tonalContext);
+  const options = (group: readonly TonalContext[]) =>
+    group.map((context) => (
+      <option key={contextKey(context)} value={contextKey(context)}>
+        {contextLabel(context)}
+      </option>
+    ));
   return (
     <label className={styles.field}>
       <span className={styles.fieldLabel}>{content.contextBar.keyLabel}</span>
@@ -50,12 +59,10 @@ function KeySelector({
           if (next) onKeyChange(next);
         }}
       >
-        {contexts.map((context) => (
-          <option key={contextKey(context)} value={contextKey(context)}>
-            {contextLabel(context)}
-          </option>
-        ))}
+        <optgroup label={content.contextBar.majorKeysHeading}>{options(majors)}</optgroup>
+        <optgroup label={content.contextBar.minorKeysHeading}>{options(minors)}</optgroup>
       </select>
+      <span className={styles.fieldHint}>{keySignatureLabel(tonalContext)}</span>
     </label>
   );
 }

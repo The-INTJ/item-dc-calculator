@@ -123,7 +123,6 @@ export const TonalContextSchema: z.ZodType<TonalContext> = z.strictObject({
   tonic: SpelledPitchClassSchema,
   tonicPitchClass: PitchClassNumberSchema,
   mode: ModeIdSchema,
-  keySignature: z.string().optional(),
   solfegeSystem: z.literal('movable_do'),
   minorDoSystem: z.enum(['do_based', 'la_based']).optional(),
 });

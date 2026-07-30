@@ -187,6 +187,46 @@ export function scaleDegreeForPitchClass(
 }
 
 /**
+ * Re-read a pitch's scale degree in a context — the key-change primitive.
+ * TOTAL for every supported context: the pitch NEVER moves; only the reading
+ * changes. Spelling decides the degree (letter distance from the tonic letter,
+ * accidental delta as the chromatic offset), so F# in C major reads fi and Gb
+ * reads se. Falls back to an enharmonic pitch-class reading when the spelled
+ * offset exceeds ±1 or hits a syllable gap (mi#/ti#), and to the bare letter
+ * degree as a last resort. Null ONLY for unsupported modes.
+ */
+export function respellDegree(
+  context: TonalContext,
+  pitch: SpelledPitch | SpelledPitchClass,
+): ScaleDegreePitch | null {
+  const table = modeTable(context);
+  if (!table) return null;
+  const tonicIndex = LETTERS.indexOf(context.tonic.letter);
+  const letterIndex = LETTERS.indexOf(pitch.letter);
+  const degree = (((letterIndex - tonicIndex + 7) % 7) + 1) as DiatonicDegree;
+
+  const diatonic = diatonicPitch(context, degree, 4);
+  if (diatonic) {
+    const offset = ACCIDENTAL_OFFSETS[pitch.accidental] - ACCIDENTAL_OFFSETS[diatonic.accidental];
+    if (offset >= -1 && offset <= 1) {
+      const syllable = syllableForDegree(context, degree, offset);
+      if (syllable) return { degree, chromaticOffset: offset, syllable };
+    }
+    // Spelled reading unavailable (double-inflection or syllable gap) — try
+    // the enharmonic reading on the side the spelling leans toward.
+    const enharmonic = scaleDegreeForPitchClass(
+      context,
+      pitch.pitchClass,
+      offset < 0 ? 'lowered' : 'raised',
+    );
+    if (enharmonic) return enharmonic;
+  }
+  // Last resort: the letter degree read diatonically. Reachable only for
+  // pathological spellings; totality matters more than the lost inflection.
+  return { degree, chromaticOffset: 0, syllable: table.syllables[degree - 1] };
+}
+
+/**
  * Step a note to the adjacent diatonic degree. Chromatic sources follow the
  * inflection: stepping AGAINST the inflection lands on the same degree natural
  * (si ↓ → sol♮, se ↑ → sol♮); stepping WITH it lands on the adjacent diatonic

@@ -44,7 +44,6 @@ const tonalContext = {
   tonic: pc('C'),
   tonicPitchClass: 0,
   mode: 'major' as const,
-  keySignature: 'C',
   solfegeSystem: 'movable_do' as const,
 };
 
