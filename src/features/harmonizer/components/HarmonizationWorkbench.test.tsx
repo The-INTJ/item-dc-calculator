@@ -42,18 +42,26 @@ describe('HarmonizationWorkbench', () => {
     expect(screen.queryByText('hold harmony')).toBeNull();
     expect(screen.queryByText('change allowed')).toBeNull();
 
-    // Palette below with three clickable cards; A selected, no Select buttons.
+    // Palette below with three cards; A selected. Each card carries an
+    // explicit Select button (Drew, 2026-07-30: the card body hosts glossary
+    // terms, so the whole card is no longer a click target); the selected
+    // card's button reads Selected and is inert.
     expect(screen.getAllByRole('article')).toHaveLength(3);
     expect(getCardByTitle('Grounded descent').getAttribute('data-selected')).toBe('true');
-    expect(screen.queryByRole('button', { name: 'Select' })).toBeNull();
+    expect(screen.getAllByRole('button', { name: 'Select' })).toHaveLength(2);
+    expect(
+      within(getCardByTitle('Grounded descent'))
+        .getByRole('button', { name: 'Selected' })
+        .hasAttribute('disabled'),
+    ).toBe(true);
     expect(screen.queryByRole('button', { name: '▶ SATB' })).toBeNull();
   });
 
-  it('selects a reading by clicking its card', () => {
+  it('selects a reading with its Select button', () => {
     render(<HarmonizationWorkbench />);
 
     const cardC = getCardByTitle('Keep moving');
-    fireEvent.click(cardC);
+    fireEvent.click(within(cardC).getByRole('button', { name: 'Select' }));
 
     expect(screen.getByRole('heading', { level: 2, name: /Keep moving/ })).toBeTruthy();
     expect(cardC.getAttribute('data-selected')).toBe('true');

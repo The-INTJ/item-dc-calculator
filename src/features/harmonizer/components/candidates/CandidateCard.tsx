@@ -14,7 +14,12 @@ interface CandidateCardProps {
   onStop: () => void;
 }
 
-/** The whole card is the select target; the play button is the only inner control. */
+/**
+ * Selection is an explicit button (Drew, 2026-07-30): the card body hosts
+ * glossary term triggers in its prose, and a whole-card click target would
+ * fight the term popovers — hovering a definition must never feel like it
+ * risks switching the workspace.
+ */
 export function CandidateCard({
   summary,
   letter,
@@ -31,17 +36,8 @@ export function CandidateCard({
         selected && styles.cardSelected,
         playing && styles.cardPlaying,
       )}
-      tabIndex={0}
-      aria-label={`${content.candidates.selectCard}: ${summary.title}`}
+      aria-label={summary.title}
       data-selected={selected || undefined}
-      onClick={onSelect}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          event.stopPropagation();
-          onSelect();
-        }
-      }}
     >
       <header className={styles.cardHeader}>
         <span className={styles.cardLetter} aria-hidden="true">
@@ -63,7 +59,6 @@ export function CandidateCard({
         {content.candidates.bassPrefix}{' '}
         <span className={styles.cardBassOutline}>{summary.bassOutline}</span>
       </p>
-      {/* Term triggers stop propagation, so terms in prose never select the card. */}
       <p className={styles.cardSummary}>
         <MarkedText text={summary.summary} />
       </p>
@@ -100,26 +95,20 @@ export function CandidateCard({
         <p className={styles.derivLegend}>{content.provenance.legend}</p>
       ) : null}
       <footer className={styles.cardActions}>
+        <button
+          type="button"
+          className={styles.selectButton}
+          disabled={selected}
+          onClick={onSelect}
+        >
+          {selected ? content.candidates.selectedCard : content.candidates.selectCard}
+        </button>
         {playing ? (
-          <button
-            type="button"
-            className={styles.playButton}
-            onClick={(event) => {
-              event.stopPropagation();
-              onStop();
-            }}
-          >
+          <button type="button" className={styles.playButton} onClick={onStop}>
             ■ {content.candidates.stop}
           </button>
         ) : (
-          <button
-            type="button"
-            className={styles.playButton}
-            onClick={(event) => {
-              event.stopPropagation();
-              onPlayFull();
-            }}
-          >
+          <button type="button" className={styles.playButton} onClick={onPlayFull}>
             ▶ {content.candidates.playFull}
           </button>
         )}

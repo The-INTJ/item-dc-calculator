@@ -24,7 +24,8 @@
     "emulators:reset": "node -e \"require('fs').rmSync('./emulator-data',{recursive:true,force:true})\"",
     "deploy:rules": "firebase deploy --only firestore:rules",
     "deploy:indexes": "firebase deploy --only firestore:indexes",
-    "deploy:firestore": "firebase deploy --only firestore"
+    "deploy:firestore": "firebase deploy --only firestore",
+    "test:e2e:harmonizer": "playwright test --config playwright.harmonizer.config.ts"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^8.5.0",

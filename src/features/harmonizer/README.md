@@ -1,9 +1,13 @@
 # Hymn Harmonization Workbench
 
-Phase 0 UI proof of concept for a hymn-harmonization tool: enter a short
-soprano melody fragment, compare three fixture-authored harmonizations, hear
-them, and inspect the SATB voicing in solfège. The authoritative product and
-technical specification is [hymn_harmonization_workbench_spec.md](./hymn_harmonization_workbench_spec.md).
+A hymn-harmonization workbench for beginner-to-intermediate hymn writers in
+the a-cappella congregational (Primitive Baptist, seven-shape) tradition:
+enter a melody snippet in ANY of the 24 offered keys, hear and edit the SATB
+voicing, and get live engine analysis (chord naming, non-chord tones,
+voice-leading facts) plus generated suggestions with beginner prose whose
+every music term opens a glossary definition. The authoritative product spec
+is [hymn_harmonization_workbench_spec.md](./hymn_harmonization_workbench_spec.md);
+this README records what is BUILT.
 
 Route: `/harmonizer` (route group `app/(harmonizer)/`, `noindex`).
 
@@ -19,8 +23,10 @@ is derived from them, and Drew's constraint is absolute:
   (`domain/derive-harmony.ts`). Change the melody's la to sol over an
   alto/tenor/bass of mi/do/la and you get `Am7` — not a re-voiced C chord.
   Naming a sonority is pure math; whether it *works* is judgment we never fake.
-- Spans whose notes form no shape the naive namer knows render as `?` plus the
-  sounding letters (`E+F`), never as a guess and never as an error.
+- The namer is an honesty ladder (`domain/engine/chord-id.ts`): exact template →
+  fifth-less seventh → incomplete triad → open fifth (first-class — the old
+  books use them freely) → dyad-with-candidates → best-explaining subset →
+  `?` plus the sounding letters. Never a guess, never an error.
 - Regeneration only replaces the **suggestion cards** around the surface.
   Adopting one is an explicit click on that card. The working reading is always
   card A, badged "Your reading".
@@ -29,29 +35,55 @@ is derived from them, and Drew's constraint is absolute:
 (surface) reports. Anything that would rewrite the user's notes belongs in
 neither.
 
-## Status — FULL POC ✅ (live regeneration + derivability probe + minor key + projects)
+## Status — v1: THE REAL MATH AND DATA ✅
 
-Everything below plus: **live regeneration** (every soprano/key/intent/lock/
-accepted-harmony edit re-resolves suggestions synchronously — authored fixture
-match → authored lock-set → naive computed skeletons → honest notice; no stale
-state, no refresh button); **the derivability probe** (computed cards from
-`domain/enumerate.ts` label every aspect ✓ computed / ƒ needs math / ✎ needs
-custom / ? unknown — the engine-vs-data question answered in the UI). There is
-**no dead-end state**: when locks (or a chromatic melody note) rule out every
-chord in the naive vocabulary, that span becomes an honest `?` segment in a
-**constrained sketch** — the pinned notes stay in their lanes, the chord strip
-shows the sounding notes (e.g. `E+F`), the other lanes go blank, and the
-chips say which gap needs math vs. custom data (a full 4-voice sonority is
-always nameable — math; whether it *works* is custom); working note tools (diatonic
-▲▼ via `domain/scale.ts`, insert/delete with rests); five fixture families
-(A + lock-alternative sets, B suspension, C I6, D build [arrow-reachable hero
-demo], E la-based A minor with si); one Key select (C major / A minor);
-Samples menu; boundary through-lines merging into the chord strip; apply →
-chips → next-fragment chooser; undo/redo with drag coalescing; **projects**
-(`projects/project-store.ts`: `harmonizer.projects.v1`, zod-guarded,
-corruption-safe, autosave + header switcher). Suggestion resolution lives in
-`domain/suggest.ts`; the reducer imports the static registry (pure data) by
-design.
+The fixture-driven POC grew its engine (2026-07-30). What is live:
+
+- **Every key.** 12 flat-preferred majors + 12 relative (la-based) minors in
+  the Key select (`domain/keys.ts`), with a computed key-signature hint. A key
+  change re-READS everything and moves nothing: pitches stay byte-identical
+  while every stored scaleDegree re-derives (`domain/respell.ts`) — out-of-key
+  notes read honestly as chromatic syllables (F in G major = te).
+- **The engine** (`domain/engine/`): spelling-faithful chord identification
+  and roman numerals with inversion figures (`chord-id.ts`, `roman.ts` — Bb
+  in C reads bVII, C-over-E reads I6 with the slash symbol), harmonic
+  segmentation with ornamental merging (`segmentation.ts` — a weak passing
+  sixteenth joins the held chord instead of becoming a new one;
+  prepared+resolving sus4s re-read as 4-3 suspensions), textbook non-chord-
+  tone classification (`nct.ts` — solid on passing/neighbor/suspension,
+  honestly 'ambiguous' elsewhere; the published ceiling for this task is
+  F1≈0.72, so ambiguity IS correctness), voice-leading FACTS with zero
+  judgment (`voice-leading.ts` — severity lives in style packs; parallels
+  and open fifths are legitimate style here), a quiet Krumhansl key-sanity
+  flag (`key-sanity.ts`), and ONE shared annotator (`annotate.ts`) so the
+  surface and every card tell the same story.
+- **Generation** (`generate.ts` + `style.ts`): a two-stage beam DP — chord
+  paths costed by McHose chord prevalences, directed progressions, harmonic
+  rhythm, gapped-melody weighting (pentatonic tunes lean away from ti-chords,
+  weighted never filtered), and de Clercq cadence tables ranked by phrase
+  intent (which ranks, never filters); then SATB voicing under hymnal ranges,
+  completeness/doubling rules, root-position preference, and style-weighted
+  smoothness, seeded across the approach seam. Boundary constraints bind
+  (hold forbids a change, required forbids continuing). Common tones merge
+  into held notes, as congregations sing them. Explainable holes absorb into
+  the previous chord as classified ornaments; impossible locks still render
+  honest `?` sketches with pinned notes verbatim.
+- **Engine-first suggestions** (`suggest.ts`): the generator leads always;
+  authored fixtures are Samples-menu demos, parity-regression corpora
+  (`engine-regression.test.ts`), and the unsupported-mode fallback — never a
+  match that outranks live analysis.
+- **Beginner prose** (`knowledge/compose/`): the ExplanationComposer turns
+  facts into solfège-first, glossary-marked sentences ("Hold the do chord
+  (I, C) while the soprano moves sol–fa–mi…"), fills the effect summary
+  ("settled close", "held breath", "open sound"), and stamps its provenance.
+  Curated fixture prose is never overwritten — curated beats computed.
+- **Persistence v2** (`harmonizer.projects.v2`): saves store notes + curated
+  identity only; ALL analysis re-derives on load (the Tier-1 strip), so
+  engine evolution never touches the schema again. Corruption→clean policy
+  unchanged; the v1 key is removed on first write.
+- **E2E**: `npm run test:e2e:harmonizer` (own Playwright config, plain
+  `next dev` on port 3100, no Firebase) drives key change, autosave/reload,
+  Samples, and glossary tips through real user surfaces only.
 
 ### The approach — what a mid-hymn snippet arrives from
 
@@ -78,10 +110,12 @@ data (`domain/approach.ts`), not redrawn as decoration:
   snippet of a fixture that declares one), `voices` is empty and only the chord
   shows. Nothing is invented.
 
-When the math and data land, a non-chord-tone classifier reads
-`approach.voices[voice].pitch` to decide whether a first note is a passing tone
-or a suspension resolving across the seam. Nothing here makes that judgment yet
-— it guarantees the information is present.
+The hook is CASHED: `domain/engine/annotate.ts` reads
+`approach.voices[voice].pitch` so a first-note suspension prepared by the
+previous piece is recognized (with an `approach_seam` evidence entry), the
+sus4 re-read in `segmentation.ts` accepts seam notes as preparation, and the
+generator's opening transition and first voicing column are seeded from the
+approach chord and voices.
 
 Schema note: `voices` is spelled out as four optional members, **not** an
 enum-keyed `z.record`, which is exhaustive in zod v4 — a chord-only seam
@@ -224,7 +258,10 @@ the spec's §9 five-region layout where they conflict:
   create a leading rest, the last note's right edge extends freely, and
   Shift-drag ripples later notes (part length changes). Soprano edits mirror
   onto the melody fragment. Locks are per-note ConstraintLocks — no row locks.
-- Suggested-reading cards are click-to-select (no Select buttons).
+- ~~Suggested-reading cards are click-to-select (no Select buttons).~~
+  Superseded 2026-07-30: cards carry an explicit **Select** button again —
+  their prose now hosts glossary term triggers, and a whole-card click target
+  fights the definition popovers.
 
 Not yet implemented (spec milestones 4–6): note editing (the Add note button
 will open a pick-a-part dropdown), boundary editing, stale-suggestion
@@ -256,9 +293,10 @@ milestone" tooltip.
 
 | Folder | Contents |
 |---|---|
-| `domain/` | Spec §15 music/analysis types, §14 state types, §16 locks, §17 fixture types, pure timing + signature math, plus the two analysis halves: `enumerate.ts` (suggestions proposed around the surface) and `derive-harmony.ts` (the surface's own chords, named from its notes). Dependency-free. |
+| `domain/` | Music/analysis/state types, locks, timing + signature math, the canonical pitch module (`pitch.ts`), all-keys scale math (`scale.ts`, `keys.ts`, `respell.ts`), and the reducer-facing analysis seams: `enumerate.ts` (proposes, via the engine) and `derive-harmony.ts` (reports, via the engine). |
+| `domain/engine/` | The v1 engine: `tonal-bridge.ts` (the ONLY `tonal` import), `chord-id.ts`, `roman.ts`, `segmentation.ts`, `nct.ts`, `voice-leading.ts`, `annotate.ts`, `generate.ts`, `style.ts`, `key-sanity.ts`, `evidence.ts`. Pure, deterministic, synchronous. |
 | `fixtures/` | Zod schemas, parse-at-module-load registry, authoring helpers, and the authored fixture data. |
-| `knowledge/` | The glossary (tiered terms + typed mapping tables) and the marked-text grammar (`[term-id]` parsing, tip-channel). Data + pure functions; the UI lives in `components/shared/Term.tsx` / `MarkedText.tsx`. |
+| `knowledge/` | The glossary (tiered terms + typed mapping tables), the marked-text grammar (`[term-id]` parsing, tip-channel), the ExplanationComposer (`compose/` — fact→prose templates), and the versioned hymnal-default pack manifest (`packs/`). Data + pure functions; the UI lives in `components/shared/Term.tsx` / `MarkedText.tsx`. |
 | `state/` | Reducer (house pattern: module-private pure reducer + hook), actions, selectors. |
 | `services/` | `PlaybackService` contract, the instrument roster (`instruments.ts`), and the dual-engine (Tone.js synth + smplr samples) implementation. |
 | `components/` | UI, organized by screen region; shared time-grid helpers in `components/shared/`. |
@@ -268,6 +306,9 @@ milestone" tooltip.
 - Dev server: `npx next dev` → http://localhost:3000/harmonizer (plain Next;
   the repo-level `npm run dev` boots Firebase emulators this feature never uses).
 - Tests: `npx vitest run src/features/harmonizer` (or repo-wide `npm test`).
+- E2E: `npm run test:e2e:harmonizer` — own config
+  (`playwright.harmonizer.config.ts`), plain `next dev` on port 3100, no
+  Firebase emulators, real user surfaces only (the repo's no-drift rule).
 - The fixture integrity tests (`fixtures/registry.test.ts`) enforce: soprano ≡
   melody, every voice sums to the fragment length, harmony events tile the
   fragment and respect `hold` boundaries, match signatures equal computed

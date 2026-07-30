@@ -83,7 +83,8 @@ export const content = {
   },
   candidates: {
     refresh: 'Refresh alternatives',
-    selectCard: 'Select reading',
+    selectCard: 'Select',
+    selectedCard: 'Selected',
     playFull: 'Full',
     stop: 'Stop',
     bassPrefix: 'Bass:',

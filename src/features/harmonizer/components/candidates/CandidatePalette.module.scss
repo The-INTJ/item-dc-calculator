@@ -191,3 +191,18 @@
 .playButton {
   @include wb-button;
 }
+
+/* The explicit selection control — primary-toned so it reads as THE action;
+ * disabled on the already-selected card (state, not an error). */
+.selectButton {
+  @include wb-button;
+  border-color: var(--wb-accent);
+  color: var(--wb-accent-deep);
+  font-weight: 600;
+
+  &:disabled {
+    border-color: var(--wb-line);
+    color: var(--wb-ink-soft);
+    cursor: default;
+  }
+}
