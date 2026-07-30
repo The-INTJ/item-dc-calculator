@@ -7,6 +7,7 @@ import type { VoiceEvent, VoiceId } from '../../domain/music-types';
 import { toTimelineSpan } from '../../domain/timing';
 import { voiceTermIds } from '../../knowledge/glossary';
 import { classes, pitchDisplay } from '../shared/format';
+import { Icon } from '../shared/Icon';
 import { newId } from '../shared/ids';
 import { Term } from '../shared/Term';
 import { isUnitActive, timeSpanStyle } from '../shared/timeGrid';
@@ -57,10 +58,52 @@ function ApproachNote({ approach, voiceLabel }: { approach: ApproachVoice; voice
         <span className={styles.approachSyllable}>{approach.scaleDegree.syllable}</span>
         <span className={styles.approachPitch}>{pitchDisplay(approach.pitch)}</span>
       </span>
-      <span className={styles.approachArrow} aria-hidden="true">
-        →
-      </span>
+      <Icon name="east" className={styles.approachArrow} />
     </span>
+  );
+}
+
+/**
+ * A note that isn't there yet: same shape as a real note, translucent, dotted,
+ * showing the syllable it would create (an insert copies its neighbor's pitch)
+ * over the invitation to click. Replaces the old floating "+" affordances —
+ * clicking a note IS how you add one now.
+ */
+function GhostNote({
+  syllable,
+  side,
+  inside,
+  label,
+  onClick,
+}: {
+  syllable: string;
+  side: 'before' | 'after';
+  /** No neighbor to scoot aside: the ghost sits inside the note, shortening it. */
+  inside: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={classes(
+        styles.ghostNote,
+        side === 'before' ? styles.ghostBefore : styles.ghostAfter,
+        inside && (side === 'before' ? styles.ghostInsideBefore : styles.ghostInsideAfter),
+      )}
+      aria-label={label}
+      onClick={(clickEvent) => {
+        clickEvent.stopPropagation();
+        onClick();
+      }}
+    >
+      <span className={styles.ghostSyllable} aria-hidden="true">
+        {syllable}
+      </span>
+      <span className={styles.ghostHint} aria-hidden="true">
+        {content.inspector.ghostAdd}
+      </span>
+    </button>
   );
 }
 
@@ -87,6 +130,7 @@ export function VoiceLane({
 }: VoiceLaneProps) {
   const voiceLabel = content.inspector.voiceLabels[voice];
   const tools = content.inspector.noteTools;
+  const editingIndex = events.findIndex((event) => event.id === editingEventId);
 
   /**
    * Edge drag: convert pointer x to a 0-based sixteenth boundary using the
@@ -158,19 +202,32 @@ export function VoiceLane({
             </Term>
             {approach ? <ApproachNote approach={approach} voiceLabel={voiceLabel} /> : null}
           </span>
-          {events.map((event) => {
+          {events.map((event, index) => {
             const span = toTimelineSpan(event.start, event.duration);
             const active = isUnitActive(span, activeUnit);
             const editing = editingEventId === event.id;
             const locked = lockedEventIds.has(event.id);
+            const first = index === 0;
+            const last = index === events.length - 1;
+            // Notes touch, so a ghost claims room by shrinking the neighbor it
+            // abuts. With no neighbor (the lane's own ends) it moves inside and
+            // the edited note shortens instead.
+            const makeRoomRight = editingIndex >= 0 && index === editingIndex - 1;
+            const makeRoomLeft = editingIndex >= 0 && index === editingIndex + 1;
             return (
               <div
                 key={event.id}
                 className={classes(
                   styles.voiceCell,
+                  first && styles.cellFirst,
+                  last && styles.cellLast,
                   active && styles.cellActive,
                   editing && styles.cellEditing,
+                  editing && first && styles.cellGhostInsideBefore,
+                  editing && last && styles.cellGhostInsideAfter,
                   locked && styles.cellLocked,
+                  makeRoomRight && styles.makeRoomRight,
+                  makeRoomLeft && styles.makeRoomLeft,
                 )}
                 style={timeSpanStyle(span)}
                 data-active={active || undefined}
@@ -187,9 +244,7 @@ export function VoiceLane({
                 }}
               >
                 {locked ? (
-                  <span className={styles.noteLockBadge} aria-hidden="true">
-                    🔒
-                  </span>
+                  <Icon name="lock" outlined className={styles.noteLockBadge} />
                 ) : null}
                 <span className={styles.voiceSyllable}>
                   {event.tieFromPrevious ? (
@@ -200,12 +255,19 @@ export function VoiceLane({
                   {event.scaleDegree.syllable}
                 </span>
                 <span className={styles.voicePitch}>{pitchDisplay(event.pitch)}</span>
-                <span
-                  className={classes(styles.edgeHandle, styles.edgeHandleLeft)}
-                  aria-hidden="true"
-                  onClick={(clickEvent) => clickEvent.stopPropagation()}
-                  onPointerDown={(downEvent) => handleEdgePointerDown(downEvent, event.id, 'left')}
-                />
+                {/* One draggable bar per boundary: a note owns the bar on its
+                    right, and the lane's opening bar belongs to the first note
+                    (dragging it opens a leading rest). */}
+                {first ? (
+                  <span
+                    className={classes(styles.edgeHandle, styles.edgeHandleLeft)}
+                    aria-hidden="true"
+                    onClick={(clickEvent) => clickEvent.stopPropagation()}
+                    onPointerDown={(downEvent) =>
+                      handleEdgePointerDown(downEvent, event.id, 'left')
+                    }
+                  />
+                ) : null}
                 <span
                   className={classes(styles.edgeHandle, styles.edgeHandleRight)}
                   aria-hidden="true"
@@ -228,7 +290,7 @@ export function VoiceLane({
                         aria-label={tools.raise}
                         onClick={() => onStepNote(event.id, 1)}
                       >
-                        ▲
+                        <Icon name="keyboard_arrow_up" />
                       </button>
                       <button
                         type="button"
@@ -238,7 +300,7 @@ export function VoiceLane({
                         aria-label={tools.lower}
                         onClick={() => onStepNote(event.id, -1)}
                       >
-                        ▼
+                        <Icon name="keyboard_arrow_down" />
                       </button>
                       {melodyLocked ? (
                         <button
@@ -248,17 +310,17 @@ export function VoiceLane({
                           title={content.melody.alwaysLocked}
                           aria-label={content.melody.alwaysLocked}
                         >
-                          🔒
+                          <Icon name="lock" outlined />
                         </button>
                       ) : (
                         <button
                           type="button"
-                          className={styles.noteTool}
+                          className={classes(styles.noteTool, locked && styles.noteToolOn)}
                           aria-pressed={locked}
                           aria-label={locked ? tools.unlock : tools.lock}
                           onClick={() => onToggleLock(event)}
                         >
-                          {locked ? '🔒' : '🔓'}
+                          <Icon name={locked ? 'lock' : 'lock_open'} outlined />
                         </button>
                       )}
                       <button
@@ -275,31 +337,23 @@ export function VoiceLane({
                         aria-label={tools.remove}
                         onClick={() => onDeleteNote(event.id)}
                       >
-                        ✕
+                        <Icon name="close" />
                       </button>
                     </span>
-                    <button
-                      type="button"
-                      className={classes(styles.addNoteEdge, styles.addNoteBefore)}
-                      aria-label={tools.addBefore}
-                      onClick={(clickEvent) => {
-                        clickEvent.stopPropagation();
-                        onInsertNote(event.id, 'before');
-                      }}
-                    >
-                      +
-                    </button>
-                    <button
-                      type="button"
-                      className={classes(styles.addNoteEdge, styles.addNoteAfter)}
-                      aria-label={tools.addAfter}
-                      onClick={(clickEvent) => {
-                        clickEvent.stopPropagation();
-                        onInsertNote(event.id, 'after');
-                      }}
-                    >
-                      +
-                    </button>
+                    <GhostNote
+                      syllable={event.scaleDegree.syllable}
+                      side="before"
+                      inside={first}
+                      label={tools.addBefore}
+                      onClick={() => onInsertNote(event.id, 'before')}
+                    />
+                    <GhostNote
+                      syllable={event.scaleDegree.syllable}
+                      side="after"
+                      inside={last}
+                      label={tools.addAfter}
+                      onClick={() => onInsertNote(event.id, 'after')}
+                    />
                   </>
                 ) : null}
               </div>
@@ -323,7 +377,7 @@ export function VoiceLane({
             aria-label={`${content.inspector.stop}: ${voiceLabel}`}
             onClick={onStop}
           >
-            ■
+            <Icon name="stop" />
           </button>
         ) : (
           <button
@@ -332,7 +386,7 @@ export function VoiceLane({
             aria-label={`${content.inspector.playVoice}: ${voiceLabel}`}
             onClick={onPlayVoice}
           >
-            ▶
+            <Icon name="play_arrow" />
           </button>
         )}
       </div>

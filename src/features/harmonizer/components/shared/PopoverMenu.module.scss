@@ -11,6 +11,9 @@
   display: flex;
   flex-direction: column;
   min-width: 12rem;
+  /* Never wider than the narrowest screen we support, so the nudge in
+     PopoverMenu.tsx always has an in-bounds position to move it to. */
+  max-width: min(20rem, calc(100vw - 1rem));
   background: var(--wb-surface-raised);
   border: 1px solid var(--wb-line-strong);
   border-radius: var(--wb-radius-chip);

@@ -131,4 +131,22 @@ export const coreTerms = {
       'The lowest of the four parts — the floor the chords stand on. Which note the bass sings shapes how solid each chord feels.',
     seeAlso: ['root', 'inversion'],
   },
+  tempo: {
+    id: 'tempo',
+    display: 'tempo',
+    matches: ['tempos', 'tempi', 'speed'],
+    tier: 'core',
+    definition:
+      'How fast the beats go by, counted in beats per minute. Changing it changes only how quickly you hear the notes, never which notes they are.',
+    seeAlso: ['beat'],
+  },
+  sound: {
+    id: 'sound',
+    display: 'sound',
+    matches: ['sounds', 'timbre', 'instrument'],
+    tier: 'core',
+    definition:
+      'Which instrument the workbench sings the parts with. It changes the color you hear — organ, piano, voices — and nothing about the music itself.',
+    seeAlso: ['note'],
+  },
 } satisfies Record<string, GlossaryTerm>;

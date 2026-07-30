@@ -34,6 +34,7 @@ export type WorkbenchActionType =
   | 'STOP_PLAYBACK'
   | 'PLAYBACK_PROGRESS'
   | 'APPLY_CANDIDATE'
+  | 'START_NEXT_FRAGMENT'
   | 'EDIT_APPLIED_FRAGMENT'
   | 'UNDO'
   | 'REDO';
@@ -88,6 +89,18 @@ export type WorkbenchAction =
   | { type: 'PLAYBACK_PROGRESS'; activeUnit: number | null }
   /** Appends a new piece, or replaces the one being edited (see below). */
   | { type: 'APPLY_CANDIDATE'; appliedId: string }
+  /**
+   * Apply, then open the next fragment already holding what this one ended on
+   * (domain/next-fragment.ts). One undoable step — "Add fragment" on the rail.
+   */
+  | {
+      type: 'START_NEXT_FRAGMENT';
+      appliedId: string;
+      fragmentId: string;
+      candidateId: string;
+      melodyEventId: string;
+      voiceEventIds: Record<VoiceId, string>;
+    }
   /** Load an applied piece back into the workspace so it can be reworked. */
   | { type: 'EDIT_APPLIED_FRAGMENT'; appliedId: string }
   | { type: 'UNDO' }

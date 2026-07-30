@@ -76,11 +76,11 @@ describe('glossary markup in authored prose', () => {
   });
 
   it('every bracket reference in the intent descriptions resolves', () => {
-    for (const [intent, text] of Object.entries(content.contextBar.intentDescriptions)) {
+    for (const [intent, text] of Object.entries(content.phraseIntent.descriptions)) {
       const termSegments = parseMarkedText(text).filter((segment) => segment.kind === 'term');
       expect(
         termSegments.length,
-        `intentDescriptions.${intent} has an unresolved term reference in: ${text}`,
+        `phraseIntent.descriptions.${intent} has an unresolved term reference in: ${text}`,
       ).toBe(tokenCount(text));
     }
   });

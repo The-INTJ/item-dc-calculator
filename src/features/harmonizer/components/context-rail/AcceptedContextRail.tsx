@@ -5,6 +5,7 @@ import type { TonalContext } from '../../domain/music-types';
 import { listAcceptedHarmonyOptions } from '../../fixtures/accepted-harmony-options';
 import { toCandidatePathSummary } from '../../state/selectors';
 import { classes } from '../shared/format';
+import { Icon } from '../shared/Icon';
 import { PopoverMenu, PopoverMenuItem } from '../shared/PopoverMenu';
 import styles from './AcceptedContextRail.module.scss';
 
@@ -17,10 +18,13 @@ interface AcceptedContextRailProps {
   /** The applied piece currently sounding during whole-hymn playback. */
   soundingAppliedId: string | null;
   hymnPlaying: boolean;
+  /** False when there is no working reading to commit. */
+  canAddFragment: boolean;
   onSetAcceptedHarmony: (harmony: HarmonyEvent | null) => void;
   onPlayHymn: () => void;
   onPlayApplied: (appliedId: string) => void;
   onEditApplied: (appliedId: string) => void;
+  onAddFragment: () => void;
   onStop: () => void;
 }
 
@@ -36,10 +40,12 @@ export function AcceptedContextRail({
   editingAppliedId,
   soundingAppliedId,
   hymnPlaying,
+  canAddFragment,
   onSetAcceptedHarmony,
   onPlayHymn,
   onPlayApplied,
   onEditApplied,
+  onAddFragment,
   onStop,
 }: AcceptedContextRailProps) {
   const harmony = acceptedContext.previousHarmony;
@@ -54,9 +60,8 @@ export function AcceptedContextRail({
             className={styles.hymnButton}
             onClick={hymnPlaying ? onStop : onPlayHymn}
           >
-            {hymnPlaying
-              ? `■ ${content.acceptedRail.stopHymn}`
-              : `▶ ${content.acceptedRail.playHymn}`}
+            <Icon name={hymnPlaying ? 'stop' : 'play_arrow'} />
+            {hymnPlaying ? content.acceptedRail.stopHymn : content.acceptedRail.playHymn}
           </button>
         ) : null}
       </div>
@@ -90,7 +95,7 @@ export function AcceptedContextRail({
                   title={content.acceptedRail.playPiece}
                   onClick={() => onPlayApplied(applied.id)}
                 >
-                  ▶
+                  <Icon name="play_arrow" />
                 </button>
               </span>
             ))}
@@ -155,6 +160,18 @@ export function AcceptedContextRail({
         <span className={styles.arrowLabel}>
           {editingAppliedId ? content.acceptedRail.editingBadge : content.acceptedRail.arrow}
         </span>
+        {/* Commit what's on the workbench and open the next fragment holding
+            the chord this one lands on. */}
+        <button
+          type="button"
+          className={styles.addFragment}
+          disabled={!canAddFragment}
+          title={content.acceptedRail.addFragmentHint}
+          onClick={onAddFragment}
+        >
+          <Icon name="library_add" outlined />
+          {content.acceptedRail.addFragment}
+        </button>
       </div>
       {editingAppliedId ? (
         <p className={styles.editingHint} role="status">

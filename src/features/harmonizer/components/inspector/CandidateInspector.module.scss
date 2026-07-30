@@ -22,10 +22,6 @@
   color: var(--wb-ink);
 }
 
-.apply {
-  @include wb-button-primary;
-}
-
 .noSelection {
   margin: 0;
   color: var(--wb-ink-soft);
@@ -37,6 +33,8 @@
   gap: 0.55rem;
   /* The label track width lives here (not inline) so mobile can zero it. */
   --wb-lane-label-width: 7rem;
+  /* How much room a ghost note claims from the neighbour it displaces. */
+  --wb-ghost-width: 3.4rem;
 }
 
 /* The SATB stack hosts the boundary through-lines overlay. */
@@ -135,39 +133,52 @@
 }
 
 .approachArrow {
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   color: var(--wb-line-strong);
 }
 
+/* [ the three gestures you can't see | transport ] */
 .masterRow {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
   margin-bottom: 0.55rem;
 }
 
-.masterButton {
-  @include wb-button-primary;
-  padding-inline: 1.1rem;
+.hints {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--wb-ink-soft);
 }
 
-.loopButton {
-  @include wb-button;
-}
-
-.loopActive {
-  border-color: var(--wb-accent);
-  background: var(--wb-accent-soft);
-  color: var(--wb-accent-deep);
-  font-weight: 600;
-}
-
-.addNote {
-  @include wb-button;
-}
-
-.addNoteSlot {
+/* The play control gets its own right-hand container so it reads as THE
+   transport, not one button among several. */
+.transport {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.masterButton {
+  @include wb-icon-button;
+  font-size: 2.1rem;
+  line-height: 1;
+  color: var(--wb-accent);
+
+  &:hover:not(:disabled) {
+    color: var(--wb-accent-deep);
+  }
+
+  &:disabled {
+    color: var(--wb-line-strong);
+  }
 }
 
 /* ---------- mobile note-track slider ---------- */
@@ -209,24 +220,52 @@
   cursor: pointer;
 }
 
-/* Note cells are the edit surface: clickable body, draggable edges. */
+/**
+ * Note cells are the edit surface: clickable body, draggable boundary bars.
+ * They TOUCH (Drew, 2026-07-30) — no inline margin — so the shared vertical
+ * bar between two notes is the thing you grab, and the run of notes reads as
+ * one continuous part rather than a row of separate chips.
+ */
 .voiceCell {
   position: relative;
   display: flex;
   align-items: baseline;
   gap: 0.55rem;
-  margin-inline: 0.3rem;
   padding: 0.7rem 1rem 0.6rem;
   min-height: 3.1rem;
   background: var(--wb-surface-raised);
+  /* Strong rule top and bottom (the run reads as one ruled staff line); the
+     inline edges are a hairline so two touching notes make ONE light seam
+     instead of a doubled dark slab. .cellFirst/.cellLast put the strong
+     border back on the run's outer ends. */
   border: 1.5px solid var(--wb-line-strong);
-  border-radius: var(--wb-radius-chip);
+  border-inline: 1px solid var(--wb-line);
+  border-radius: 0;
   cursor: pointer;
-  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    margin 160ms ease,
+    padding 160ms ease;
 
   &:hover {
     border-color: var(--wb-accent);
   }
+}
+
+/* Only the run's outer ends are rounded; internal seams stay square so the
+   boundary bar sits flush. */
+.cellFirst {
+  border-left: 1.5px solid var(--wb-line-strong);
+  border-top-left-radius: var(--wb-radius-chip);
+  border-bottom-left-radius: var(--wb-radius-chip);
+}
+
+.cellLast {
+  border-right: 1.5px solid var(--wb-line-strong);
+  border-top-right-radius: var(--wb-radius-chip);
+  border-bottom-right-radius: var(--wb-radius-chip);
 }
 
 .cellActive {
@@ -235,6 +274,7 @@
 }
 
 .cellEditing {
+  z-index: 15;
   border-color: var(--wb-accent);
   box-shadow: 0 0 0 2px var(--wb-accent-soft), var(--wb-shadow-raised);
 }
@@ -244,12 +284,97 @@
   background: var(--wb-accent-soft);
 }
 
+/* The neighbour steps aside so its ghost has somewhere to stand. */
+.makeRoomRight {
+  margin-right: var(--wb-ghost-width);
+}
+
+.makeRoomLeft {
+  margin-left: var(--wb-ghost-width);
+}
+
+/* No neighbour to displace (the run's own ends): the ghost moves inside and
+   the edited note shortens to make the room itself. */
+.cellGhostInsideBefore {
+  padding-left: calc(var(--wb-ghost-width) + 0.4rem);
+}
+
+.cellGhostInsideAfter {
+  padding-right: calc(var(--wb-ghost-width) + 0.4rem);
+}
+
 .noteLockBadge {
   position: absolute;
-  top: 0.2rem;
-  right: 0.85rem;
-  font-size: 0.7rem;
+  top: 0.15rem;
+  right: 0.5rem;
+  font-size: 0.85rem;
   line-height: 1;
+  color: var(--wb-accent-deep);
+}
+
+/* ---------- ghost notes (the add-a-note affordance) ---------- */
+
+.ghostNote {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 16;
+  width: var(--wb-ghost-width);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.05rem;
+  padding: 0.2rem 0.15rem;
+  background: color-mix(in srgb, var(--wb-surface-raised) 55%, transparent);
+  border: 1.5px dashed var(--wb-accent);
+  border-radius: var(--wb-radius-chip);
+  opacity: 0.62;
+  cursor: pointer;
+  transition: opacity 140ms ease, background 140ms ease;
+
+  &:hover {
+    opacity: 1;
+    background: var(--wb-accent-soft);
+  }
+}
+
+.ghostBefore {
+  right: 100%;
+}
+
+.ghostAfter {
+  left: 100%;
+}
+
+.ghostInsideBefore {
+  right: auto;
+  left: 2px;
+  top: 2px;
+  bottom: 2px;
+}
+
+.ghostInsideAfter {
+  left: auto;
+  right: 2px;
+  top: 2px;
+  bottom: 2px;
+}
+
+.ghostSyllable {
+  font-family: var(--wb-font-solfege);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--wb-ink);
+}
+
+/* Small and black, per spec — it has to read as an instruction, not chrome. */
+.ghostHint {
+  font-size: 0.5rem;
+  line-height: 1.05;
+  text-align: center;
+  color: #000000;
 }
 
 .voiceSyllable {
@@ -269,128 +394,94 @@
 }
 
 .voicePlayButton {
-  @include wb-button;
-  padding-inline: 0.5rem;
+  @include wb-icon-button;
+  font-size: 1.05rem;
 }
 
-/* Drag handles hug the cell edges; the grip line appears on hover. */
+/**
+ * The boundary bar. Notes touch, so each bar is the seam between two of them:
+ * a short centered grip rather than a full-height slab (Drew, 2026-07-30 —
+ * the space saving stays, the heaviness goes). The hit area is still the full
+ * 14px straddling the edge; only the mark is small. A note owns the bar on
+ * its right; the run's first note also owns the opening bar.
+ */
 .edgeHandle {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 12px;
+  top: -1.5px;
+  bottom: -1.5px;
+  z-index: 12;
+  width: 14px;
   cursor: ew-resize;
   touch-action: none;
 
   &::after {
     content: '';
     position: absolute;
-    top: 22%;
-    bottom: 22%;
-    width: 3px;
-    border-radius: 2px;
+    top: 30%;
+    bottom: 30%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    border-radius: 1px;
     background: var(--wb-line-strong);
-    opacity: 0;
-    transition: opacity 140ms ease;
+    opacity: 0.45;
+    transition: opacity 140ms ease, background 140ms ease, inset 140ms ease;
   }
 }
 
+/* Hovering anywhere on a note surfaces its own seams — you find the grip by
+   reaching for the note, not by hunting a 2px line. The direct-hover rule
+   below matches this specificity and follows it, so grabbing the seam itself
+   still wins. */
 .voiceCell:hover .edgeHandle::after,
 .cellEditing .edgeHandle::after {
+  opacity: 0.8;
+}
+
+.voiceCell .edgeHandle:hover::after {
+  top: 16%;
+  bottom: 16%;
   opacity: 1;
+  background: var(--wb-accent);
 }
 
 .edgeHandleLeft {
-  left: 0;
-
-  &::after {
-    left: 3px;
-  }
+  left: -7px;
 }
 
 .edgeHandleRight {
-  right: 0;
-
-  &::after {
-    right: 3px;
-  }
+  right: -7px;
 }
 
-/* Floating tool cluster above the note being edited. */
+/* Floating tool cluster above the note being edited. Bare glyphs on a soft
+   paper wash — the cluster has to stay legible over the notes below without
+   boxing each symbol. */
 .noteToolbar {
   position: absolute;
-  bottom: calc(100% + 6px);
+  bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
   display: inline-flex;
-  gap: 2px;
-  padding: 3px;
-  background: var(--wb-surface-raised);
-  border: 1px solid var(--wb-line-strong);
-  border-radius: var(--wb-radius-chip);
+  gap: 1px;
+  padding: 2px 4px;
+  background: var(--wb-paper);
+  border-radius: 999px;
   box-shadow: var(--wb-shadow-raised);
   cursor: default;
 }
 
 .noteTool {
-  appearance: none;
-  border: none;
-  background: transparent;
+  @include wb-icon-button;
   width: 1.9rem;
   height: 1.9rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 5px;
-  font-size: 0.9rem;
-  color: var(--wb-ink);
-  cursor: pointer;
-
-  &:hover:not(:disabled) {
-    background: var(--wb-accent-soft);
-    color: var(--wb-accent-deep);
-  }
-
-  &:disabled {
-    color: var(--wb-ink-soft);
-    cursor: not-allowed;
-  }
-}
-
-/* "+" affordances flanking the edited note. */
-.addNoteEdge {
-  position: absolute;
-  top: 50%;
-  z-index: 20;
-  width: 1.6rem;
-  height: 1.6rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  border: 1px solid var(--wb-line-strong);
-  background: var(--wb-surface-raised);
-  box-shadow: var(--wb-shadow);
   font-size: 1rem;
-  line-height: 1;
   color: var(--wb-ink);
-  cursor: pointer;
-
-  &:disabled {
-    color: var(--wb-ink-soft);
-    cursor: not-allowed;
-  }
+  padding: 0;
 }
 
-.addNoteBefore {
-  left: 0;
-  transform: translate(-50%, -50%);
-}
-
-.addNoteAfter {
-  right: 0;
-  transform: translate(50%, -50%);
+.noteToolOn {
+  color: var(--wb-accent-deep);
 }
 
 /* ---------- effect + transport ---------- */
@@ -520,7 +611,8 @@
 @include wb-mobile {
   .lanes {
     --wb-lane-label-width: 0px;
-    gap: 0.7rem;
+    --wb-ghost-width: 2.5rem;
+    gap: 0.8rem;
   }
 
   .headingRow {
@@ -535,13 +627,22 @@
     gap: 0.35rem;
   }
 
-  .apply {
-    flex: 1 1 100%;
+  .masterRow {
+    gap: 0.6rem;
+    margin-bottom: 0.4rem;
   }
 
+  .hints {
+    font-size: 0.72rem;
+  }
+
+  /* A part label belongs TO its notes: no gap under it, and flex-end so the
+     taller controls beside it can't push it up off its own track (Drew,
+     2026-07-30). The gap that reads as separation is the one above.  */
   .lane {
     flex-wrap: wrap;
-    gap: 0.25rem 0.5rem;
+    align-items: flex-end;
+    gap: 0 0.5rem;
   }
 
   .laneLabel {
@@ -571,14 +672,23 @@
     flex: 1 1 100%;
   }
 
-  /* Stack syllable over pitch so a narrow cell never clips its own text. */
+  /* Stack syllable over pitch so a narrow cell never clips its own text, and
+     spend as little of the width on padding as the text allows. */
   .voiceCell {
     flex-direction: column;
     align-items: flex-start;
     gap: 0;
-    margin-inline: 0.15rem;
-    padding: 0.45rem 0.5rem 0.4rem;
-    min-height: 2.9rem;
+    padding: 2px 2px 0 8px;
+    min-height: 2.6rem;
+    justify-content: center;
+  }
+
+  .cellGhostInsideBefore {
+    padding-left: calc(var(--wb-ghost-width) + 6px);
+  }
+
+  .cellGhostInsideAfter {
+    padding-right: calc(var(--wb-ghost-width) + 2px);
   }
 
   .voiceSyllable {
@@ -591,7 +701,17 @@
   }
 
   .noteLockBadge {
-    right: 0.3rem;
+    top: 0;
+    right: 0.15rem;
+    font-size: 0.72rem;
+  }
+
+  .ghostSyllable {
+    font-size: 0.85rem;
+  }
+
+  .ghostHint {
+    font-size: 0.45rem;
   }
 
   /**

@@ -66,6 +66,34 @@
   }
 }
 
+/**
+ * Icon-only control. Deliberately box-free (Drew, 2026-07-30: "they should not
+ * have white boxes around them") — the glyph IS the button, and hover tints it
+ * rather than drawing a chip around it.
+ */
+@mixin wb-icon-button {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--wb-ink-soft);
+  border-radius: var(--wb-radius-chip);
+  cursor: pointer;
+  transition: color 160ms ease, opacity 160ms ease;
+
+  &:hover:not(:disabled) {
+    color: var(--wb-accent);
+  }
+
+  &:disabled {
+    color: var(--wb-line-strong);
+    cursor: not-allowed;
+  }
+}
+
 @mixin wb-chip {
   display: inline-flex;
   align-items: center;

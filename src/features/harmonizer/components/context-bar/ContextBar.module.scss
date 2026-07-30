@@ -13,18 +13,41 @@
   padding: 0.7rem 1.25rem;
 }
 
+.fields {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+/* Mobile-only control (see the breakpoint block). */
+.settingsToggle {
+  display: none;
+}
+
+.chevron {
+  transition: transform 160ms ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
 .field {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.fieldLabel {
+/* The label is a glossary Term trigger, and Term's own reset declares
+   `font: inherit` — this has to out-specify it, hence the descendant form. */
+.field .fieldLabel {
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--wb-ink-soft);
+  cursor: help;
 }
 
 .fieldUnit {
@@ -47,39 +70,6 @@
   &:disabled {
     cursor: not-allowed;
   }
-}
-
-.segmented {
-  display: inline-flex;
-  border: 1px solid var(--wb-line-strong);
-  border-radius: var(--wb-radius-chip);
-  overflow: hidden;
-  background: var(--wb-surface-raised);
-}
-
-.segment {
-  appearance: none;
-  border: none;
-  background: transparent;
-  padding: 0.35rem 0.7rem;
-  font-size: 0.875rem;
-  color: var(--wb-ink-soft);
-  cursor: pointer;
-  transition: background 140ms ease, color 140ms ease;
-
-  &:hover {
-    color: var(--wb-accent-deep);
-  }
-
-  & + & {
-    border-left: 1px solid var(--wb-line);
-  }
-}
-
-.segmentActive {
-  background: var(--wb-accent-soft);
-  color: var(--wb-accent-deep);
-  font-weight: 600;
 }
 
 .tempoWrap {
@@ -110,16 +100,53 @@
 }
 
 /**
- * Mobile: every field becomes its own full-width row with the label above its
- * control, and the phrase-intent group wraps instead of running off-screen
- * (it was clipping "Close" at 390px).
+ * Mobile: the card collapses to the word "Settings" and a caret (Drew,
+ * 2026-07-30 — text inside the card, not a button drawn inside a card). The
+ * toggle fills the pill and owns its padding, so a tap anywhere on the pill
+ * opens it. Key/tempo/sound drop out underneath, with Samples at the BOTTOM
+ * of the opened card; neither exists while it is closed.
  */
 @include wb-mobile {
   .bar {
     flex-direction: column;
     align-items: stretch;
+    gap: 0;
+    padding: 0;
+  }
+
+  .settingsToggle {
+    appearance: none;
+    border: none;
+    background: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 2rem;
+    padding: 2px 8px 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--wb-ink-soft);
+    cursor: pointer;
+  }
+
+  .settingsLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .bar:not([data-open]) .fields,
+  .bar:not([data-open]) .barEnd {
+    display: none;
+  }
+
+  .fields {
+    flex-direction: column;
+    align-items: stretch;
     gap: 0.7rem;
-    padding: 0.7rem 0.85rem;
+    padding: 0.4rem 8px 0.5rem;
   }
 
   .field {
@@ -128,25 +155,14 @@
     gap: 0.3rem;
   }
 
-  .segmented {
-    flex-wrap: wrap;
-  }
-
-  .segment {
-    flex: 1 1 auto;
-    padding-inline: 0.5rem;
-
-    /* Wrapped rows must not keep the single-row left divider. */
-    & + & {
-      border-left: none;
-    }
-  }
-
   .select {
     width: 100%;
   }
 
+  /* Right-aligned so its popover opens on-screen. */
   .barEnd {
     margin-left: 0;
+    justify-content: flex-end;
+    padding: 0 8px 6px;
   }
 }

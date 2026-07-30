@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import '@fontsource-variable/material-symbols-rounded/wght.css';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';

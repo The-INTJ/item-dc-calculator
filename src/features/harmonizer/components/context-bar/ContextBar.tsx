@@ -3,32 +3,43 @@
 import { useState } from 'react';
 import { content } from '../../content';
 import { keySignatureLabel, listMajorKeyContexts, listMinorKeyContexts } from '../../domain/keys';
-import type { PhraseIntent, TonalContext } from '../../domain/music-types';
+import type { TonalContext } from '../../domain/music-types';
 import { INSTRUMENTS, type InstrumentId } from '../../services/instruments';
-import { plainTextFromMarked } from '../../knowledge/markup/parse';
+import type { TermId } from '../../knowledge/glossary';
 import { MAX_TEMPO_BPM, MIN_TEMPO_BPM } from '../../state/workbenchReducer';
 import { classes, contextLabel } from '../shared/format';
+import { Icon } from '../shared/Icon';
+import { Term } from '../shared/Term';
 import { SamplesMenu } from '../samples/SamplesMenu';
 import styles from './ContextBar.module.scss';
 
 interface ContextBarProps {
   tonalContext: TonalContext;
-  phraseIntent: PhraseIntent;
   tempoBpm: number;
   currentFixtureId: string | null;
   soundId: InstrumentId;
   onTempoChange: (tempoBpm: number) => void;
   onKeyChange: (context: TonalContext) => void;
-  onIntentChange: (intent: PhraseIntent) => void;
   onLoadSample: (fixtureId: string) => void;
   onSoundChange: (id: InstrumentId) => void;
 }
 
-const PHRASE_INTENTS: PhraseIntent[] = ['continue', 'build', 'approach_cadence', 'close'];
-
 /** Spelling-aware identity — Db major and C# major are different options. */
 function contextKey(context: TonalContext): string {
   return `${context.tonic.letter}${context.tonic.accidental}:${context.mode}:${context.minorDoSystem ?? ''}`;
+}
+
+/**
+ * Every settings label teaches itself (Drew, 2026-07-30) — hover or click the
+ * word and the glossary explains it. The field is a plain div, not a <label>:
+ * a label would forward the Term button's click on to the control it wraps.
+ */
+function FieldLabel({ termId, children }: { termId: TermId; children: string }) {
+  return (
+    <Term termId={termId} variant="chip" className={styles.fieldLabel}>
+      {children}
+    </Term>
+  );
 }
 
 /** The Key select over every offered key (12 majors + 12 relative minors). */
@@ -50,10 +61,11 @@ function KeySelector({
       </option>
     ));
   return (
-    <label className={styles.field}>
-      <span className={styles.fieldLabel}>{content.contextBar.keyLabel}</span>
+    <div className={styles.field}>
+      <FieldLabel termId="key">{content.contextBar.keyLabel}</FieldLabel>
       <select
         className={styles.select}
+        aria-label={content.contextBar.keyLabel}
         value={currentKey}
         onChange={(event) => {
           const next = contexts.find((context) => contextKey(context) === event.target.value);
@@ -64,35 +76,6 @@ function KeySelector({
         <optgroup label={content.contextBar.minorKeysHeading}>{options(minors)}</optgroup>
       </select>
       <span className={styles.fieldHint}>{keySignatureLabel(tonalContext)}</span>
-    </label>
-  );
-}
-
-function PhraseIntentControl({
-  phraseIntent,
-  onIntentChange,
-}: {
-  phraseIntent: PhraseIntent;
-  onIntentChange: (intent: PhraseIntent) => void;
-}) {
-  return (
-    <div className={styles.field}>
-      <span className={styles.fieldLabel}>{content.contextBar.intentLabel}</span>
-      <div className={styles.segmented} role="group" aria-label={content.contextBar.intentLabel}>
-        {PHRASE_INTENTS.map((intent) => (
-          <button
-            key={intent}
-            type="button"
-            aria-pressed={intent === phraseIntent}
-            // Attribute surface — glossary markup renders as its plain text here.
-            title={plainTextFromMarked(content.contextBar.intentDescriptions[intent])}
-            className={classes(styles.segment, intent === phraseIntent && styles.segmentActive)}
-            onClick={() => onIntentChange(intent)}
-          >
-            {content.contextBar.intentOptions[intent]}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }
@@ -116,12 +99,13 @@ function TempoControl({
   }
 
   return (
-    <label className={styles.field}>
-      <span className={styles.fieldLabel}>{content.contextBar.tempoLabel}</span>
+    <div className={styles.field}>
+      <FieldLabel termId="tempo">{content.contextBar.tempoLabel}</FieldLabel>
       <span className={styles.tempoWrap}>
         <input
           type="number"
           className={styles.tempoInput}
+          aria-label={content.contextBar.tempoLabel}
           min={MIN_TEMPO_BPM}
           max={MAX_TEMPO_BPM}
           value={draft ?? String(tempoBpm)}
@@ -133,7 +117,7 @@ function TempoControl({
         />
         <span className={styles.fieldUnit}>{content.contextBar.tempoUnit}</span>
       </span>
-    </label>
+    </div>
   );
 }
 
@@ -145,10 +129,11 @@ function SoundSelector({
   onSoundChange: (id: InstrumentId) => void;
 }) {
   return (
-    <label className={styles.field}>
-      <span className={styles.fieldLabel}>{content.contextBar.soundLabel}</span>
+    <div className={styles.field}>
+      <FieldLabel termId="sound">{content.contextBar.soundLabel}</FieldLabel>
       <select
         className={styles.select}
+        aria-label={content.contextBar.soundLabel}
         value={soundId}
         onChange={(event) => onSoundChange(event.target.value as InstrumentId)}
       >
@@ -162,28 +147,56 @@ function SoundSelector({
           </option>
         ))}
       </select>
-    </label>
+    </div>
   );
 }
 
 export function ContextBar({
   tonalContext,
-  phraseIntent,
   tempoBpm,
   currentFixtureId,
   soundId,
   onTempoChange,
   onKeyChange,
-  onIntentChange,
   onLoadSample,
   onSoundChange,
 }: ContextBarProps) {
+  /**
+   * Mobile folds the settings away behind this toggle and starts closed —
+   * they are set once per hymn and cost a phone screen's worth of room every
+   * time you look at the notes. The toggle is CSS-hidden on desktop, where
+   * the fields are always shown.
+   */
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   return (
-    <div className={styles.bar}>
-      <KeySelector tonalContext={tonalContext} onKeyChange={onKeyChange} />
-      <PhraseIntentControl phraseIntent={phraseIntent} onIntentChange={onIntentChange} />
-      <TempoControl tempoBpm={tempoBpm} onTempoChange={onTempoChange} />
-      <SoundSelector soundId={soundId} onSoundChange={onSoundChange} />
+    // data-open drives BOTH folds on mobile: the fields and the Samples menu,
+    // which lives at the bottom of the opened card rather than beside the
+    // collapsed one.
+    <div className={styles.bar} data-open={settingsOpen || undefined}>
+      <button
+        type="button"
+        className={styles.settingsToggle}
+        aria-expanded={settingsOpen}
+        title={
+          settingsOpen ? content.contextBar.settingsHide : content.contextBar.settingsShow
+        }
+        onClick={() => setSettingsOpen((open) => !open)}
+      >
+        <span className={styles.settingsLabel}>
+          <Icon name="tune" outlined />
+          {content.contextBar.settingsLabel}
+        </span>
+        <Icon
+          name="expand_more"
+          className={classes(styles.chevron, settingsOpen && styles.chevronOpen)}
+        />
+      </button>
+      <div className={styles.fields}>
+        <KeySelector tonalContext={tonalContext} onKeyChange={onKeyChange} />
+        <TempoControl tempoBpm={tempoBpm} onTempoChange={onTempoChange} />
+        <SoundSelector soundId={soundId} onSoundChange={onSoundChange} />
+      </div>
       <div className={styles.barEnd}>
         <SamplesMenu currentFixtureId={currentFixtureId} onLoadSample={onLoadSample} />
       </div>

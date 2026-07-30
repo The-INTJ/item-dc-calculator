@@ -1,0 +1,32 @@
+/**
+ * Material Symbols glyphs. The font is loaded once by the route-group layout
+ * (`app/(harmonizer)/layout.tsx`); the ligature turns the icon NAME in the
+ * element's text into the glyph, so `<Icon name="play_arrow" />` renders ▶.
+ *
+ * Deliberately box-free (Drew, 2026-07-30): no background, no border, no
+ * padding — an icon inherits the color of whatever it sits in. Buttons that
+ * host one use `.iconButton` below rather than the bordered `wb-button`.
+ */
+
+.icon {
+  direction: ltr;
+  display: inline-block;
+  flex: 0 0 auto;
+  font-family: 'Material Symbols Rounded Variable', sans-serif;
+  font-feature-settings: 'liga';
+  font-size: 1.25em;
+  font-style: normal;
+  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+  font-weight: normal;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  user-select: none;
+}
+
+/* Outline weight — for glyphs that read better unfilled (locks, chevrons). */
+.iconOutlined {
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+}

@@ -13,8 +13,27 @@
   @include wb-region-heading;
 }
 
+/* Box-free like every other transport in the workbench — the glyph and its
+   word, nothing drawn around them. */
 .hymnButton {
+  @include wb-icon-button;
+  gap: 0.15rem;
+  padding: 0.15rem 0.3rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Small by design — it advances the hymn, it does not dominate the rail. */
+.addFragment {
   @include wb-button;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8rem;
+  border-color: var(--wb-accent);
+  color: var(--wb-accent-deep);
+  font-weight: 600;
 }
 
 .rail {
@@ -66,13 +85,17 @@
   }
 }
 
+/* Shares the chip's own surface — the glyph must not sit in a white box of
+   its own (Drew, 2026-07-30); the pair still reads as one pill. */
 .piecePlay {
   @include wb-chip;
-  background: var(--wb-surface-raised);
+  background: var(--wb-accepted);
+  border-left: none;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
-  padding-inline: 0.5rem;
-  font-size: 0.7rem;
+  padding-inline: 0.3rem 0.45rem;
+  font-size: 0.85rem;
+  color: var(--wb-ink-soft);
   cursor: pointer;
 
   &:hover {
@@ -156,6 +179,74 @@
   }
 
   .rail {
-    gap: 0.6rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.4rem;
+    padding-bottom: 6px;
+  }
+
+  .headingRow {
+    margin-bottom: 0.5rem;
+  }
+
+  /**
+   * Fragments stack (Drew, 2026-07-30): a row of pills wrapped unreadably at
+   * phone widths. Each piece is a full-width row, and the one being reworked
+   * gains the boxy, raised look IN PLACE — it never jumps to the top, because
+   * where a fragment sits IS which part of the hymn it is.
+   */
+  .appliedGroup {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.3rem;
+  }
+
+  .appliedPiece {
+    width: 100%;
+    outline-offset: 0;
+    border-radius: var(--wb-radius-chip);
+  }
+
+  .appliedChip {
+    flex: 1;
+    justify-content: flex-start;
+    border-radius: var(--wb-radius-chip) 0 0 var(--wb-radius-chip);
+    padding: 2px 2px 0 8px;
+    min-height: 1.9rem;
+  }
+
+  .piecePlay {
+    border-radius: 0 var(--wb-radius-chip) var(--wb-radius-chip) 0;
+  }
+
+  .appliedPieceEditing {
+    outline: none;
+
+    .appliedChip,
+    .piecePlay {
+      border-color: var(--wb-accent);
+      border-width: 1.5px;
+      background: var(--wb-surface-raised);
+      box-shadow: var(--wb-shadow-raised);
+    }
+
+    .appliedChip {
+      color: var(--wb-accent-deep);
+      border-right: none;
+    }
+
+    .piecePlay {
+      border-left: none;
+    }
+  }
+
+  .appliedPieceSounding {
+    outline: 2px solid var(--wb-active-line);
+    outline-offset: 1px;
+  }
+
+  .addFragment {
+    justify-content: center;
   }
 }

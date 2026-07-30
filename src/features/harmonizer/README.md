@@ -122,6 +122,72 @@ enum-keyed `z.record`, which is exhaustive in zod v4 — a chord-only seam
 (`voices: {}`) would fail to parse and take the saved project down with it. A
 mid-hymn round-trip test in `projects/project-store.test.ts` guards that.
 
+### The editing pass (2026-07-30, Drew's QoL review)
+
+The workbench stopped explaining itself with buttons and started explaining
+itself with the notes.
+
+- **Notes touch.** No inline margin between cells; the seam between two notes
+  IS the control — one draggable bar per boundary (a note owns the bar on its
+  right; the run's first note also owns the opening bar, which is the one that
+  can open a leading rest). Only the run's outer ends are rounded — and they
+  are the only ones with a strong border: internal edges are a hairline
+  (`--wb-line`), so a shared seam is one light line rather than two stacked
+  dark ones. The grip itself is a short 2px mark at 45% opacity that brightens
+  when you hover the note and turns accent when you hover the seam; the hit
+  area stays the full 14px either way. (First pass drew a full-height 4px
+  slab — same geometry, far too heavy.)
+- **Ghost notes replace the "+" affordances and the Add note menu.** Clicking a
+  note puts a translucent, dotted note on each side showing the syllable it
+  would create over a small black `(click to add)`. Each ghost claims its room
+  by shrinking the neighbour it abuts (`makeRoomLeft`/`makeRoomRight`); at the
+  run's own ends there is no neighbour to displace, so the ghost moves *inside*
+  and the edited note shortens instead — which is also what happens to a note
+  long enough to fill the whole track.
+- **One transport.** Loop is gone; Play is a big mahogany Material Symbol,
+  box-free, right-aligned in its own container. The space the old buttons held
+  now carries the three gestures you cannot guess by looking (drag the bars,
+  click a note, check the parts).
+- **Every symbol is a Material Symbol** (`components/shared/Icon.tsx`, font
+  loaded once by the route-group layout) and **no symbol sits in a white box**
+  — icon-only controls use the `wb-icon-button` mixin: no background, no
+  border, colour on hover.
+- **Phrase intent moved** out of the settings bar and in beside the readings it
+  steers, as "What do you want this section to do?" — it is a question about
+  the next reading, not a setting about the piece. What it actually drives:
+  `style.cadenceCost(intent, cadence)` inside the generator's beam search
+  (`domain/engine/generate.ts`), which re-prices every candidate path by how
+  it ends — `close` rewards authentic cadences and penalises half cadences,
+  `build` and `approach_cadence` do the reverse, `continue` penalises arrival
+  outright. Changing it visibly swaps the suggestion **cards** (the C-major
+  demo goes from the authored trio to `V → IV6 → I` / `V6/5 → I` on `close`).
+  It never touches the workbench: the working reading survives every
+  regeneration by the surface rule, so the card you are staring at is exactly
+  the one that cannot change.
+- **Settings labels teach themselves.** Key/Tempo/Sound are glossary Terms
+  (`tempo` and `sound` are new core terms, allowlisted in
+  `STANDALONE_TERM_IDS` because nothing in the harmonic vocabulary links to
+  them). Their field is a `div`, not a `<label>` — a label would forward the
+  Term button's click to the control it wraps.
+- **Engine bookkeeping is a dev view.** Provenance badges and derivability
+  chips ("chord path", "voicing", …) are hidden unless `?dev=1`
+  (`components/shared/useDevFlag.ts`, remembered in localStorage, `?dev=0` to
+  clear). The emotional descriptors — "settled close", "strong dominant
+  arrival" — always show: a musician judges a reading by how it sounds, not by
+  which subsystem produced it.
+- **The selected reading's card reports the workbench, not itself.** Whichever
+  card is the selected reading is titled **Current chords** and carries no
+  prose at all: chord path, bass outline, then `Your work's reading:` and
+  chips. The reading's *name* is one of those chips, and only when something
+  stands behind it — a name equal to the chord path (the engine's own
+  `titleFromHarmony`) is dropped, because the line above already said it.
+- **Every popover clamps to the viewport.** `PopoverMenu` and the glossary
+  `Term` tip each measure on open and translate themselves back inside
+  (`VIEWPORT_MARGIN`). Flipping sides is not enough on a phone: a trigger in
+  the middle of the screen overflows whichever way the panel hangs. `Term`
+  clears its own transform before measuring, so the maths is never against a
+  previous nudge, and re-measures when nested navigation changes the panel.
+
 ### The composition (accepted-context rail)
 
 The rail is the piece so far, not just a context chip. Each applied fragment is
@@ -133,13 +199,21 @@ hear that piece alone; the rail header plays **the whole hymn** end to end.
   `PlaybackService` call on a synthetic reading whose id is
   `COMPOSITION_CANDIDATE_ID`. It carries no interpretive claims — it is a
   projection for playback and display, never an authored reading.
+- **Add fragment** (the rail's own button) is the only way a reading joins the
+  composition. It commits and continues in one undoable step
+  (`START_NEXT_FRAGMENT`): the working reading is applied, then the next
+  fragment opens already **holding the chord this one lands on** — one beat,
+  one note per part, at exactly the pitches the previous fragment ended with
+  (`domain/next-fragment.ts`). Starting from silence made every fragment feel
+  like a new piece; starting from the held chord makes the hymn continuous, and
+  the first thing you do is move away from it. `APPLY_CANDIDATE` survives as
+  the plain commit half (`applyWorkingReading`), no longer wired to a button.
 - Rework is edit-in-place: `EDIT_APPLIED_FRAGMENT` loads the piece with the
   *preceding* piece as its accepted context (the first piece opens the hymn),
-  and `APPLY_CANDIDATE` then **replaces it where it stands** rather than
-  appending, keeping its id and position. Finishing a rework returns the
-  accepted context to the hymn's tail, and the next-fragment chooser stays shut.
-  `editingAppliedId` is transient session intent — like `lastGestureId` it is
-  excluded from snapshots and persistence.
+  and applying then **replaces it where it stands** rather than appending,
+  keeping its id and position. Finishing a rework returns the accepted context
+  to the hymn's tail. `editingAppliedId` is transient session intent — like
+  `lastGestureId` it is excluded from snapshots and persistence.
 - Playback scoping: the workspace cursor and transport only respond to the
   workspace's own reading (`playback.candidateId === candidate.id`), so a
   whole-hymn pass highlights the sounding chip on the rail and leaves the note
@@ -174,12 +248,37 @@ authored prose string so a typo'd term id fails CI, not the reader.
 ### Mobile (≤720px)
 
 One breakpoint, `components/shared/_breakpoints.scss`. The chrome goes
-single-column (context-bar fields stack label-over-control, the phrase-intent
-group wraps instead of running off-screen, the project name truncates, the
-Help button hides). Glossary tips have no hover path on touch — a tap opens
-them pinned. The note surface **drops its card** entirely so the
-time track gets the full width, and each lane becomes two rows: the part label
-plus its checkbox and play button on top, the full-width track underneath.
+single-column and the settings **fold away**: the context bar collapses to the
+word "Settings" and a caret — *text inside the card, not a button drawn inside
+a card* — and the toggle fills the whole pill and owns its padding, so a tap
+anywhere on the pill opens it. Key/tempo/sound drop out underneath, with
+**Samples at the bottom of the opened card**; neither exists while it is
+closed. (They are set once per hymn and cost a screen every time you look at
+the notes.) The project name truncates and the Help button hides. Glossary tips
+have no hover path on touch — a tap opens them pinned. The note surface **drops
+its card** entirely so the time track gets the full width, and each lane
+becomes two rows: the part label plus its checkbox and play button on top, the
+full-width track underneath — with **zero gap between a label and its own
+track** (`align-items: flex-end` keeps the taller controls from lifting it), so
+the space that reads as separation is the one between parts.
+
+Three more things reflow rather than shrink: the chord strip stacks its label
+**under** the solfège (`flex: 1 0 100%` on the syllable wraps the numeral and
+symbol together onto a second line — no extra markup); the phrase-intent
+question and its select stack instead of sitting side by side with the select
+shoved to the far edge; and applied fragments **stack vertically**, each a
+full-width row. The fragment being reworked gains a raised, boxy look *in
+place* — it never jumps to the top, because where a fragment sits is which part
+of the hymn it is.
+
+Every card that reads as a pill or panel uses Drew's measured phone spacing,
+`padding: 2px 2px 0 8px` — regions, the context bar, suggestion cards, and note
+cells alike, so their inner columns line up down the page.
+
+Popovers and glossary tips nudge themselves back on-screen (see The editing
+pass), which is what keeps the project menu — anchored to a trigger a third of
+the way across a phone — from opening off the left edge, and a definition
+opened from mid-sentence card prose from hanging off either one.
 
 Panning (`components/shared/pan.ts`, pure + unit-tested): the window is
 measured in **beats, not notes** — a note can be any length, so four whole
@@ -236,8 +335,8 @@ Implemented: workspace-first single screen rendering the default fixture
 **Selected reading workspace** (the main working surface: four SATB lanes with
 per-part checkboxes, boundary chips, chord lane, effect summary, analysis
 drawer), and the **Suggested readings** palette below it. Playback: one master
-Play button plays exactly the checked parts, per-lane solo buttons, loop,
-moving cursor, live tempo, Space shortcut.
+Play button plays exactly the checked parts, per-lane solo buttons, ~~loop~~
+(dropped 2026-07-30), moving cursor, live tempo, Space shortcut.
 
 Design decisions locked by Drew's first review (2026-07-29) — these supersede
 the spec's §9 five-region layout where they conflict:
@@ -252,7 +351,8 @@ the spec's §9 five-region layout where they conflict:
   requires in-bounds, non-overlapping events per voice — NOT full coverage.
 - **Notes are the edit surface** (second review, same day): click a note for
   its tool cluster (▲▼ pitch, lock, delete, flanking "+" — only lock is live
-  this slice); drag its edges to resize. Drag semantics live in
+  this slice; the "+" pair became ghost notes on 2026-07-30, see The editing
+  pass); drag its edges to resize. Drag semantics live in
   `domain/voice-editing.ts`: an inner edge moves the shared boundary between
   contiguous notes (total conserved), the first note's left edge can only
   create a leading rest, the last note's right edge extends freely, and
@@ -263,11 +363,11 @@ the spec's §9 five-region layout where they conflict:
   their prose now hosts glossary term triggers, and a whole-card click target
   fights the definition popovers.
 
-Not yet implemented (spec milestones 4–6): note editing (the Add note button
-will open a pick-a-part dropdown), boundary editing, stale-suggestion
-handling, interactive locks, fixture-based refresh, apply, undo/redo,
-fixtures B–D. Controls for these render disabled with a "Coming in a later
-milestone" tooltip.
+Not yet implemented *as of that slice* (spec milestones 4–6): note editing,
+boundary editing, stale-suggestion handling, interactive locks, fixture-based
+refresh, apply, undo/redo, fixtures B–D. All of these landed in v1 — see
+Status above; the one that never shipped in the planned shape is the Add note
+dropdown, which the ghost notes replaced outright.
 
 ## Self-containment contract
 

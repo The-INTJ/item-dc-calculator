@@ -25,6 +25,7 @@ import type {
   VoiceId,
 } from '../domain/music-types';
 import { resolveLockEntries } from '../domain/lock-signature';
+import { continuationFragment } from '../domain/next-fragment';
 import { respellAccepted, respellCandidate, respellFragment } from '../domain/respell';
 import { stepDiatonic } from '../domain/scale';
 import { acceptedHarmonySignature } from '../domain/signatures';
@@ -308,6 +309,73 @@ function editVoice(
     if (melodyEvents) fragment = { ...state.fragment, events: melodyEvents };
   }
   return { candidates, fragment };
+}
+
+/* ---------- applying the working reading ---------- */
+
+interface AppliedResult {
+  next: WorkbenchState;
+  /** The reading that was just committed — what the next fragment grows from. */
+  candidate: CandidatePath;
+}
+
+/**
+ * Commit the working reading to the composition. Reworking an existing piece
+ * replaces it where it stands (its id and position in the hymn survive); a
+ * fresh piece appends. Null when there is nothing to commit.
+ */
+function applyWorkingReading(state: WorkbenchState, appliedId: string): AppliedResult | null {
+  const candidate = state.candidates.find((entry) => entry.id === state.selectedCandidateId);
+  if (!candidate) return null;
+  const finalHarmony = candidate.harmonyEvents[candidate.harmonyEvents.length - 1];
+  if (!finalHarmony) return null;
+
+  const editingIndex = state.editingAppliedId
+    ? state.appliedFragments.findIndex((entry) => entry.id === state.editingAppliedId)
+    : -1;
+  if (editingIndex >= 0) {
+    const existingId = state.appliedFragments[editingIndex].id;
+    const appliedFragments = state.appliedFragments.map((entry, index) =>
+      index === editingIndex
+        ? { id: existingId, fragment: state.fragment, candidate }
+        : entry,
+    );
+    // Finishing a rework puts you back at the end of the hymn: the accepted
+    // context is the tail's harmony again, not the reworked piece's own.
+    const tail = appliedFragments[appliedFragments.length - 1];
+    const tailFinal = tail.candidate.harmonyEvents[tail.candidate.harmonyEvents.length - 1];
+    return {
+      next: {
+        ...pushHistory(state),
+        appliedFragments,
+        editingAppliedId: null,
+        acceptedContext: tailFinal
+          ? {
+              previousHarmony: asAcceptedHarmony(tailFinal, tail.id),
+              // The notes the hymn leaves off on — what the next snippet's
+              // first chord is read against (domain/approach.ts).
+              previousVoicing: tail.candidate.voicing,
+            }
+          : state.acceptedContext,
+      },
+      candidate: tail.candidate,
+    };
+  }
+
+  return {
+    next: {
+      ...pushHistory(state),
+      appliedFragments: [
+        ...state.appliedFragments,
+        { id: appliedId, fragment: state.fragment, candidate },
+      ],
+      acceptedContext: {
+        previousHarmony: asAcceptedHarmony(finalHarmony, appliedId),
+        previousVoicing: candidate.voicing,
+      },
+    },
+    candidate,
+  };
 }
 
 /* ---------- reducer ---------- */
@@ -635,55 +703,37 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
     }
 
     case 'APPLY_CANDIDATE': {
-      const candidate = state.candidates.find(
-        (entry) => entry.id === state.selectedCandidateId,
-      );
-      if (!candidate) return state;
-      const finalHarmony = candidate.harmonyEvents[candidate.harmonyEvents.length - 1];
-      if (!finalHarmony) return state;
+      const applied = applyWorkingReading(state, action.appliedId);
+      return applied ? applied.next : state;
+    }
 
-      // Reworking an existing piece replaces it where it stands (its id and
-      // position in the hymn survive); a fresh piece appends.
-      const editingIndex = state.editingAppliedId
-        ? state.appliedFragments.findIndex((entry) => entry.id === state.editingAppliedId)
-        : -1;
-      if (editingIndex >= 0) {
-        const appliedId = state.appliedFragments[editingIndex].id;
-        const appliedFragments = state.appliedFragments.map((entry, index) =>
-          index === editingIndex
-            ? { id: appliedId, fragment: state.fragment, candidate }
-            : entry,
-        );
-        // Finishing a rework puts you back at the end of the hymn: the accepted
-        // context is the tail's harmony again, not the reworked piece's own.
-        const tail = appliedFragments[appliedFragments.length - 1];
-        const tailFinal = tail.candidate.harmonyEvents[tail.candidate.harmonyEvents.length - 1];
-        return {
-          ...pushHistory(state),
-          appliedFragments,
-          editingAppliedId: null,
-          acceptedContext: tailFinal
-            ? {
-                previousHarmony: asAcceptedHarmony(tailFinal, tail.id),
-                // The notes the hymn leaves off on — what the next snippet's
-                // first chord is read against (domain/approach.ts).
-                previousVoicing: tail.candidate.voicing,
-              }
-            : state.acceptedContext,
-        };
-      }
-
-      return {
-        ...pushHistory(state),
-        appliedFragments: [
-          ...state.appliedFragments,
-          { id: action.appliedId, fragment: state.fragment, candidate },
-        ],
-        acceptedContext: {
-          previousHarmony: asAcceptedHarmony(finalHarmony, action.appliedId),
-          previousVoicing: candidate.voicing,
-        },
+    case 'START_NEXT_FRAGMENT': {
+      const applied = applyWorkingReading(state, action.appliedId);
+      if (!applied) return state;
+      const continuation = continuationFragment(applied.candidate, {
+        fragmentId: action.fragmentId,
+        candidateId: action.candidateId,
+        melodyEventId: action.melodyEventId,
+        voiceEventIds: action.voiceEventIds,
+      });
+      // A part with no notes has nothing to carry over — the commit still
+      // stands, you just stay where you are.
+      if (!continuation) return applied.next;
+      const opened: WorkbenchState = {
+        ...applied.next,
+        fragment: continuation.fragment,
+        boundaryConstraints: [],
+        locks: [],
+        // The new fragment is yours, not a sample's — Restore has nothing to
+        // restore to and the lock-set lookup must not reach for one.
+        sourceFixtureId: null,
+        candidates: [continuation.candidate],
+        candidateSetId: null,
+        selectedCandidateId: continuation.candidate.id,
+        suggestionStatus: 'fresh',
+        suggestionSource: 'computed',
       };
+      return regenerate(deriveCandidate(opened, opened.selectedCandidateId));
     }
 
     case 'EDIT_APPLIED_FRAGMENT': {

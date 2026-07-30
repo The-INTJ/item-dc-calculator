@@ -137,8 +137,10 @@
     gap: 0.7rem;
   }
 
+  /* Drew's measured phone spacing (2026-07-30) — every card that reads as a
+     pill/panel uses exactly this, so the columns line up down the page. */
   .region {
-    padding: 0.8rem 0.85rem 0.9rem;
+    padding: 2px 2px 0 8px;
   }
 
   .regionNotes {

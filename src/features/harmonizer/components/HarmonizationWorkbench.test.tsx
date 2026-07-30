@@ -22,6 +22,15 @@ afterEach(cleanup);
 // instead of showing the default fixture's authored first paint.
 beforeEach(() => window.localStorage.clear());
 
+/**
+ * Provenance badges and derivability chips are a local developer view (Drew,
+ * 2026-07-30) — specs that assert on where a reading came from have to ask for
+ * them the same way a developer does (shared/useDevFlag.ts).
+ */
+function enableDevView() {
+  window.localStorage.setItem('harmonizer.dev.v1', '1');
+}
+
 function getCardByTitle(title: string): HTMLElement {
   const cards = screen.getAllByRole('article');
   const card = cards.find((candidate) =>
@@ -31,30 +40,92 @@ function getCardByTitle(title: string): HTMLElement {
   return card;
 }
 
+/**
+ * The reading that is actually on the workbench: its card is titled "Current
+ * chords" and demotes the reading's name to a chip (Drew, 2026-07-30).
+ */
+function getCurrentCard(): HTMLElement {
+  return getCardByTitle('Current chords');
+}
+
+/** Note cells of the first lane (soprano), in time order. */
+function sopranoCells(container: HTMLElement): HTMLElement[] {
+  const lane = container.querySelector('[data-lane-grid]');
+  if (!lane) throw new Error('soprano lane missing');
+  return [...lane.querySelectorAll('[data-event-id]')] as HTMLElement[];
+}
+
 describe('HarmonizationWorkbench', () => {
   it('renders the workspace-first layout with candidate A preview-selected', () => {
     render(<HarmonizationWorkbench />);
 
     // Workspace: heading, master play, four voice checkboxes; boundary pills are gone.
     expect(screen.getByRole('heading', { level: 2, name: /Grounded descent/ })).toBeTruthy();
-    expect(screen.getByRole('button', { name: '▶ Play' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Play' })).toBeTruthy();
     expect(screen.getAllByRole('checkbox')).toHaveLength(4);
     expect(screen.queryByText('hold harmony')).toBeNull();
     expect(screen.queryByText('change allowed')).toBeNull();
+
+    // The transport is the only playback control here now — Loop and Add note
+    // are gone, and their space teaches the gestures instead.
+    expect(screen.queryByRole('button', { name: 'Loop' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '+ Add note' })).toBeNull();
+    expect(screen.getByText(/Hold the bars and drag/)).toBeTruthy();
+    expect(screen.getByText(/Click a note to add a note/)).toBeTruthy();
 
     // Palette below with three cards; A selected. Each card carries an
     // explicit Select button (Drew, 2026-07-30: the card body hosts glossary
     // terms, so the whole card is no longer a click target); the selected
     // card's button reads Selected and is inert.
     expect(screen.getAllByRole('article')).toHaveLength(3);
-    expect(getCardByTitle('Grounded descent').getAttribute('data-selected')).toBe('true');
+    expect(getCurrentCard().getAttribute('data-selected')).toBe('true');
     expect(screen.getAllByRole('button', { name: 'Select' })).toHaveLength(2);
     expect(
-      within(getCardByTitle('Grounded descent'))
+      within(getCurrentCard())
         .getByRole('button', { name: 'Selected' })
         .hasAttribute('disabled'),
     ).toBe(true);
-    expect(screen.queryByRole('button', { name: '▶ SATB' })).toBeNull();
+
+    // The current card reports the workbench, not itself: no summary prose,
+    // and the reading's name demoted to a chip under "Your work's reading:".
+    const current = within(getCurrentCard());
+    expect(current.getByText("Your work's reading:")).toBeTruthy();
+    expect(current.getByText('Grounded descent')).toBeTruthy();
+    expect(current.queryByText(/the source of truth/)).toBeNull();
+  });
+
+  it('shows engine bookkeeping only in the dev view', () => {
+    const { unmount } = render(<HarmonizationWorkbench />);
+    // Emotional descriptors stay; provenance and derivability do not.
+    expect(screen.getAllByText('strong dominant arrival').length).toBeGreaterThan(0);
+    expect(screen.queryByText('Authored')).toBeNull();
+    expect(screen.queryByText(/chord path/)).toBeNull();
+    unmount();
+
+    // Back to a pristine store, or the second mount rehydrates the project the
+    // first one auto-created and shows regenerated cards instead of the
+    // fixture's authored first paint.
+    window.localStorage.clear();
+    enableDevView();
+    render(<HarmonizationWorkbench />);
+    // (Derivability chips ride along with computed readings — see the hero flow.)
+    expect(screen.getAllByText('Authored').length).toBeGreaterThan(0);
+  });
+
+  it('asks what the section should do, next to the readings it steers', () => {
+    render(<HarmonizationWorkbench />);
+    const intent = screen.getByRole('combobox', {
+      name: 'What do you want this section to do?',
+    });
+    expect((intent as HTMLSelectElement).value).toBe('continue');
+    fireEvent.change(intent, { target: { value: 'close' } });
+    expect(
+      (
+        screen.getByRole('combobox', {
+          name: 'What do you want this section to do?',
+        }) as HTMLSelectElement
+      ).value,
+    ).toBe('close');
   });
 
   it('selects a reading with its Select button', () => {
@@ -70,6 +141,7 @@ describe('HarmonizationWorkbench', () => {
   });
 
   it('note tools are live; locking regenerates honestly and freezes the note', () => {
+    enableDevView();
     const { container } = render(<HarmonizationWorkbench />);
 
     const altoCell = container.querySelector('[data-event-id="a-a-1"]');
@@ -85,9 +157,9 @@ describe('HarmonizationWorkbench', () => {
     expect(
       screen.getByRole('button', { name: 'Delete note' }).hasAttribute('disabled'),
     ).toBe(true);
-    expect(
-      screen.getByRole('button', { name: 'Add note before' }).hasAttribute('disabled'),
-    ).toBe(false);
+    // Both ghosts are offered even on a lone note — they move inside it.
+    expect(screen.getByRole('button', { name: 'Add note before' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Add note after' })).toBeTruthy();
 
     // Locking whole-bar E against the melody's fa: no vocabulary chord holds
     // both — but the engine EXPLAINS the fa as passing motion over the held
@@ -121,16 +193,12 @@ describe('HarmonizationWorkbench', () => {
   });
 
   it('hero flow: arrows regenerate engine cards; fixture demos load from Samples', () => {
+    enableDevView();
     const { container } = render(<HarmonizationWorkbench />);
-    const sopranoCells = () => {
-      const lane = container.querySelector('[data-lane-grid]');
-      if (!lane) throw new Error('soprano lane missing');
-      return [...lane.querySelectorAll('[data-event-id]')] as HTMLElement[];
-    };
 
     // sol ▼ → fa: the engine regenerates computed CARDS with derivability
     // chips, while the workspace keeps its own (edited) notes.
-    fireEvent.click(sopranoCells()[0]);
+    fireEvent.click(sopranoCells(container)[0]);
     fireEvent.click(screen.getByRole('button', { name: 'Lower pitch' }));
     expect(screen.getAllByText('Computed').length).toBeGreaterThan(0);
     expect(screen.getAllByText(/chord path/).length).toBeGreaterThan(0);
@@ -142,7 +210,7 @@ describe('HarmonizationWorkbench', () => {
 
     // Third note ▲ ▲ → sol: engine-first means even mi–fa–sol (fixture D's
     // melody) stays computed — authored demos never outrank live analysis.
-    fireEvent.click(sopranoCells()[2]);
+    fireEvent.click(sopranoCells(container)[2]);
     fireEvent.click(screen.getByRole('button', { name: 'Raise pitch' }));
     fireEvent.click(screen.getByRole('button', { name: 'Raise pitch' }));
     expect(screen.getAllByText('Computed').length).toBeGreaterThan(0);
@@ -152,7 +220,9 @@ describe('HarmonizationWorkbench', () => {
     fireEvent.keyDown(window, { key: 'Escape' }); // close the tool cluster
     fireEvent.click(screen.getByRole('button', { name: 'Samples' }));
     fireEvent.click(screen.getByRole('menuitem', { name: /Rising melody — build/ }));
-    expect(screen.getByRole('heading', { level: 3, name: 'Toward the dominant' })).toBeTruthy();
+    // Its first reading lands on the workbench, so its name reads as a chip on
+    // the current-chords card rather than as that card's own title.
+    expect(within(getCurrentCard()).getByText('Toward the dominant')).toBeTruthy();
     expect(screen.getAllByText('Authored').length).toBeGreaterThan(0);
   });
 
@@ -174,59 +244,62 @@ describe('HarmonizationWorkbench', () => {
     render(<HarmonizationWorkbench />);
 
     fireEvent.click(screen.getByRole('checkbox', { name: /Bass/ }));
-    fireEvent.click(screen.getByRole('button', { name: '▶ Play' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Play' }));
 
     expect(screen.getByText('Playing Soprano + Alto + Tenor')).toBeTruthy();
 
     // Both the master button and the selected card show Stop; the master is first.
-    fireEvent.click(screen.getAllByRole('button', { name: '■ Stop' })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Stop' })[0]);
     expect(screen.getByText('Playback stopped')).toBeTruthy();
   });
 
   it('offers the note slider only once the fragment outgrows the beat window', () => {
-    render(<HarmonizationWorkbench />);
+    const { container } = render(<HarmonizationWorkbench />);
     // The default fragment is exactly one measure (four beats), so it fits —
     // note COUNT is irrelevant, only how many beats they span.
     expect(screen.queryByRole('slider')).toBeNull();
 
-    // Appending copies the last note's length (a half note), pushing the
-    // fragment past four beats.
-    fireEvent.click(screen.getByRole('button', { name: '+ Add note' }));
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Soprano' }));
+    // Clicking a note offers a ghost note on each side; taking the trailing
+    // one copies that note's length (a half note), pushing the fragment past
+    // four beats.
+    const cells = sopranoCells(container);
+    fireEvent.click(cells[cells.length - 1]);
+    fireEvent.click(screen.getByRole('button', { name: 'Add note after' }));
     expect(screen.getByRole('slider')).toBeTruthy();
   });
 
-  it('applied pieces become a playable hymn you can click back open', () => {
-    render(<HarmonizationWorkbench />);
+  it('Add fragment commits the reading and opens the next one holding its chord', () => {
+    const { container } = render(<HarmonizationWorkbench />);
     // Nothing applied yet — there is no hymn to play.
     expect(screen.queryByRole('button', { name: /Play hymn/ })).toBeNull();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Apply to composition' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add fragment' }));
     expect(screen.getByRole('button', { name: /Play hymn/ })).toBeTruthy();
 
-    // The chooser opens for the next fragment; stay on this one.
-    fireEvent.click(screen.getByRole('button', { name: /Keep working here/ }));
+    // The next fragment opens on one beat per part, held on what the applied
+    // piece ended with — four notes, one per lane.
+    expect(container.querySelectorAll('[data-event-id]')).toHaveLength(4);
+    expect(sopranoCells(container)).toHaveLength(1);
 
-    // The piece is a chip with its own audition button.
+    // The committed piece is a chip with its own audition button.
     const piece = screen.getByRole('button', { name: /1\. I held/ });
     expect(screen.getByRole('button', { name: /Hear this piece/ })).toBeTruthy();
 
     // Clicking the chip loads it back for rework and says so.
     fireEvent.click(piece);
-    expect(screen.getByText(/Apply will replace this piece where it stands/)).toBeTruthy();
+    expect(screen.getByText(/replace this piece where it stands/)).toBeTruthy();
     expect(screen.getByRole('heading', { level: 2, name: /Grounded descent/ })).toBeTruthy();
 
-    // Applying again replaces it: still one piece, no second chip.
-    fireEvent.click(screen.getByRole('button', { name: 'Apply to composition' }));
-    expect(screen.queryByText(/Apply will replace this piece/)).toBeNull();
+    // Adding again replaces it: still one piece, no second chip.
+    fireEvent.click(screen.getByRole('button', { name: 'Add fragment' }));
+    expect(screen.queryByText(/replace this piece where it stands/)).toBeNull();
     expect(screen.getByRole('button', { name: /1\. I held/ })).toBeTruthy();
     expect(screen.queryByRole('button', { name: /2\./ })).toBeNull();
   });
 
   it('whole-hymn playback leaves the workspace cursor alone', () => {
     const { container } = render(<HarmonizationWorkbench />);
-    fireEvent.click(screen.getByRole('button', { name: 'Apply to composition' }));
-    fireEvent.click(screen.getByRole('button', { name: /Keep working here/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add fragment' }));
 
     fireEvent.click(screen.getByRole('button', { name: /Play hymn/ }));
     expect(screen.getByText('Playing all four voices')).toBeTruthy();
@@ -239,14 +312,14 @@ describe('HarmonizationWorkbench', () => {
     render(<HarmonizationWorkbench />);
 
     const cardB = getCardByTitle('Strong arrival');
-    fireEvent.click(within(cardB).getByRole('button', { name: /Full/ }));
+    fireEvent.click(within(cardB).getByRole('button', { name: 'Hear all four parts' }));
 
     expect(screen.getByText('Playing all four voices')).toBeTruthy();
     // The play button stops propagation — the selection stays on A.
     expect(screen.getByRole('heading', { level: 2, name: /Grounded descent/ })).toBeTruthy();
 
-    fireEvent.click(within(cardB).getByRole('button', { name: /Stop/ }));
+    fireEvent.click(within(cardB).getByRole('button', { name: 'Stop' }));
     expect(screen.getByText('Playback stopped')).toBeTruthy();
-    expect(within(cardB).getByRole('button', { name: /Full/ })).toBeTruthy();
+    expect(within(cardB).getByRole('button', { name: 'Hear all four parts' })).toBeTruthy();
   });
 });

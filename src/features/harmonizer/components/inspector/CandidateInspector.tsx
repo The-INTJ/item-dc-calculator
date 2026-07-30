@@ -8,14 +8,13 @@ import { totalUnits, voicingUnits } from '../../domain/timing';
 import type { PlaybackState, SuggestionSource } from '../../domain/workbench-state';
 import { BoundaryThroughLines } from '../workspace/BoundaryThroughLines';
 import { ChordStrip } from '../workspace/ChordStrip';
+import { Icon } from '../shared/Icon';
 import { newUserEventId } from '../shared/ids';
 import { needsPan, panForUnit, panShiftPercent, trackScale } from '../shared/pan';
 import { cssVars } from '../shared/timeGrid';
-import { AddNoteMenu } from './AddNoteMenu';
 import { AnalysisDrawer } from './AnalysisDrawer';
 import { EffectSummary } from './EffectSummary';
 import { VoiceLane } from './VoiceLane';
-import { classes } from '../shared/format';
 import styles from './CandidateInspector.module.scss';
 
 interface CandidateInspectorProps {
@@ -23,7 +22,6 @@ interface CandidateInspectorProps {
   candidateLetter: string | null;
   fragment: MelodyFragment;
   playback: PlaybackState;
-  loopEnabled: boolean;
   checkedVoices: VoiceId[];
   lockedEventIds: ReadonlySet<string>;
   suggestionSource: SuggestionSource | null;
@@ -31,7 +29,6 @@ interface CandidateInspectorProps {
   onPlayChecked: () => void;
   onPlayVoice: (candidateId: string, voice: VoiceId) => void;
   onStop: () => void;
-  onToggleLoop: () => void;
   onToggleNoteLock: (candidateId: string, event: VoiceEvent) => void;
   onStepNote: (candidateId: string, voice: VoiceId, eventId: string, direction: 1 | -1) => void;
   onInsertNote: (
@@ -42,7 +39,6 @@ interface CandidateInspectorProps {
     newEventId: string,
   ) => void;
   onDeleteNote: (candidateId: string, voice: VoiceId, eventId: string) => void;
-  onApply: () => void;
   onResizeNote: (
     candidateId: string,
     voice: VoiceId,
@@ -67,7 +63,6 @@ export function CandidateInspector({
   candidateLetter,
   fragment,
   playback,
-  loopEnabled,
   checkedVoices,
   lockedEventIds,
   suggestionSource,
@@ -75,12 +70,10 @@ export function CandidateInspector({
   onPlayChecked,
   onPlayVoice,
   onStop,
-  onToggleLoop,
   onToggleNoteLock,
   onStepNote,
   onInsertNote,
   onDeleteNote,
-  onApply,
   onResizeNote,
 }: CandidateInspectorProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -149,54 +142,43 @@ export function CandidateInspector({
             </span>
           ) : null}
         </h2>
-        <button
-          type="button"
-          className={styles.apply}
-          disabled={!candidate}
-          onClick={onApply}
-        >
-          {content.inspector.apply}
-        </button>
       </div>
 
       {!candidate ? (
         <p className={styles.noSelection}>{content.inspector.noSelection}</p>
       ) : (
         <div className={styles.lanes} style={cssVars(panVars)}>
+          {/* The space the Add note / Loop / Apply buttons used to hold now
+              teaches the three gestures that aren't visible from looking. */}
           <div className={styles.masterRow}>
-            {playing ? (
-              <button type="button" className={styles.masterButton} onClick={onStop}>
-                ■ {content.inspector.stop}
-              </button>
-            ) : (
-              <button
-                type="button"
-                className={styles.masterButton}
-                onClick={onPlayChecked}
-                disabled={checkedVoices.length === 0}
-              >
-                ▶ {content.inspector.play}
-              </button>
-            )}
-            <button
-              type="button"
-              className={classes(styles.loopButton, loopEnabled && styles.loopActive)}
-              aria-pressed={loopEnabled}
-              onClick={onToggleLoop}
-            >
-              {content.inspector.loop}
-            </button>
-            <div className={styles.addNoteSlot}>
-              <AddNoteMenu
-                onAddNote={(voice) => {
-                  const events = candidate.voicing[voice];
-                  const last = events[events.length - 1];
-                  if (!last) return;
-                  const newEventId = newUserEventId();
-                  onInsertNote(candidate.id, voice, last.id, 'after', newEventId);
-                  setEditing({ candidateId: candidate.id, eventId: newEventId });
-                }}
-              />
+            <ul className={styles.hints}>
+              {content.inspector.hints.map((hint) => (
+                <li key={hint}>{hint}</li>
+              ))}
+            </ul>
+            <div className={styles.transport}>
+              {playing ? (
+                <button
+                  type="button"
+                  className={styles.masterButton}
+                  aria-label={content.inspector.stop}
+                  title={content.inspector.stop}
+                  onClick={onStop}
+                >
+                  <Icon name="stop" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={styles.masterButton}
+                  aria-label={content.inspector.play}
+                  title={content.inspector.play}
+                  onClick={onPlayChecked}
+                  disabled={checkedVoices.length === 0}
+                >
+                  <Icon name="play_arrow" />
+                </button>
+              )}
             </div>
           </div>
 
@@ -263,9 +245,7 @@ export function CandidateInspector({
                           {candidate.approach.harmony.displaySymbol}
                         </span>
                       </span>
-                      <span className={styles.approachArrow} aria-hidden="true">
-                        →
-                      </span>
+                      <Icon name="east" className={styles.approachArrow} />
                     </span>
                   ) : null}
                 </span>

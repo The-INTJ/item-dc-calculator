@@ -93,7 +93,9 @@ export const qualityTermIds: Record<ChordQuality, TermId> = {
 
 /**
  * Terms allowed to stand alone (no inbound reference from a definition,
- * seeAlso, or mapping table). Currently every term is cross-referenced; add a
- * TermId here only when a genuinely standalone entry earns its place.
+ * seeAlso, or mapping table). `tempo` and `sound` are here because they teach
+ * playback controls, not musical structure — nothing in the harmonic
+ * vocabulary has cause to link to them, but every settings label is
+ * hoverable, so they must exist.
  */
-export const STANDALONE_TERM_IDS: readonly TermId[] = [];
+export const STANDALONE_TERM_IDS: readonly TermId[] = ['tempo', 'sound'];

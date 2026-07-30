@@ -1,3 +1,4 @@
+@use '@/features/harmonizer/components/shared/breakpoints' as *;
 @use '@/features/harmonizer/components/shared/controls' as *;
 
 .headingRow {
@@ -10,6 +11,24 @@
 
 .refresh {
   @include wb-button;
+}
+
+/* "What do you want this section to do?" + the intent select. */
+.intent {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.intentQuestion {
+  font-size: 0.8125rem;
+  color: var(--wb-ink-soft);
+}
+
+.intentSelect {
+  @include wb-button;
+  padding-right: 1.6rem;
+  cursor: pointer;
 }
 
 .grid {
@@ -118,8 +137,15 @@
 .cardBadges {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.35rem;
   margin: 0;
+}
+
+/* "Your work's reading:" — the only prose the current-chords card carries. */
+.readingLabel {
+  font-size: 0.8125rem;
+  color: var(--wb-ink-soft);
 }
 
 .badge {
@@ -189,7 +215,8 @@
 }
 
 .playButton {
-  @include wb-button;
+  @include wb-icon-button;
+  font-size: 1.15rem;
 }
 
 /* The explicit selection control — primary-toned so it reads as THE action;
@@ -204,5 +231,36 @@
     border-color: var(--wb-line);
     color: var(--wb-ink-soft);
     cursor: default;
+  }
+}
+
+@include wb-mobile {
+  /* The question wraps under the region heading rather than squeezing it. */
+  .headingRow {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.6rem;
+  }
+
+  /* The question and its answer stack: side by side, the select was shoved to
+     the far edge with the question wrapping under itself (Drew, 2026-07-30). */
+  .intent {
+    flex: 1 1 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+  }
+
+  .intentSelect {
+    width: 100%;
+  }
+
+  .card {
+    padding: 2px 2px 0 8px;
+    gap: 0.35rem;
+  }
+
+  .cardActions {
+    padding-bottom: 6px;
   }
 }

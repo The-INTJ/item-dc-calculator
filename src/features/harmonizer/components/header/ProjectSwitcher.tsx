@@ -10,6 +10,7 @@ import {
   type HarmonizerProject,
 } from '../../projects/project-store';
 import { classes } from '../shared/format';
+import { Icon } from '../shared/Icon';
 import { PopoverMenu, PopoverMenuItem } from '../shared/PopoverMenu';
 import styles from './ProjectSwitcher.module.scss';
 
@@ -94,7 +95,7 @@ export function ProjectSwitcher({
         }
       />
       <PopoverMenu
-        triggerLabel="▾"
+        triggerLabel={<Icon name="expand_more" />}
         triggerClassName={styles.menuTrigger}
         heading={content.projects.menuHeading}
         align="right"

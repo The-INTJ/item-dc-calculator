@@ -9,7 +9,6 @@ import {
   COMPOSITION_CANDIDATE_ID,
 } from '../domain/composition';
 import type { VoiceEvent, VoiceId } from '../domain/music-types';
-import { tonicWholeNoteFragment } from '../domain/scale';
 import { getDefaultFixture, getFixtureById } from '../fixtures/registry';
 import {
   createProject,
@@ -28,8 +27,7 @@ import {
 import type { PlaybackService } from '../services/playback-service';
 import type { WorkbenchAction } from '../state/actions';
 import { ProjectSwitcher, type SaveIndicator } from './header/ProjectSwitcher';
-import { NextFragmentChooser } from './samples/NextFragmentChooser';
-import { newId } from './shared/ids';
+import { newId, newUserEventId } from './shared/ids';
 import { ToneJsPlaybackService } from '../services/tone-playback-service';
 import { getSelectedCandidate, toCandidatePathSummary } from '../state/selectors';
 import { createInitialWorkbenchState, useWorkbenchReducer } from '../state/workbenchReducer';
@@ -49,9 +47,7 @@ interface LastPlay {
 
 export function HarmonizationWorkbench() {
   const [state, dispatch] = useWorkbenchReducer(getDefaultFixture());
-  const [loopEnabled, setLoopEnabled] = useState(false);
   const [checkedVoices, setCheckedVoices] = useState<VoiceId[]>(ALL_VOICES);
-  const [chooserOpen, setChooserOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [saveIndicator, setSaveIndicator] = useState<SaveIndicator>(null);
   const [soundId, setSoundId] = useState<InstrumentId>(DEFAULT_INSTRUMENT_ID);
@@ -92,29 +88,21 @@ export function HarmonizationWorkbench() {
     return state.candidates.find((candidate) => candidate.id === candidateId) ?? null;
   }
 
-  async function startPlayback(
-    candidateId: string,
-    voices: VoiceId[],
-    loopOverride?: boolean,
-  ): Promise<void> {
+  async function startPlayback(candidateId: string, voices: VoiceId[]): Promise<void> {
     const candidate = findCandidate(candidateId);
     if (!candidate) return;
-    await startPlaybackOf(candidate, voices, loopOverride);
+    await startPlaybackOf(candidate, voices);
   }
 
   /**
    * Play any reading, including ones that are not in the candidate list — the
    * whole-hymn projection and single applied pieces are built on the fly.
    */
-  async function startPlaybackOf(
-    candidate: CandidatePath,
-    voices: VoiceId[],
-    loopOverride?: boolean,
-  ): Promise<void> {
+  async function startPlaybackOf(candidate: CandidatePath, voices: VoiceId[]): Promise<void> {
     if (voices.length === 0) return;
     const candidateId = candidate.id;
     const service = getService();
-    const options = { tempoBpm: state.tempoBpm, loop: loopOverride ?? loopEnabled };
+    const options = { tempoBpm: state.tempoBpm, loop: false };
     lastPlayRef.current = { candidateId, voices };
     dispatch({ type: 'START_PLAYBACK', candidateId, voices });
     try {
@@ -167,12 +155,25 @@ export function HarmonizationWorkbench() {
     });
   }
 
-  function applySelected() {
+  /**
+   * Commit the working reading and open the next fragment already holding the
+   * chord it lands on — one beat per part (domain/next-fragment.ts).
+   */
+  function addFragment() {
     if (!selectedCandidate) return;
-    const reworking = state.editingAppliedId !== null;
-    dispatchStructural({ type: 'APPLY_CANDIDATE', appliedId: newId() });
-    // Reworking an existing piece stays put; a fresh piece moves the hymn on.
-    if (!reworking) setChooserOpen(true);
+    dispatchStructural({
+      type: 'START_NEXT_FRAGMENT',
+      appliedId: newId(),
+      fragmentId: newId(),
+      candidateId: newId(),
+      melodyEventId: newUserEventId(),
+      voiceEventIds: {
+        soprano: newUserEventId(),
+        alto: newUserEventId(),
+        tenor: newUserEventId(),
+        bass: newUserEventId(),
+      },
+    });
   }
 
   /* ---------- the composition (applied pieces) ---------- */
@@ -191,29 +192,6 @@ export function HarmonizationWorkbench() {
   function playApplied(appliedId: string) {
     const applied = state.appliedFragments.find((entry) => entry.id === appliedId);
     if (applied) void startPlaybackOf(applied.candidate, ALL_VOICES);
-  }
-
-  function pickNextFragment(choice: { kind: 'fixture'; fixtureId: string } | { kind: 'blank' }) {
-    setChooserOpen(false);
-    if (choice.kind === 'fixture') {
-      const fixture = getFixtureById(choice.fixtureId);
-      if (fixture) {
-        dispatchStructural({
-          type: 'LOAD_SAMPLE',
-          source: { kind: 'fixture', fixture },
-          keepAcceptedContext: true,
-        });
-      }
-      return;
-    }
-    const fragment = tonicWholeNoteFragment(state.tonalContext, newId(), newId());
-    if (fragment) {
-      dispatchStructural({
-        type: 'LOAD_SAMPLE',
-        source: { kind: 'blank', fragment },
-        keepAcceptedContext: true,
-      });
-    }
   }
 
   function restoreSample() {
@@ -246,16 +224,6 @@ export function HarmonizationWorkbench() {
       ripple,
       gestureId,
     });
-  }
-
-  function handleToggleLoop() {
-    const next = !loopEnabled;
-    setLoopEnabled(next);
-    // Restart the current session so the toggle takes effect immediately.
-    if (playback.status === 'playing' && lastPlayRef.current) {
-      const last = lastPlayRef.current;
-      void startPlayback(last.candidateId, last.voices, next);
-    }
   }
 
   // Space plays/stops the checked parts of the selected reading when focus
@@ -404,7 +372,6 @@ export function HarmonizationWorkbench() {
         />
         <ContextBar
           tonalContext={state.tonalContext}
-          phraseIntent={state.phraseIntent}
           tempoBpm={state.tempoBpm}
           currentFixtureId={state.sourceFixtureId}
           soundId={soundId}
@@ -412,9 +379,6 @@ export function HarmonizationWorkbench() {
           onTempoChange={(tempoBpm) => dispatch({ type: 'SET_TEMPO', tempoBpm })}
           onKeyChange={(tonalContext) =>
             dispatchStructural({ type: 'EDIT_TONAL_CONTEXT', tonalContext })
-          }
-          onIntentChange={(phraseIntent) =>
-            dispatchStructural({ type: 'EDIT_PHRASE_INTENT', phraseIntent })
           }
           onLoadSample={(fixtureId) => {
             const fixture = getFixtureById(fixtureId);
@@ -435,6 +399,7 @@ export function HarmonizationWorkbench() {
             editingAppliedId={state.editingAppliedId}
             soundingAppliedId={soundingAppliedId}
             hymnPlaying={hymnPlaying}
+            canAddFragment={selectedCandidate !== null}
             onSetAcceptedHarmony={(harmony) =>
               dispatchStructural({ type: 'SET_ACCEPTED_HARMONY', harmony })
             }
@@ -443,6 +408,7 @@ export function HarmonizationWorkbench() {
             onEditApplied={(appliedId) =>
               dispatchStructural({ type: 'EDIT_APPLIED_FRAGMENT', appliedId })
             }
+            onAddFragment={addFragment}
             onStop={stopPlayback}
           />
         </section>
@@ -452,7 +418,6 @@ export function HarmonizationWorkbench() {
             candidateLetter={candidateLetter}
             fragment={state.fragment}
             playback={playback}
-            loopEnabled={loopEnabled}
             checkedVoices={checkedVoices}
             lockedEventIds={lockedEventIds}
             suggestionSource={state.suggestionSource}
@@ -462,7 +427,6 @@ export function HarmonizationWorkbench() {
             }}
             onPlayVoice={(candidateId, voice) => void startPlayback(candidateId, [voice])}
             onStop={stopPlayback}
-            onToggleLoop={handleToggleLoop}
             onToggleNoteLock={toggleNoteLock}
             onStepNote={(candidateId, voice, eventId, direction) =>
               dispatchStructural({
@@ -486,7 +450,6 @@ export function HarmonizationWorkbench() {
             onDeleteNote={(candidateId, voice, eventId) =>
               dispatchStructural({ type: 'DELETE_VOICE_EVENT', candidateId, voice, eventId })
             }
-            onApply={applySelected}
             onResizeNote={resizeNote}
           />
         </section>
@@ -496,6 +459,10 @@ export function HarmonizationWorkbench() {
             selectedCandidateId={state.selectedCandidateId}
             suggestionStatus={state.suggestionStatus}
             playback={playback}
+            phraseIntent={state.phraseIntent}
+            onIntentChange={(phraseIntent) =>
+              dispatchStructural({ type: 'EDIT_PHRASE_INTENT', phraseIntent })
+            }
             onSelect={(candidateId) => dispatch({ type: 'SELECT_CANDIDATE', candidateId })}
             onPlayFull={(candidateId) => void startPlayback(candidateId, ALL_VOICES)}
             onStop={stopPlayback}
@@ -505,11 +472,6 @@ export function HarmonizationWorkbench() {
         <div aria-live="polite" className={styles.visuallyHidden}>
           {announcement}
         </div>
-        <NextFragmentChooser
-          open={chooserOpen}
-          onClose={() => setChooserOpen(false)}
-          onPick={pickNextFragment}
-        />
       </div>
     </div>
   );

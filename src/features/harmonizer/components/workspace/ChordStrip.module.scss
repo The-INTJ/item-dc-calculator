@@ -1,3 +1,5 @@
+@use '@/features/harmonizer/components/shared/breakpoints' as *;
+
 /* No overflow clipping — the numeral's glossary tip panel must escape the
    strip. First/last segments carry the radius themselves instead. */
 .strip {
@@ -65,4 +67,37 @@
   font-size: 0.8125rem;
   color: var(--wb-ink-soft);
   white-space: nowrap;
+}
+
+/**
+ * Mobile: the chord label sits UNDER the solfège rather than beside it (Drew,
+ * 2026-07-30) — a narrow segment has room for one word per line, and the
+ * syllable is what you read first. Forcing the syllable to a full row wraps
+ * the numeral and symbol together onto the next, with no extra markup.
+ */
+@include wb-mobile {
+  .strip {
+    margin-inline: 0;
+  }
+
+  .segment {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0 0.35rem;
+    padding: 0.3rem 0.45rem;
+  }
+
+  .rootSyllable {
+    flex: 1 0 100%;
+    font-size: 1rem;
+    line-height: 1.15;
+  }
+
+  .numeral {
+    font-size: 0.85rem;
+  }
+
+  .symbol {
+    font-size: 0.7rem;
+  }
 }

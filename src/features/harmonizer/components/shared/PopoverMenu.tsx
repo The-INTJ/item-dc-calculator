@@ -1,8 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { classes } from './format';
 import styles from './PopoverMenu.module.scss';
+
+/** Breathing room between a menu panel and the edge of the screen. */
+const VIEWPORT_MARGIN = 8;
 
 interface PopoverMenuProps {
   triggerLabel: ReactNode;
@@ -26,7 +29,33 @@ export function PopoverMenu({
   children,
 }: PopoverMenuProps) {
   const [open, setOpen] = useState(false);
+  /** Px nudge that pulls an off-screen panel back into view (see below). */
+  const [shift, setShift] = useState(0);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+
+  /**
+   * The panel is anchored to its trigger, and a trigger sitting near either
+   * edge of a phone screen used to push the panel clean off it. Measure once
+   * on open and slide it back inside. Runs before paint, and `shift` starts at
+   * zero on every open, so the measurement is never of an already-shifted box.
+   */
+  useLayoutEffect(() => {
+    if (!open) {
+      setShift(0);
+      return;
+    }
+    const panel = panelRef.current;
+    if (!panel) return;
+    const rect = panel.getBoundingClientRect();
+    if (rect.width === 0) return; // jsdom: no layout — leave it where CSS put it
+    let delta = 0;
+    if (rect.right > window.innerWidth - VIEWPORT_MARGIN) {
+      delta = window.innerWidth - VIEWPORT_MARGIN - rect.right;
+    }
+    if (rect.left + delta < VIEWPORT_MARGIN) delta = VIEWPORT_MARGIN - rect.left;
+    setShift(delta);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -66,7 +95,9 @@ export function PopoverMenu({
       </button>
       {open ? (
         <div
+          ref={panelRef}
           className={classes(styles.panel, align === 'right' && styles.panelRight)}
+          style={shift === 0 ? undefined : { transform: `translateX(${shift}px)` }}
           role="menu"
         >
           {heading ? <div className={styles.heading}>{heading}</div> : null}

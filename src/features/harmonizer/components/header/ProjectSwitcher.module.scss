@@ -49,8 +49,8 @@
 }
 
 .menuTrigger {
-  @include wb-button;
-  padding-inline: 0.5rem;
+  @include wb-icon-button;
+  font-size: 1.05rem;
 }
 
 @include wb-mobile {

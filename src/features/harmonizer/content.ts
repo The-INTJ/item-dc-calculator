@@ -18,26 +18,16 @@ export const content = {
   comingSoon: 'Coming in a later milestone',
   contextBar: {
     keyLabel: 'Key',
-    intentLabel: 'Phrase intent',
     tempoLabel: 'Tempo',
     tempoUnit: 'bpm',
     samplesLabel: 'Samples',
     samplesHeading: 'Sample fragments',
     soundLabel: 'Sound',
     soundNetworkHint: 'Sampled — fetches audio samples over the network on first use',
-    intentOptions: {
-      continue: 'Continue',
-      build: 'Build',
-      approach_cadence: 'Approach cadence',
-      close: 'Close',
-    },
-    intentDescriptions: {
-      continue: 'Avoid strong closure; favor prolongation and forward availability.',
-      build: 'Favor increasing tension, rising energy, or [dominant] preparation.',
-      approach_cadence:
-        'Favor predominant and [dominant] preparation without necessarily completing the [cadence].',
-      close: 'Favor convincing local or phrase-level arrival.',
-    },
+    /** Mobile only: the settings collapse into one card that starts closed. */
+    settingsLabel: 'Settings',
+    settingsShow: 'Show settings',
+    settingsHide: 'Hide settings',
     modeLabels: {
       major: 'Major',
       natural_minor: 'Natural minor',
@@ -59,6 +49,27 @@ export const content = {
     majorKeysHeading: 'Major keys',
     minorKeysHeading: 'Minor keys',
   },
+  /**
+   * Phrase intent lives with the suggestions it steers (Drew, 2026-07-30) —
+   * it is a question about the NEXT reading, not a setting about the piece.
+   */
+  phraseIntent: {
+    question: 'What do you want this section to do?',
+    label: 'Phrase intent',
+    options: {
+      continue: 'Continue',
+      build: 'Build',
+      approach_cadence: 'Approach cadence',
+      close: 'Close',
+    },
+    descriptions: {
+      continue: 'Avoid strong closure; favor prolongation and forward availability.',
+      build: 'Favor increasing tension, rising energy, or [dominant] preparation.',
+      approach_cadence:
+        'Favor predominant and [dominant] preparation without necessarily completing the [cadence].',
+      close: 'Favor convincing local or phrase-level arrival.',
+    },
+  },
   regions: {
     acceptedContext: 'Accepted context',
     candidates: 'Suggested readings',
@@ -75,22 +86,26 @@ export const content = {
     playPiece: 'Hear this piece',
     editPiece: 'Rework this piece',
     editingBadge: 'reworking',
-    editingHint: 'Apply will replace this piece where it stands.',
+    editingHint: 'Add fragment will replace this piece where it stands.',
+    addFragment: 'Add fragment',
+    addFragmentHint:
+      'Save this fragment and start the next one, held on the notes this one ends with.',
   },
   melody: {
-    addNote: 'Add note',
     alwaysLocked: 'The melody is always locked',
   },
   candidates: {
     refresh: 'Refresh alternatives',
     selectCard: 'Select',
     selectedCard: 'Selected',
-    playFull: 'Full',
+    playFull: 'Hear all four parts',
     stop: 'Stop',
     bassPrefix: 'Bass:',
+    /** The card showing what is actually on the workbench right now. */
+    currentHeading: 'Current chords',
+    workingReading: "Your work's reading:",
   },
   inspector: {
-    apply: 'Apply to composition',
     noSelection: 'Select a reading to inspect it.',
     candidateEvidence: 'Reading-level evidence',
     chords: 'Chords',
@@ -104,7 +119,6 @@ export const content = {
     showEvidence: 'View analysis evidence',
     hideEvidence: 'Hide analysis evidence',
     play: 'Play',
-    loop: 'Loop',
     stop: 'Stop',
     playVoice: 'Play voice',
     includeInPlay: 'include in playback',
@@ -113,6 +127,14 @@ export const content = {
     panFollowing: 'Following playback',
     approachPrefix: 'coming from',
     approachChordPrefix: 'from',
+    /** The three things a first-time visitor cannot guess from looking. */
+    hints: [
+      'Hold the bars and drag to change the length of notes',
+      'Click a note to add a note, change it, or lock it in',
+      'Check/uncheck parts to hear them when pressing this play button',
+    ],
+    /** Label inside the two ghost notes that flank the note being edited. */
+    ghostAdd: '(click to add)',
     noteTools: {
       raise: 'Raise pitch',
       lower: 'Lower pitch',
@@ -162,9 +184,6 @@ export const content = {
     choose: 'Choose sample fragment',
     keep: 'Keep editing',
   },
-  addNoteMenu: {
-    heading: 'Add a note to',
-  },
   projects: {
     menuHeading: 'Projects',
     newProject: 'New project',
@@ -175,12 +194,6 @@ export const content = {
     saved: 'Saved',
     saving: 'Saving…',
     error: 'Save failed — storage may be full',
-  },
-  nextFragment: {
-    heading: 'Next fragment',
-    hint: 'The applied harmony becomes the accepted context for what comes next.',
-    blank: 'Blank — a single tonic note',
-    dismiss: 'Keep working here',
   },
   inversionLabels: ['root position', 'first inversion', 'second inversion', 'third inversion'],
   evidenceSources: {

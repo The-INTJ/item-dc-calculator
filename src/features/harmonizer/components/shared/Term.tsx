@@ -23,6 +23,8 @@ import styles from './Term.module.scss';
 const OPEN_DELAY_MS = 250;
 /** Grace for the pointer to travel from the trigger onto the abutting panel. */
 const CLOSE_GRACE_MS = 150;
+/** Breathing room between a tip panel and the edge of the screen. */
+const VIEWPORT_MARGIN = 8;
 
 interface TermProps {
   termId: TermId;
@@ -51,6 +53,8 @@ export function Term({ termId, variant = 'prose', className, children }: TermPro
   const [open, setOpen] = useState(false);
   const [pinned, setPinned] = useState(false);
   const [alignRight, setAlignRight] = useState(false);
+  /** Px nudge that pulls a tip back inside the viewport (see below). */
+  const [shift, setShift] = useState(0);
   const [history, setHistory] = useState<TermId[]>([termId]);
   const wrapRef = useRef<HTMLSpanElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -86,6 +90,7 @@ export function Term({ termId, variant = 'prose', className, children }: TermPro
     setOpen(false);
     setPinned(false);
     setAlignRight(false);
+    setShift(0);
     setHistory([termId]);
   }
 
@@ -104,6 +109,7 @@ export function Term({ termId, variant = 'prose', className, children }: TermPro
       setOpen(false);
       setPinned(false);
       setAlignRight(false);
+      setShift(0);
       setHistory([termId]);
     });
   }, [instanceId, termId]);
@@ -160,6 +166,28 @@ export function Term({ termId, variant = 'prose', className, children }: TermPro
         boundary.getBoundingClientRect().right,
     );
   }, [open]);
+
+  /**
+   * Flipping sides is not always enough: a trigger in the middle of a phone
+   * screen overflows whichever way the panel hangs. Measure the settled panel
+   * and slide it back inside (Drew, 2026-07-30 — "the modal sometimes bleeds
+   * off-screen"). The transform is cleared before measuring so the maths is
+   * always against the untransformed position, never a previous nudge.
+   */
+  useLayoutEffect(() => {
+    if (!open) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    panel.style.transform = 'none';
+    const rect = panel.getBoundingClientRect();
+    if (rect.width === 0) return; // jsdom: no layout
+    let delta = 0;
+    if (rect.right > window.innerWidth - VIEWPORT_MARGIN) {
+      delta = window.innerWidth - VIEWPORT_MARGIN - rect.right;
+    }
+    if (rect.left + delta < VIEWPORT_MARGIN) delta = VIEWPORT_MARGIN - rect.left;
+    setShift(delta);
+  }, [open, alignRight, history]);
 
   /* Hover is a mouse-only path — on touch, the tap's click opens pinned. */
   function handlePointerEnter(event: ReactPointerEvent<HTMLSpanElement>) {
@@ -246,6 +274,7 @@ export function Term({ termId, variant = 'prose', className, children }: TermPro
           ref={panelRef}
           role="group"
           className={classes(styles.termPanel, alignRight && styles.termPanelRight)}
+          style={shift === 0 ? undefined : { transform: `translateX(${shift}px)` }}
           onClick={(event) => event.stopPropagation()}
         >
           <span className={styles.panelTermName}>{activeTerm.display}</span>
