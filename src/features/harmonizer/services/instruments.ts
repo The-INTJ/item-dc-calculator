@@ -63,6 +63,27 @@ export interface InstrumentDef {
   smplr?: SmplrInstrumentConfig;
   /** Needs a network fetch on first use. */
   requiresNetwork: boolean;
+  /**
+   * Sounding length as a multiple of the written note. Congregational singing
+   * runs the notes together rather than clipping each one, so these sit at or
+   * just past 1: no audible gap, and sampled voices overlap slightly to blend
+   * across the change. Defaults to ENGINE_NOTE_LENGTH.
+   */
+  noteLength?: number;
+}
+
+/**
+ * Per-engine defaults. Synth patches stop exactly at the written length (their
+ * own short release covers the join); sampled voices overlap a little because
+ * a real choir's syllable change is not a clean cut.
+ */
+export const ENGINE_NOTE_LENGTH: Record<InstrumentEngine, number> = {
+  tone: 1,
+  smplr: 1.08,
+};
+
+export function noteLengthFor(def: InstrumentDef): number {
+  return def.noteLength ?? ENGINE_NOTE_LENGTH[def.engine];
 }
 
 /**

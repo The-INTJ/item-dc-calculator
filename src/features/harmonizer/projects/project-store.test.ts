@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createInitialWorkbenchState } from '../state/workbenchReducer';
+import { createInitialWorkbenchState, workbenchReducer } from '../state/workbenchReducer';
 import { getDefaultFixture } from '../fixtures/registry';
 import {
   createProject,
@@ -34,6 +34,29 @@ describe('project store', () => {
 
     renameProject(project.id, 'Renamed');
     expect(getActiveProject()?.name).toBe('Renamed');
+  });
+
+  it('round-trips a mid-hymn save, seam and all', () => {
+    // A snippet in the middle carries an `approach` on every candidate: the
+    // previous chord plus the note each voice arrives from. This is the shape
+    // that silently wiped projects when its schema was too strict.
+    const initial = createInitialWorkbenchState(getDefaultFixture());
+    const applied = workbenchReducer(initial, { type: 'APPLY_CANDIDATE', appliedId: 'ap1' });
+    const midHymn = workbenchReducer(applied, {
+      type: 'LOAD_SAMPLE',
+      source: { kind: 'fixture', fixture: getDefaultFixture() },
+      keepAcceptedContext: true,
+    });
+    expect(midHymn.candidates[0].approach?.voices.soprano).toBeTruthy();
+
+    const project = createProject('Mid hymn', toPersistedWorkbench(midHymn));
+    const restored = getActiveProject();
+    expect(restored?.id).toBe(project.id);
+    expect(restored?.workbench.candidates[0].approach?.voices.soprano?.scaleDegree.syllable).toBe(
+      'mi',
+    );
+    expect(restored?.workbench.acceptedContext.previousVoicing).not.toBeNull();
+    expect(restored?.workbench.appliedFragments).toHaveLength(1);
   });
 
   it('recovers cleanly from corruption and version mismatches', () => {

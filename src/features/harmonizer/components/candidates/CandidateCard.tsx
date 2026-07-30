@@ -49,7 +49,13 @@ export function CandidateCard({
         <h3 className={styles.cardTitle}>{summary.title}</h3>
       </header>
       <p className={styles.cardPath}>
-        <span className={styles.cardNumerals}>{summary.romanNumeralPath}</span>
+        <span className={styles.cardNumerals}>
+          {/* Mid-hymn readings show the chord they grow out of. */}
+          {summary.approachNumeral ? (
+            <span className={styles.cardApproach}>{summary.approachNumeral} →</span>
+          ) : null}
+          {summary.romanNumeralPath}
+        </span>
         <span className={styles.cardSymbols}>{summary.displaySymbolPath}</span>
       </p>
       <p className={styles.cardBass}>

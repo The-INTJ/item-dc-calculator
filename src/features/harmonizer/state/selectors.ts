@@ -20,6 +20,8 @@ export interface CandidatePathSummary {
   bassOutline: string;
   summary: string;
   descriptorLabels: string[];
+  /** The chord this reading arrives from mid-hymn, e.g. "V7" — null when it opens. */
+  approachNumeral: string | null;
   /** The derivability probe's headline: where this reading came from. */
   source: 'authored' | 'computed' | 'user';
   derivability: DerivabilityNote[];
@@ -68,6 +70,7 @@ export function toCandidatePathSummary(candidate: CandidatePath): CandidatePathS
     displaySymbolPath: displaySymbolPath(candidate),
     bassOutline: bassOutline(candidate),
     summary: candidate.summary,
+    approachNumeral: candidate.approach?.harmony?.analysis.romanNumeral ?? null,
     descriptorLabels: candidate.descriptors.map((descriptor) => descriptor.label),
     source: candidate.provenance.fixtureAuthored
       ? 'authored'

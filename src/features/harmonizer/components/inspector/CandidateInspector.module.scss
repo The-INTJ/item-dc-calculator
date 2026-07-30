@@ -87,12 +87,56 @@
 
 .laneLabel {
   align-self: center;
-  padding-right: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding-right: 0.35rem;
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--wb-ink-soft);
+}
+
+.laneLabelText {
+  min-width: 0;
+}
+
+/* The note this part comes from, in the gap before the first note. */
+.approach {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.12rem;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+}
+
+.approachStack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.05;
+  padding-bottom: 1px;
+  border-bottom: 1px solid var(--wb-line);
+}
+
+.approachSyllable {
+  font-family: var(--wb-font-solfege);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--wb-ink);
+}
+
+.approachPitch {
+  font-size: 0.62rem;
+  color: var(--wb-ink-soft);
+}
+
+.approachArrow {
+  font-size: 0.75rem;
+  color: var(--wb-line-strong);
 }
 
 .masterRow {
@@ -500,7 +544,9 @@
   }
 
   .laneLabelStacked {
-    display: block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     order: 1;
   }
 

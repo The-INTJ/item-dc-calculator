@@ -53,6 +53,41 @@ corruption-safe, autosave + header switcher). Suggestion resolution lives in
 `domain/suggest.ts`; the reducer imports the static registry (pure data) by
 design.
 
+### The approach — what a mid-hymn snippet arrives from
+
+**This is the hook for the real analysis.** Once a hymn is composed snippet by
+snippet, a middle snippet cannot be read in isolation: plenty of first chords
+look like nothing alone, but with the chord *and the note each voice held*
+immediately before them, a passing tone is obvious. So the seam is carried as
+data (`domain/approach.ts`), not redrawn as decoration:
+
+- `AcceptedContext.previousVoicing` — which already existed but was always null
+  — is now populated on apply and on rework, so the accepted context knows the
+  notes the previous snippet ended on, not just its chord.
+- `approachFromAccepted` reduces that to `ApproachContext`: the previous chord
+  plus, per voice, the pitch and solfège it arrives from. `stampApproach` puts
+  it on **every** candidate as `CandidatePath.approach` — including the working
+  reading, which is safe because stamping touches no notes (the surface rule
+  holds). Suggestions therefore *represent* that they come from something, which
+  is what lets the lanes, the chord strip, and the cards all describe one seam.
+- Display: each voice lane shows the incoming note in the gap between the part
+  label and the first note — solfège over the pitch, with an arrow into the
+  snippet. The CHORDS row shows the incoming numeral over its symbol the same
+  way, and each suggestion card prefixes its path with `V7 →`.
+- When only a chord is known (hand-picked accepted harmony, or the opening
+  snippet of a fixture that declares one), `voices` is empty and only the chord
+  shows. Nothing is invented.
+
+When the math and data land, a non-chord-tone classifier reads
+`approach.voices[voice].pitch` to decide whether a first note is a passing tone
+or a suspension resolving across the seam. Nothing here makes that judgment yet
+— it guarantees the information is present.
+
+Schema note: `voices` is spelled out as four optional members, **not** an
+enum-keyed `z.record`, which is exhaustive in zod v4 — a chord-only seam
+(`voices: {}`) would fail to parse and take the saved project down with it. A
+mid-hymn round-trip test in `projects/project-store.test.ts` guards that.
+
 ### The composition (accepted-context rail)
 
 The rail is the piece so far, not just a context chip. Each applied fragment is
@@ -129,10 +164,13 @@ roster as pure data in `services/instruments.ts`:
   back to the default synth with a console warning.
 
 Chord quality fixes that apply to every synth patch: per-voice velocities
-(inner voices tucked, bass forward), gain staging that keeps the summed peak
-under the `Limiter(-1)` so it never pumps, and a release trim (0.85) that
-lets each chord's tail decay before the next onset instead of flanging
-against retriggered common tones.
+(inner voices tucked, bass forward) and gain staging that keeps the summed peak
+under the `Limiter(-1)` so it never pumps.
+
+Note spacing is per instrument (`noteLengthFor`), because a congregation does
+not enunciate each change or leave gaps between notes: synth patches sound for
+exactly the written length (their own short release covers the join) and sampled
+voices run 8% long so the change of note blends. Nothing clips short.
 
 ## Historical status — slice 1 (spec milestones 1–3) + first design review
 

@@ -94,6 +94,8 @@ export const content = {
     noteToolsLabel: 'Note tools',
     panLabel: 'Slide the notes into view',
     panFollowing: 'Following playback',
+    approachPrefix: 'coming from',
+    approachChordPrefix: 'from',
     noteTools: {
       raise: 'Raise pitch',
       lower: 'Lower pitch',

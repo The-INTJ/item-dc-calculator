@@ -420,6 +420,54 @@ describe('apply and loading', () => {
     expect(undone.acceptedContext.previousHarmony?.analysis.romanNumeral).toBe('I');
   });
 
+  it('carries the seam forward: applying records the notes the next snippet grows from', () => {
+    const applied = workbenchReducer(initial, { type: 'APPLY_CANDIDATE', appliedId: 'ap1' });
+    // The accepted context now holds the actual notes, not just the chord.
+    expect(applied.acceptedContext.previousVoicing).not.toBeNull();
+    expect(
+      applied.acceptedContext.previousVoicing?.soprano.at(-1)?.scaleDegree.syllable,
+    ).toBe('mi');
+
+    // Moving to the next snippet stamps every reading with what it comes from,
+    // so the lanes, chord strip, and cards all describe the same seam.
+    const next = workbenchReducer(applied, {
+      type: 'LOAD_SAMPLE',
+      source: { kind: 'fixture', fixture },
+      keepAcceptedContext: true,
+    });
+    for (const candidate of next.candidates) {
+      expect(candidate.approach?.harmony?.analysis.romanNumeral).toBe('I');
+      expect(candidate.approach?.voices.soprano?.scaleDegree.syllable).toBe('mi');
+      expect(candidate.approach?.voices.bass?.pitch.letter).toBe('C');
+    }
+  });
+
+  it('the opening snippet has no seam to show', () => {
+    for (const candidate of initial.candidates) {
+      expect(candidate.approach?.voices.soprano).toBeUndefined();
+    }
+  });
+
+  it('reworking a middle piece sees the piece before it', () => {
+    const first = workbenchReducer(initial, { type: 'APPLY_CANDIDATE', appliedId: 'ap1' });
+    const second = workbenchReducer(
+      workbenchReducer(first, { type: 'SELECT_CANDIDATE', candidateId: 'keep-moving' }),
+      { type: 'APPLY_CANDIDATE', appliedId: 'ap2' },
+    );
+    const editingSecond = workbenchReducer(second, {
+      type: 'EDIT_APPLIED_FRAGMENT',
+      appliedId: 'ap2',
+    });
+    // Piece 2 grows out of piece 1's final notes.
+    expect(
+      editingSecond.acceptedContext.previousVoicing?.soprano.at(-1)?.scaleDegree.syllable,
+    ).toBe('mi');
+    const working = editingSecond.candidates.find(
+      (candidate) => candidate.id === editingSecond.selectedCandidateId,
+    );
+    expect(working?.approach?.voices.soprano?.scaleDegree.syllable).toBe('mi');
+  });
+
   it('reworks an applied piece in place instead of appending a second copy', () => {
     // Two pieces applied.
     const first = workbenchReducer(initial, { type: 'APPLY_CANDIDATE', appliedId: 'ap1' });

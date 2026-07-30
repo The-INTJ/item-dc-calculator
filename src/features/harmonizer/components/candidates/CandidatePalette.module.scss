@@ -146,6 +146,13 @@
   color: var(--wb-ink);
 }
 
+/* The chord a mid-hymn reading arrives from — quieter than the path itself. */
+.cardApproach {
+  margin-right: 0.3rem;
+  color: var(--wb-ink-soft);
+  font-weight: 500;
+}
+
 .derivChip {
   @include wb-chip;
   font-size: 0.72rem;

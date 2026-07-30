@@ -2,6 +2,7 @@
 
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { content } from '../../content';
+import type { ApproachVoice } from '../../domain/approach';
 import type { VoiceEvent, VoiceId } from '../../domain/music-types';
 import { toTimelineSpan } from '../../domain/timing';
 import { classes, pitchDisplay } from '../shared/format';
@@ -14,6 +15,8 @@ interface VoiceLaneProps {
   events: VoiceEvent[];
   /** Soprano = the melody; its notes are always locked (pitch tools disabled). */
   melodyLocked: boolean;
+  /** The note this voice arrives from when the snippet sits mid-hymn. */
+  approach?: ApproachVoice;
   activeUnit: number | null;
   /** Total grid units — needed to convert drag pixels to boundaries. */
   gridUnits: number;
@@ -38,10 +41,32 @@ interface VoiceLaneProps {
   ) => void;
 }
 
+/**
+ * The note this part is coming from, stacked solfège over pitch with an arrow
+ * into the first note — the seam made visible (see domain/approach.ts).
+ */
+function ApproachNote({ approach, voiceLabel }: { approach: ApproachVoice; voiceLabel: string }) {
+  return (
+    <span
+      className={styles.approach}
+      title={`${voiceLabel} ${content.inspector.approachPrefix} ${approach.scaleDegree.syllable} ${pitchDisplay(approach.pitch)}`}
+    >
+      <span className={styles.approachStack}>
+        <span className={styles.approachSyllable}>{approach.scaleDegree.syllable}</span>
+        <span className={styles.approachPitch}>{pitchDisplay(approach.pitch)}</span>
+      </span>
+      <span className={styles.approachArrow} aria-hidden="true">
+        →
+      </span>
+    </span>
+  );
+}
+
 export function VoiceLane({
   voice,
   events,
   melodyLocked,
+  approach,
   activeUnit,
   gridUnits,
   checked,
@@ -115,11 +140,15 @@ export function VoiceLane({
       {/* Mobile puts the label (and the controls) above the track; desktop uses
           the in-grid label below. Exactly one label is ever displayed, so only
           one reaches the accessibility tree. */}
-      <span className={styles.laneLabelStacked}>{voiceLabel}</span>
+      <span className={styles.laneLabelStacked}>
+        {voiceLabel}
+        {approach ? <ApproachNote approach={approach} voiceLabel={voiceLabel} /> : null}
+      </span>
       <div className={styles.laneTrackClip}>
         <div className={styles.laneGrid} data-lane-grid>
           <span className={styles.laneLabel} data-lane-label>
-            {voiceLabel}
+            <span className={styles.laneLabelText}>{voiceLabel}</span>
+            {approach ? <ApproachNote approach={approach} voiceLabel={voiceLabel} /> : null}
           </span>
           {events.map((event) => {
             const span = toTimelineSpan(event.start, event.duration);

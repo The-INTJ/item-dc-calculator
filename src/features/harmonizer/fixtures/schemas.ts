@@ -18,6 +18,7 @@ import type {
   MelodyInterpretation,
   RankingDimensions,
 } from '../domain/analysis-types';
+import type { ApproachContext } from '../domain/approach';
 import type {
   FixtureCandidateSet,
   FixtureInitialState,
@@ -324,6 +325,27 @@ const DerivabilityNoteSchema: z.ZodType<DerivabilityNote> = z.strictObject({
   note: z.string().min(1),
 });
 
+/**
+ * What a mid-hymn snippet arrives from (domain/approach.ts). The voices map is
+ * spelled out with optional members rather than a record: an enum-keyed
+ * z.record is EXHAUSTIVE, so a seam that knows only the chord (voices: {})
+ * would fail to parse and take a saved project down with it.
+ */
+const ApproachVoiceSchema = z.strictObject({
+  pitch: SpelledPitchSchema,
+  scaleDegree: ScaleDegreePitchSchema,
+});
+
+const ApproachContextSchema: z.ZodType<ApproachContext> = z.strictObject({
+  harmony: HarmonyEventSchema.nullable(),
+  voices: z.strictObject({
+    soprano: ApproachVoiceSchema.optional(),
+    alto: ApproachVoiceSchema.optional(),
+    tenor: ApproachVoiceSchema.optional(),
+    bass: ApproachVoiceSchema.optional(),
+  }),
+});
+
 export const CandidatePathSchema: z.ZodType<CandidatePath> = z.strictObject({
   id: z.string().min(1),
   fixtureId: z.string().optional(),
@@ -341,6 +363,7 @@ export const CandidatePathSchema: z.ZodType<CandidatePath> = z.strictObject({
   provenance: CandidateProvenanceSchema,
   compatibilityTags: z.array(z.string()).optional(),
   derivability: z.array(DerivabilityNoteSchema).optional(),
+  approach: ApproachContextSchema.optional(),
 });
 
 export const AcceptedContextSchema: z.ZodType<AcceptedContext> = z.strictObject({

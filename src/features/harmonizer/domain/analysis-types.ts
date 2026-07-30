@@ -7,6 +7,7 @@
  * chord; descriptors are per-candidate and context-sensitive.
  */
 
+import type { ApproachContext } from './approach';
 import type {
   HarmonyEvent,
   PhraseIntent,
@@ -138,4 +139,10 @@ export interface CandidatePath {
   provenance: CandidateProvenance;
   compatibilityTags?: string[];
   derivability?: DerivabilityNote[];
+  /**
+   * What this reading arrives from when it sits mid-hymn (see domain/approach.ts).
+   * Absent when the snippet opens the piece. Stamped by the state layer, never
+   * authored in a fixture.
+   */
+  approach?: ApproachContext;
 }

@@ -207,6 +207,7 @@ export function CandidateInspector({
                 voice={voice}
                 events={candidate.voicing[voice]}
                 melodyLocked={voice === 'soprano'}
+                approach={candidate.approach?.voices[voice]}
                 activeUnit={activeUnit}
                 gridUnits={gridUnits}
                 checked={checkedVoices.includes(voice)}
@@ -247,7 +248,25 @@ export function CandidateInspector({
             <span className={styles.laneLabelStacked}>{content.inspector.chords}</span>
             <div className={styles.laneTrackClip}>
               <div className={styles.laneGrid}>
-                <span className={styles.laneLabel}>{content.inspector.chords}</span>
+                <span className={styles.laneLabel}>
+                  <span className={styles.laneLabelText}>{content.inspector.chords}</span>
+                  {/* The chord the previous snippet ended on. */}
+                  {candidate.approach?.harmony ? (
+                    <span className={styles.approach}>
+                      <span className={styles.approachStack}>
+                        <span className={styles.approachSyllable}>
+                          {candidate.approach.harmony.analysis.romanNumeral}
+                        </span>
+                        <span className={styles.approachPitch}>
+                          {candidate.approach.harmony.displaySymbol}
+                        </span>
+                      </span>
+                      <span className={styles.approachArrow} aria-hidden="true">
+                        →
+                      </span>
+                    </span>
+                  ) : null}
+                </span>
                 <ChordStrip
                   harmonyEvents={candidate.harmonyEvents}
                   activeUnit={activeUnit}

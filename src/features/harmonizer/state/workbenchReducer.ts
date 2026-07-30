@@ -15,6 +15,7 @@
  */
 
 import { useReducer } from 'react';
+import { stampApproach } from '../domain/approach';
 import { withDerivedAnalysis } from '../domain/derive-harmony';
 import type { HarmonizationFixture } from '../domain/fixture-types';
 import type {
@@ -49,7 +50,9 @@ export const MAX_HISTORY = 50;
 export function createInitialWorkbenchState(fixture: HarmonizationFixture): WorkbenchState {
   const candidateSet =
     fixture.candidateSets.find((set) => set.id === 'default') ?? fixture.candidateSets[0];
-  const candidates = candidateSet ? candidateSet.candidates : [];
+  const candidates = candidateSet
+    ? stampApproach(candidateSet.candidates, fixture.initialState.acceptedContext)
+    : [];
   return {
     tonalContext: fixture.initialState.tonalContext,
     phraseIntent: fixture.initialState.phraseIntent,
@@ -127,7 +130,7 @@ function applyResolution(
   const working =
     state.candidates.find((candidate) => candidate.id === state.selectedCandidateId) ?? null;
   if (resolution.kind === 'empty') {
-    const candidates = working ? [working] : [];
+    const candidates = working ? stampApproach([working], state.acceptedContext) : [];
     return {
       ...state,
       candidates,
@@ -142,7 +145,12 @@ function applyResolution(
   const suggestions = resolution.candidates.filter(
     (candidate) => candidate.id !== working?.id,
   );
-  const candidates = working ? [working, ...suggestions] : resolution.candidates;
+  // Stamping only sets `approach` — no note is touched, so the surface rule
+  // holds for the working reading too.
+  const candidates = stampApproach(
+    working ? [working, ...suggestions] : resolution.candidates,
+    state.acceptedContext,
+  );
   const merged = resolution.locks
     ? [
         ...state.locks,
@@ -302,7 +310,7 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
         const set = defaultCandidateSet(fixture);
         return {
           ...next,
-          candidates: set.candidates,
+          candidates: stampApproach(set.candidates, acceptedContext),
           candidateSetId: set.id,
           selectedCandidateId: set.candidates[0]?.id ?? null,
           suggestionStatus: set.candidates.length > 0 ? 'fresh' : 'empty',
@@ -572,7 +580,12 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
           appliedFragments,
           editingAppliedId: null,
           acceptedContext: tailFinal
-            ? { previousHarmony: asAcceptedHarmony(tailFinal, tail.id), previousVoicing: null }
+            ? {
+                previousHarmony: asAcceptedHarmony(tailFinal, tail.id),
+                // The notes the hymn leaves off on — what the next snippet's
+                // first chord is read against (domain/approach.ts).
+                previousVoicing: tail.candidate.voicing,
+              }
             : state.acceptedContext,
         };
       }
@@ -585,7 +598,7 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
         ],
         acceptedContext: {
           previousHarmony: asAcceptedHarmony(finalHarmony, action.appliedId),
-          previousVoicing: null,
+          previousVoicing: candidate.voicing,
         },
       };
     }
@@ -608,7 +621,8 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
         acceptedContext: {
           previousHarmony:
             previous && previousFinal ? asAcceptedHarmony(previousFinal, previous.id) : null,
-          previousVoicing: null,
+          // Reworking a middle piece must see the notes it grows out of.
+          previousVoicing: previous ? previous.candidate.voicing : null,
         },
         boundaryConstraints: [],
         locks: [],

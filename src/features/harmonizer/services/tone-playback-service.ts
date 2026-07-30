@@ -27,6 +27,7 @@ import {
   DEFAULT_INSTRUMENT_ID,
   FALLBACK_INSTRUMENT_ID,
   getInstrumentDef,
+  noteLengthFor,
   type InstrumentDef,
   type InstrumentId,
   type ToneInstrumentConfig,
@@ -59,12 +60,6 @@ interface ActiveInstrument {
 
 const DEFAULT_TEMPO_BPM = 76;
 const SCHEDULE_DELAY_SECONDS = 0.08;
-/**
- * Shorten notes so one chord's release tail decays before the next chord's
- * onset (spec §18.2) — overlapping tails retrigger common tones against
- * their own ring-out, which flanges ("sounds like two notes").
- */
-const RELEASE_TRIM = 0.85;
 
 /**
  * Per-voice balance: inner voices tucked (they cause most mid-band
@@ -109,6 +104,7 @@ class ToneSynthInstrument implements ActiveInstrument {
   constructor(
     private readonly tone: typeof ToneTypes,
     private readonly synth: TonePolySynth,
+    private readonly noteLength: number,
   ) {}
 
   async resume(): Promise<void> {
@@ -120,7 +116,7 @@ class ToneSynthInstrument implements ActiveInstrument {
     for (const note of notes) {
       this.synth.triggerAttackRelease(
         this.tone.Frequency(note.midi, 'midi').toFrequency(),
-        note.durationSec * RELEASE_TRIM,
+        note.durationSec * this.noteLength,
         now + note.startSec,
         note.velocity,
       );
@@ -144,6 +140,7 @@ class SmplrInstrument implements ActiveInstrument {
   constructor(
     private readonly context: AudioContext,
     private readonly player: SmplrPlayer,
+    private readonly noteLength: number,
   ) {}
 
   async resume(): Promise<void> {
@@ -158,7 +155,7 @@ class SmplrInstrument implements ActiveInstrument {
       this.player.start({
         note: note.midi,
         time: now + note.startSec,
-        duration: note.durationSec * RELEASE_TRIM,
+        duration: note.durationSec * this.noteLength,
         velocity: Math.round(note.velocity * 127),
       });
     }
@@ -293,6 +290,7 @@ export class ToneJsPlaybackService implements PlaybackService {
     const config = def.tone;
     if (!config) throw new Error(`Instrument ${def.id} has no tone config`);
     const synth = this.buildSynth(tone, config);
+    const noteLength = noteLengthFor(def);
     const volume = new tone.Volume(config.volumeDb);
     if (config.lowpassHz) {
       const lowpass = new tone.Filter({
@@ -306,7 +304,7 @@ export class ToneJsPlaybackService implements PlaybackService {
       volume.connect(this.toneOutput);
     }
     synth.connect(volume);
-    return new ToneSynthInstrument(tone, synth);
+    return new ToneSynthInstrument(tone, synth, noteLength);
   }
 
   private async buildSmplrInstrument(def: InstrumentDef): Promise<ActiveInstrument> {
@@ -315,6 +313,7 @@ export class ToneJsPlaybackService implements PlaybackService {
     const smplr = await import('smplr');
     this.smplrContext ??= new AudioContext();
     const context = this.smplrContext;
+    const noteLength = noteLengthFor(def);
     // Cache samples in the browser Cache API (secure contexts only) so a
     // ~3MB soundfont isn't re-fetched on every visit.
     const storage = typeof caches !== 'undefined' ? smplr.CacheStorage() : undefined;
@@ -324,7 +323,7 @@ export class ToneJsPlaybackService implements PlaybackService {
         ...(storage ? { storage } : {}),
       });
       await piano.ready;
-      return new SmplrInstrument(context, piano);
+      return new SmplrInstrument(context, piano, noteLength);
     }
     const soundfont = smplr.Soundfont(context, {
       instrument: config.soundfontInstrument ?? 'church_organ',
@@ -332,7 +331,7 @@ export class ToneJsPlaybackService implements PlaybackService {
       ...(storage ? { storage } : {}),
     });
     await soundfont.ready;
-    return new SmplrInstrument(context, soundfont);
+    return new SmplrInstrument(context, soundfont, noteLength);
   }
 
   /** Load (or reuse) the selected instrument; fall back to the offline synth. */
