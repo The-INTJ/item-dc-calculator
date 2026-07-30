@@ -5,6 +5,7 @@ import { content } from '../../content';
 import type { PhraseIntent, TonalContext } from '../../domain/music-types';
 import { listTonalContexts } from '../../fixtures/registry';
 import { INSTRUMENTS, type InstrumentId } from '../../services/instruments';
+import { plainTextFromMarked } from '../../knowledge/markup/parse';
 import { MAX_TEMPO_BPM, MIN_TEMPO_BPM } from '../../state/workbenchReducer';
 import { classes } from '../shared/format';
 import { contextLabel, SamplesMenu } from '../samples/SamplesMenu';
@@ -76,7 +77,8 @@ function PhraseIntentControl({
             key={intent}
             type="button"
             aria-pressed={intent === phraseIntent}
-            title={content.contextBar.intentDescriptions[intent]}
+            // Attribute surface — glossary markup renders as its plain text here.
+            title={plainTextFromMarked(content.contextBar.intentDescriptions[intent])}
             className={classes(styles.segment, intent === phraseIntent && styles.segmentActive)}
             onClick={() => onIntentChange(intent)}
           >

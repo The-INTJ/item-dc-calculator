@@ -115,12 +115,35 @@ Deliberately deferred (Drew's future enhancements, both read-only analyses over
 exactly this concatenation): per-chord tallies across the hymn, and progression
 stats that flag a cadence the piece has already used.
 
+### The glossary (slice 4)
+
+The teaching layer: ~50 tiered terms (`knowledge/glossary/` — core terms are
+plain English, analysis terms may lean on core + five helpers, advanced on
+anything below; the tier discipline, banned judgment words, and reachability
+are all tested). Prose carries `[term-id]` / `[Display text|term-id]` markup
+(`knowledge/markup/parse.ts`; unknown ids degrade to plain text with a one-time
+dev warning), rendered by `components/shared/MarkedText.tsx`. Each term is a
+hover-enhanced toggletip (`components/shared/Term.tsx`): 250ms hover preview,
+click/Enter/Space pins, nested terms replace the panel **in place** with a
+back link, one tip at a time via `knowledge/markup/tip-channel.ts`, and the
+panel flips right-aligned instead of overflowing the nearest
+`[data-glossary-boundary]` ancestor (no portals, no `title=`, never
+`role="tooltip"`). Components never hardcode term ids next to musical values —
+they go through the typed mapping tables (`roleTermIds`, `voiceTermIds`,
+`qualityTermIds`, `solfegeTermId`, `numeralTermId`, `inversionTermId`).
+Wired sites: drawer role badges + syllable headings, effect and evidence
+prose, card summaries, lane part labels, the chord strip (now solfège-first:
+root syllable · numeral · letter), and the header Help button, which opens the
+full glossary grouped by tier. `fixtures/glossary-markup.test.ts` sweeps every
+authored prose string so a typo'd term id fails CI, not the reader.
+
 ### Mobile (≤720px)
 
 One breakpoint, `components/shared/_breakpoints.scss`. The chrome goes
 single-column (context-bar fields stack label-over-control, the phrase-intent
 group wraps instead of running off-screen, the project name truncates, the
-disabled Help button hides). The note surface **drops its card** entirely so the
+Help button hides). Glossary tips have no hover path on touch — a tap opens
+them pinned. The note surface **drops its card** entirely so the
 time track gets the full width, and each lane becomes two rows: the part label
 plus its checkbox and play button on top, the full-width track underneath.
 
@@ -231,6 +254,7 @@ milestone" tooltip.
 |---|---|
 | `domain/` | Spec §15 music/analysis types, §14 state types, §16 locks, §17 fixture types, pure timing + signature math, plus the two analysis halves: `enumerate.ts` (suggestions proposed around the surface) and `derive-harmony.ts` (the surface's own chords, named from its notes). Dependency-free. |
 | `fixtures/` | Zod schemas, parse-at-module-load registry, authoring helpers, and the authored fixture data. |
+| `knowledge/` | The glossary (tiered terms + typed mapping tables) and the marked-text grammar (`[term-id]` parsing, tip-channel). Data + pure functions; the UI lives in `components/shared/Term.tsx` / `MarkedText.tsx`. |
 | `state/` | Reducer (house pattern: module-private pure reducer + hook), actions, selectors. |
 | `services/` | `PlaybackService` contract, the instrument roster (`instruments.ts`), and the dual-engine (Tone.js synth + smplr samples) implementation. |
 | `components/` | UI, organized by screen region; shared time-grid helpers in `components/shared/`. |

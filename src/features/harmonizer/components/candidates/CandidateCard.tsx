@@ -1,6 +1,7 @@
 import { content } from '../../content';
 import type { CandidatePathSummary } from '../../state/selectors';
 import { classes } from '../shared/format';
+import { MarkedText } from '../shared/MarkedText';
 import styles from './CandidatePalette.module.scss';
 
 interface CandidateCardProps {
@@ -62,7 +63,10 @@ export function CandidateCard({
         {content.candidates.bassPrefix}{' '}
         <span className={styles.cardBassOutline}>{summary.bassOutline}</span>
       </p>
-      <p className={styles.cardSummary}>{summary.summary}</p>
+      {/* Term triggers stop propagation, so terms in prose never select the card. */}
+      <p className={styles.cardSummary}>
+        <MarkedText text={summary.summary} />
+      </p>
       {summary.descriptorLabels.length > 0 ? (
         <p className={styles.cardBadges}>
           {summary.descriptorLabels.map((label) => (

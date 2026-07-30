@@ -2,6 +2,10 @@
  * Workbench chrome copy — every non-musical string the UI shows (spec §13.1).
  * Musical strings (titles, summaries, explanations, labels) come from fixture
  * data, never from here.
+ *
+ * Prose strings MAY carry glossary markup (`[term-id]` / `[Display|term-id]`,
+ * see knowledge/markup/parse.ts); every surface that shows them renders
+ * markup-aware. fixtures/glossary-markup.test.ts verifies the ids resolve.
  */
 
 export const content = {
@@ -29,9 +33,9 @@ export const content = {
     },
     intentDescriptions: {
       continue: 'Avoid strong closure; favor prolongation and forward availability.',
-      build: 'Favor increasing tension, rising energy, or dominant preparation.',
+      build: 'Favor increasing tension, rising energy, or [dominant] preparation.',
       approach_cadence:
-        'Favor predominant and dominant preparation without necessarily completing the cadence.',
+        'Favor predominant and [dominant] preparation without necessarily completing the [cadence].',
       close: 'Favor convincing local or phrase-level arrival.',
     },
     modeLabels: {
@@ -126,6 +130,17 @@ export const content = {
     ranking: 'ranking',
     interpretation: 'interpretation',
     effects: 'effects',
+  },
+  glossary: {
+    panelHeading: 'Terms used here',
+    back: 'Back',
+    close: 'Close',
+    seeAlsoLabel: 'See also',
+    tierHeadings: {
+      core: 'The basics',
+      analysis: 'Reading harmony',
+      advanced: 'Finer points',
+    },
   },
   emptyState: {
     message:

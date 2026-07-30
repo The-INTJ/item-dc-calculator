@@ -1,7 +1,10 @@
 import { content } from '../../content';
 import type { AnalysisEvidence, CandidatePath } from '../../domain/analysis-types';
 import type { MelodyFragment } from '../../domain/music-types';
+import { roleTermIds, solfegeTermId } from '../../knowledge/glossary';
 import { pitchDisplay } from '../shared/format';
+import { MarkedText } from '../shared/MarkedText';
+import { Term } from '../shared/Term';
 import styles from './CandidateInspector.module.scss';
 
 interface AnalysisDrawerProps {
@@ -19,7 +22,9 @@ function EvidenceList({ evidence }: { evidence: AnalysisEvidence[] }) {
       {evidence.map((entry) => (
         <li key={entry.id} className={styles.evidenceItem}>
           <span className={styles.evidenceSource}>{content.evidenceSources[entry.source]}</span>
-          <span className={styles.evidenceText}>{entry.explanation ?? entry.featureId}</span>
+          <span className={styles.evidenceText}>
+            <MarkedText text={entry.explanation ?? entry.featureId} />
+          </span>
           <span className={styles.evidenceProvider}>
             {entry.featureId} · {entry.providerId}@{entry.providerVersion}
           </span>
@@ -46,20 +51,42 @@ export function AnalysisDrawer({ candidate, fragment, open, onToggle }: Analysis
             const melodyEvent = fragment.events.find(
               (event) => event.id === interpretation.melodyEventId,
             );
+            const roleTermId = roleTermIds[interpretation.role];
             return (
               <section key={interpretation.melodyEventId} className={styles.drawerSection}>
                 <h4 className={styles.drawerEventHeading}>
-                  <span className={styles.drawerSyllable}>
-                    {melodyEvent?.scaleDegree.syllable ?? interpretation.melodyEventId}
-                  </span>
+                  {melodyEvent ? (
+                    <Term
+                      termId={solfegeTermId}
+                      variant="chip"
+                      className={styles.drawerSyllable}
+                    >
+                      {melodyEvent.scaleDegree.syllable}
+                    </Term>
+                  ) : (
+                    <span className={styles.drawerSyllable}>
+                      {interpretation.melodyEventId}
+                    </span>
+                  )}
                   {melodyEvent ? (
                     <span className={styles.drawerPitch}>{pitchDisplay(melodyEvent.pitch)}</span>
                   ) : null}
-                  <span className={styles.roleBadge}>
-                    {content.melodyRoles[interpretation.role]}
+                  {/* unclassified/ambiguous are honest non-claims — no term. */}
+                  <span className={styles.roleBadgeSlot}>
+                    {roleTermId ? (
+                      <Term termId={roleTermId} variant="chip" className={styles.roleBadge}>
+                        {content.melodyRoles[interpretation.role]}
+                      </Term>
+                    ) : (
+                      <span className={styles.roleBadge}>
+                        {content.melodyRoles[interpretation.role]}
+                      </span>
+                    )}
                   </span>
                 </h4>
-                <p className={styles.drawerExplanation}>{interpretation.explanation}</p>
+                <p className={styles.drawerExplanation}>
+                  <MarkedText text={interpretation.explanation} />
+                </p>
                 <EvidenceList evidence={interpretation.evidence} />
               </section>
             );

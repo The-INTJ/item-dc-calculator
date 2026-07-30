@@ -1,5 +1,6 @@
 import { content } from '../../content';
 import type { EffectDescriptor } from '../../domain/analysis-types';
+import { MarkedText } from '../shared/MarkedText';
 import styles from './CandidateInspector.module.scss';
 
 interface EffectSummaryProps {
@@ -15,7 +16,8 @@ export function EffectSummary({ descriptors }: EffectSummaryProps) {
       <ul className={styles.effectList}>
         {descriptors.map((descriptor) => (
           <li key={descriptor.id}>
-            <strong>{descriptor.label}</strong> — {descriptor.explanation}
+            {/* The label stays plain; only the explanation prose carries terms. */}
+            <strong>{descriptor.label}</strong> — <MarkedText text={descriptor.explanation} />
           </li>
         ))}
       </ul>

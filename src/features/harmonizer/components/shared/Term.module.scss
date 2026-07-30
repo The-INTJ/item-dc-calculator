@@ -1,0 +1,162 @@
+/**
+ * The glossary toggletip (Term.tsx) and inline term links (MarkedText.tsx).
+ * No portal — the panel is an absolutely positioned child of the trigger wrap,
+ * so it stays inside the .workbench token scope (house popover pattern, see
+ * PopoverMenu). Panels reuse the raised-surface tokens; the underline color is
+ * --wb-term-mark and the panel width --wb-tip-width (declared on .workbench).
+ */
+
+.termWrap {
+  position: relative;
+  display: inline-block;
+}
+
+/* The trigger inherits its surroundings — a Term must be able to sit inside a
+   chip, a lane label, or running prose without changing its typography. */
+.termTrigger {
+  appearance: none;
+  display: inline;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: inherit;
+  cursor: help;
+}
+
+/* Prose variant: always-visible dotted mark — the "this word is explained" cue. */
+.prose {
+  text-decoration: underline dotted var(--wb-term-mark);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+
+/* Chip variant: the call site supplies the box; the mark appears on intent. */
+.chip {
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline dotted var(--wb-term-mark);
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+  }
+}
+
+.termPanel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: var(--wb-tip-width);
+  max-width: calc(100vw - 2rem);
+  padding: 0.7rem 0.85rem 0.75rem;
+  background: var(--wb-surface-raised);
+  border: 1px solid var(--wb-line);
+  border-radius: var(--wb-radius-card);
+  box-shadow: var(--wb-shadow-raised);
+  cursor: default;
+
+  /* Full typographic reset — Terms sit inside uppercase labels and chips. */
+  font-family: var(--wb-font-ui);
+  font-size: 0.85rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: normal;
+  text-transform: none;
+  text-align: left;
+  white-space: normal;
+  color: var(--wb-ink);
+}
+
+.termPanelRight {
+  left: auto;
+  right: 0;
+}
+
+.panelTermName {
+  font-family: var(--wb-font-solfege);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.panelDefinition {
+  display: block;
+}
+
+.panelNote {
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--wb-ink-soft);
+}
+
+.seeAlsoRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.seeAlsoLabel {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wb-ink-soft);
+}
+
+.seeAlsoChip {
+  appearance: none;
+  border: 1px solid var(--wb-line-strong);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  background: var(--wb-surface);
+  font-family: var(--wb-font-ui);
+  font-size: 0.75rem;
+  color: var(--wb-ink);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--wb-accent);
+    color: var(--wb-accent-deep);
+  }
+}
+
+.backLink {
+  appearance: none;
+  align-self: flex-start;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: var(--wb-font-ui);
+  font-size: 0.78rem;
+  color: var(--wb-accent-deep);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* A term reference inside an open panel — link-styled, swaps content in place. */
+.inlineTermLink {
+  appearance: none;
+  display: inline;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: var(--wb-accent-deep);
+  text-decoration: underline dotted var(--wb-term-mark);
+  text-underline-offset: 2px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--wb-accent);
+  }
+}

@@ -5,8 +5,10 @@ import { content } from '../../content';
 import type { ApproachVoice } from '../../domain/approach';
 import type { VoiceEvent, VoiceId } from '../../domain/music-types';
 import { toTimelineSpan } from '../../domain/timing';
+import { voiceTermIds } from '../../knowledge/glossary';
 import { classes, pitchDisplay } from '../shared/format';
 import { newId } from '../shared/ids';
+import { Term } from '../shared/Term';
 import { isUnitActive, timeSpanStyle } from '../shared/timeGrid';
 import styles from './CandidateInspector.module.scss';
 
@@ -141,13 +143,19 @@ export function VoiceLane({
           the in-grid label below. Exactly one label is ever displayed, so only
           one reaches the accessibility tree. */}
       <span className={styles.laneLabelStacked}>
-        {voiceLabel}
+        {/* The part name teaches itself — a chip-variant glossary Term. The
+            note cells stay Term-free: they are click-to-edit surfaces. */}
+        <Term termId={voiceTermIds[voice]} variant="chip">
+          {voiceLabel}
+        </Term>
         {approach ? <ApproachNote approach={approach} voiceLabel={voiceLabel} /> : null}
       </span>
       <div className={styles.laneTrackClip}>
         <div className={styles.laneGrid} data-lane-grid>
           <span className={styles.laneLabel} data-lane-label>
-            <span className={styles.laneLabelText}>{voiceLabel}</span>
+            <Term termId={voiceTermIds[voice]} variant="chip" className={styles.laneLabelText}>
+              {voiceLabel}
+            </Term>
             {approach ? <ApproachNote approach={approach} voiceLabel={voiceLabel} /> : null}
           </span>
           {events.map((event) => {
