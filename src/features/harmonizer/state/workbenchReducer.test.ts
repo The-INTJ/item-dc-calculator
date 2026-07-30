@@ -420,6 +420,83 @@ describe('apply and loading', () => {
     expect(undone.acceptedContext.previousHarmony?.analysis.romanNumeral).toBe('I');
   });
 
+  it('reworks an applied piece in place instead of appending a second copy', () => {
+    // Two pieces applied.
+    const first = workbenchReducer(initial, { type: 'APPLY_CANDIDATE', appliedId: 'ap1' });
+    const second = workbenchReducer(
+      workbenchReducer(first, { type: 'SELECT_CANDIDATE', candidateId: 'keep-moving' }),
+      { type: 'APPLY_CANDIDATE', appliedId: 'ap2' },
+    );
+    expect(second.appliedFragments.map((entry) => entry.id)).toEqual(['ap1', 'ap2']);
+    const contextAfterBoth = second.acceptedContext.previousHarmony?.analysis.romanNumeral;
+
+    // Click the FIRST piece: it loads for rework with the hymn's opening
+    // context, and the piece itself is the working reading.
+    const editing = workbenchReducer(second, {
+      type: 'EDIT_APPLIED_FRAGMENT',
+      appliedId: 'ap1',
+    });
+    expect(editing.editingAppliedId).toBe('ap1');
+    expect(editing.selectedCandidateId).toBe('grounded-descent');
+    expect(editing.acceptedContext.previousHarmony).toBeNull(); // first piece opens the hymn
+    expect(editing.fragment).toEqual(second.appliedFragments[0].fragment);
+
+    // Apply replaces it where it stands — still two pieces, order preserved,
+    // and the tail's accepted context is untouched.
+    const reapplied = workbenchReducer(editing, {
+      type: 'APPLY_CANDIDATE',
+      appliedId: 'ignored-when-reworking',
+    });
+    expect(reapplied.appliedFragments.map((entry) => entry.id)).toEqual(['ap1', 'ap2']);
+    expect(reapplied.editingAppliedId).toBeNull();
+    expect(reapplied.acceptedContext.previousHarmony?.analysis.romanNumeral).toBe(
+      contextAfterBoth,
+    );
+  });
+
+  it('reworking the LAST piece refreshes what comes next', () => {
+    const applied = workbenchReducer(initial, { type: 'APPLY_CANDIDATE', appliedId: 'ap1' });
+    const editing = workbenchReducer(applied, {
+      type: 'EDIT_APPLIED_FRAGMENT',
+      appliedId: 'ap1',
+    });
+    // Swap to whatever alternative the rework offered (the opening context no
+    // longer matches fixture A's pin, so these are computed sketches).
+    const alternative = editing.candidates.find(
+      (candidate) => candidate.id !== editing.selectedCandidateId,
+    );
+    expect(alternative).toBeTruthy();
+    if (!alternative) return;
+    const swapped = workbenchReducer(editing, {
+      type: 'SELECT_CANDIDATE',
+      candidateId: alternative.id,
+    });
+    const reapplied = workbenchReducer(swapped, {
+      type: 'APPLY_CANDIDATE',
+      appliedId: 'unused',
+    });
+    expect(reapplied.appliedFragments).toHaveLength(1);
+    expect(reapplied.appliedFragments[0].candidate.id).toBe(alternative.id);
+    const tailNumeral =
+      alternative.harmonyEvents[alternative.harmonyEvents.length - 1].analysis.romanNumeral;
+    expect(reapplied.acceptedContext.previousHarmony?.analysis.romanNumeral).toBe(tailNumeral);
+  });
+
+  it('loading a different fragment leaves rework mode', () => {
+    const applied = workbenchReducer(initial, { type: 'APPLY_CANDIDATE', appliedId: 'ap1' });
+    const editing = workbenchReducer(applied, {
+      type: 'EDIT_APPLIED_FRAGMENT',
+      appliedId: 'ap1',
+    });
+    expect(editing.editingAppliedId).toBe('ap1');
+    const moved = workbenchReducer(editing, {
+      type: 'LOAD_SAMPLE',
+      source: { kind: 'fixture', fixture },
+      keepAcceptedContext: true,
+    });
+    expect(moved.editingAppliedId).toBeNull();
+  });
+
   it('LOAD_SAMPLE with kept accepted context resolves honestly against the fixture pin', () => {
     const applied = workbenchReducer(
       workbenchReducer(initial, { type: 'SELECT_CANDIDATE', candidateId: 'keep-moving' }),

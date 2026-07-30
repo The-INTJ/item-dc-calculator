@@ -3,6 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { content } from '../content';
 import type { CandidatePath } from '../domain/analysis-types';
+import {
+  appliedIdAtUnit,
+  compositionCandidate,
+  COMPOSITION_CANDIDATE_ID,
+} from '../domain/composition';
 import type { VoiceEvent, VoiceId } from '../domain/music-types';
 import { tonicWholeNoteFragment } from '../domain/scale';
 import { getDefaultFixture, getFixtureById } from '../fixtures/registry';
@@ -92,9 +97,22 @@ export function HarmonizationWorkbench() {
     voices: VoiceId[],
     loopOverride?: boolean,
   ): Promise<void> {
-    if (voices.length === 0) return;
     const candidate = findCandidate(candidateId);
     if (!candidate) return;
+    await startPlaybackOf(candidate, voices, loopOverride);
+  }
+
+  /**
+   * Play any reading, including ones that are not in the candidate list — the
+   * whole-hymn projection and single applied pieces are built on the fly.
+   */
+  async function startPlaybackOf(
+    candidate: CandidatePath,
+    voices: VoiceId[],
+    loopOverride?: boolean,
+  ): Promise<void> {
+    if (voices.length === 0) return;
+    const candidateId = candidate.id;
     const service = getService();
     const options = { tempoBpm: state.tempoBpm, loop: loopOverride ?? loopEnabled };
     lastPlayRef.current = { candidateId, voices };
@@ -151,8 +169,28 @@ export function HarmonizationWorkbench() {
 
   function applySelected() {
     if (!selectedCandidate) return;
+    const reworking = state.editingAppliedId !== null;
     dispatchStructural({ type: 'APPLY_CANDIDATE', appliedId: newId() });
-    setChooserOpen(true);
+    // Reworking an existing piece stays put; a fresh piece moves the hymn on.
+    if (!reworking) setChooserOpen(true);
+  }
+
+  /* ---------- the composition (applied pieces) ---------- */
+
+  const hymn = compositionCandidate(state.appliedFragments);
+  const hymnPlaying =
+    playback.status === 'playing' && playback.candidateId === COMPOSITION_CANDIDATE_ID;
+  const soundingAppliedId = hymnPlaying
+    ? appliedIdAtUnit(state.appliedFragments, playback.activeUnit)
+    : null;
+
+  function playHymn() {
+    if (hymn) void startPlaybackOf(hymn, ALL_VOICES);
+  }
+
+  function playApplied(appliedId: string) {
+    const applied = state.appliedFragments.find((entry) => entry.id === appliedId);
+    if (applied) void startPlaybackOf(applied.candidate, ALL_VOICES);
   }
 
   function pickNextFragment(choice: { kind: 'fixture'; fixtureId: string } | { kind: 'blank' }) {
@@ -393,9 +431,18 @@ export function HarmonizationWorkbench() {
             acceptedContext={state.acceptedContext}
             appliedFragments={state.appliedFragments}
             tonalContext={state.tonalContext}
+            editingAppliedId={state.editingAppliedId}
+            soundingAppliedId={soundingAppliedId}
+            hymnPlaying={hymnPlaying}
             onSetAcceptedHarmony={(harmony) =>
               dispatchStructural({ type: 'SET_ACCEPTED_HARMONY', harmony })
             }
+            onPlayHymn={playHymn}
+            onPlayApplied={playApplied}
+            onEditApplied={(appliedId) =>
+              dispatchStructural({ type: 'EDIT_APPLIED_FRAGMENT', appliedId })
+            }
+            onStop={stopPlayback}
           />
         </section>
         <section className={styles.regionNotes}>

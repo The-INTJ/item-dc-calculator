@@ -183,6 +183,45 @@ describe('HarmonizationWorkbench', () => {
     expect(screen.getByRole('slider')).toBeTruthy();
   });
 
+  it('applied pieces become a playable hymn you can click back open', () => {
+    render(<HarmonizationWorkbench />);
+    // Nothing applied yet — there is no hymn to play.
+    expect(screen.queryByRole('button', { name: /Play hymn/ })).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Apply to composition' }));
+    expect(screen.getByRole('button', { name: /Play hymn/ })).toBeTruthy();
+
+    // The chooser opens for the next fragment; stay on this one.
+    fireEvent.click(screen.getByRole('button', { name: /Keep working here/ }));
+
+    // The piece is a chip with its own audition button.
+    const piece = screen.getByRole('button', { name: /1\. I held/ });
+    expect(screen.getByRole('button', { name: /Hear this piece/ })).toBeTruthy();
+
+    // Clicking the chip loads it back for rework and says so.
+    fireEvent.click(piece);
+    expect(screen.getByText(/Apply will replace this piece where it stands/)).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 2, name: /Grounded descent/ })).toBeTruthy();
+
+    // Applying again replaces it: still one piece, no second chip.
+    fireEvent.click(screen.getByRole('button', { name: 'Apply to composition' }));
+    expect(screen.queryByText(/Apply will replace this piece/)).toBeNull();
+    expect(screen.getByRole('button', { name: /1\. I held/ })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /2\./ })).toBeNull();
+  });
+
+  it('whole-hymn playback leaves the workspace cursor alone', () => {
+    const { container } = render(<HarmonizationWorkbench />);
+    fireEvent.click(screen.getByRole('button', { name: 'Apply to composition' }));
+    fireEvent.click(screen.getByRole('button', { name: /Keep working here/ }));
+
+    fireEvent.click(screen.getByRole('button', { name: /Play hymn/ }));
+    expect(screen.getByText('Playing all four voices')).toBeTruthy();
+    // The hymn runs on its own timeline, so no workspace note lights up.
+    expect(container.querySelector('[data-active]')).toBeNull();
+    expect(screen.getByRole('button', { name: /Stop/ })).toBeTruthy();
+  });
+
   it('audition from a card plays all voices without changing the selection', () => {
     render(<HarmonizationWorkbench />);
 

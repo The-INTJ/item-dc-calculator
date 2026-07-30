@@ -88,7 +88,13 @@ export function CandidateInspector({
   /** 0–1 slider position for the mobile note track (see shared/pan.ts). */
   const [pan, setPan] = useState(0);
 
-  const playing = playback.status === 'playing';
+  /**
+   * Scoped to THIS reading: whole-hymn playback runs on the rail's own
+   * timeline, so it must not move this cursor or turn this transport into a
+   * Stop button.
+   */
+  const playing =
+    playback.status === 'playing' && candidate !== null && playback.candidateId === candidate.id;
   const activeUnit = playing ? playback.activeUnit : null;
   // Editing selection is scoped to the candidate it was opened on.
   const editingEventId =
@@ -206,10 +212,7 @@ export function CandidateInspector({
                 checked={checkedVoices.includes(voice)}
                 onCheckedChange={(checked) => onToggleVoice(voice, checked)}
                 soloing={
-                  playing &&
-                  playback.candidateId === candidate.id &&
-                  playback.voices.length === 1 &&
-                  playback.voices[0] === voice
+                  playing && playback.voices.length === 1 && playback.voices[0] === voice
                 }
                 onPlayVoice={() => onPlayVoice(candidate.id, voice)}
                 onStop={onStop}

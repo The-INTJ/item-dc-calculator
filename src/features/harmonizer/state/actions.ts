@@ -34,6 +34,7 @@ export type WorkbenchActionType =
   | 'STOP_PLAYBACK'
   | 'PLAYBACK_PROGRESS'
   | 'APPLY_CANDIDATE'
+  | 'EDIT_APPLIED_FRAGMENT'
   | 'UNDO'
   | 'REDO';
 
@@ -85,7 +86,10 @@ export type WorkbenchAction =
   | { type: 'START_PLAYBACK'; candidateId: string; voices: VoiceId[] }
   | { type: 'STOP_PLAYBACK' }
   | { type: 'PLAYBACK_PROGRESS'; activeUnit: number | null }
+  /** Appends a new piece, or replaces the one being edited (see below). */
   | { type: 'APPLY_CANDIDATE'; appliedId: string }
+  /** Load an applied piece back into the workspace so it can be reworked. */
+  | { type: 'EDIT_APPLIED_FRAGMENT'; appliedId: string }
   | { type: 'UNDO' }
   | { type: 'REDO' };
 

@@ -70,6 +70,7 @@ export function createInitialWorkbenchState(fixture: HarmonizationFixture): Work
     history: [],
     future: [],
     lastGestureId: null,
+    editingAppliedId: null,
   };
 }
 
@@ -263,7 +264,8 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
       return createInitialWorkbenchState(action.fixture);
 
     case 'LOAD_SAMPLE': {
-      const base = pushHistory(state);
+      // A new fragment is not the applied piece you were reworking.
+      const base = { ...pushHistory(state), editingAppliedId: null };
       if (action.source.kind === 'fixture') {
         const fixture = action.source.fixture;
         const init = fixture.initialState;
@@ -332,6 +334,7 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
         history: [],
         future: [],
         lastGestureId: null,
+        editingAppliedId: null,
       };
 
     case 'EDIT_TONAL_CONTEXT': {
@@ -547,6 +550,33 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
       if (!candidate) return state;
       const finalHarmony = candidate.harmonyEvents[candidate.harmonyEvents.length - 1];
       if (!finalHarmony) return state;
+
+      // Reworking an existing piece replaces it where it stands (its id and
+      // position in the hymn survive); a fresh piece appends.
+      const editingIndex = state.editingAppliedId
+        ? state.appliedFragments.findIndex((entry) => entry.id === state.editingAppliedId)
+        : -1;
+      if (editingIndex >= 0) {
+        const appliedId = state.appliedFragments[editingIndex].id;
+        const appliedFragments = state.appliedFragments.map((entry, index) =>
+          index === editingIndex
+            ? { id: appliedId, fragment: state.fragment, candidate }
+            : entry,
+        );
+        // Finishing a rework puts you back at the end of the hymn: the accepted
+        // context is the tail's harmony again, not the reworked piece's own.
+        const tail = appliedFragments[appliedFragments.length - 1];
+        const tailFinal = tail.candidate.harmonyEvents[tail.candidate.harmonyEvents.length - 1];
+        return {
+          ...pushHistory(state),
+          appliedFragments,
+          editingAppliedId: null,
+          acceptedContext: tailFinal
+            ? { previousHarmony: asAcceptedHarmony(tailFinal, tail.id), previousVoicing: null }
+            : state.acceptedContext,
+        };
+      }
+
       return {
         ...pushHistory(state),
         appliedFragments: [
@@ -558,6 +588,40 @@ function workbenchReducer(state: WorkbenchState, action: WorkbenchAction): Workb
           previousVoicing: null,
         },
       };
+    }
+
+    case 'EDIT_APPLIED_FRAGMENT': {
+      const index = state.appliedFragments.findIndex((entry) => entry.id === action.appliedId);
+      if (index === -1) return state;
+      const applied = state.appliedFragments[index];
+      // The piece before it is this piece's harmonic context; the first piece
+      // opens the hymn.
+      const previous = index > 0 ? state.appliedFragments[index - 1] : null;
+      const previousFinal = previous
+        ? previous.candidate.harmonyEvents[previous.candidate.harmonyEvents.length - 1]
+        : null;
+      const loaded: WorkbenchState = {
+        ...pushHistory(state),
+        fragment: applied.fragment,
+        tonalContext: applied.candidate.tonalContext,
+        phraseIntent: applied.candidate.phraseIntent,
+        acceptedContext: {
+          previousHarmony:
+            previous && previousFinal ? asAcceptedHarmony(previousFinal, previous.id) : null,
+          previousVoicing: null,
+        },
+        boundaryConstraints: [],
+        locks: [],
+        candidates: [applied.candidate],
+        candidateSetId: null,
+        selectedCandidateId: applied.candidate.id,
+        suggestionStatus: 'fresh',
+        suggestionSource: applied.candidate.provenance.fixtureAuthored ? 'authored' : 'computed',
+        editingAppliedId: applied.id,
+      };
+      // Suggestions re-resolve AROUND the loaded piece; the surface rule keeps
+      // the piece itself exactly as it was applied.
+      return regenerate(loaded);
     }
 
     case 'UNDO': {

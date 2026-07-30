@@ -54,6 +54,12 @@ export const content = {
     appliedLabel: 'Applied so far',
     editHeading: 'Previous harmony',
     none: 'None — opens the piece',
+    playHymn: 'Play hymn',
+    stopHymn: 'Stop',
+    playPiece: 'Hear this piece',
+    editPiece: 'Rework this piece',
+    editingBadge: 'reworking',
+    editingHint: 'Apply will replace this piece where it stands.',
   },
   melody: {
     addNote: 'Add note',

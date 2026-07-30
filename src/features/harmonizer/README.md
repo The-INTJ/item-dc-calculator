@@ -53,6 +53,33 @@ corruption-safe, autosave + header switcher). Suggestion resolution lives in
 `domain/suggest.ts`; the reducer imports the static registry (pure data) by
 design.
 
+### The composition (accepted-context rail)
+
+The rail is the piece so far, not just a context chip. Each applied fragment is
+a chip you can **click to load back into the workspace** for rework, plus a ▶ to
+hear that piece alone; the rail header plays **the whole hymn** end to end.
+
+- `domain/composition.ts` retimes the applied fragments onto one continuous
+  timeline (`compositionCandidate`) so playback is an ordinary
+  `PlaybackService` call on a synthetic reading whose id is
+  `COMPOSITION_CANDIDATE_ID`. It carries no interpretive claims — it is a
+  projection for playback and display, never an authored reading.
+- Rework is edit-in-place: `EDIT_APPLIED_FRAGMENT` loads the piece with the
+  *preceding* piece as its accepted context (the first piece opens the hymn),
+  and `APPLY_CANDIDATE` then **replaces it where it stands** rather than
+  appending, keeping its id and position. Finishing a rework returns the
+  accepted context to the hymn's tail, and the next-fragment chooser stays shut.
+  `editingAppliedId` is transient session intent — like `lastGestureId` it is
+  excluded from snapshots and persistence.
+- Playback scoping: the workspace cursor and transport only respond to the
+  workspace's own reading (`playback.candidateId === candidate.id`), so a
+  whole-hymn pass highlights the sounding chip on the rail and leaves the note
+  lanes alone.
+
+Deliberately deferred (Drew's future enhancements, both read-only analyses over
+exactly this concatenation): per-chord tallies across the hymn, and progression
+stats that flag a cadence the piece has already used.
+
 ### Mobile (≤720px)
 
 One breakpoint, `components/shared/_breakpoints.scss`. The chrome goes

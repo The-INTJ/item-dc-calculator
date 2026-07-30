@@ -74,6 +74,12 @@ export interface WorkbenchState {
   future: WorkbenchSnapshot[];
   /** Drag-coalescing bookkeeping; transient — excluded from snapshots and persistence. */
   lastGestureId: string | null;
+  /**
+   * The applied piece currently loaded for rework, if any: Apply replaces it
+   * in place instead of appending. Transient session intent — excluded from
+   * snapshots and persistence like lastGestureId.
+   */
+  editingAppliedId: string | null;
 }
 
 /** The undoable slice of workbench state. */
