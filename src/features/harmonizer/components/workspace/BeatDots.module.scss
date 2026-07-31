@@ -1,11 +1,19 @@
 /* Covers the TRACK area only (the label column sits left of it); lives inside
-   .laneGrid so the mobile pan slides the dots in lockstep with the notes. */
+   .laneGrid so the mobile pan slides the dots in lockstep with the notes.
+
+   The dots sit ABOVE the note cells (Drew, 2026-07-31): a cell paints an opaque
+   background, so a dot behind one simply vanished, and the beat grid broke up
+   wherever the measure was full. Translucent dots over the cells keep every
+   beat readable across the whole lane. They stay below the lifted cell and its
+   toolbar (z-index 15+), which are meant to float clear of the plane, and
+   pointer-events stay off so nothing here can intercept a click or a drag. */
 .overlay {
   position: absolute;
   top: 0;
   bottom: 0;
   left: var(--wb-lane-label-width, 0px);
   right: 0;
+  z-index: 1;
   pointer-events: none;
 }
 

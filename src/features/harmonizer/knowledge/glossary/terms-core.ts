@@ -158,4 +158,22 @@ export const coreTerms = {
       'Which instrument the workbench sings the parts with. It changes the color you hear — organ, piano, voices — and nothing about the music itself.',
     seeAlso: ['note'],
   },
+  'shape-notes': {
+    id: 'shape-notes',
+    display: 'shape notes',
+    matches: ['shape note', 'shaped notes', 'shape-note', 'seven shapes', 'Aikin'],
+    tier: 'core',
+    definition:
+      'Noteheads whose shape names the syllable: each of the seven singing syllables has its own outline, so you can read a tune’s do-re-mi straight off the page before you have worked out the key. This workbench draws the seven-shape set found in many hymnals.',
+    seeAlso: ['solfege', 'notehead'],
+  },
+  notehead: {
+    id: 'notehead',
+    display: 'notehead',
+    matches: ['noteheads', 'note head'],
+    tier: 'core',
+    definition:
+      'The body of a written note — the part that sits on a line or in a space to say which pitch to sing. Whether it is open or filled in tells you how long to hold it.',
+    seeAlso: ['note', 'shape-notes'],
+  },
 } satisfies Record<string, GlossaryTerm>;

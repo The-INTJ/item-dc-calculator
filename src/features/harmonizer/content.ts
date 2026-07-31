@@ -23,6 +23,12 @@ export const content = {
     tempoUnit: 'bpm',
     samplesLabel: 'Samples',
     samplesHeading: 'Sample fragments',
+    notationLabel: 'Notation',
+    notationOptions: {
+      lanes: 'Note lanes',
+      staff: 'Shape-note staff',
+      both: 'Both',
+    },
     soundLabel: 'Sound',
     soundNetworkHint: 'Sampled — fetches audio samples over the network on first use',
     /** Mobile only: the settings collapse into one card that starts closed. */
@@ -219,13 +225,20 @@ export const content = {
     playingAll: 'Playing all four voices',
     stopped: 'Playback stopped',
   },
-  /** Duration glyphs by signature code (see domain/signatures.ts). */
-  durationGlyphs: {
-    w: '𝅝',
-    h: '𝅗𝅥',
-    q: '♩',
-    e: '♪',
-    s: '𝅘𝅥𝅯',
+  /** The tap-to-edit chooser on the staff: length across, pitch up and down. */
+  noteGrid: {
+    label: 'Change this note',
+    close: 'Close',
+    pitchAxis: 'higher',
+    lengthAxis: 'longer',
+    keep: 'Keep this note',
+    unavailable: 'Out of reach',
+    samePitch: 'same pitch',
+    sameLength: 'same length',
+    higher: 'higher',
+    lower: 'lower',
+    longer: 'longer',
+    shorter: 'shorter',
   },
   accidentalLabels: {
     natural: '',

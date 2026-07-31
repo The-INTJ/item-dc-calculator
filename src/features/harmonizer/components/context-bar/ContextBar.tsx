@@ -8,6 +8,7 @@ import type { TonalContext } from '../../domain/music-types';
 import { INSTRUMENTS, type InstrumentId } from '../../services/instruments';
 import type { TermId } from '../../knowledge/glossary';
 import { MAX_TEMPO_BPM, MIN_TEMPO_BPM } from '../../state/workbenchReducer';
+import { NOTATION_VIEWS, type NotationView } from '../useViewPreference';
 import { classes, contextLabel } from '../shared/format';
 import { Icon } from '../shared/Icon';
 import { Term } from '../shared/Term';
@@ -19,7 +20,9 @@ interface ContextBarProps {
   tempoBpm: number;
   currentFixtureId: string | null;
   soundId: InstrumentId;
+  view: NotationView;
   onTempoChange: (tempoBpm: number) => void;
+  onViewChange: (view: NotationView) => void;
   onKeyChange: (context: TonalContext) => void;
   onLoadSample: (fixtureId: string) => void;
   onSoundChange: (id: InstrumentId) => void;
@@ -101,6 +104,37 @@ function TimeSignatureSelector() {
   );
 }
 
+/**
+ * How the current measure is drawn. The staff says more at a glance; the lanes
+ * are the surface you edit on, so keeping both is a working arrangement rather
+ * than an either/or — which is why "Both" is an option and not a compromise.
+ */
+function NotationSelector({
+  view,
+  onViewChange,
+}: {
+  view: NotationView;
+  onViewChange: (view: NotationView) => void;
+}) {
+  return (
+    <div className={styles.field}>
+      <FieldLabel termId="shape-notes">{content.contextBar.notationLabel}</FieldLabel>
+      <select
+        className={styles.select}
+        aria-label={content.contextBar.notationLabel}
+        value={view}
+        onChange={(event) => onViewChange(event.target.value as NotationView)}
+      >
+        {NOTATION_VIEWS.map((option) => (
+          <option key={option} value={option}>
+            {content.contextBar.notationOptions[option]}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 function TempoControl({
   tempoBpm,
   onTempoChange,
@@ -177,7 +211,9 @@ export function ContextBar({
   tempoBpm,
   currentFixtureId,
   soundId,
+  view,
   onTempoChange,
+  onViewChange,
   onKeyChange,
   onLoadSample,
   onSoundChange,
@@ -218,6 +254,7 @@ export function ContextBar({
             and sound are playback qualities. */}
         <KeySelector tonalContext={tonalContext} onKeyChange={onKeyChange} />
         <TimeSignatureSelector />
+        <NotationSelector view={view} onViewChange={onViewChange} />
         <TempoControl tempoBpm={tempoBpm} onTempoChange={onTempoChange} />
         <SoundSelector soundId={soundId} onSoundChange={onSoundChange} />
       </div>

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { content } from '../../content';
 import type { CandidatePath } from '../../domain/analysis-types';
-import type { MelodyFragment, VoiceEvent, VoiceId } from '../../domain/music-types';
+import type { MelodyFragment, TonalContext, VoiceEvent, VoiceId } from '../../domain/music-types';
 import { totalUnits, UNITS_PER_MEASURE, voicingUnits } from '../../domain/timing';
 import type { PlaybackState, SuggestionSource } from '../../domain/workbench-state';
 import { cssVars } from '../shared/timeGrid';
@@ -13,13 +13,18 @@ import { EffectSummary } from './EffectSummary';
 import { HowToUseHints } from './HowToUseHints';
 import { LaneStack } from './LaneStack';
 import { MasterTransport } from './MasterTransport';
+import { StaffView } from './staff';
 import { PanSlider, useTrackPan } from './TrackPan';
 import { useNoteEditing } from './useNoteEditing';
+import { newId } from '../shared/ids';
+import type { NotationView } from '../useViewPreference';
 import styles from './CandidateInspector.module.scss';
 
 interface CandidateInspectorProps {
   candidate: CandidatePath | null;
   fragment: MelodyFragment;
+  tonalContext: TonalContext;
+  view: NotationView;
   playback: PlaybackState;
   checkedVoices: VoiceId[];
   lockedEventIds: ReadonlySet<string>;
@@ -56,7 +61,17 @@ interface CandidateInspectorProps {
  * a measure before the cap existed. (4/4 assumption — see the meter ledger
  * in domain/timing.ts.)
  */
-function inspectorGridUnits(fragment: MelodyFragment, candidate: CandidatePath | null): number {
+/**
+ * How far the tap-to-edit grid reaches in each direction. Two steps keeps the
+ * grid small enough to aim at; a larger move is the same tap repeated, since
+ * the grid stays open and re-centres.
+ */
+const GRID_REACH = 2;
+
+export function inspectorGridUnits(
+  fragment: MelodyFragment,
+  candidate: CandidatePath | null,
+): number {
   return Math.max(
     UNITS_PER_MEASURE,
     totalUnits(fragment),
@@ -71,7 +86,8 @@ function inspectorGridUnits(fragment: MelodyFragment, candidate: CandidatePath |
  * plus a solo button on each lane.
  */
 export function CandidateInspector(props: CandidateInspectorProps) {
-  const { candidate, fragment, playback, checkedVoices, lockedEventIds, suggestionSource } = props;
+  const { candidate, fragment, playback, checkedVoices, lockedEventIds, suggestionSource, view } =
+    props;
   const [drawerOpen, setDrawerOpen] = useState(false);
   // The note-editing callbacks (onToggleNoteLock, onStepNote, onInsertNote,
   // onDeleteNote, onResizeNote) are consumed as a bundle by the hook.
@@ -110,19 +126,39 @@ export function CandidateInspector(props: CandidateInspectorProps) {
         <p className={styles.noSelection}>{content.inspector.noSelection}</p>
       ) : (
         <div className={styles.lanes} style={cssVars(panVars)}>
-          <LaneStack
-            candidate={candidate}
-            playback={playback}
-            activeUnit={activeUnit}
-            gridUnits={gridUnits}
-            checkedVoices={checkedVoices}
-            editingEventId={editingEventId}
-            lockedEventIds={lockedEventIds}
-            laneNoteHandlers={laneNoteHandlers}
-            onToggleVoice={props.onToggleVoice}
-            onPlayVoice={props.onPlayVoice}
-            onStop={props.onStop}
-          />
+          {/* Lanes are the editing surface and the staff reads back what they
+              hold, so showing both is a working arrangement rather than a
+              comparison — hence "both" rather than an either/or toggle. */}
+          {view !== 'staff' ? (
+            <LaneStack
+              candidate={candidate}
+              playback={playback}
+              activeUnit={activeUnit}
+              gridUnits={gridUnits}
+              checkedVoices={checkedVoices}
+              editingEventId={editingEventId}
+              lockedEventIds={lockedEventIds}
+              laneNoteHandlers={laneNoteHandlers}
+              onToggleVoice={props.onToggleVoice}
+              onPlayVoice={props.onPlayVoice}
+              onStop={props.onStop}
+            />
+          ) : null}
+
+          {view !== 'lanes' ? (
+            <StaffView
+              candidate={candidate}
+              tonalContext={props.tonalContext}
+              gridUnits={gridUnits}
+              editing={{
+                reach: GRID_REACH,
+                onStepPitch: (voice, eventId, direction) =>
+                  props.onStepNote(candidate.id, voice, eventId, direction),
+                onSetLength: (voice, eventId, endUnit) =>
+                  props.onResizeNote(candidate.id, voice, eventId, 'right', endUnit, false, newId()),
+              }}
+            />
+          ) : null}
 
           <ChordLane
             harmonyEvents={candidate.harmonyEvents}

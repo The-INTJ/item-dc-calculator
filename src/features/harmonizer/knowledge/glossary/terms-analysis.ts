@@ -146,7 +146,7 @@ export const analysisTerms = {
     tier: 'analysis',
     definition:
       'The do-re-mi names for the notes of the [scale]. Because they name rungs on the ladder rather than fixed [pitches|pitch], a tune keeps the same syllables in every [key].',
-    seeAlso: ['scale-degree'],
+    seeAlso: ['scale-degree', 'shape-notes'],
     note: SI_TI_NOTE,
   },
   consonance: {

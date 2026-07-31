@@ -8,7 +8,7 @@
  */
 
 export { spellPitch } from '../pitch';
-export { syllableForDegree } from './mode-tables';
+export { solfegeBase, syllableForDegree, type SolfegeBase } from './mode-tables';
 export {
   diatonicPitch,
   raisedSeventh,

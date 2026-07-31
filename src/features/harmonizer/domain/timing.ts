@@ -47,6 +47,18 @@
  * 7. PERSISTENCE + FIXTURES — MusicalTimeSchema's subdivision range and every
  *    fixture assume four subdivisions per beat; saved MusicalTime values are
  *    only meaningful against the meter they were written in.
+ * 8. THE STAFF VIEW (domain/notation/) — notation carries its own reading of
+ *    the meter, so a new meter is not just new arithmetic but new engraving
+ *    convention. duration-notation.ts holds the accent hierarchy TWICE OVER:
+ *    boundaryStrength ranks barline > mid-bar > beat > half-beat (the mid-bar
+ *    rank exists because 4/4 has a secondary accent — 3/4 has none, and 6/8's
+ *    falls elsewhere), and writableAsOne decides which of those a note may
+ *    hide, the rule that makes a half note on beat 2 legal but the same note
+ *    an eighth later illegal. decomposeRestSpan merges silence into half-bars
+ *    for the same reason. staff-model.ts draws a barline every
+ *    UNITS_PER_MEASURE and prints TIME_SIGNATURE_LABEL. Compound meters also
+ *    want dotted values as their DEFAULT beat rather than an exception, which
+ *    WRITTEN_VALUES currently treats as a special case.
  * =======================================================================
  */
 

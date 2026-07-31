@@ -8,6 +8,7 @@ import { ContextBar } from './context-bar/ContextBar';
 import { AcceptedContextRail } from './context-rail/AcceptedContextRail';
 import { ProjectSwitcher } from './header/ProjectSwitcher';
 import { InspectorSection } from './InspectorSection';
+import { useViewPreference } from './useViewPreference';
 import { useProjectPersistence } from './useProjectPersistence';
 import { useVoiceEventEditing } from './useVoiceEventEditing';
 import { useVoiceSelection } from './useVoiceSelection';
@@ -29,6 +30,7 @@ export function HarmonizationWorkbench() {
   const voices = useVoiceSelection(playback, selectedCandidate, pb);
   const composition = useCompositionPlayback(state, pb);
   const editing = useVoiceEventEditing(state, dispatch, pb.dispatchStructural);
+  const [view, setView] = useViewPreference();
   const commands = useWorkbenchCommands(state, dispatch, pb.dispatchStructural);
   const persistence = useProjectPersistence(state, dispatch, pb);
   const announcement = playbackAnnouncement(playback);
@@ -51,6 +53,8 @@ export function HarmonizationWorkbench() {
           tempoBpm={state.tempoBpm}
           currentFixtureId={state.sourceFixtureId}
           soundId={pb.soundId}
+          view={view}
+          onViewChange={setView}
           onSoundChange={pb.changeSound}
           onTempoChange={commands.changeTempo}
           onKeyChange={commands.changeKey}
@@ -75,6 +79,7 @@ export function HarmonizationWorkbench() {
           selectedCandidate={selectedCandidate}
           voices={voices}
           editing={editing}
+          view={view}
           onStop={pb.stopPlayback}
         />
         <section className={styles.region}>

@@ -6,8 +6,9 @@ import styles from './BeatDots.module.scss';
 /**
  * Translucent brown beat markers inside a voice lane: one dot at each beat
  * start, the downbeat (measure start) slightly larger and stronger. Painted
- * UNDER the note cells (first in DOM, no z-index), so they surface exactly in
- * the empty beats you drag notes into. Decorative only.
+ * OVER the note cells so the beat grid reads continuously whether a beat is
+ * empty or filled — see the layering note in BeatDots.module.scss. Decorative
+ * only, and never interactive.
  * (4/4 assumption — see the meter ledger in domain/timing.ts.)
  */
 export function BeatDots({ gridUnits }: { gridUnits: number }) {

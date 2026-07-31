@@ -30,6 +30,26 @@ export function modeTable(context: TonalContext): ModeTable | null {
   return null;
 }
 
+/**
+ * Which syllable a mode counts from. Every mode reads as either do-based or
+ * la-based, and nothing else: the third above the tonic decides it — a major
+ * third counts from do, a minor third from la. Everything the mode does beyond
+ * that third is spelled with accidentals rather than a new set of syllables,
+ * which is what keeps the seven shapes to seven.
+ *
+ * Only major and la-based minor exist today, so this reads straight off the
+ * table. When a mode is added (dorian is the likeliest — shape-note singers
+ * raise the sixth in minor as a matter of course), give its table the syllables
+ * of whichever base its third points to, and this keeps answering correctly.
+ */
+export type SolfegeBase = 'do_based' | 'la_based';
+
+export function solfegeBase(context: TonalContext): SolfegeBase | null {
+  const table = modeTable(context);
+  if (!table) return null;
+  return table.syllables[0] === 'la' ? 'la_based' : 'do_based';
+}
+
 const RAISED: Partial<Record<SolfegeSyllable, SolfegeSyllable>> = {
   do: 'di',
   re: 'ri',

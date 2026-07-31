@@ -1,0 +1,121 @@
+/* The tap-to-edit chooser. It never overlaps the staff — placement is decided
+   in useGridPlacement.ts, which moves the page rather than the panel. */
+
+.panel {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: grid;
+  grid-template-areas:
+    '. axisY'
+    'axisX grid';
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  padding: 0.9rem 1rem;
+  background: var(--wb-surface-raised);
+  border: 1px solid var(--wb-line-strong);
+  border-radius: var(--wb-radius-card);
+  box-shadow: var(--wb-shadow-raised);
+}
+
+.panel[data-side='below'] {
+  top: calc(100% + 0.75rem);
+}
+
+.panel[data-side='above'] {
+  bottom: calc(100% + 0.75rem);
+}
+
+/* Hovering off the panel's corner, so it never sits over a cell. */
+.close {
+  position: absolute;
+  top: -0.7rem;
+  right: -0.7rem;
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  padding: 0;
+  border: 1px solid var(--wb-line-strong);
+  border-radius: 50%;
+  background: var(--wb-surface-raised);
+  color: var(--wb-ink);
+  cursor: pointer;
+  box-shadow: var(--wb-shadow);
+
+  &:hover {
+    border-color: var(--wb-accent);
+    color: var(--wb-accent);
+  }
+}
+
+.axisY,
+.axisX {
+  color: var(--wb-ink-soft);
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.axisY {
+  grid-area: axisY;
+  justify-self: center;
+}
+
+.axisX {
+  grid-area: axisX;
+  writing-mode: vertical-rl;
+  rotate: 180deg;
+  justify-self: center;
+}
+
+/* The column count comes from the grid's reach, so it is set inline. */
+.grid {
+  grid-area: grid;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.cell {
+  display: grid;
+  place-items: center;
+  height: 2.6rem;
+  padding: 0;
+  border: 1px solid var(--wb-line);
+  border-radius: var(--wb-radius-chip);
+  background: var(--wb-surface);
+  color: var(--wb-ink);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--wb-accent);
+    background: var(--wb-accent-soft);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.3;
+  }
+}
+
+/* The note you tapped, so the map has a "you are here". */
+.cell[data-centre] {
+  border-color: var(--wb-accent);
+  border-width: 2px;
+  background: var(--wb-accent-soft);
+}
+
+.cellMark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.cellDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+}

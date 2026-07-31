@@ -1,0 +1,136 @@
+/* The grand-staff view of the current measure. Geometry lives in
+   staff-geometry.ts — everything here is colour, weight and stacking. */
+
+.system {
+  position: relative;
+  width: 100%;
+  color: var(--wb-ink);
+  margin: 0.5rem 0 1rem;
+}
+
+.lines,
+.head,
+.track {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.lines {
+  left: 0;
+  right: 0;
+}
+
+.head {
+  left: 0;
+}
+
+.track {
+  right: 0;
+}
+
+.staffLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--wb-line-strong);
+}
+
+/* Bars are heavier than stave lines so the measure reads as a unit. */
+.barline {
+  position: absolute;
+  width: 1.5px;
+  background: var(--wb-ink);
+  opacity: 0.75;
+}
+
+.barline[data-final] {
+  width: 2.5px;
+  opacity: 0.9;
+}
+
+/* The clefs label their staves rather than announcing themselves: small, faded
+   back out of the music's weight, and centred on their own box so their height
+   never intrudes on the stave. */
+.clef {
+  position: absolute;
+  display: block;
+  opacity: 0.45;
+  transform: translateY(-50%);
+}
+
+/* One meter for the system, parked in the gap between the staves — whitespace
+   that was doing nothing, so the meter costs no width. */
+.meter {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--wb-font-solfege);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--wb-ink-soft);
+  transform: translateY(-50%);
+}
+
+.sprites,
+.hits,
+.note {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/* Every stave lays down full-width layers, so without this the lower stave's
+   layers cover the upper stave's note targets and swallow the click. Only the
+   note buttons themselves take pointer events. */
+.sprites,
+.hits {
+  pointer-events: none;
+}
+
+/* The selected note takes the accent so the grid clearly belongs to it. */
+.note[data-selected] {
+  color: var(--wb-accent);
+}
+
+/* One target per notehead, sized to the head rather than to its time slot —
+   a sixteenth's slot is too narrow to tap, and a whole note's is a whole
+   measure wide. */
+.hit {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  border-radius: var(--wb-radius-chip);
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+
+  &:hover {
+    background: var(--wb-accent-soft);
+  }
+}
+
+.hit[data-selected] {
+  background: var(--wb-accent-soft);
+  box-shadow: 0 0 0 2px var(--wb-accent);
+}
+
+.stem,
+.ledger {
+  position: absolute;
+  background: currentColor;
+}
+
+.ledger {
+  height: 1px;
+  background: var(--wb-line-strong);
+}
+
+.tie {
+  position: absolute;
+  overflow: visible;
+  color: var(--wb-ink);
+}

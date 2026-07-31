@@ -3,6 +3,7 @@
 import type { CandidatePath } from '../domain/analysis-types';
 import type { WorkbenchState } from '../domain/workbench-state';
 import { CandidateInspector } from './inspector/CandidateInspector';
+import type { NotationView } from './useViewPreference';
 import type { useVoiceEventEditing } from './useVoiceEventEditing';
 import type { useVoiceSelection } from './useVoiceSelection';
 import styles from './HarmonizationWorkbench.module.scss';
@@ -12,6 +13,7 @@ interface InspectorSectionProps {
   selectedCandidate: CandidatePath | null;
   voices: ReturnType<typeof useVoiceSelection>;
   editing: ReturnType<typeof useVoiceEventEditing>;
+  view: NotationView;
   onStop: () => void;
 }
 
@@ -21,6 +23,7 @@ export function InspectorSection({
   selectedCandidate,
   voices,
   editing,
+  view,
   onStop,
 }: InspectorSectionProps) {
   return (
@@ -28,6 +31,8 @@ export function InspectorSection({
       <CandidateInspector
         candidate={selectedCandidate}
         fragment={state.fragment}
+        tonalContext={state.tonalContext}
+        view={view}
         playback={state.playback}
         checkedVoices={voices.checkedVoices}
         lockedEventIds={editing.lockedEventIds}
