@@ -17,13 +17,23 @@ Husky runs lint-staged before commits. A separate ESLint configuration applies `
 
 The frozen DC calculator, tests, E2E, fixtures, knowledge/content data, generated code, declarations, and conventionally named type-only files are exempt. Normal `npm run lint` remains green; the staged gate is the ratchet. A touched file must be below 200 lines and every function in it must be at most 80 lines.
 
-The current tree has no eligible source file at 200 or more logical lines. It still has function violations. Those functions do not block unrelated commits, but staging their files requires splitting them.
+The tree is now fully compliant: zero eligible files at 200 or more logical lines, and zero functions above 80. The gate blocks nothing that exists today, so it only ever fires on new drift.
 
 ### Measurements behind the cap
 
 After the documented exemptions, 433 code files were measured: 23 are between 161 and 200 lines, none exceed 200, p95 is 164, and p99 is 192. Active contest code has 11 files between 161 and 200. A global cap below 200 would force low-value splits in cohesive modules such as `nct-classification.ts` (185), `melody-interpretation.ts` (181), and `build-candidate.ts` (181); none contains an oversized function.
 
-The current problem is function size, not the global file cap. Active contest code still has 20 non-test functions above 80 lines, and the refactor introduced eight of them. Examples include `useAuthActions` at 164 lines and Firestore adapter factories at 100–134 lines.
+### Clearing the backlog
+
+Function size, not the file cap, was the real debt: 30 violations across 29 files, from `ContestConfigEditor` at 179 lines down to `StaffView` at 82. All were split by concept in one pass rather than grandfathered, on the reasoning that a touched-file ratchet with 29 landmines in it taxes ordinary work more than the cleanup did.
+
+Three seams recurred often enough to be worth naming, since each removed real duplication rather than just length:
+
+- `adjustMatchupEntryTally` / `writeVoteAndTally` — the running `sumScore`/`voteCount` on a matchup entry, previously re-implemented in four places across both Firestore adapters.
+- `prepareNewMatchup` — shared by the single and batch create paths in both adapters.
+- `usePopoverDismiss` — `GlossaryPanel` and `PopoverMenu` carried a byte-identical outside-press + Escape effect.
+
+The one file that had crossed the *file* cap was `ContextBar.tsx` (223), pushed over by the staff-bar work; its settings fields now live in `SettingsFields.tsx`.
 
 ## Split regressions
 
@@ -77,4 +87,6 @@ Before moving selectors, add focused desktop/mobile screenshot coverage for cont
 
 ## Validation
 
-The length checker was verified at both boundaries: 199/200 file lines and 80/81 function lines. Exemptions passed, a known 164-line function failed, hook messaging was verified, and partially staged content was handled correctly. `lint`, `type-check`, `docs:validate`, 557 unit tests, 5 Harmonizer browser tests, and 29 contest browser tests all passed.
+The length checker was verified at both boundaries: 199/200 file lines and 80/81 function lines. Exemptions passed, a known 164-line function failed, hook messaging was verified, and partially staged content was handled correctly. The hook was also confirmed to fire and block for real on Windows.
+
+After the split pass: zero length violations tree-wide, and `lint`, `type-check`, `docs:validate`, 660 unit tests, and 9 Harmonizer browser tests all pass. The splits were behaviour-preserving by construction — transaction operation order, telemetry event names and payload keys, and every component's rendered markup were kept as they were.
