@@ -5,16 +5,12 @@
  * Shows current config and allows editing when no scores exist.
  */
 
-import { useCallback, useState } from 'react';
-import type { AttributeConfig, Contest, ContestConfig } from '../../contexts/contest/contestTypes';
-import {
-  buildContestConfigFromDraft,
-  createContestConfigDraft,
-  validateContestConfigDraft,
-} from '../../lib/domain/contestConfigDraft';
+import { useState } from 'react';
+import type { Contest, ContestConfig } from '../../contexts/contest/contestTypes';
 import { getEffectiveConfig } from '../../lib/domain/validation';
-import { AttributeEditor } from './AttributeEditor';
 import { ContestConfigPreview } from './ContestConfigPreview';
+import { ContestConfigEditForm } from './ContestConfigEditForm';
+import { useConfigEditDraft } from './useConfigEditDraft';
 
 interface ContestConfigEditorProps {
   contest: Contest;
@@ -24,57 +20,20 @@ interface ContestConfigEditorProps {
 export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProps) {
   const effectiveConfig = getEffectiveConfig(contest);
   const hasScores = false;
-  const defaultDraft = createContestConfigDraft(effectiveConfig);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [topic, setTopic] = useState(defaultDraft.topic);
-  const [entryLabel, setEntryLabel] = useState(defaultDraft.entryLabel);
-  const [entryLabelPlural, setEntryLabelPlural] = useState(defaultDraft.entryLabelPlural);
-  const [contestantLabel, setContestantLabel] = useState(defaultDraft.contestantLabel);
-  const [contestantLabelPlural, setContestantLabelPlural] = useState(defaultDraft.contestantLabelPlural);
-  const [attributes, setAttributes] = useState<AttributeConfig[]>(defaultDraft.attributes);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { draft, setField, setAttributes, isSaving, error, reset, save } = useConfigEditDraft(
+    effectiveConfig,
+    onSave,
+  );
 
-  const handleCancel = useCallback(() => {
-    const resetDraft = createContestConfigDraft(effectiveConfig);
-    setTopic(resetDraft.topic);
-    setEntryLabel(resetDraft.entryLabel);
-    setEntryLabelPlural(resetDraft.entryLabelPlural);
-    setContestantLabel(resetDraft.contestantLabel);
-    setContestantLabelPlural(resetDraft.contestantLabelPlural);
-    setAttributes(resetDraft.attributes);
+  const handleCancel = () => {
+    reset();
     setIsEditing(false);
-    setError(null);
-  }, [effectiveConfig]);
+  };
 
   const handleSave = async () => {
-    const validationError = validateContestConfigDraft({ topic, attributes });
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    setIsSaving(true);
-    setError(null);
-
-    try {
-      await onSave(
-        buildContestConfigFromDraft({
-          topic,
-          entryLabel,
-          entryLabelPlural,
-          contestantLabel,
-          contestantLabelPlural,
-          attributes,
-        }),
-      );
-      setIsEditing(false);
-    } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Failed to save config.');
-    } finally {
-      setIsSaving(false);
-    }
+    if (await save()) setIsEditing(false);
   };
 
   if (!isEditing) {
@@ -105,105 +64,15 @@ export function ContestConfigEditor({ contest, onSave }: ContestConfigEditorProp
   }
 
   return (
-    <section className="admin-details-section">
-      <h3>Edit Configuration</h3>
-      {hasScores ? (
-        <p className="admin-phase-controls__message--error">
-          Cannot edit configuration after scores have been submitted.
-        </p>
-      ) : null}
-      <div className="admin-contest-setup-form">
-        <div className="admin-contest-setup-form__field">
-          <label htmlFor="edit-topic">Topic</label>
-          <input
-            id="edit-topic"
-            type="text"
-            className="admin-rounds-input"
-            value={topic}
-            onChange={(event) => setTopic(event.target.value)}
-            disabled={isSaving}
-          />
-        </div>
-        <div className="admin-contest-setup-form__row">
-          <div className="admin-contest-setup-form__field">
-            <label htmlFor="edit-entry-label">Entry Label</label>
-            <input
-              id="edit-entry-label"
-              type="text"
-              className="admin-rounds-input"
-              value={entryLabel}
-              onChange={(event) => setEntryLabel(event.target.value)}
-              placeholder="Entry"
-              disabled={isSaving}
-            />
-          </div>
-          <div className="admin-contest-setup-form__field">
-            <label htmlFor="edit-entry-label-plural">Plural</label>
-            <input
-              id="edit-entry-label-plural"
-              type="text"
-              className="admin-rounds-input"
-              value={entryLabelPlural}
-              onChange={(event) => setEntryLabelPlural(event.target.value)}
-              placeholder="Entries"
-              disabled={isSaving}
-            />
-          </div>
-        </div>
-        <div className="admin-contest-setup-form__row">
-          <div className="admin-contest-setup-form__field">
-            <label htmlFor="edit-contestant-label">Contestant Label</label>
-            <input
-              id="edit-contestant-label"
-              type="text"
-              className="admin-rounds-input"
-              value={contestantLabel}
-              onChange={(event) => setContestantLabel(event.target.value)}
-              placeholder="Contestant"
-              disabled={isSaving}
-            />
-          </div>
-          <div className="admin-contest-setup-form__field">
-            <label htmlFor="edit-contestant-label-plural">Plural</label>
-            <input
-              id="edit-contestant-label-plural"
-              type="text"
-              className="admin-rounds-input"
-              value={contestantLabelPlural}
-              onChange={(event) => setContestantLabelPlural(event.target.value)}
-              placeholder="Contestants"
-              disabled={isSaving}
-            />
-          </div>
-        </div>
-        <div className="admin-contest-setup-form__field">
-          <label>Scoring Attributes</label>
-          <AttributeEditor
-            attributes={attributes}
-            onChange={setAttributes}
-            disabled={isSaving}
-          />
-        </div>
-        {error ? <p className="admin-phase-controls__message--error">{error}</p> : null}
-        <div className="admin-contest-setup-form__actions">
-          <button
-            type="button"
-            className="button-secondary"
-            onClick={handleCancel}
-            disabled={isSaving}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="button-primary"
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving ? 'Saving...' : 'Save Config'}
-          </button>
-        </div>
-      </div>
-    </section>
+    <ContestConfigEditForm
+      draft={draft}
+      setField={setField}
+      setAttributes={setAttributes}
+      isSaving={isSaving}
+      error={error}
+      hasScores={hasScores}
+      onCancel={handleCancel}
+      onSave={() => void handleSave()}
+    />
   );
 }

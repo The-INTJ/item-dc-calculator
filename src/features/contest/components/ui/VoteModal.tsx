@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { Dialog, Slider, useMediaQuery, useTheme } from '@mui/material';
+import { useEffect } from 'react';
+import { Dialog, useMediaQuery, useTheme } from '@mui/material';
 import type { Contest, Matchup } from '../../contexts/contest/contestTypes';
 import { getRoundLabel } from '../../lib/domain/contestGetters';
 import { useMatchupVoting } from '../../lib/hooks/useMatchupVoting';
+import { VoteSheetBody } from './voteSheet';
 
 interface VoteModalProps {
   open: boolean;
@@ -18,19 +19,8 @@ export function VoteModal({ open, onClose, onSubmitted, contest, matchup }: Vote
   const roundName = getRoundLabel(contest, matchup.roundId);
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
-  const {
-    drinks,
-    categories,
-    scores,
-    updateScore,
-    submit,
-    status,
-    message,
-    isSubmitting,
-    isMatchupOpen,
-    selfEntryId,
-  } = useMatchupVoting(contest, matchup);
-  const [activeEntryIndex, setActiveEntryIndex] = useState(0);
+  const voting = useMatchupVoting(contest, matchup);
+  const { status, isMatchupOpen } = voting;
 
   // The matchup closed while the modal was open (live phase flip via the
   // realtime subscription), or a submit raced the close and was rejected.
@@ -38,39 +28,11 @@ export function VoteModal({ open, onClose, onSubmitted, contest, matchup }: Vote
   const votingClosed = (!isMatchupOpen || status === 'closed') && status !== 'success';
 
   useEffect(() => {
-    setActiveEntryIndex(0);
-  }, [matchup.id, drinks.length]);
-
-  useEffect(() => {
     if (!open || status !== 'success') return;
     onSubmitted?.();
     const timer = setTimeout(onClose, 1500);
     return () => clearTimeout(timer);
   }, [open, status, onClose, onSubmitted]);
-
-  const activeEntry = drinks[activeEntryIndex] ?? drinks[0] ?? null;
-  const isSelfEntry = activeEntry?.id === selfEntryId;
-  const activeScores = activeEntry ? scores[activeEntry.id] ?? {} : {};
-  const maxTotal = useMemo(
-    () => categories.reduce((sum, category) => sum + (category.max ?? 10), 0),
-    [categories],
-  );
-  const total = useMemo(() => {
-    if (isSelfEntry) return maxTotal;
-    return categories.reduce((sum, category) => sum + (activeScores[category.id] ?? category.min ?? 0), 0);
-  }, [activeScores, categories, isSelfEntry, maxTotal]);
-
-  const canSubmit = drinks.length > 0 && categories.length > 0 && !isSubmitting && !votingClosed;
-  const isLastEntry = activeEntryIndex >= drinks.length - 1;
-
-  const handlePrimaryAction = () => {
-    if (!isLastEntry) {
-      setActiveEntryIndex((index) => Math.min(index + 1, drinks.length - 1));
-      return;
-    }
-
-    void submit();
-  };
 
   return (
     <Dialog
@@ -97,116 +59,7 @@ export function VoteModal({ open, onClose, onSubmitted, contest, matchup }: Vote
         </button>
       </header>
 
-      {drinks.length === 0 || categories.length === 0 || !activeEntry ? (
-        <div className="vote-sheet__empty">
-          {drinks.length === 0 ? 'No entries assigned to this matchup yet.' : 'No scoring categories yet.'}
-        </div>
-      ) : (
-        <>
-          <nav className="vote-sheet__entry-chips" aria-label="Entries">
-            {drinks.map((entry, index) => (
-              <button
-                key={entry.id}
-                type="button"
-                className={`vote-sheet__entry-chip${index === activeEntryIndex ? ' vote-sheet__entry-chip--active' : ''}`}
-                onClick={() => setActiveEntryIndex(index)}
-              >
-                {index + 1}. {entry.name ?? entry.creatorName}
-              </button>
-            ))}
-          </nav>
-
-          <section className="vote-sheet__entry-card">
-            <span className="vote-sheet__entry-art" aria-hidden="true" />
-            <span className="vote-sheet__entry-copy">
-              <strong>{activeEntry.displayName}</strong>
-              <span>
-                by {activeEntry.creatorName}
-                {isSelfEntry && <em className="vote-sheet__self-badge"> · Your entry</em>}
-              </span>
-            </span>
-          </section>
-
-          {isSelfEntry && (
-            <p className="vote-sheet__self-notice">
-              You can't score your own entry — it auto-records the maximum.
-            </p>
-          )}
-
-          {votingClosed && (
-            <p className="vote-sheet__closed-banner" role="status">
-              {status === 'closed' && message
-                ? message
-                : 'Voting just closed for this matchup — scores can no longer be submitted.'}
-            </p>
-          )}
-
-          <div className="vote-sheet__scores">
-            {categories.map((category) => {
-              const min = category.min ?? 0;
-              const max = category.max ?? 10;
-              const value = isSelfEntry ? max : activeScores[category.id] ?? min;
-              return (
-                <div key={category.id} className="contest-vote-slider">
-                  <div className="contest-vote-slider__label-row">
-                    <label className="contest-vote-slider__label" htmlFor={`score-${activeEntry.id}-${category.id}`}>
-                      {category.label}
-                    </label>
-                    <span className="contest-vote-slider__value">
-                      {value}
-                      <span> / {max}</span>
-                    </span>
-                  </div>
-                  <Slider
-                    id={`score-${activeEntry.id}-${category.id}`}
-                    className="contest-vote-slider__field"
-                    min={min}
-                    max={max}
-                    step={1}
-                    value={value}
-                    valueLabelDisplay="auto"
-                    disabled={isSelfEntry || votingClosed}
-                    onChange={(_, nextValue) => {
-                      if (isSelfEntry || votingClosed) return;
-                      const normalized = Array.isArray(nextValue) ? nextValue[0] : nextValue;
-                      updateScore(activeEntry.id, category.id, normalized);
-                    }}
-                  />
-                  <div className="contest-vote-slider__scale" aria-hidden="true">
-                    <span>Poor</span>
-                    <span>Average</span>
-                    <span>Excellent</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {message && status !== 'closed' && (
-            <p className={`contest-vote-actions__message contest-vote-actions__message--${status}`}>
-              {message}
-            </p>
-          )}
-
-          <footer className="vote-sheet__submit-bar">
-            <div>
-              <span>Total</span>
-              <strong>
-                {total}
-                <small> / {maxTotal}</small>
-              </strong>
-            </div>
-            <button
-              type="button"
-              className="btn btn--primary"
-              onClick={handlePrimaryAction}
-              disabled={!canSubmit || status === 'success'}
-            >
-              {isSubmitting ? 'Submitting...' : isLastEntry ? 'Submit scores' : 'Next entry'}
-            </button>
-          </footer>
-        </>
-      )}
+      <VoteSheetBody voting={voting} matchupId={matchup.id} votingClosed={votingClosed} />
     </Dialog>
   );
 }

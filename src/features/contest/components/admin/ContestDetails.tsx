@@ -1,21 +1,18 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type {
-  Contest,
-  ContestConfig,
-  ScoreEntry,
-} from '../../contexts/contest/contestTypes';
+import type { Contest, ContestConfig } from '../../contexts/contest/contestTypes';
 import { useContestStore } from '../../contexts/contest/ContestContext';
 import { useMatchupsSubscription } from '../../lib/realtime';
 import { contestApi } from '../../lib/api/contestApi';
 import { getRoundLabel } from '../../lib/domain/contestGetters';
-import { getActiveRoundIdFromMatchups } from '../../lib/domain/matchupGetters';
 import { getEffectiveConfig } from '../../lib/domain/validation';
 import { AdminContestants } from './AdminContestants';
 import { AdminContestRounds } from './AdminContestRounds';
 import { ContestConfigEditor } from './ContestConfigEditor';
+import { useContestScores } from './useContestScores';
+import { useSelectedRound } from './useSelectedRound';
 
 interface ContestDetailsProps {
   contest: Contest;
@@ -30,43 +27,16 @@ export function ContestDetails({ contest, onContestUpdated }: ContestDetailsProp
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [contestScores, setContestScores] = useState<ScoreEntry[]>([]);
 
   const rounds = contest.rounds ?? [];
-  const activeRoundId = useMemo(
-    () => getActiveRoundIdFromMatchups(rounds, matchups),
-    [rounds, matchups],
-  );
-
-  const [selectedRoundId, setSelectedRoundId] = useState<string | null>(activeRoundId);
-
-  useEffect(() => {
-    if (selectedRoundId && !rounds.some((r) => r.id === selectedRoundId)) {
-      setSelectedRoundId(activeRoundId);
-    } else if (!selectedRoundId && activeRoundId) {
-      setSelectedRoundId(activeRoundId);
-    }
-  }, [rounds, activeRoundId, selectedRoundId]);
+  const { activeRoundId, selectedRoundId, setSelectedRoundId } = useSelectedRound(rounds, matchups);
+  const contestScores = useContestScores(contest.id, matchups);
 
   const activeRoundLabel = getRoundLabel(contest, activeRoundId);
   const config = getEffectiveConfig(contest);
   const hasScores = matchups.some((m) =>
     m.entries.some((e) => (e.voteCount ?? 0) > 0),
   );
-
-  useEffect(() => {
-    if (!contest.id) return;
-
-    const fetchScores = async () => {
-      const allEntryIds = matchups.flatMap((m) => m.entries.map((e) => e.id));
-      const scoreGroups = await Promise.all(
-        allEntryIds.map((entryId) => contestApi.getScoresForEntry(contest.id, entryId)),
-      );
-      setContestScores(scoreGroups.flatMap((r) => (r.success ? r.data ?? [] : [])));
-    };
-
-    void fetchScores();
-  }, [contest.id, matchups]);
 
   const handleSaveConfig = async (nextConfig: ContestConfig) => {
     const result = await contestApi.updateContestConfig(contest.id, nextConfig);

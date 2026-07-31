@@ -6,8 +6,8 @@
  * session (same Firebase uid — votes and registrations carry over).
  */
 
-import { useState, type FormEvent } from 'react';
-import { useAuth } from '../../contexts/auth/AuthContext';
+import { AuthField } from './AuthField';
+import { useRegisterForm } from './useRegisterForm';
 
 interface RegisterFormProps {
   mode?: 'register' | 'upgrade';
@@ -22,44 +22,17 @@ export function RegisterForm({
   onSuccess,
   onSwitchToLogin,
 }: RegisterFormProps) {
-  const { register, upgradeGuestWithEmail } = useAuth();
-  const [displayName, setDisplayName] = useState(initialDisplayName);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const isUpgrade = mode === 'upgrade';
-  const heading = isUpgrade ? 'Make your account permanent' : 'Create Account';
-  const submitLabel = isUpgrade ? 'Upgrade account' : 'Create Account';
-  const busyLabel = isUpgrade ? 'Upgrading...' : 'Creating account...';
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
-
-    setLoading(true);
-    const action = isUpgrade ? upgradeGuestWithEmail : register;
-    const result = await action({ email, password, displayName });
-
-    setLoading(false);
-    if (result.success) {
-      onSuccess?.();
-    } else {
-      setError(result.error ?? (isUpgrade ? 'Account upgrade failed' : 'Registration failed'));
-    }
-  };
+  const {
+    fields,
+    setField,
+    error,
+    loading,
+    isUpgrade,
+    handleSubmit,
+    heading,
+    submitLabel,
+    busyLabel,
+  } = useRegisterForm({ mode, initialDisplayName, onSuccess });
 
   return (
     <form onSubmit={handleSubmit} className="auth-form">
@@ -73,54 +46,39 @@ export function RegisterForm({
 
       {error && <div className="auth-error">{error}</div>}
 
-      <div className="auth-field">
-        <label htmlFor="register-name">Display Name</label>
-        <input
-          id="register-name"
-          type="text"
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-          required
-          autoComplete="name"
-        />
-      </div>
-
-      <div className="auth-field">
-        <label htmlFor="register-email">Email</label>
-        <input
-          id="register-email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          autoComplete="email"
-        />
-      </div>
-
-      <div className="auth-field">
-        <label htmlFor="register-password">Password</label>
-        <input
-          id="register-password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={6}
-          autoComplete="new-password"
-        />
-      </div>
-
-      <div className="auth-field">
-        <label htmlFor="register-confirm">Confirm Password</label>
-        <input
-          id="register-confirm"
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-          autoComplete="new-password"
-        />
-      </div>
+      <AuthField
+        id="register-name"
+        label="Display Name"
+        type="text"
+        value={fields.displayName}
+        onChange={(value) => setField('displayName', value)}
+        autoComplete="name"
+      />
+      <AuthField
+        id="register-email"
+        label="Email"
+        type="email"
+        value={fields.email}
+        onChange={(value) => setField('email', value)}
+        autoComplete="email"
+      />
+      <AuthField
+        id="register-password"
+        label="Password"
+        type="password"
+        value={fields.password}
+        onChange={(value) => setField('password', value)}
+        autoComplete="new-password"
+        minLength={6}
+      />
+      <AuthField
+        id="register-confirm"
+        label="Confirm Password"
+        type="password"
+        value={fields.confirmPassword}
+        onChange={(value) => setField('confirmPassword', value)}
+        autoComplete="new-password"
+      />
 
       <button type="submit" className="button-primary" disabled={loading}>
         {loading ? busyLabel : submitLabel}
