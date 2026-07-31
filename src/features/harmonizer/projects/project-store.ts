@@ -6,25 +6,23 @@
  * Envelope is zod-validated on read; corruption or a version mismatch yields
  * a stable empty envelope instead of a crash (a version bump deliberately
  * discards old data — documented POC policy). Writes are quota-guarded.
+ *
+ * The envelope's shape lives in project-envelope.ts; the state→persisted
+ * serialization lives in persisted-workbench.ts. Both re-export from here so
+ * import paths stay stable.
  */
 
 import { useSyncExternalStore } from 'react';
-import { z } from 'zod';
-import type { CandidatePath } from '../domain/analysis-types';
-import type { ConstraintLock } from '../domain/locks';
-import type {
-  PersistedCandidate,
-  PersistedWorkbench,
-  WorkbenchState,
-} from '../domain/workbench-state';
+import type { PersistedWorkbench } from '../domain/workbench-state';
 import {
-  AcceptedContextSchema,
-  BoundaryConstraintSchema,
-  MelodyFragmentSchema,
-  PersistedCandidateSchema,
-  PhraseIntentSchema,
-  TonalContextSchema,
-} from '../fixtures/schemas';
+  EMPTY_ENVELOPE,
+  ProjectEnvelopeSchema,
+  type HarmonizerProject,
+  type ProjectEnvelope,
+} from './project-envelope';
+
+export type { HarmonizerProject, ProjectEnvelope } from './project-envelope';
+export { toPersistedCandidate, toPersistedWorkbench } from './persisted-workbench';
 
 const STORAGE_KEY = 'harmonizer.projects.v2';
 /** Retired keys are removed on the first successful v2 write (quota hygiene). */
@@ -32,76 +30,6 @@ const LEGACY_KEYS = ['harmonizer.projects.v1'];
 const CHANGE_EVENT = 'harmonizer-projects:change';
 const MAX_PROJECTS = 20;
 const MAX_APPLIED_PER_PROJECT = 50;
-
-export interface HarmonizerProject {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-  workbench: PersistedWorkbench;
-}
-
-export interface ProjectEnvelope {
-  version: 2;
-  activeProjectId: string | null;
-  projects: HarmonizerProject[];
-}
-
-const ConstraintLockSchema: z.ZodType<ConstraintLock> = z.strictObject({
-  id: z.string().min(1),
-  targetType: z.enum([
-    'harmony_event',
-    'chord_identity',
-    'inversion',
-    'voice_event',
-    'voice_row',
-    'bass_line',
-    'complete_voicing',
-  ]),
-  targetId: z.string().min(1),
-  candidateId: z.string().min(1),
-  valueSnapshot: z.unknown(),
-  createdAt: z.string(),
-});
-
-const PersistedWorkbenchSchema: z.ZodType<PersistedWorkbench> = z.strictObject({
-  tonalContext: TonalContextSchema,
-  phraseIntent: PhraseIntentSchema,
-  tempoBpm: z.number().positive(),
-  acceptedContext: AcceptedContextSchema,
-  appliedFragments: z.array(
-    z.strictObject({
-      id: z.string().min(1),
-      fragment: MelodyFragmentSchema,
-      candidate: PersistedCandidateSchema,
-    }),
-  ),
-  fragment: MelodyFragmentSchema,
-  boundaryConstraints: z.array(BoundaryConstraintSchema),
-  sourceFixtureId: z.string().nullable(),
-  workingCandidate: PersistedCandidateSchema.nullable(),
-  locks: z.array(ConstraintLockSchema),
-  // Additive (2026-07-30): optional so pre-measures saves still parse under
-  // strictObject. Absent ⇒ LOAD_PROJECT migrates (appends the working reading
-  // as the selected measure).
-  selectedMeasureId: z.string().min(1).optional(),
-});
-
-const ProjectEnvelopeSchema: z.ZodType<ProjectEnvelope> = z.strictObject({
-  version: z.literal(2),
-  activeProjectId: z.string().nullable(),
-  projects: z.array(
-    z.strictObject({
-      id: z.string().min(1),
-      name: z.string().min(1),
-      createdAt: z.string(),
-      updatedAt: z.string(),
-      workbench: PersistedWorkbenchSchema,
-    }),
-  ),
-});
-
-const EMPTY_ENVELOPE: ProjectEnvelope = { version: 2, activeProjectId: null, projects: [] };
 
 let cachedRaw: string | null = null;
 let cachedSnapshot: ProjectEnvelope = EMPTY_ENVELOPE;
@@ -248,42 +176,4 @@ export function saveWorkbench(id: string, workbench: PersistedWorkbench): 'saved
         : project,
     ),
   });
-}
-
-/** The Tier-1 strip: drop everything re-derivable from the notes. */
-export function toPersistedCandidate(candidate: CandidatePath): PersistedCandidate {
-  const {
-    harmonyEvents: _harmony,
-    melodyInterpretations: _interpretations,
-    derivability: _derivability,
-    approach: _approach,
-    ...persisted
-  } = candidate;
-  return persisted;
-}
-
-export function toPersistedWorkbench(state: WorkbenchState): PersistedWorkbench {
-  const working =
-    state.candidates.find((candidate) => candidate.id === state.selectedCandidateId) ?? null;
-  return {
-    tonalContext: state.tonalContext,
-    phraseIntent: state.phraseIntent,
-    tempoBpm: state.tempoBpm,
-    acceptedContext: state.acceptedContext,
-    appliedFragments: state.appliedFragments.map((applied) => ({
-      id: applied.id,
-      fragment: applied.fragment,
-      candidate: toPersistedCandidate(applied.candidate),
-    })),
-    fragment: state.fragment,
-    boundaryConstraints: state.boundaryConstraints,
-    sourceFixtureId: state.sourceFixtureId,
-    workingCandidate: working ? toPersistedCandidate(working) : null,
-    // Suggestion cards are not persisted; only locks on the working notes
-    // mean anything after a reload.
-    locks: state.locks.filter((lock) => lock.candidateId === working?.id),
-    // Conditional spread: a null-selection corner save simply omits the key
-    // (the schema is optional, not nullable).
-    ...(state.selectedMeasureId ? { selectedMeasureId: state.selectedMeasureId } : {}),
-  };
 }

@@ -7,7 +7,6 @@ import { getEntriesInMatchup } from '../domain/matchupGetters';
 import {
   buildScoreDefaults,
   buildScoresFromEntries,
-  isBreakdownKey,
   mergeScoreMaps,
 } from '../domain/scoreUtils';
 import { buildEntrySummaries } from '../presentation/uiMappings';
@@ -17,7 +16,7 @@ import type {
   ScoreBreakdown,
   ScoreEntry,
 } from '../../contexts/contest/contestTypes';
-import { buildAutoVoteScores, buildSelfMaxVote } from '../domain/autoVote';
+import { assembleBallot } from './ballotAssembly';
 import { MATCHUP_CLOSED } from '../domain/errorCodes';
 import { contestApi } from '../api/contestApi';
 import { harnessLog } from '@/lib/diagnostics/harnessLog';
@@ -145,32 +144,19 @@ export function useMatchupVoting(contest: Contest | null, matchup: Matchup | nul
       return;
     }
 
-    const voteEntries = Object.entries(scores)
-      .filter(([entryId]) => entryId !== selfEntryId)
-      .map(([entryId, entryScores]) => {
-        const breakdown = categoryIds.reduce<Partial<ScoreBreakdown>>((acc, cid) => {
-          if (!isBreakdownKey(cid, config)) return acc;
-          const value = entryScores?.[cid];
-          if (Number.isFinite(value)) acc[cid] = value;
-          return acc;
-        }, {});
-        return { entryId, breakdown };
-      })
-      .filter((e) => Object.keys(e.breakdown).length > 0);
+    const { voteEntries, autoVotes, selfVote, allVotes } = assembleBallot({
+      scores,
+      entryIds: entries.map((e) => e.id),
+      categoryIds,
+      selfEntryId,
+      config,
+    });
 
     if (voteEntries.length === 0 && !selfEntryId) {
       setStatus('error');
       setMessage('Enter at least one score before submitting.');
       return;
     }
-
-    const scoredIds = voteEntries.map((e) => e.entryId);
-    const otherEntryIds = entries
-      .map((e) => e.id)
-      .filter((id) => id !== selfEntryId);
-    const autoVotes = buildAutoVoteScores(otherEntryIds, scoredIds, config);
-    const selfVote = buildSelfMaxVote(selfEntryId, config);
-    const allVotes = [...voteEntries, ...autoVotes, ...selfVote];
 
     setStatus('submitting');
     setMessage(null);

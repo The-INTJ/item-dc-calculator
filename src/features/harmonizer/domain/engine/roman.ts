@@ -4,115 +4,39 @@
  * symbols, and basic harmonic-function tags. Degree derivation is
  * SPELLING-faithful — the root's letter decides the degree, so Bb in C major
  * reads bVII (te) and A# reads #VI (li); pitch class alone cannot tell them
- * apart. Sequence-aware refinements (cadential 6/4, passing chords) belong to
- * the annotator, not here.
+ * apart (the spelling half lives in degree-spelling.ts). Sequence-aware
+ * refinements (cadential 6/4, passing chords) belong to the annotator, not
+ * here.
  */
 
 import type {
-  DiatonicDegree,
   HarmonicAnalysis,
-  HarmonicFunctionTag,
   ScaleDegreePitch,
   SpelledPitch,
   SpelledPitchClass,
   TonalContext,
 } from '../music-types';
-import { ACCIDENTAL_OFFSETS, LETTERS, toPcName } from '../pitch';
-import { diatonicPitch, syllableForDegree } from '../scale';
+import { toPcName } from '../pitch';
 import { SONORITY_TEMPLATES, type SonorityReading, type SonorityTemplate } from './chord-id';
+import {
+  casedNumeral,
+  degreeForSpelledRoot,
+  functionTagsFor,
+  numeralPrefix,
+  scaleDegreeForSpelledRoot,
+} from './degree-spelling';
 
-const DEGREE_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'] as const;
+export {
+  degreeForSpelledRoot,
+  scaleDegreeForSpelledRoot,
+  type SpelledDegree,
+} from './degree-spelling';
 
 /** Figured-bass shorthand by inversion; triads then sevenths. A triad's
  * inversion never reaches 3 — the fourth slot exists only to satisfy the
  * 0|1|2|3 index type. */
 const TRIAD_FIGURES = ['', '6', '6/4', ''] as const;
 const SEVENTH_FIGURES = ['7', '6/5', '4/3', '4/2'] as const;
-
-export interface SpelledDegree {
-  degree: DiatonicDegree;
-  chromaticOffset: number;
-}
-
-/**
- * The degree a spelled root sits on, from letter distance + accidental delta.
- * Null when the offset exceeds ±1 (no conventional numeral prefix).
- */
-export function degreeForSpelledRoot(
-  context: TonalContext,
-  root: SpelledPitchClass,
-): SpelledDegree | null {
-  const tonicIndex = LETTERS.indexOf(context.tonic.letter);
-  const rootIndex = LETTERS.indexOf(root.letter);
-  const degree = ((((rootIndex - tonicIndex) % 7) + 7) % 7) + 1;
-  const diatonic = diatonicPitch(context, degree as DiatonicDegree, 4);
-  if (!diatonic) return null;
-  const offset =
-    ACCIDENTAL_OFFSETS[root.accidental] - ACCIDENTAL_OFFSETS[diatonic.accidental];
-  if (offset < -1 || offset > 1) return null;
-  return { degree: degree as DiatonicDegree, chromaticOffset: offset };
-}
-
-/** ScaleDegreePitch for a spelled root; base syllable stands in at syllable gaps. */
-export function scaleDegreeForSpelledRoot(
-  context: TonalContext,
-  root: SpelledPitchClass,
-): ScaleDegreePitch | null {
-  const spelled = degreeForSpelledRoot(context, root);
-  if (!spelled) return null;
-  const syllable =
-    syllableForDegree(context, spelled.degree, spelled.chromaticOffset) ??
-    syllableForDegree(context, spelled.degree, 0);
-  if (!syllable) return null;
-  return { degree: spelled.degree, chromaticOffset: spelled.chromaticOffset, syllable };
-}
-
-function numeralPrefix(chromaticOffset: number): string {
-  if (chromaticOffset === 1) return '#';
-  if (chromaticOffset === -1) return 'b';
-  return '';
-}
-
-function casedNumeral(degree: DiatonicDegree, lowercase: boolean): string {
-  const base = DEGREE_NUMERALS[degree - 1];
-  return lowercase ? base.toLowerCase() : base;
-}
-
-/** Basic function tags by degree + mode; sequence-aware tags come from annotate. */
-function functionTagsFor(
-  context: TonalContext,
-  spelled: SpelledDegree,
-  quality: 'diminished' | 'other-quality' | null,
-): HarmonicFunctionTag[] {
-  if (spelled.chromaticOffset !== 0) {
-    // Raised 7 in la-based minor is the conventional leading tone — dominant.
-    if (context.mode === 'natural_minor' && spelled.degree === 7 && spelled.chromaticOffset === 1) {
-      return ['dominant'];
-    }
-    return ['ambiguous'];
-  }
-  switch (spelled.degree) {
-    case 1:
-      return ['tonic'];
-    case 2:
-      return ['predominant'];
-    case 3:
-      return ['tonic_prolongation'];
-    case 4:
-      return ['predominant'];
-    case 5:
-      return ['dominant'];
-    case 6:
-      return ['tonic'];
-    case 7:
-      // Major's vii° leans dominant; natural minor's subtonic VII does not.
-      return context.mode === 'major' || quality === 'diminished'
-        ? ['dominant']
-        : ['ambiguous'];
-    default:
-      return [];
-  }
-}
 
 export interface KeyReading {
   analysis: HarmonicAnalysis;
@@ -175,6 +99,60 @@ export function reanalyzeStoredHarmony(
   };
 }
 
+/** The exact/subset arm of analyzeInKey — a templated sonority read in a key. */
+function templatedKeyReading(
+  context: TonalContext,
+  reading: Extract<SonorityReading, { kind: 'exact' | 'subset' }>,
+  bassPitch: SpelledPitch,
+): KeyReading {
+  const bassName = toPcName({
+    letter: bassPitch.letter,
+    accidental: bassPitch.accidental,
+    pitchClass: bassPitch.pitchClass,
+  });
+  const template: SonorityTemplate = reading.template;
+  const isSeventh = template.intervals.length === 4;
+  const bassRelative = (bassPitch.pitchClass - reading.root.pitchClass + 12) % 12;
+  const memberIndex = template.intervals.indexOf(bassRelative);
+  const inversion = (memberIndex > 0 ? Math.min(3, memberIndex) : 0) as 0 | 1 | 2 | 3;
+  const figure = isSeventh ? SEVENTH_FIGURES[inversion] : TRIAD_FIGURES[inversion];
+  // Slash the symbol whenever the sounding bass is not the root — including
+  // a subset reading whose bass is a leftover (memberIndex === -1).
+  const slash =
+    bassPitch.pitchClass !== reading.root.pitchClass ? `/${bassName}` : '';
+
+  const spelled = degreeForSpelledRoot(context, reading.root);
+  let romanNumeral = '?';
+  if (spelled) {
+    // Sevenths keep their quality marker before the figure (viiø6/5); the
+    // marker is the numeral suffix minus its trailing 7 ('', 'maj', 'ø', '°').
+    const qualityMarker = isSeventh
+      ? template.numeralSuffix.replace(/7$/, '')
+      : template.numeralSuffix;
+    romanNumeral =
+      numeralPrefix(spelled.chromaticOffset) +
+      casedNumeral(spelled.degree, template.lowercaseNumeral) +
+      qualityMarker +
+      figure;
+  }
+  return {
+    analysis: {
+      romanNumeral,
+      scaleDegreeRoot: fallbackScaleDegree(context, reading.root),
+      functionTags: spelled
+        ? functionTagsFor(
+            context,
+            spelled,
+            reading.quality === 'diminished' ? 'diminished' : 'other-quality',
+          )
+        : ['ambiguous'],
+    },
+    inversion,
+    displaySymbol: `${toPcName(reading.root)}${template.suffix}${slash}`,
+    figuredBass: figure || undefined,
+  };
+}
+
 /**
  * Read an identified sonority in a key. Total — every reading kind gets an
  * honest numeral ('?' when nothing key-relative can be said) and a display
@@ -185,54 +163,8 @@ export function analyzeInKey(
   reading: SonorityReading,
   bassPitch: SpelledPitch,
 ): KeyReading {
-  const bassName = toPcName({
-    letter: bassPitch.letter,
-    accidental: bassPitch.accidental,
-    pitchClass: bassPitch.pitchClass,
-  });
-
   if (reading.kind === 'exact' || reading.kind === 'subset') {
-    const template: SonorityTemplate = reading.template;
-    const isSeventh = template.intervals.length === 4;
-    const bassRelative = (bassPitch.pitchClass - reading.root.pitchClass + 12) % 12;
-    const memberIndex = template.intervals.indexOf(bassRelative);
-    const inversion = (memberIndex > 0 ? Math.min(3, memberIndex) : 0) as 0 | 1 | 2 | 3;
-    const figure = isSeventh ? SEVENTH_FIGURES[inversion] : TRIAD_FIGURES[inversion];
-    // Slash the symbol whenever the sounding bass is not the root — including
-    // a subset reading whose bass is a leftover (memberIndex === -1).
-    const slash =
-      bassPitch.pitchClass !== reading.root.pitchClass ? `/${bassName}` : '';
-
-    const spelled = degreeForSpelledRoot(context, reading.root);
-    let romanNumeral = '?';
-    if (spelled) {
-      // Sevenths keep their quality marker before the figure (viiø6/5); the
-      // marker is the numeral suffix minus its trailing 7 ('', 'maj', 'ø', '°').
-      const qualityMarker = isSeventh
-        ? template.numeralSuffix.replace(/7$/, '')
-        : template.numeralSuffix;
-      romanNumeral =
-        numeralPrefix(spelled.chromaticOffset) +
-        casedNumeral(spelled.degree, template.lowercaseNumeral) +
-        qualityMarker +
-        figure;
-    }
-    return {
-      analysis: {
-        romanNumeral,
-        scaleDegreeRoot: fallbackScaleDegree(context, reading.root),
-        functionTags: spelled
-          ? functionTagsFor(
-              context,
-              spelled,
-              reading.quality === 'diminished' ? 'diminished' : 'other-quality',
-            )
-          : ['ambiguous'],
-      },
-      inversion,
-      displaySymbol: `${toPcName(reading.root)}${template.suffix}${slash}`,
-      figuredBass: figure || undefined,
-    };
+    return templatedKeyReading(context, reading, bassPitch);
   }
 
   if (reading.kind === 'open_fifth') {

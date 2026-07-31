@@ -1,118 +1,25 @@
 /**
  * Presentation + export formatting for plant data. Pure functions only, shared
  * by the React UI and the `/api/plants/export` endpoint.
+ *
+ * Date/duration helpers live in `dateFormat.ts` and care-event labels in
+ * `careEventFormat.ts`; both are re-exported here so this module remains the
+ * public formatting surface.
  */
 
-import { computePlantStats, daysBetween } from './stats';
-import type { Plant, PlantEvent, PlantEventType, PlantStats } from './types';
+import { eventDetail, eventTypeLabel, statusLabel, trendLabel } from './careEventFormat';
+import { describeSince, isoDate, isoDateTime } from './dateFormat';
+import { computePlantStats } from './stats';
+import type { Plant, PlantEventType, PlantStats } from './types';
 
-const EVENT_TYPE_LABELS: Record<PlantEventType, string> = {
-  watered: 'Watered',
-  watered_nutrition: 'Watered + Nutrition',
-  fertilized: 'Fertilized',
-  replanted: 'Replanted',
-  note: 'Note',
-  vibe_check: 'Vibe check',
-};
-
-export function eventTypeLabel(type: PlantEventType): string {
-  return EVENT_TYPE_LABELS[type];
-}
-
-const STATUS_LABELS: Record<PlantStats['wateringStatus'], string> = {
-  ok: 'On track',
-  due: 'Due soon',
-  overdue: 'Overdue',
-  unknown: 'No history yet',
-};
-
-export function statusLabel(status: PlantStats['wateringStatus']): string {
-  return STATUS_LABELS[status];
-}
-
-const TREND_LABELS: Record<PlantStats['wateringTrend'], string> = {
-  accelerating: 'Watering more often',
-  steady: 'Holding steady',
-  slowing: 'Watering less often',
-  unknown: 'Not enough history',
-};
-
-export function trendLabel(trend: PlantStats['wateringTrend']): string {
-  return TREND_LABELS[trend];
-}
-
-/** Human phrase for "how long ago", e.g. "never", "today", "5 days ago". */
-export function formatDaysAgo(at: number | null, now: number): string {
-  if (at === null) {
-    return 'never';
-  }
-  const days = daysBetween(at, now);
-  if (days < 1 / 24) {
-    return 'just now';
-  }
-  if (days < 1) {
-    return 'today';
-  }
-  const whole = Math.floor(days);
-  return whole === 1 ? 'yesterday' : `${whole} days ago`;
-}
-
-/** Compact day count for badges, e.g. "5d" or "—" when there is no history. */
-export function formatDaysShort(at: number | null, now: number): string {
-  if (at === null) {
-    return '—';
-  }
-  return `${Math.floor(Math.max(0, daysBetween(at, now)))}d`;
-}
-
-/** One-decimal day interval, e.g. "4.2 days" or "—". */
-export function formatInterval(days: number | null): string {
-  return days === null ? '—' : `${days.toFixed(1)} days`;
-}
-
-export function formatVibe(rating: number | null): string {
-  return rating === null ? 'n/a' : `${rating}/10`;
-}
-
-export function formatWateringWeights(event: PlantEvent): string | null {
-  const parts: string[] = [];
-  if (event.weightBefore) {
-    parts.push(`Before ${event.weightBefore}`);
-  }
-  if (event.weightAfter) {
-    parts.push(`After ${event.weightAfter}`);
-  }
-  return parts.length > 0 ? parts.join(' / ') : null;
-}
-
-function isoDate(ms: number): string {
-  return new Date(ms).toISOString().slice(0, 10);
-}
-
-function isoDateTime(ms: number): string {
-  return new Date(ms).toISOString().slice(0, 16).replace('T', ' ');
-}
-
-function describeSince(at: number | null, daysSince: number | null): string {
-  if (at === null || daysSince === null) {
-    return 'never';
-  }
-  return `${daysSince.toFixed(1)} days ago (${isoDate(at)})`;
-}
-
-function eventDetail(event: PlantEvent): string {
-  if (event.type === 'note' && event.note) {
-    return `: ${event.note}`;
-  }
-  if (event.type === 'vibe_check' && typeof event.rating === 'number') {
-    return `: ${event.rating}/10`;
-  }
-  const weights = formatWateringWeights(event);
-  if (weights) {
-    return `: ${weights}`;
-  }
-  return '';
-}
+export {
+  eventTypeLabel,
+  formatVibe,
+  formatWateringWeights,
+  statusLabel,
+  trendLabel,
+} from './careEventFormat';
+export { formatDaysAgo, formatDaysShort, formatInterval } from './dateFormat';
 
 export interface PlantExportEntry {
   id: string;

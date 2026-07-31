@@ -1,30 +1,12 @@
 'use client';
 
-import {
-  useEffect,
-  useId,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type FocusEvent as ReactFocusEvent,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type MouseEvent as ReactMouseEvent,
-  type PointerEvent as ReactPointerEvent,
-  type ReactNode,
-} from 'react';
-import { content } from '../../content';
-import { glossaryTerms, isTermId, type GlossaryTerm, type TermId } from '../../knowledge/glossary';
-import { broadcast, subscribe } from '../../knowledge/markup/tip-channel';
+import { useId, useRef, useState, type ReactNode } from 'react';
+import { glossaryTerms, type GlossaryTerm, type TermId } from '../../knowledge/glossary';
 import { classes } from './format';
-import { MarkedText } from './MarkedText';
 import styles from './Term.module.scss';
-
-/** Hover intent: long enough to ignore a pass-through, short enough to teach. */
-const OPEN_DELAY_MS = 250;
-/** Grace for the pointer to travel from the trigger onto the abutting panel. */
-const CLOSE_GRACE_MS = 150;
-/** Breathing room between a tip panel and the edge of the screen. */
-const VIEWPORT_MARGIN = 8;
+import { TermPanel } from './TermPanel';
+import { useTipPlacement } from './tip-placement';
+import { useTipDismissal, useTipInteractions, useTipState } from './tip-state';
 
 interface TermProps {
   termId: TermId;
@@ -50,207 +32,42 @@ interface TermProps {
 export function Term({ termId, variant = 'prose', className, children }: TermProps) {
   const instanceId = useId();
   const panelId = `${instanceId}-tip`;
-  const [open, setOpen] = useState(false);
-  const [pinned, setPinned] = useState(false);
   const [alignRight, setAlignRight] = useState(false);
-  /** Px nudge that pulls a tip back inside the viewport (see below). */
+  /** Px nudge that pulls a tip back inside the viewport (tip-placement). */
   const [shift, setShift] = useState(0);
-  const [history, setHistory] = useState<TermId[]>([termId]);
   const wrapRef = useRef<HTMLSpanElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const panelRef = useRef<HTMLSpanElement | null>(null);
-  const openTimerRef = useRef<number | null>(null);
-  const closeTimerRef = useRef<number | null>(null);
 
-  function clearOpenTimer() {
-    if (openTimerRef.current !== null) {
-      window.clearTimeout(openTimerRef.current);
-      openTimerRef.current = null;
-    }
-  }
-
-  function clearCloseTimer() {
-    if (closeTimerRef.current !== null) {
-      window.clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
-  }
-
-  function openTip(pin: boolean) {
-    clearOpenTimer();
-    clearCloseTimer();
-    if (!open) broadcast(instanceId);
-    setOpen(true);
-    if (pin) setPinned(true);
-  }
-
-  function closeTip() {
-    clearOpenTimer();
-    clearCloseTimer();
-    setOpen(false);
-    setPinned(false);
+  function resetPlacement() {
     setAlignRight(false);
     setShift(0);
-    setHistory([termId]);
   }
 
-  function scheduleOpen() {
-    if (open || openTimerRef.current !== null) return;
-    openTimerRef.current = window.setTimeout(() => {
-      openTimerRef.current = null;
-      openTip(false);
-    }, OPEN_DELAY_MS);
-  }
-
-  /* One tip at a time: close when any other instance broadcasts an open. */
-  useEffect(() => {
-    return subscribe((broadcasterId) => {
-      if (broadcasterId === instanceId) return;
-      setOpen(false);
-      setPinned(false);
-      setAlignRight(false);
-      setShift(0);
-      setHistory([termId]);
-    });
-  }, [instanceId, termId]);
-
-  /* Escape closes (focus back on the trigger); outside pointerdown closes. */
-  useEffect(() => {
-    if (!open) return;
-    function onPointerDown(event: PointerEvent) {
-      if (
-        wrapRef.current &&
-        event.target instanceof Node &&
-        !wrapRef.current.contains(event.target)
-      ) {
-        closeTip();
-      }
-    }
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key !== 'Escape') return;
-      closeTip();
-      triggerRef.current?.focus();
-    }
-    document.addEventListener('pointerdown', onPointerDown);
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown);
-      window.removeEventListener('keydown', onKeyDown);
-    };
+  const tip = useTipState(termId, instanceId, resetPlacement);
+  const { history } = tip;
+  const handlers = useTipInteractions(tip, wrapRef);
+  useTipDismissal(tip.open, wrapRef, triggerRef, tip.closeTip);
+  useTipPlacement({
+    open: tip.open,
+    alignRight,
+    history,
+    triggerRef,
+    panelRef,
+    setAlignRight,
+    setShift,
   });
-
-  /* Clear pending timers on unmount. */
-  useEffect(() => {
-    return () => {
-      clearOpenTimer();
-      clearCloseTimer();
-    };
-  }, []);
-
-  /**
-   * Portal-free positioning: the panel hangs below the trigger, left-aligned;
-   * if that would overflow the nearest [data-glossary-boundary] ancestor's
-   * right edge, mirror to right-aligned instead (PopoverMenu's approach).
-   */
-  useLayoutEffect(() => {
-    if (!open) return;
-    const trigger = triggerRef.current;
-    const panel = panelRef.current;
-    if (!trigger || !panel) return;
-    const boundary = trigger.closest('[data-glossary-boundary]');
-    if (!(boundary instanceof HTMLElement)) return;
-    const panelWidth = panel.offsetWidth;
-    if (panelWidth <= 0) return; // jsdom: no layout — keep the default side
-    setAlignRight(
-      trigger.getBoundingClientRect().left + panelWidth >
-        boundary.getBoundingClientRect().right,
-    );
-  }, [open]);
-
-  /**
-   * Flipping sides is not always enough: a trigger in the middle of a phone
-   * screen overflows whichever way the panel hangs. Measure the settled panel
-   * and slide it back inside (Drew, 2026-07-30 — "the modal sometimes bleeds
-   * off-screen"). The transform is cleared before measuring so the maths is
-   * always against the untransformed position, never a previous nudge.
-   */
-  useLayoutEffect(() => {
-    if (!open) return;
-    const panel = panelRef.current;
-    if (!panel) return;
-    panel.style.transform = 'none';
-    const rect = panel.getBoundingClientRect();
-    if (rect.width === 0) return; // jsdom: no layout
-    let delta = 0;
-    if (rect.right > window.innerWidth - VIEWPORT_MARGIN) {
-      delta = window.innerWidth - VIEWPORT_MARGIN - rect.right;
-    }
-    if (rect.left + delta < VIEWPORT_MARGIN) delta = VIEWPORT_MARGIN - rect.left;
-    setShift(delta);
-  }, [open, alignRight, history]);
-
-  /* Hover is a mouse-only path — on touch, the tap's click opens pinned. */
-  function handlePointerEnter(event: ReactPointerEvent<HTMLSpanElement>) {
-    if (event.pointerType && event.pointerType !== 'mouse') return;
-    clearCloseTimer();
-    scheduleOpen();
-  }
-
-  function handlePointerLeave(event: ReactPointerEvent<HTMLSpanElement>) {
-    if (event.pointerType && event.pointerType !== 'mouse') return;
-    clearOpenTimer();
-    if (open && !pinned && closeTimerRef.current === null) {
-      closeTimerRef.current = window.setTimeout(() => {
-        closeTimerRef.current = null;
-        closeTip();
-      }, CLOSE_GRACE_MS);
-    }
-  }
-
-  /* Focus previews like hover; leaving the wrap closes an unpinned tip. */
-  function handleWrapBlur(event: ReactFocusEvent<HTMLSpanElement>) {
-    const next = event.relatedTarget;
-    if (next instanceof Node && wrapRef.current?.contains(next)) return;
-    clearOpenTimer();
-    if (open && !pinned) closeTip();
-  }
-
-  /* Terms sit inside clickable cards — a term press must never select the card. */
-  function handleTriggerClick(event: ReactMouseEvent<HTMLButtonElement>) {
-    event.stopPropagation();
-    if (open && pinned) {
-      closeTip();
-    } else {
-      openTip(true);
-    }
-  }
-
-  function handleTriggerKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>) {
-    if (event.key === 'Enter' || event.key === ' ') event.stopPropagation();
-  }
-
-  /* Nested term activation: replace the panel content in place, stay anchored. */
-  function activateNested(id: string) {
-    if (!isTermId(id)) return;
-    setHistory((stack) => [...stack, id]);
-    setPinned(true);
-  }
-
-  function popHistory() {
-    setHistory((stack) => (stack.length > 1 ? stack.slice(0, -1) : stack));
-  }
 
   const activeTerm: GlossaryTerm = glossaryTerms[history[history.length - 1]];
   const rootTerm: GlossaryTerm = glossaryTerms[termId];
-  const seeAlso = (activeTerm.seeAlso ?? []).filter(isTermId);
 
   return (
     <span
       ref={wrapRef}
       className={styles.termWrap}
-      onPointerEnter={handlePointerEnter}
-      onPointerLeave={handlePointerLeave}
-      onBlur={handleWrapBlur}
+      onPointerEnter={handlers.handlePointerEnter}
+      onPointerLeave={handlers.handlePointerLeave}
+      onBlur={handlers.handleWrapBlur}
     >
       <button
         type="button"
@@ -260,49 +77,25 @@ export function Term({ termId, variant = 'prose', className, children }: TermPro
           variant === 'chip' ? styles.chip : styles.prose,
           className,
         )}
-        aria-expanded={open}
+        aria-expanded={tip.open}
         aria-controls={panelId}
-        onClick={handleTriggerClick}
-        onKeyDown={handleTriggerKeyDown}
-        onFocus={scheduleOpen}
+        onClick={handlers.handleTriggerClick}
+        onKeyDown={handlers.handleTriggerKeyDown}
+        onFocus={tip.scheduleOpen}
       >
         {children ?? rootTerm.display}
       </button>
-      {open ? (
-        <span
-          id={panelId}
-          ref={panelRef}
-          role="group"
-          className={classes(styles.termPanel, alignRight && styles.termPanelRight)}
-          style={shift === 0 ? undefined : { transform: `translateX(${shift}px)` }}
-          onClick={(event) => event.stopPropagation()}
-        >
-          <span className={styles.panelTermName}>{activeTerm.display}</span>
-          <span className={styles.panelDefinition}>
-            <MarkedText text={activeTerm.definition} onTermActivate={activateNested} />
-          </span>
-          {activeTerm.note ? <span className={styles.panelNote}>{activeTerm.note}</span> : null}
-          {seeAlso.length > 0 ? (
-            <span className={styles.seeAlsoRow}>
-              <span className={styles.seeAlsoLabel}>{content.glossary.seeAlsoLabel}</span>
-              {seeAlso.map((id) => (
-                <button
-                  key={id}
-                  type="button"
-                  className={styles.seeAlsoChip}
-                  onClick={() => activateNested(id)}
-                >
-                  {(glossaryTerms[id] as GlossaryTerm).display}
-                </button>
-              ))}
-            </span>
-          ) : null}
-          {history.length > 1 ? (
-            <button type="button" className={styles.backLink} onClick={popHistory}>
-              {content.glossary.back}
-            </button>
-          ) : null}
-        </span>
+      {tip.open ? (
+        <TermPanel
+          panelId={panelId}
+          panelRef={panelRef}
+          alignRight={alignRight}
+          shift={shift}
+          activeTerm={activeTerm}
+          historyDepth={history.length}
+          onActivateNested={tip.activateNested}
+          onBack={tip.popHistory}
+        />
       ) : null}
     </span>
   );

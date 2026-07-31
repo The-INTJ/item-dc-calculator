@@ -9,26 +9,21 @@
  */
 
 import 'server-only';
-import { randomUUID } from 'node:crypto';
 
 import { getFirebaseAdminFirestore } from '@/contest/lib/firebase/admin';
 
 import type {
   Plant,
-  PlantEvent,
   PlantEventInput,
   PlantEventType,
   ProviderResult,
   WateringWeightInput,
 } from '../types';
 
-const COLLECTION = 'plants';
+import { applyWateringWeights, buildEvent, isWateringType } from './careEvents';
+import { normalizeEvents, toPlant, type PlantDoc } from './plantDocument';
 
-interface PlantDoc {
-  name?: unknown;
-  createdAt?: unknown;
-  events?: unknown;
-}
+const COLLECTION = 'plants';
 
 function ok<T>(data: T): ProviderResult<T> {
   return { success: true, data };
@@ -40,51 +35,6 @@ function fail<T = never>(error: string): ProviderResult<T> {
 
 function describeError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
-}
-
-function normalizeEvents(value: unknown): PlantEvent[] {
-  return Array.isArray(value) ? (value as PlantEvent[]) : [];
-}
-
-function normalizeWeight(value: string | undefined): string | undefined {
-  const trimmed = value?.trim();
-  return trimmed ? trimmed : undefined;
-}
-
-function isWateringType(type: PlantEventType): boolean {
-  return type === 'watered' || type === 'watered_nutrition';
-}
-
-function applyWateringWeights<T extends PlantEvent>(
-  event: T,
-  input: WateringWeightInput,
-): T {
-  const next = { ...event };
-  const weightBefore = normalizeWeight(input.weightBefore);
-  const weightAfter = normalizeWeight(input.weightAfter);
-
-  if (weightBefore) {
-    next.weightBefore = weightBefore;
-  } else {
-    delete next.weightBefore;
-  }
-
-  if (weightAfter) {
-    next.weightAfter = weightAfter;
-  } else {
-    delete next.weightAfter;
-  }
-
-  return next;
-}
-
-function toPlant(id: string, data: PlantDoc): Plant {
-  return {
-    id,
-    name: typeof data.name === 'string' ? data.name : 'Unnamed plant',
-    createdAt: typeof data.createdAt === 'number' ? data.createdAt : 0,
-    events: normalizeEvents(data.events),
-  };
 }
 
 export async function listPlants(): Promise<ProviderResult<Plant[]>> {
@@ -171,24 +121,6 @@ export async function deletePlant(id: string): Promise<ProviderResult<void>> {
   } catch (error) {
     return fail(describeError(error));
   }
-}
-
-function buildEvent(input: PlantEventInput | PlantEventType): PlantEvent {
-  const payload = typeof input === 'string' ? { type: input } : input;
-  let event: PlantEvent = { id: randomUUID(), type: payload.type, at: Date.now() };
-
-  if (isWateringType(payload.type)) {
-    event = applyWateringWeights(event, payload);
-  }
-
-  if (payload.type === 'note' && payload.note) {
-    event.note = payload.note;
-  }
-  if (payload.type === 'vibe_check' && typeof payload.rating === 'number') {
-    event.rating = payload.rating;
-  }
-
-  return event;
 }
 
 /** Append a timestamped plant event to a plant's history. */

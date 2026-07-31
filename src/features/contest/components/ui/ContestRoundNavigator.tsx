@@ -1,14 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
-import { Button } from '@/components/ui';
+import { useMemo } from 'react';
 import type {
-  BracketContestant,
-  BracketMatchup,
   BracketRound,
   BracketRoundStatus,
 } from '@/contest/lib/presentation/buildBracketRoundsFromContest';
 import { getRoundVotingParticipation } from '@/contest/lib/presentation/votingParticipation';
+import { HeroMatchup } from './HeroMatchup';
+import { RoundTabs } from './RoundTabs';
 
 interface ContestRoundNavigatorProps {
   rounds: BracketRound[];
@@ -28,82 +27,30 @@ function statusLabel(status: BracketRoundStatus): string {
   return 'Upcoming';
 }
 
-function shortStatusLabel(status: BracketRoundStatus): string {
-  if (status === 'active') return 'Active';
-  if (status === 'closed') return 'Closed';
-  if (status === 'pending') return 'Pending';
-  return 'Upcoming';
-}
-
-function formatScore(score: number | null | undefined): string {
-  if (score === null || score === undefined) return '—';
-  return String(score);
-}
-
-function MatchupRow({ contestant, winnerId }: { contestant: BracketContestant; winnerId: string | null | undefined }) {
-  const isWinner = Boolean(winnerId && contestant.id === winnerId);
-  const className = isWinner
-    ? 'contest-rounds__matchup-row contest-rounds__matchup-row--winner'
-    : 'contest-rounds__matchup-row';
-
-  return (
-    <div className={className}>
-      <p className="contest-rounds__matchup-name">{contestant.name}</p>
-      <span className="contest-rounds__matchup-score">{formatScore(contestant.score ?? null)}</span>
-    </div>
-  );
-}
-
-function matchupLabel(matchup: BracketMatchup): string {
-  if (matchup.isBye) return matchup.contestantA.name;
-  return `${matchup.contestantA.name} vs ${matchup.contestantB.name}`;
-}
-
-function HeroMatchup({
-  matchup,
-  index,
-  hasVoted,
-  votable,
-  onVote,
+function ClosedRoundHint({
+  round,
+  votedMatchupIds,
+  participationKnown,
 }: {
-  matchup: BracketMatchup;
-  index: number;
-  hasVoted: boolean;
-  /** True when this matchup is open (shake) and its round isn't closed. */
-  votable: boolean;
-  onVote: (matchupId: string) => void;
+  round: BracketRound;
+  votedMatchupIds: Set<string>;
+  participationKnown: boolean;
 }) {
-  const matchupNumber = index + 1;
-  const label = matchupLabel(matchup);
-
-  if (matchup.isBye) {
+  const { votable, voted } = getRoundVotingParticipation(round, votedMatchupIds);
+  if (!participationKnown || votable === 0 || voted >= votable) {
+    return <p className="contest-rounds__hint">Voting closed for this round.</p>;
+  }
+  if (voted === 0) {
     return (
-      <li
-        className="contest-rounds__matchup contest-rounds__matchup--bye"
-        aria-label={`Matchup ${matchupNumber}: ${label}`}
-      >
-        <MatchupRow contestant={matchup.contestantA} winnerId={matchup.winnerId} />
-        <p className="contest-rounds__bye-label">Bye — auto-advances</p>
-      </li>
+      <p className="contest-rounds__hint contest-rounds__hint--missed">
+        Voting closed — you didn&apos;t vote in this round.
+      </p>
     );
   }
   return (
-    <li className="contest-rounds__matchup" aria-label={`Matchup ${matchupNumber}: ${label}`}>
-      <MatchupRow contestant={matchup.contestantA} winnerId={matchup.winnerId} />
-      <MatchupRow contestant={matchup.contestantB} winnerId={matchup.winnerId} />
-      {hasVoted && <span className="contest-rounds__matchup-voted">Voted</span>}
-      {votable && matchup.matchupId && (
-        <Button
-          variant="accent"
-          block
-          className="contest-rounds__vote-cta"
-          aria-label={`Vote matchup ${matchupNumber}: ${label}`}
-          onClick={() => onVote(matchup.matchupId!)}
-        >
-          {hasVoted ? 'Change vote' : 'Vote this matchup'}
-        </Button>
-      )}
-    </li>
+    <p className="contest-rounds__hint contest-rounds__hint--missed">
+      Voting closed — you voted in {voted} of {votable} matchups.
+    </p>
   );
 }
 
@@ -116,8 +63,6 @@ export function ContestRoundNavigator({
   onViewRound,
   onVoteMatchup,
 }: ContestRoundNavigatorProps) {
-  const tabListRef = useRef<HTMLDivElement>(null);
-
   const viewedRound = useMemo(() => {
     if (!viewedRoundId) return rounds[0] ?? null;
     return rounds.find((round) => round.id === viewedRoundId) ?? rounds[0] ?? null;
@@ -131,26 +76,6 @@ export function ContestRoundNavigator({
       viewedRound?.matchups.some((m) => m.phase === 'shake' && !m.isBye && m.matchupId),
   );
 
-  // Scroll the viewed tab into view when it changes (helpful on mobile).
-  useEffect(() => {
-    const container = tabListRef.current;
-    if (!container || !viewedRound) return;
-    const tab = container.querySelector<HTMLButtonElement>(`[data-round-id="${viewedRound.id}"]`);
-    tab?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  }, [viewedRound]);
-
-  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
-    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-    event.preventDefault();
-    const delta = event.key === 'ArrowRight' ? 1 : -1;
-    const nextIndex = (currentIndex + delta + rounds.length) % rounds.length;
-    const nextRound = rounds[nextIndex];
-    if (!nextRound) return;
-    onViewRound(nextRound.id);
-    const container = tabListRef.current;
-    container?.querySelector<HTMLButtonElement>(`[data-round-id="${nextRound.id}"]`)?.focus();
-  };
-
   if (rounds.length === 0) {
     return (
       <section className="contest-rounds" aria-label="Contest rounds">
@@ -162,42 +87,7 @@ export function ContestRoundNavigator({
   return (
     <section className="contest-rounds" aria-label="Contest rounds">
       {rounds.length > 1 && (
-        <nav
-          ref={tabListRef}
-          className="contest-rounds__tabs"
-          role="tablist"
-          aria-label="Select a round"
-        >
-          {rounds.map((round, index) => {
-            const isViewed = viewedRound?.id === round.id;
-            const classes = [
-              'contest-rounds__tab',
-              `contest-rounds__tab--${round.status}`,
-              isViewed ? 'contest-rounds__tab--viewed' : '',
-            ]
-              .filter(Boolean)
-              .join(' ');
-
-            return (
-              <button
-                key={round.id}
-                type="button"
-                role="tab"
-                id={`contest-round-tab-${round.id}`}
-                aria-selected={isViewed}
-                aria-controls={`contest-round-panel-${round.id}`}
-                tabIndex={isViewed ? 0 : -1}
-                data-round-id={round.id}
-                className={classes}
-                onClick={() => onViewRound(round.id)}
-                onKeyDown={(event) => handleTabKeyDown(event, index)}
-              >
-                <span className="contest-rounds__tab-label">{round.name}</span>
-                <span className="contest-rounds__tab-status">{shortStatusLabel(round.status)}</span>
-              </button>
-            );
-          })}
-        </nav>
+        <RoundTabs rounds={rounds} viewedRound={viewedRound} onViewRound={onViewRound} />
       )}
 
       {viewedRound && (
@@ -241,28 +131,13 @@ export function ContestRoundNavigator({
             <p className="contest-rounds__hint">Voting will open when this round becomes active.</p>
           )}
 
-          {viewedRound.status === 'closed' &&
-            (() => {
-              const { votable, voted } = getRoundVotingParticipation(
-                viewedRound,
-                votedMatchupIds,
-              );
-              if (!participationKnown || votable === 0 || voted >= votable) {
-                return <p className="contest-rounds__hint">Voting closed for this round.</p>;
-              }
-              if (voted === 0) {
-                return (
-                  <p className="contest-rounds__hint contest-rounds__hint--missed">
-                    Voting closed — you didn&apos;t vote in this round.
-                  </p>
-                );
-              }
-              return (
-                <p className="contest-rounds__hint contest-rounds__hint--missed">
-                  Voting closed — you voted in {voted} of {votable} matchups.
-                </p>
-              );
-            })()}
+          {viewedRound.status === 'closed' && (
+            <ClosedRoundHint
+              round={viewedRound}
+              votedMatchupIds={votedMatchupIds}
+              participationKnown={participationKnown}
+            />
+          )}
         </article>
       )}
     </section>
