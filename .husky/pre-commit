@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+if ! npm run lint:staged; then
+  echo
+  echo "Commit blocked by the source-length policy."
+  echo "Eligible staged JS/TS files must have fewer than 200 logical lines."
+  echo "Functions must have at most 80 logical lines. Blank and comment-only lines do not count."
+  echo "Split the failing file by concept, then rerun: npm run lint:length -- <file>"
+  echo "Do not bypass this policy with --no-verify."
+  exit 1
+fi

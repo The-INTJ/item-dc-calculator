@@ -2,7 +2,7 @@
 
 ## Local workflow
 
-1. `npm install`
+1. `npm install` (also installs the Husky commit hook)
 2. `npm run dev`
 3. Make changes
 4. Run:
@@ -10,6 +10,8 @@
    - `npm run type-check`
    - `npm run test`
    - `npm run docs:validate`
+
+Eligible staged JavaScript and TypeScript files are checked at commit time for fewer than 200 logical lines and functions no longer than 80 logical lines. Blank and comment-only lines are ignored. Run `npm run lint:length -- <file...>` to check specific files before staging. Fix violations by splitting on a real concept boundary; do not bypass the hook with `--no-verify`.
 
 ## Doc ownership
 
@@ -41,5 +43,5 @@
 - No new `@/src/*` imports
 - Browser CRUD still matches the live Firebase client path
 - Route handlers and `openapi.json` still match each other
-- New and touched files within the length caps (fail at 200 logical lines, functions 60–80) and no `utils`-style dump files introduced — see `DEV_STANDARDS.md`
+- Eligible staged files remain under 200 logical lines, functions stay at or below 80, and no `utils`-style dump files were introduced — see `DEV_STANDARDS.md`
 - Tests and checks pass
