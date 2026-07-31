@@ -2,12 +2,16 @@ import { jsonError, jsonSuccess, parseBody } from '../../../../../_lib/http';
 import { getContestByParam } from '@/contest/lib/backend/serverProvider';
 import { requireAdmin } from '../../../../../_lib/requireAdmin';
 import { SeedRoundBodySchema } from '@/contest/lib/schemas';
-import type { MatchupCreateInput } from '@/contest/lib/backend/types';
 import type { Contest } from '@/contest/contexts/contest/contestTypes';
 import { pairWithByes } from '@/contest/lib/domain/bracketMath';
 import { resolveMatchupWinner } from '@/contest/lib/domain/winnerResolution';
-
-type SeedSlot = [string, string] | [string];
+import {
+  buildSeedInputs,
+  clearRoundMatchups,
+  linkPreviousRoundAdvancement,
+  markByeWinners,
+  type SeedSlot,
+} from './seed-matchups';
 
 interface RouteParams {
   params: Promise<{ id: string; roundId: string }>;
@@ -56,67 +60,24 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
   }
 
-  const existing = await provider.matchups.listByRound(contest.id, roundId);
-  if (!existing.success) {
-    return jsonError(existing.error ?? 'Failed to load existing matchups', 500);
-  }
-  for (const prior of existing.data ?? []) {
-    const del = await provider.matchups.delete(contest.id, prior.id);
-    if (!del.success) {
-      return jsonError(del.error ?? 'Failed to clear prior matchups', 500);
-    }
+  const clearError = await clearRoundMatchups(provider, contest.id, roundId);
+  if (clearError) {
+    return jsonError(clearError, 500);
   }
 
-  const inputs: MatchupCreateInput[] = resolved.slots.map((slot, slotIndex) => {
-    if (slot.length === 1) {
-      return {
-        roundId,
-        slotIndex,
-        contestantIds: [slot[0]],
-        phase: 'scored',
-      };
-    }
-    return {
-      roundId,
-      slotIndex,
-      contestantIds: [slot[0], slot[1]],
-      phase: 'set',
-    };
-  });
-
-  const createdResult = await provider.matchups.batchCreate(contest.id, inputs);
+  const createdResult = await provider.matchups.batchCreate(
+    contest.id,
+    buildSeedInputs(roundId, resolved.slots),
+  );
   if (!createdResult.success || !createdResult.data) {
     return jsonError(createdResult.error ?? 'Failed to create matchups', 500);
   }
   const created = createdResult.data;
 
-  // For byes the auto-advance must reference a real entry id; mark the lone
-  // entry as winner now that ids are known.
-  for (const matchup of created) {
-    if (matchup.phase === 'scored' && matchup.entries.length === 1 && !matchup.winnerEntryId) {
-      const update = await provider.matchups.update(contest.id, matchup.id, {
-        winnerEntryId: matchup.entries[0].id,
-      });
-      if (update.success && update.data) {
-        matchup.winnerEntryId = update.data.winnerEntryId;
-      }
-    }
-  }
+  await markByeWinners(provider, contest.id, created);
 
   if (roundIndex > 0) {
-    const prevRoundId = rounds[roundIndex - 1].id;
-    const prev = await provider.matchups.listByRound(contest.id, prevRoundId);
-    if (prev.success && prev.data) {
-      const prevSorted = [...prev.data].sort((a, b) => a.slotIndex - b.slotIndex);
-      for (let i = 0; i < prevSorted.length; i += 1) {
-        const downstream = created[Math.floor(i / 2)];
-        if (!downstream) continue;
-        await provider.matchups.update(contest.id, prevSorted[i].id, {
-          advancesToMatchupId: downstream.id,
-          advancesToSlot: i % 2,
-        });
-      }
-    }
+    await linkPreviousRoundAdvancement(provider, contest.id, rounds[roundIndex - 1].id, created);
   }
 
   return jsonSuccess({ matchups: created });

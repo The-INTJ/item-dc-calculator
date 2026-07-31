@@ -2,12 +2,9 @@ import { jsonError, jsonSuccess, parseBody } from '../../../../../_lib/http';
 import { getContestByParam } from '@/contest/lib/backend/serverProvider';
 import { requireAuth } from '../../../../../_lib/requireAuth';
 import { SubmitBallotBodySchema } from '@/contest/lib/schemas';
-import type { ScoreBreakdown } from '@/contest/contexts/contest/contestTypes';
-import type { BallotScoreInput } from '@/contest/lib/backend/types';
 import { MATCHUP_CLOSED, SCORE_INVALID } from '@/contest/lib/domain/errorCodes';
-import { normalizeScorePayload } from '@/contest/lib/domain/scoreNormalization';
-import { makeVoteDocId } from '@/contest/lib/firebase/scoreHelpers';
-import { harnessLog } from '@/lib/diagnostics/harnessLog';
+import { validateBallotScores } from './ballot-scores';
+import { ballotLog } from './ballot-telemetry';
 
 interface RouteParams {
   params: Promise<{ id: string; matchupId: string }>;
@@ -38,6 +35,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 
   const body = bodyResult.data;
   const userId = auth.user.uid;
+  const target = { contestId: contest.id, matchupId, userId };
 
   const matchupResult = await provider.matchups.getById(contest.id, matchupId);
   if (!matchupResult.success || !matchupResult.data) {
@@ -45,12 +43,7 @@ export async function POST(request: Request, { params }: RouteParams) {
   }
   const matchup = matchupResult.data;
   if (matchup.phase !== 'shake') {
-    harnessLog({
-      domain: 'voting',
-      event: 'phase.guard.rejected',
-      level: 'warn',
-      data: { contestId: contest.id, matchupId, currentPhase: matchup.phase, userId },
-    });
+    ballotLog.phaseGuardRejected(target, matchup.phase);
     return jsonError('Matchup is not open for scoring.', 409, MATCHUP_CLOSED);
   }
 
@@ -61,42 +54,18 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
   }
 
-  // Validate every breakdown before opening the transaction; partial updates
-  // merge onto the caller's existing vote for that entry.
-  const validatedScores: BallotScoreInput[] = [];
-  if (contest.config) {
-    const failures: string[] = [];
-    for (const score of body.scores) {
-      const existingVote = await provider.scores.getById(
-        contest.id,
-        makeVoteDocId(userId, matchupId, score.entryId),
-      );
-      try {
-        const normalized = normalizeScorePayload({
-          contest,
-          baseBreakdown: existingVote.success ? existingVote.data?.breakdown : undefined,
-          updates: score.breakdown,
-        });
-        validatedScores.push({ entryId: score.entryId, breakdown: normalized.breakdown });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Score breakdown is invalid.';
-        failures.push(`${score.entryId}: ${message}`);
-      }
-    }
-    if (failures.length > 0) {
-      harnessLog({
-        domain: 'voting',
-        event: 'validation.rejected',
-        level: 'warn',
-        data: { contestId: contest.id, matchupId, userId, failures },
-      });
-      return jsonError(failures.join(' '), 400, SCORE_INVALID);
-    }
-  } else {
-    validatedScores.push(
-      ...body.scores.map((s) => ({ entryId: s.entryId, breakdown: s.breakdown as ScoreBreakdown })),
-    );
+  const validation = await validateBallotScores({
+    provider,
+    contest,
+    matchupId,
+    userId,
+    scores: body.scores,
+  });
+  if ('failures' in validation) {
+    ballotLog.validationRejected(target, validation.failures);
+    return jsonError(validation.failures.join(' '), 400, SCORE_INVALID);
   }
+  const validatedScores = validation.scores;
 
   const voters = contest.voters ?? [];
   if (!voters.some((voter) => voter.id === userId)) {
@@ -118,21 +87,12 @@ export async function POST(request: Request, { params }: RouteParams) {
     if (/not open for scoring/i.test(message)) {
       // The phase flipped between the pre-check and the transaction — the
       // in-transaction guard rejected the whole ballot.
-      harnessLog({
-        domain: 'voting',
-        event: 'ballot.raceRejected',
-        level: 'warn',
-        data: { contestId: contest.id, matchupId, userId },
-      });
+      ballotLog.raceRejected(target);
       return jsonError('Matchup is not open for scoring.', 409, MATCHUP_CLOSED);
     }
     return jsonError(message, 500);
   }
 
-  harnessLog({
-    domain: 'voting',
-    event: 'ballot.submitted',
-    data: { contestId: contest.id, matchupId, userId, scoreCount: validatedScores.length },
-  });
+  ballotLog.submitted(target, validatedScores.length);
   return jsonSuccess({ scores: submitResult.data });
 }

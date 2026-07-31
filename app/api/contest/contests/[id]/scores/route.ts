@@ -2,11 +2,9 @@ import { jsonError, jsonSuccess, parseBody } from '../../../_lib/http';
 import { getContestByParam } from '@/contest/lib/backend/serverProvider';
 import { requireAuth } from '../../../_lib/requireAuth';
 import { SubmitScoreBodySchema } from '@/contest/lib/schemas';
-import type { ScoreBreakdown } from '@/contest/contexts/contest/contestTypes';
 import { MATCHUP_CLOSED, SCORE_INVALID } from '@/contest/lib/domain/errorCodes';
-import { normalizeScorePayload } from '@/contest/lib/domain/scoreNormalization';
-import { makeVoteDocId } from '@/contest/lib/firebase/scoreHelpers';
 import { harnessLog } from '@/lib/diagnostics/harnessLog';
+import { normalizeAgainstConfig, resolveBreakdownUpdates } from './score-submission';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -97,56 +95,34 @@ export async function POST(request: Request, { params }: RouteParams) {
     });
   }
 
-  let breakdownUpdates: Partial<ScoreBreakdown> | null = null;
-
-  if (body.breakdown && Object.keys(body.breakdown).length > 0) {
-    breakdownUpdates = body.breakdown;
-  } else if (body.categoryId) {
-    const numericValue = Number(body.value);
-    if (!Number.isFinite(numericValue)) {
-      return jsonError('Score value must be numeric.', 400);
-    }
-
-    breakdownUpdates = { [body.categoryId]: numericValue };
+  const updates = resolveBreakdownUpdates(body);
+  if ('error' in updates) {
+    return jsonError(updates.error, 400);
   }
 
-  if (!breakdownUpdates) {
-    return jsonError('Score breakdown or categoryId + value is required.', 400);
-  }
-
-  // Validate + normalize against the contest config (attribute set, min/max).
-  // Partial updates merge onto the caller's existing vote for this entry.
-  // Configless contests skip validation — nothing to validate against.
-  let finalBreakdown: ScoreBreakdown = breakdownUpdates as ScoreBreakdown;
-  if (contest.config) {
-    const existingVote = await provider.scores.getById(
-      contest.id,
-      makeVoteDocId(userId, matchupId, entryId),
-    );
-    try {
-      const normalized = normalizeScorePayload({
-        contest,
-        baseBreakdown: existingVote.success ? existingVote.data?.breakdown : undefined,
-        updates: breakdownUpdates,
-      });
-      finalBreakdown = normalized.breakdown;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Score breakdown is invalid.';
-      harnessLog({
-        domain: 'voting',
-        event: 'validation.rejected',
-        level: 'warn',
-        data: { contestId: contest.id, matchupId, entryId, userId, message },
-      });
-      return jsonError(message, 400, SCORE_INVALID);
-    }
+  const normalized = await normalizeAgainstConfig({
+    provider,
+    contest,
+    matchupId,
+    entryId,
+    userId,
+    updates: updates.breakdown,
+  });
+  if ('error' in normalized) {
+    harnessLog({
+      domain: 'voting',
+      event: 'validation.rejected',
+      level: 'warn',
+      data: { contestId: contest.id, matchupId, entryId, userId, message: normalized.error },
+    });
+    return jsonError(normalized.error, 400, SCORE_INVALID);
   }
 
   const submitResult = await provider.scores.submit(contest.id, {
     entryId,
     userId,
     matchupId,
-    breakdown: finalBreakdown,
+    breakdown: normalized.breakdown,
     ...(body.notes ? { notes: body.notes } : {}),
   });
 
