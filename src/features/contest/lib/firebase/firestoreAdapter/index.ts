@@ -21,7 +21,7 @@ import { scoreRecordMethods } from './scores';
 import { voteSubmissionMethods } from './vote-submission';
 
 export type { FirestoreAdapter } from './adapter-contract';
-export { buildInlineEntriesFromContestantIds } from './matchup-entries';
+export { buildInlineEntriesFromContestantIds, prepareNewMatchup } from './matchup-entries';
 
 /**
  * Creates a Firestore adapter backed by the client SDK.
