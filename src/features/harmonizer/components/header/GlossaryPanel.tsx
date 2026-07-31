@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { content } from '../../content';
-import { listTermsByTier } from '../../knowledge/glossary';
-import { MarkedText } from '../shared/MarkedText';
+import { usePopoverDismiss } from '../shared/usePopoverDismiss';
+import { GlossaryTermList } from './GlossaryTermList';
 import styles from './GlossaryPanel.module.scss';
 
 interface GlossaryHelpProps {
@@ -22,27 +22,7 @@ export function GlossaryHelp({ triggerClassName }: GlossaryHelpProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const baseId = useId();
 
-  useEffect(() => {
-    if (!open) return;
-    function onPointerDown(event: PointerEvent) {
-      if (
-        rootRef.current &&
-        event.target instanceof Node &&
-        !rootRef.current.contains(event.target)
-      ) {
-        setOpen(false);
-      }
-    }
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setOpen(false);
-    }
-    document.addEventListener('pointerdown', onPointerDown);
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown);
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [open]);
+  usePopoverDismiss(open, rootRef, () => setOpen(false));
 
   function entryDomId(termId: string): string {
     return `${baseId}-${termId}`;
@@ -82,26 +62,7 @@ export function GlossaryHelp({ triggerClassName }: GlossaryHelpProps) {
               {content.glossary.close}
             </button>
           </div>
-          <div className={styles.panelBody}>
-            {listTermsByTier().map(({ tier, terms }) => (
-              <section key={tier} className={styles.tierSection}>
-                <h3 className={styles.tierHeading}>{content.glossary.tierHeadings[tier]}</h3>
-                <dl className={styles.termList}>
-                  {terms.map((entry) => (
-                    <div key={entry.id} id={entryDomId(entry.id)} className={styles.termEntry}>
-                      <dt className={styles.termName}>{entry.display}</dt>
-                      <dd className={styles.termDefinition}>
-                        <MarkedText text={entry.definition} onTermActivate={scrollToTerm} />
-                        {entry.note ? (
-                          <span className={styles.termNote}>{entry.note}</span>
-                        ) : null}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </section>
-            ))}
-          </div>
+          <GlossaryTermList entryDomId={entryDomId} onTermActivate={scrollToTerm} />
         </div>
       ) : null}
     </div>

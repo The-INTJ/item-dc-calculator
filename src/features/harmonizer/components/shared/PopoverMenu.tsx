@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { classes } from './format';
+import { usePopoverDismiss } from './usePopoverDismiss';
 import styles from './PopoverMenu.module.scss';
 
 /** Breathing room between a menu panel and the edge of the screen. */
@@ -57,27 +58,7 @@ export function PopoverMenu({
     setShift(delta);
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    function onPointerDown(event: PointerEvent) {
-      if (
-        rootRef.current &&
-        event.target instanceof Node &&
-        !rootRef.current.contains(event.target)
-      ) {
-        setOpen(false);
-      }
-    }
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setOpen(false);
-    }
-    document.addEventListener('pointerdown', onPointerDown);
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown);
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [open]);
+  usePopoverDismiss(open, rootRef, () => setOpen(false));
 
   return (
     <div className={styles.wrap} ref={rootRef}>

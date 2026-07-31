@@ -1,20 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { content } from '../../content';
-import {
-  deleteProject,
-  renameProject,
-  setActiveProject,
-  useProjects,
-  type HarmonizerProject,
-} from '../../projects/project-store';
-import { classes } from '../shared/format';
-import { Icon } from '../shared/Icon';
-import { PopoverMenu, PopoverMenuItem } from '../shared/PopoverMenu';
+import { useProjects, type HarmonizerProject } from '../../projects/project-store';
+import { ProjectMenu } from './ProjectMenu';
+import { ProjectNameField } from './ProjectNameField';
+import { SaveIndicatorDot, type SaveIndicator } from './SaveIndicatorDot';
 import styles from './ProjectSwitcher.module.scss';
 
-export type SaveIndicator = 'saving' | 'saved' | 'error' | null;
+export type { SaveIndicator } from './SaveIndicatorDot';
 
 interface ProjectSwitcherProps {
   saveIndicator: SaveIndicator;
@@ -35,120 +27,18 @@ export function ProjectSwitcher({
   const envelope = useProjects();
   const active =
     envelope.projects.find((project) => project.id === envelope.activeProjectId) ?? null;
-  const [renaming, setRenaming] = useState(false);
-  const [draft, setDraft] = useState('');
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
-
-  function commitRename() {
-    if (active && draft.trim()) renameProject(active.id, draft);
-    setRenaming(false);
-  }
 
   return (
     <div className={styles.switcher}>
-      {renaming && active ? (
-        <input
-          className={styles.nameInput}
-          value={draft}
-          autoFocus
-          aria-label={content.projects.renameHint}
-          onChange={(event) => setDraft(event.target.value)}
-          onBlur={commitRename}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') commitRename();
-            if (event.key === 'Escape') setRenaming(false);
-          }}
-        />
-      ) : (
-        <button
-          type="button"
-          className={styles.name}
-          title={content.projects.renameHint}
-          onClick={() => {
-            if (!active) return;
-            setDraft(active.name);
-            setRenaming(true);
-          }}
-        >
-          {active?.name ?? content.projects.untitled}
-        </button>
-      )}
-      <span
-        className={classes(
-          styles.saveDot,
-          saveIndicator === 'saved' && styles.saveDotSaved,
-          saveIndicator === 'error' && styles.saveDotError,
-        )}
-        title={
-          saveIndicator === 'error'
-            ? content.projects.error
-            : saveIndicator === 'saving'
-              ? content.projects.saving
-              : content.projects.saved
-        }
-        aria-label={
-          saveIndicator === 'error'
-            ? content.projects.error
-            : saveIndicator === 'saving'
-              ? content.projects.saving
-              : content.projects.saved
-        }
+      <ProjectNameField active={active} />
+      <SaveIndicatorDot saveIndicator={saveIndicator} />
+      <ProjectMenu
+        envelope={envelope}
+        active={active}
+        onSwitch={onSwitch}
+        onNew={onNew}
+        onActiveDeleted={onActiveDeleted}
       />
-      <PopoverMenu
-        triggerLabel={<Icon name="expand_more" />}
-        triggerClassName={styles.menuTrigger}
-        heading={content.projects.menuHeading}
-        align="right"
-      >
-        {(close) => (
-          <>
-            {envelope.projects.map((project) => (
-              <PopoverMenuItem
-                key={project.id}
-                active={project.id === envelope.activeProjectId}
-                onSelect={() => {
-                  close();
-                  setConfirmingDelete(false);
-                  if (project.id !== envelope.activeProjectId) onSwitch(project);
-                }}
-              >
-                {project.name}
-              </PopoverMenuItem>
-            ))}
-            <PopoverMenuItem
-              onSelect={() => {
-                close();
-                setConfirmingDelete(false);
-                onNew();
-              }}
-            >
-              {content.projects.newProject}
-            </PopoverMenuItem>
-            {active ? (
-              confirmingDelete ? (
-                <PopoverMenuItem
-                  onSelect={() => {
-                    close();
-                    setConfirmingDelete(false);
-                    const next = deleteProject(active.id);
-                    const fallback =
-                      next.projects.find((project) => project.id === next.activeProjectId) ??
-                      null;
-                    if (fallback) setActiveProject(fallback.id);
-                    onActiveDeleted(fallback);
-                  }}
-                >
-                  {content.projects.confirmDelete}
-                </PopoverMenuItem>
-              ) : (
-                <PopoverMenuItem onSelect={() => setConfirmingDelete(true)}>
-                  {content.projects.deleteProject}
-                </PopoverMenuItem>
-              )
-            ) : null}
-          </>
-        )}
-      </PopoverMenu>
     </div>
   );
 }

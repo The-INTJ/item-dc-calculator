@@ -11,9 +11,10 @@ import { AnalysisDrawer } from './AnalysisDrawer';
 import { ChordLane } from './ChordLane';
 import { EffectSummary } from './EffectSummary';
 import { HowToUseHints } from './HowToUseHints';
+import { InspectorHeading } from './InspectorHeading';
 import { LaneStack } from './LaneStack';
-import { MasterTransport } from './MasterTransport';
 import { StaffView } from './staff';
+import type { StaffEditing } from './staff/useStaffSelection';
 import { PanSlider, useTrackPan } from './TrackPan';
 import { useNoteEditing } from './useNoteEditing';
 import { newId } from '../shared/ids';
@@ -68,6 +69,21 @@ interface CandidateInspectorProps {
  */
 const GRID_REACH = 2;
 
+/**
+ * What the staff is allowed to change, expressed against one reading. Every
+ * edit is routed back through the same candidate-scoped callbacks the lanes
+ * use, so the two surfaces cannot drift apart.
+ */
+function staffEditing(candidateId: string, props: CandidateInspectorProps): StaffEditing {
+  return {
+    reach: GRID_REACH,
+    onStepPitch: (voice, eventId, direction) =>
+      props.onStepNote(candidateId, voice, eventId, direction),
+    onSetLength: (voice, eventId, endUnit) =>
+      props.onResizeNote(candidateId, voice, eventId, 'right', endUnit, false, newId()),
+  };
+}
+
 export function inspectorGridUnits(
   fragment: MelodyFragment,
   candidate: CandidatePath | null,
@@ -108,19 +124,13 @@ export function CandidateInspector(props: CandidateInspectorProps) {
     <div>
       <HowToUseHints show={candidate !== null} />
 
-      {/* Just the region name and, in line with it, the transport — the
-          reading's own name lives below with the analysis, not up here. */}
-      <div className={styles.headingRow}>
-        <h2 className={styles.heading}>{content.regions.inspector}</h2>
-        {candidate ? (
-          <MasterTransport
-            playing={playing}
-            disabled={checkedVoices.length === 0}
-            onPlay={props.onPlayChecked}
-            onStop={props.onStop}
-          />
-        ) : null}
-      </div>
+      <InspectorHeading
+        hasCandidate={candidate !== null}
+        playing={playing}
+        playDisabled={checkedVoices.length === 0}
+        onPlay={props.onPlayChecked}
+        onStop={props.onStop}
+      />
 
       {!candidate ? (
         <p className={styles.noSelection}>{content.inspector.noSelection}</p>
@@ -150,13 +160,7 @@ export function CandidateInspector(props: CandidateInspectorProps) {
               candidate={candidate}
               tonalContext={props.tonalContext}
               gridUnits={gridUnits}
-              editing={{
-                reach: GRID_REACH,
-                onStepPitch: (voice, eventId, direction) =>
-                  props.onStepNote(candidate.id, voice, eventId, direction),
-                onSetLength: (voice, eventId, endUnit) =>
-                  props.onResizeNote(candidate.id, voice, eventId, 'right', endUnit, false, newId()),
-              }}
+              editing={staffEditing(candidate.id, props)}
             />
           ) : null}
 
