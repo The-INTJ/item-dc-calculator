@@ -21,9 +21,10 @@
 
 ## File length
 
-- Soft 100 / medium 160 / fail 200 logical lines (non-blank, non-comment); functions 60–80.
-- Ratchet: binds on files you touch; files already over 200 must not grow.
-- Fixtures, types-only files, tests, and generated files are exempt.
+- Soft review at 100 / deliberate review at 160 / fail at 200+ logical lines; functions warn at 60 and fail above 80.
+- The pre-commit gate checks eligible staged JS/TS files. Touching a file with an existing violation requires fixing it.
+- Fixtures, knowledge/content data, conventional type-only files, tests, generated files, and the frozen DC calculator are exempt.
+- Do not bypass the gate with `--no-verify`; run `npm run lint:length -- <file>` to reproduce a failure.
 - Split by concept, never into `utils`/`helpers` dumps. Full rules: `DEV_STANDARDS.md`.
 
 ## Data path rules

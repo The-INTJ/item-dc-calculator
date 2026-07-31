@@ -9,6 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
+    "lint:length": "eslint --config eslint.length.config.js --no-warn-ignored",
+    "lint:staged": "lint-staged",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -25,7 +27,8 @@
     "deploy:rules": "firebase deploy --only firestore:rules",
     "deploy:indexes": "firebase deploy --only firestore:indexes",
     "deploy:firestore": "firebase deploy --only firestore",
-    "test:e2e:harmonizer": "playwright test --config playwright.harmonizer.config.ts"
+    "test:e2e:harmonizer": "playwright test --config playwright.harmonizer.config.ts",
+    "prepare": "husky"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^8.5.0",
@@ -64,7 +67,9 @@
     "eslint": "^9.17.0",
     "firebase-tools": "^15.11.0",
     "globals": "^15.14.0",
+    "husky": "^9.1.7",
     "jsdom": "^26.0.0",
+    "lint-staged": "^15.5.2",
     "sass": "^1.81.0",
     "tsx": "^4.21.0",
     "typescript": "^5.7.3",
