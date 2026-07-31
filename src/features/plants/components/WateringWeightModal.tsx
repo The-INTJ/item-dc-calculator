@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 
 import type { WateringWeightInput } from '../lib/types';
+import { WateringWeightFields } from './WateringWeightFields';
 import styles from './WateringWeightModal.module.scss';
 
 interface WateringWeightModalProps {
@@ -79,39 +80,13 @@ export function WateringWeightModal({
           </button>
         </div>
         {error && <p className={styles.error}>{error}</p>}
-        <div className={styles.fields}>
-          <label className={styles.field}>
-            <span>Before</span>
-            <input
-              className={styles.input}
-              value={weightBefore}
-              onChange={(event) => setWeightBefore(event.target.value)}
-              placeholder="e.g. 410 g"
-              maxLength={80}
-              autoFocus
-              disabled={saving}
-            />
-          </label>
-          <label className={styles.field}>
-            <span>After</span>
-            <input
-              className={styles.input}
-              value={weightAfter}
-              onChange={(event) => setWeightAfter(event.target.value)}
-              placeholder="e.g. 690 g"
-              maxLength={80}
-              disabled={saving}
-            />
-          </label>
-          <button
-            type="submit"
-            className={styles.check}
-            aria-label="Save watering weights"
-            disabled={saving}
-          >
-            {saving ? '...' : '✓'}
-          </button>
-        </div>
+        <WateringWeightFields
+          weightBefore={weightBefore}
+          weightAfter={weightAfter}
+          onWeightBefore={setWeightBefore}
+          onWeightAfter={setWeightAfter}
+          saving={saving}
+        />
       </form>
     </div>
   );

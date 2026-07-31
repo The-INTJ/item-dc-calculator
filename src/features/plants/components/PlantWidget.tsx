@@ -1,87 +1,30 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 
-import { plantsApi } from '../lib/api/plantsApi';
-import { formatDaysShort } from '../lib/format';
-import { computePlantStats, urgencyRank } from '../lib/stats';
-import type { Plant, WateringWeightInput } from '../lib/types';
+import { rankPlantsByUrgency } from '../lib/plant-ordering';
 import styles from './PlantWidget.module.scss';
+import { PlantWidgetRow } from './PlantWidgetRow';
+import { usePlantWatering } from './usePlantWatering';
 import { WateringWeightModal } from './WateringWeightModal';
 
 const MAX_ROWS = 6;
 
 export function PlantWidget() {
-  const [plants, setPlants] = useState<Plant[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [pendingId, setPendingId] = useState<string | null>(null);
-  const [wateringPlant, setWateringPlant] = useState<Plant | null>(null);
-  const [wateringSaving, setWateringSaving] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    plantsApi.list().then((result) => {
-      if (!active) {
-        return;
-      }
-      if (result.success) {
-        setPlants(result.data ?? []);
-        setError(null);
-      } else {
-        setError(result.error ?? 'Could not load plants.');
-      }
-      setLoading(false);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  function openWatering(plant: Plant) {
-    setError(null);
-    setWateringPlant(plant);
-  }
-
-  function closeWatering() {
-    if (!wateringSaving) {
-      setWateringPlant(null);
-    }
-  }
-
-  async function submitWatering(weights: WateringWeightInput) {
-    if (!wateringPlant) {
-      return;
-    }
-
-    setPendingId(wateringPlant.id);
-    setWateringSaving(true);
-    const result = await plantsApi.addEvent(wateringPlant.id, { type: 'watered', ...weights });
-    setPendingId(null);
-    setWateringSaving(false);
-    if (result.success && result.data) {
-      const updated = result.data;
-      setPlants((current) =>
-        current.map((plant) => (plant.id === updated.id ? updated : plant)),
-      );
-      setWateringPlant(null);
-    } else {
-      setError(result.error ?? 'Could not water that plant.');
-    }
-  }
+  const {
+    plants,
+    loading,
+    error,
+    pendingId,
+    wateringPlant,
+    wateringSaving,
+    openWatering,
+    closeWatering,
+    submitWatering,
+  } = usePlantWatering();
 
   const now = Date.now();
-  const ranked = [...plants].sort((a, b) => {
-    const statsA = computePlantStats(a, now);
-    const statsB = computePlantStats(b, now);
-    const byUrgency =
-      urgencyRank(statsA.wateringStatus) - urgencyRank(statsB.wateringStatus);
-    if (byUrgency !== 0) {
-      return byUrgency;
-    }
-    return (statsB.daysSinceWatered ?? -1) - (statsA.daysSinceWatered ?? -1);
-  });
+  const ranked = rankPlantsByUrgency(plants, now);
   const visible = ranked.slice(0, MAX_ROWS);
   const remaining = ranked.length - visible.length;
 
@@ -112,30 +55,15 @@ export function PlantWidget() {
       {!loading && !error && plants.length > 0 && (
         <>
           <ul className={styles.list}>
-            {visible.map((plant) => {
-              const stats = computePlantStats(plant, now);
-              return (
-                <li key={plant.id} className={styles.row}>
-                  <span
-                    className={styles.dot}
-                    data-status={stats.wateringStatus}
-                    aria-hidden="true"
-                  />
-                  <span className={styles.rowName}>{plant.name}</span>
-                  <span className={styles.rowAge}>
-                    {formatDaysShort(stats.lastWateredAt, now)}
-                  </span>
-                  <button
-                    type="button"
-                    className={styles.waterButton}
-                    onClick={() => openWatering(plant)}
-                    disabled={pendingId === plant.id}
-                  >
-                    {pendingId === plant.id ? '…' : 'Water'}
-                  </button>
-                </li>
-              );
-            })}
+            {visible.map((plant) => (
+              <PlantWidgetRow
+                key={plant.id}
+                plant={plant}
+                now={now}
+                pending={pendingId === plant.id}
+                onWater={() => openWatering(plant)}
+              />
+            ))}
           </ul>
           <div className={styles.footer}>
             <span className={styles.more}>
