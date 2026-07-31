@@ -5,6 +5,20 @@ import type {
   Matchup,
 } from '../contestTypes';
 import { contestApi } from '../../../lib/api/contestApi';
+import { useMatchupCache } from './useMatchupCache';
+
+type MatchupCreateArgs = Parameters<ContestActions['createMatchup']>[1];
+
+/** The API's create shape: phase defaults to 'set', winner omitted unless given. */
+function toCreatePayload(input: MatchupCreateArgs) {
+  return {
+    roundId: input.roundId,
+    slotIndex: input.slotIndex,
+    contestantIds: input.contestantIds,
+    phase: input.phase ?? 'set',
+    ...(input.winnerEntryId !== undefined ? { winnerEntryId: input.winnerEntryId } : {}),
+  };
+}
 
 /**
  * Matchup mutations, including round seeding. Each action calls the API and
@@ -13,31 +27,13 @@ import { contestApi } from '../../../lib/api/contestApi';
 export function useMatchupActions(
   updateState: (updater: ContestContextStateUpdater) => void,
 ) {
-  const setMatchupsForContest = useCallback(
-    (contestId: string, matchups: Matchup[]) => {
-      updateState((prev) => ({
-        ...prev,
-        matchupsByContestId: { ...prev.matchupsByContestId, [contestId]: matchups },
-      }));
-    },
-    [updateState],
-  );
-
-  const upsertMatchup = useCallback(
-    (contestId: string, matchup: Matchup) => {
-      updateState((prev) => {
-        const existing = prev.matchupsByContestId[contestId] ?? [];
-        const next = existing.some((m) => m.id === matchup.id)
-          ? existing.map((m) => (m.id === matchup.id ? matchup : m))
-          : [...existing, matchup];
-        return {
-          ...prev,
-          matchupsByContestId: { ...prev.matchupsByContestId, [contestId]: next },
-        };
-      });
-    },
-    [updateState],
-  );
+  const {
+    setMatchupsForContest,
+    upsertMatchup,
+    appendMatchup,
+    removeMatchup,
+    replaceRoundMatchups,
+  } = useMatchupCache(updateState);
 
   const updateMatchup = useCallback(
     async (
@@ -67,46 +63,20 @@ export function useMatchupActions(
         return { matchups: null, error: result.error ?? 'Failed to seed round' };
       }
 
-      updateState((prev) => {
-        const existing = prev.matchupsByContestId[contestId] ?? [];
-        const keepOtherRounds = existing.filter((m) => m.roundId !== roundId);
-        return {
-          ...prev,
-          matchupsByContestId: {
-            ...prev.matchupsByContestId,
-            [contestId]: [...keepOtherRounds, ...result.data!.matchups],
-          },
-        };
-      });
+      replaceRoundMatchups(contestId, roundId, result.data.matchups);
       return { matchups: result.data.matchups, error: null };
     },
-    [updateState],
+    [replaceRoundMatchups],
   );
 
   const createMatchup = useCallback<ContestActions['createMatchup']>(
     async (contestId, input) => {
-      const result = await contestApi.createMatchup(contestId, {
-        roundId: input.roundId,
-        slotIndex: input.slotIndex,
-        contestantIds: input.contestantIds,
-        phase: input.phase ?? 'set',
-        ...(input.winnerEntryId !== undefined ? { winnerEntryId: input.winnerEntryId } : {}),
-      });
+      const result = await contestApi.createMatchup(contestId, toCreatePayload(input));
       if (!result.success || !result.data) return null;
-      const created = result.data;
-      updateState((prev) => {
-        const existing = prev.matchupsByContestId[contestId] ?? [];
-        return {
-          ...prev,
-          matchupsByContestId: {
-            ...prev.matchupsByContestId,
-            [contestId]: [...existing, created],
-          },
-        };
-      });
-      return created;
+      appendMatchup(contestId, result.data);
+      return result.data;
     },
-    [updateState],
+    [appendMatchup],
   );
 
   const setMatchupEntryName = useCallback<ContestActions['setMatchupEntryName']>(
@@ -123,19 +93,10 @@ export function useMatchupActions(
     async (contestId, matchupId) => {
       const result = await contestApi.deleteMatchup(contestId, matchupId);
       if (!result.success) return false;
-      updateState((prev) => {
-        const existing = prev.matchupsByContestId[contestId] ?? [];
-        return {
-          ...prev,
-          matchupsByContestId: {
-            ...prev.matchupsByContestId,
-            [contestId]: existing.filter((m) => m.id !== matchupId),
-          },
-        };
-      });
+      removeMatchup(contestId, matchupId);
       return true;
     },
-    [updateState],
+    [removeMatchup],
   );
 
   return {
