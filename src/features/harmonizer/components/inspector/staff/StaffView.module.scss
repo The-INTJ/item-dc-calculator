@@ -77,6 +77,7 @@
 
 .sprites,
 .hits,
+.adds,
 .note {
   position: absolute;
   inset: 0;
@@ -85,10 +86,44 @@
 
 /* Every stave lays down full-width layers, so without this the lower stave's
    layers cover the upper stave's note targets and swallow the click. Only the
-   note buttons themselves take pointer events. */
+   buttons themselves take pointer events. */
 .sprites,
-.hits {
+.hits,
+.adds {
   pointer-events: none;
+}
+
+/* Each plus stands at its part's end, centred on that point and on its own
+   step, so it reads as the next note's seat rather than as furniture. */
+.add {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  font-size: 1.05rem;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--wb-line-strong);
+  border-radius: 50%;
+  background: var(--wb-surface-raised);
+  color: var(--wb-ink-soft);
+  font-size: 0.8rem;
+  cursor: pointer;
+  pointer-events: auto;
+
+  &:hover:not(:disabled) {
+    border-color: var(--wb-accent);
+    color: var(--wb-accent);
+    background: var(--wb-accent-soft);
+  }
+
+  /* A full part keeps its button so the measure being full stays visible. */
+  &:disabled {
+    cursor: default;
+    opacity: 0.28;
+  }
 }
 
 /* The selected note takes the accent so the grid clearly belongs to it. */
@@ -99,8 +134,12 @@
 /* One target per notehead, sized to the head rather than to its time slot —
    a sixteenth's slot is too narrow to tap, and a whole note's is a whole
    measure wide. */
+/* Where a note target and an add button overlap — a low note at the very end of
+   its part — the note wins. The music is the thing being aimed at; the plus has
+   clear space to its right either way. */
 .hit {
   position: absolute;
+  z-index: 2;
   padding: 0;
   border: 0;
   border-radius: var(--wb-radius-chip);

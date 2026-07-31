@@ -513,8 +513,10 @@ describe('structural editing', () => {
       voice: 'soprano',
       eventId: soprano[1].id,
     });
-    expect(state.fragment.events).toHaveLength(2);
-    expect(melodySignature(state.fragment.events)).toBe('sol4:q|r:q|mi4:h');
+    // The note is not destroyed — it moves to the end of the part as a rest, so
+    // the melody keeps its length and the silence is something you can click.
+    expect(state.fragment.events).toHaveLength(3);
+    expect(melodySignature(state.fragment.events)).toBe('sol4:q|mi4:h|r:q');
     expect(state.suggestionSource).toBe('computed');
 
     // Deleting the only event of a part is a no-op.
@@ -566,9 +568,13 @@ describe('structural editing', () => {
       eventId: 'c-a-2',
     });
     expect(deleted.locks).toHaveLength(0);
-    expect(
-      deleted.candidates.find((candidate) => candidate.id === 'keep-moving')?.voicing.alto,
-    ).toHaveLength(2);
+    // The part keeps its event count and its length: the deleted note becomes
+    // the rest at the end, and everything after it moved up to close the gap.
+    const alto = deleted.candidates.find((candidate) => candidate.id === 'keep-moving')?.voicing
+      .alto;
+    expect(alto).toHaveLength(3);
+    expect(alto?.filter((event) => !event.isRest)).toHaveLength(2);
+    expect(alto?.[alto.length - 1]).toMatchObject({ id: 'c-a-2', isRest: true });
   });
 });
 

@@ -137,6 +137,8 @@ export const content = {
     ],
     /** Label inside the two ghost notes that flank the note being edited. */
     ghostAdd: '(click to add)',
+    /** Shown where the syllable would be when a note has been silenced. */
+    restCell: 'rest',
     noteTools: {
       raise: 'Raise pitch',
       lower: 'Lower pitch',
@@ -226,6 +228,15 @@ export const content = {
     stopped: 'Playback stopped',
   },
   /** The tap-to-edit chooser on the staff: length across, pitch up and down. */
+  staff: {
+    /** The four add buttons, each standing beside the part it adds to. */
+    addNote: {
+      soprano: 'Add a soprano note',
+      alto: 'Add an alto note',
+      tenor: 'Add a tenor note',
+      bass: 'Add a bass note',
+    },
+  },
   noteGrid: {
     label: 'Change this note',
     close: 'Close',
@@ -239,6 +250,19 @@ export const content = {
     lower: 'lower',
     longer: 'longer',
     shorter: 'shorter',
+    halfStep: 'half step',
+    halfSteps: 'half steps',
+    sixteenth: 'sixteenth',
+    sixteenths: 'sixteenths',
+    /** Said of a length that takes two tied symbols to write, such as five sixteenths. */
+    tied: 'written tied',
+    /** The footer under the grid: sound this note or silence it, or remove it. */
+    soundLabel: 'Sounds or rests',
+    sounds: 'Note',
+    silent: 'Rest',
+    delete: 'Delete',
+    deleteLabel: 'Delete this note',
+    keepOneHint: 'A part keeps at least one note',
   },
   accidentalLabels: {
     natural: '',

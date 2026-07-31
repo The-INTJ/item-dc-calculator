@@ -109,6 +109,12 @@ export interface RestSymbol {
   units: number;
   base: NotatedBase;
   step: number;
+  /**
+   * Set when this rest IS a silenced note rather than an empty stretch of the
+   * bar. That is what keeps a silenced note reachable — without an event to
+   * point at, a rest could be made but never taken back.
+   */
+  eventId?: string;
 }
 
 /** One stave of the system: its signature and the two voices sharing it. */

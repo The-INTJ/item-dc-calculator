@@ -35,6 +35,12 @@
 - Do not move a browser flow onto route handlers unless the server-side auth and provider story moves with it.
 - Voting reads should prefer cached entry aggregates (`sumScore`, `voteCount`) over recounting the votes collection.
 
+## Dev server
+
+- Check for a running server before starting one: `netstat -ano | grep LISTENING | grep :3000`.
+- Port 3000 already serving this app? Reuse it. Nothing running? Start one on 3000.
+- Never run a second `next dev` against the same checkout — they share `.next` and deadlock on Windows.
+
 ## Required checks
 
 - `npm run lint`

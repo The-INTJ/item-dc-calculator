@@ -12,7 +12,8 @@ import type {
   VoiceEvent,
   VoiceId,
 } from '../../domain/music-types';
-import { durationToUnits, timeToUnits, UNITS_PER_MEASURE } from '../../domain/timing';
+import { UNITS_PER_MEASURE } from '../../domain/timing';
+import { partEndUnits } from '../../domain/voice-editing';
 import type { WorkbenchState } from '../../domain/workbench-state';
 
 /* ---------- voice-edit helpers ---------- */
@@ -26,22 +27,14 @@ function withVoice(voicing: SATBVoicing, voice: VoiceId, events: VoiceEvent[]): 
   };
 }
 
-/** Where a part currently ends, in sixteenth units. */
-function voiceEndUnits(events: { start: MusicalTime; duration: RationalDuration }[]): number {
-  return events.reduce(
-    (max, event) => Math.max(max, timeToUnits(event.start) + durationToUnits(event.duration)),
-    0,
-  );
-}
-
 /**
  * The one-measure editor cap: a part may shrink or rearrange freely but never
  * GROW past a measure; legacy content that already exceeds a measure keeps its
  * length editable in place. (4/4 assumption — see the meter ledger in
  * domain/timing.ts.)
  */
-export function measureCap(events: { start: MusicalTime; duration: RationalDuration }[]): number {
-  return Math.max(UNITS_PER_MEASURE, voiceEndUnits(events));
+export function measureCap(events: { id: string; start: MusicalTime; duration: RationalDuration }[]): number {
+  return Math.max(UNITS_PER_MEASURE, partEndUnits(events));
 }
 
 export interface VoiceEditResult {

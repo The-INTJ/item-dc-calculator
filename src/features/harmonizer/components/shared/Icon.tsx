@@ -16,7 +16,8 @@ export type IconName =
   | 'undo'
   | 'redo'
   | 'tune'
-  | 'library_add';
+  | 'library_add'
+  | 'delete';
 
 interface IconProps {
   name: IconName;

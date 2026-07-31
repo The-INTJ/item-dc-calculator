@@ -24,7 +24,14 @@ export function durationToCode(duration: RationalDuration): string {
   return code ?? `${duration.numerator}/${duration.denominator}`;
 }
 
-/** e.g. "sol4:q|fa4:q|mi4:h"; with a gap: "sol4:q|r:q|mi4:h" */
+/**
+ * e.g. "sol4:q|fa4:q|mi4:h"; with a gap: "sol4:q|r:q|mi4:h".
+ *
+ * Silence reads as "r" however it arose — an empty stretch between notes, or a
+ * note that has been silenced. The signature describes the music, and those two
+ * sound exactly alike, so a silenced note must not sign as the note it is
+ * remembering.
+ */
 export function melodySignature(events: MelodyEvent[]): string {
   const parts: string[] = [];
   let cursor = 0;
@@ -35,7 +42,9 @@ export function melodySignature(events: MelodyEvent[]): string {
       parts.push(`r:${durationToCode(unitsToDuration(start - cursor))}`);
     }
     parts.push(
-      `${event.scaleDegree.syllable}${event.pitch.octave}:${durationToCode(event.duration)}`,
+      event.isRest
+        ? `r:${durationToCode(event.duration)}`
+        : `${event.scaleDegree.syllable}${event.pitch.octave}:${durationToCode(event.duration)}`,
     );
     cursor = start + span.spanUnits;
   }

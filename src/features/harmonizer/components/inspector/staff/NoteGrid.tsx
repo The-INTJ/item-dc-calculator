@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type Ref } from 'react';
 import { content } from '../../../content';
 import { headGlyph } from '../../../domain/notation';
 import type { StemDirection } from '../../../domain/notation';
@@ -8,6 +8,8 @@ import type { TonalContext } from '../../../domain/music-types';
 import { Icon } from '../../shared/Icon';
 import { GlyphMark } from './GlyphMark';
 import { buildGridCells, type GridCell, type GridNote } from './note-grid-cells';
+import { cellLabel } from './note-grid-labels';
+import { NoteGridFooter } from './NoteGridFooter';
 import type { GridSide } from './useGridPlacement';
 import { otherSide, useGridFlip } from './useGridFlip';
 import { useGridDismiss } from './useGridDismiss';
@@ -19,6 +21,13 @@ interface NoteGridProps {
   stem: StemDirection;
   reach: number;
   side: GridSide;
+  /** What can happen to the note besides being changed — see NoteGridFooter. */
+  footer: {
+    isRest: boolean;
+    canDelete: boolean;
+    onToggleRest: () => void;
+    onDelete: () => void;
+  };
   onChoose: (cell: GridCell) => void;
   onClose: () => void;
 }
@@ -26,14 +35,56 @@ interface NoteGridProps {
 const CELL_SPACE_PX = 11;
 
 /**
+ * One square of the chooser, drawing the note it would give you: the shape
+ * follows the new pitch's degree, the head opens or fills with the new length,
+ * and a length that takes two symbols to write shows the first with its tie.
+ * The centre square is the note you already have, so pressing it just closes.
+ */
+function GridCellButton({
+  cell,
+  stem,
+  cellRef,
+  onChoose,
+  onClose,
+}: {
+  cell: GridCell;
+  stem: StemDirection;
+  cellRef: Ref<HTMLButtonElement> | undefined;
+  onChoose: (cell: GridCell) => void;
+  onClose: () => void;
+}) {
+  return (
+    <button
+      ref={cellRef}
+      type="button"
+      className={styles.cell}
+      data-centre={cell.centre || undefined}
+      data-tied={cell.tied || undefined}
+      disabled={cell.value === null}
+      aria-label={cellLabel(cell)}
+      onClick={() => (cell.centre ? onClose() : onChoose(cell))}
+    >
+      {cell.shape && cell.base ? (
+        <span className={styles.cellMark}>
+          <GlyphMark glyph={headGlyph(cell.shape, cell.base, stem)} spacePx={CELL_SPACE_PX} />
+          {cell.dots > 0 ? <span className={styles.cellDot} /> : null}
+          {cell.tied ? <span className={styles.cellTie} /> : null}
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+/**
  * The note chooser: length across, pitch up and down, the note you tapped in
  * the middle.
  *
  * It stays open after a choice and re-centres on whatever you picked, so a big
  * move is the same gesture repeated rather than a different one. Every cell
- * draws the note it would give you — the shape follows the new pitch's degree
- * and the head opens or fills with the new length — so the choice is read
- * rather than calculated.
+ * draws the note it would give you — the shape follows the new pitch's degree,
+ * the head opens or fills with the new length, and a length that takes two
+ * symbols to write shows the first with its tie — so the choice is read rather
+ * than calculated.
  */
 export function NoteGrid({
   note,
@@ -41,6 +92,7 @@ export function NoteGrid({
   stem,
   reach,
   side,
+  footer,
   onChoose,
   onClose,
 }: NoteGridProps) {
@@ -68,6 +120,7 @@ export function NoteGrid({
     <div
       className={styles.panel}
       data-side={flipped ? otherSide(side) : side}
+      data-rest={footer.isRest || undefined}
       ref={panel}
       role="group"
       aria-label={content.noteGrid.label}
@@ -90,52 +143,24 @@ export function NoteGrid({
 
       <div
         className={styles.grid}
-        style={{ gridTemplateColumns: `repeat(${reach * 2 + 1}, 2.6rem)` }}
+        data-note-grid
+        style={{ gridTemplateColumns: `repeat(${reach * 2 + 1}, var(--wb-grid-cell))` }}
       >
         {rows.map((row) =>
           row.map((cell) => (
-            <button
+            <GridCellButton
               key={`${cell.x}:${cell.y}`}
-              ref={cell.centre ? centre : undefined}
-              type="button"
-              className={styles.cell}
-              data-centre={cell.centre || undefined}
-              disabled={cell.value === null}
-              aria-label={cellLabel(cell)}
-              onClick={() => (cell.centre ? onClose() : onChoose(cell))}
-            >
-              {cell.shape && cell.base ? (
-                <span className={styles.cellMark}>
-                  <GlyphMark
-                    glyph={headGlyph(cell.shape, cell.base, stem)}
-                    spacePx={CELL_SPACE_PX}
-                  />
-                  {cell.dots > 0 ? <span className={styles.cellDot} /> : null}
-                </span>
-              ) : null}
-            </button>
+              cell={cell}
+              stem={stem}
+              cellRef={cell.centre ? centre : undefined}
+              onChoose={onChoose}
+              onClose={onClose}
+            />
           )),
         )}
       </div>
+
+      <NoteGridFooter {...footer} />
     </div>
   );
-}
-
-/** Each cell says what it does, since its drawing is decorative. */
-function cellLabel(cell: GridCell): string {
-  if (cell.centre) return content.noteGrid.keep;
-  if (!cell.value) return content.noteGrid.unavailable;
-  const pitch = cell.y === 0 ? content.noteGrid.samePitch : pitchWord(cell.y);
-  const length = cell.x === 0 ? content.noteGrid.sameLength : lengthWord(cell.x);
-  return `${pitch}, ${length}`;
-}
-
-function pitchWord(steps: number): string {
-  const word = steps > 0 ? content.noteGrid.higher : content.noteGrid.lower;
-  return `${Math.abs(steps)} ${word}`;
-}
-
-function lengthWord(steps: number): string {
-  const word = steps > 0 ? content.noteGrid.longer : content.noteGrid.shorter;
-  return `${Math.abs(steps)} ${word}`;
 }

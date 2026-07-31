@@ -4,7 +4,9 @@ import { durationToUnits, timeToUnits } from './timing';
 import {
   deleteTimedEvent,
   insertAdjacentTimedEvent,
+  partEndUnits,
   resizeTimedEvents,
+  roomInMeasure,
   type TimedEvent,
 } from './voice-editing';
 
@@ -133,14 +135,50 @@ describe('resizeTimedEvents', () => {
     expect(resizeTimedEvents(base, 'nope', 'right', 6)).toBeNull();
   });
 
-  it('deletes an event leaving a rest gap, but never the last event', () => {
+  it('closes the gap a deleted note leaves, and rests out the end instead', () => {
+    // The fixture is q (0–4), q (4–8), h (8–16). Taking the middle quarter out
+    // moves the half note up to meet the first quarter, and the four sixteenths
+    // it freed become a rest at the end — so the part is still exactly as long.
     const result = deleteTimedEvent(base, 'b');
     expect(spansOf(result ?? [])).toEqual([
       [0, 4],
+      [4, 12],
+      [12, 16],
+    ]);
+    expect(result?.map((event) => event.id)).toEqual(['a', 'c', 'b']);
+    expect(result?.map((event) => event.isRest === true)).toEqual([false, false, true]);
+  });
+
+  it('keeps the deleted note whole, so the rest can offer it back', () => {
+    // The rest IS the note that was taken out — same id, same length — which is
+    // what lets clicking it turn it back into the note it was.
+    const result = deleteTimedEvent(base, 'b');
+    const rest = result?.find((event) => event.id === 'b');
+    expect(rest?.isRest).toBe(true);
+    expect(durationToUnits(rest!.duration)).toBe(4);
+  });
+
+  it('silences the last note where it stands, since nothing follows it', () => {
+    const result = deleteTimedEvent(base, 'c');
+    expect(spansOf(result ?? [])).toEqual([
+      [0, 4],
+      [4, 8],
       [8, 16],
     ]);
+    expect(result?.map((event) => event.isRest === true)).toEqual([false, false, true]);
+  });
+
+  it('never takes a part‘s only note', () => {
     expect(deleteTimedEvent(base, 'nope')).toBeNull();
     expect(deleteTimedEvent([base[0]], 'a')).toBeNull();
+  });
+
+  it('leaves a part exactly as long as it was', () => {
+    // The measure cannot be violated in either direction: deleting frees no
+    // room, so a part that filled its bar still fills it.
+    expect(partEndUnits(base)).toBe(16);
+    expect(partEndUnits(deleteTimedEvent(base, 'b') ?? [])).toBe(16);
+    expect(roomInMeasure(deleteTimedEvent(base, 'b') ?? [])).toBe(0);
   });
 
   it('inserts before by taking the neighbor placement and rippling right', () => {
@@ -196,10 +234,110 @@ describe('resizeTimedEvents', () => {
     ).toBeNull();
   });
 
+  it('takes the room that is left when asked to shrink to fit', () => {
+    // The fixture ends at 16. A part ending at 12 has four units left, and the
+    // note before it is a half note — too long to copy, so the new note takes
+    // the four rather than being refused.
+    const short = [makeEvent('a', 0, 4), makeEvent('b', 4, 8)];
+    const result = insertAdjacentTimedEvent(
+      short,
+      'b',
+      'after',
+      ({ startUnits, units }) => makeEvent('tail', startUnits, units),
+      { maxTotalUnits: 16, shrinkToFit: true },
+    );
+    expect(spansOf(result ?? [])).toEqual([
+      [0, 4],
+      [4, 12],
+      [12, 16],
+    ]);
+  });
+
+  it('still refuses when there is no room at all to shrink into', () => {
+    expect(
+      insertAdjacentTimedEvent(
+        base,
+        'c',
+        'after',
+        ({ startUnits, units }) => makeEvent('tail', startUnits, units),
+        { maxTotalUnits: 16, shrinkToFit: true },
+      ),
+    ).toBeNull();
+  });
+
+  it('leaves a note that already fits at its neighbour‘s length', () => {
+    // Shrinking to fit only bites when the copy would overrun; otherwise the
+    // new note matches the one before it exactly, as it always did.
+    const short = [makeEvent('a', 0, 4), makeEvent('b', 4, 4)];
+    const result = insertAdjacentTimedEvent(
+      short,
+      'b',
+      'after',
+      ({ startUnits, units }) => makeEvent('tail', startUnits, units),
+      { maxTotalUnits: 16, shrinkToFit: true },
+    );
+    expect(spansOf(result ?? [])).toEqual([
+      [0, 4],
+      [4, 8],
+      [8, 12],
+    ]);
+  });
+
   it('preserves extra fields on resized events', () => {
     const events = [{ ...makeEvent('a', 0, 4), tag: 'keep' }, { ...makeEvent('b', 4, 4), tag: 'also' }];
     const result = resizeTimedEvents(events, 'a', 'right', 6);
     expect(result?.[0].tag).toBe('keep');
     expect(result?.[1].tag).toBe('also');
+  });
+});
+
+describe('the measure cannot be violated', () => {
+  const tail = ({ startUnits, units }: { startUnits: number; units: number }) =>
+    makeEvent('tail', startUnits, units);
+  const cap = { maxTotalUnits: 16 };
+
+  it('refuses every path that would push a part past its bar', () => {
+    // There is no over-measure state to render, because there is no way to
+    // reach one. Each of these is a way a part could have grown.
+    expect(insertAdjacentTimedEvent(base, 'c', 'after', tail, cap)).toBeNull();
+    expect(
+      insertAdjacentTimedEvent(base, 'c', 'after', tail, { ...cap, shrinkToFit: true }),
+    ).toBeNull();
+    expect(partEndUnits(resizeTimedEvents(base, 'c', 'right', 40, cap) ?? base)).toBe(16);
+    expect(partEndUnits(deleteTimedEvent(base, 'b') ?? [])).toBe(16);
+  });
+
+  it('adds exactly the room that is left when the note it copies will not fit', () => {
+    // Ends at 12 with four sixteenths to spare, and the note before is a half.
+    const short = [makeEvent('a', 0, 4), makeEvent('b', 4, 8)];
+    const result = insertAdjacentTimedEvent(short, 'b', 'after', tail, {
+      ...cap,
+      shrinkToFit: true,
+    });
+    expect(spansOf(result ?? [])).toEqual([
+      [0, 4],
+      [4, 12],
+      [12, 16],
+    ]);
+    expect(partEndUnits(result ?? [])).toBe(16);
+  });
+});
+
+describe('how much of a measure a part has left', () => {
+  it('measures from where the part ends, not from how many notes it has', () => {
+    expect(partEndUnits(base)).toBe(16);
+    expect(partEndUnits([makeEvent('a', 0, 4)])).toBe(4);
+    expect(partEndUnits([])).toBe(0);
+  });
+
+  it('reports the room the add button offers', () => {
+    expect(roomInMeasure([makeEvent('a', 0, 4)])).toBe(12);
+    expect(roomInMeasure(base)).toBe(0);
+  });
+
+  it('gives legacy content that already overran a measure no room either', () => {
+    // Two measures of content predate the cap. It stays editable in place, but
+    // nothing may be added to it — the same answer the editor's cap gives.
+    expect(roomInMeasure([makeEvent('a', 0, 32)])).toBe(0);
   });
 });

@@ -85,6 +85,8 @@ export interface MelodyEvent {
   start: MusicalTime;
   duration: RationalDuration;
   tieFromPrevious: boolean;
+  /** Silent here — see VoiceEvent.isRest. The soprano mirrors this. */
+  isRest?: boolean;
   metricStrength?: 'strong' | 'medium' | 'weak';
   phraseBoundaryAfter?: 'none' | 'subphrase' | 'phrase' | 'stanza';
 }
@@ -168,6 +170,13 @@ export interface VoiceEvent {
   start: MusicalTime;
   duration: RationalDuration;
   tieFromPrevious: boolean;
+  /**
+   * The part is SILENT here for this event's whole length. The pitch is kept
+   * rather than thrown away, so silencing a note is reversible: the note comes
+   * back as it was. A rest still occupies its time, which is what keeps
+   * silencing one note from moving any other.
+   */
+  isRest?: boolean;
 }
 
 export interface SATBVoicing {

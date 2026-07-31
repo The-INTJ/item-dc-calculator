@@ -418,6 +418,22 @@
   color: var(--wb-ink-soft);
 }
 
+/* A silenced note is still there, still that long, still on that pitch — it is
+   only not being sung. So the cell keeps its shape and steps back rather than
+   emptying, and the remembered pitch fades instead of vanishing. */
+.voiceCell[data-rest] {
+  .voiceSyllable {
+    font-weight: 500;
+    font-size: 0.95rem;
+    font-style: italic;
+    color: var(--wb-ink-soft);
+  }
+
+  .voicePitch {
+    opacity: 0.45;
+  }
+}
+
 .voicePlayButton {
   @include wb-icon-button;
   font-size: 1.05rem;

@@ -48,15 +48,6 @@ function written(units: number) {
 }
 
 /**
- * The single symbol for a length, or null when the length has none. Lets a
- * chooser show the note it would actually draw rather than a number.
- */
-export function writtenValue(units: number): { base: NotatedBase; dots: 0 | 1 } | null {
-  const value = written(units);
-  return value ? { base: value.base, dots: value.dots } : null;
-}
-
-/**
  * Whether a span may be written as one symbol. A barline always breaks a note.
  * Past that, the longer the note the more it is allowed to cover: a half note
  * from a beat may span the middle of the bar (the familiar syncopation written

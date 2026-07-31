@@ -17,6 +17,7 @@ import { StaffView } from './staff';
 import type { StaffEditing } from './staff/useStaffSelection';
 import { PanSlider, useTrackPan } from './TrackPan';
 import { useNoteEditing } from './useNoteEditing';
+import type { InsertNoteOptions, StepNoteOptions } from '../useVoiceEventEditing';
 import { newId } from '../shared/ids';
 import type { NotationView } from '../useViewPreference';
 import styles from './CandidateInspector.module.scss';
@@ -35,15 +36,23 @@ interface CandidateInspectorProps {
   onPlayVoice: (candidateId: string, voice: VoiceId) => void;
   onStop: () => void;
   onToggleNoteLock: (candidateId: string, event: VoiceEvent) => void;
-  onStepNote: (candidateId: string, voice: VoiceId, eventId: string, direction: 1 | -1) => void;
+  onStepNote: (
+    candidateId: string,
+    voice: VoiceId,
+    eventId: string,
+    direction: 1 | -1,
+    options?: StepNoteOptions,
+  ) => void;
   onInsertNote: (
     candidateId: string,
     voice: VoiceId,
     neighborEventId: string,
     side: 'before' | 'after',
     newEventId: string,
+    options?: InsertNoteOptions,
   ) => void;
   onDeleteNote: (candidateId: string, voice: VoiceId, eventId: string) => void;
+  onToggleNoteRest: (candidateId: string, voice: VoiceId, eventId: string) => void;
   onResizeNote: (
     candidateId: string,
     voice: VoiceId,
@@ -63,24 +72,36 @@ interface CandidateInspectorProps {
  * in domain/timing.ts.)
  */
 /**
- * How far the tap-to-edit grid reaches in each direction. Two steps keeps the
- * grid small enough to aim at; a larger move is the same tap repeated, since
- * the grid stays open and re-centres.
+ * How far the tap-to-edit grid reaches in each direction. Three steps is what
+ * the panel has room for without covering the staff; a larger move is the same
+ * tap repeated, since the grid stays open and re-centres.
  */
-const GRID_REACH = 2;
+const GRID_REACH = 3;
 
 /**
  * What the staff is allowed to change, expressed against one reading. Every
  * edit is routed back through the same candidate-scoped callbacks the lanes
  * use, so the two surfaces cannot drift apart.
+ *
+ * The grid passes a gestureId through every call of one click, which is what
+ * makes a move of three half steps and two sixteenths a single undo.
  */
 function staffEditing(candidateId: string, props: CandidateInspectorProps): StaffEditing {
+  const step = (gestureId: string): StepNoteOptions => ({ motion: 'chromatic', gestureId });
   return {
     reach: GRID_REACH,
-    onStepPitch: (voice, eventId, direction) =>
-      props.onStepNote(candidateId, voice, eventId, direction),
-    onSetLength: (voice, eventId, endUnit) =>
-      props.onResizeNote(candidateId, voice, eventId, 'right', endUnit, false, newId()),
+    onStepPitch: (voice, eventId, direction, gestureId) =>
+      props.onStepNote(candidateId, voice, eventId, direction, step(gestureId)),
+    onSetLength: (voice, eventId, endUnit, gestureId) =>
+      props.onResizeNote(candidateId, voice, eventId, 'right', endUnit, false, gestureId),
+    // The new note goes after the part's last one and copies it; where that
+    // will not fit, it takes the room that is left rather than being refused.
+    onAddNote: (voice, afterEventId, newEventId) =>
+      props.onInsertNote(candidateId, voice, afterEventId, 'after', newEventId, {
+        shrinkToFit: true,
+      }),
+    onToggleRest: (voice, eventId) => props.onToggleNoteRest(candidateId, voice, eventId),
+    onDeleteNote: (voice, eventId) => props.onDeleteNote(candidateId, voice, eventId),
   };
 }
 

@@ -44,6 +44,7 @@ function durationWeightedProfile(voicing: SATBVoicing): number[] | null {
   let total = 0;
   for (const events of [voicing.soprano, voicing.alto, voicing.tenor, voicing.bass]) {
     for (const event of events) {
+      if (event.isRest) continue; // silence is not evidence for a key
       const span = toTimelineSpan(event.start, event.duration);
       vector[event.pitch.pitchClass] += span.spanUnits;
       total += span.spanUnits;

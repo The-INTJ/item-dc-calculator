@@ -46,8 +46,10 @@ export function NoteSprite({ note, x, selected = false }: NoteSpriteProps) {
   return (
     <span
       className={styles.note}
+      data-voice={note.voice}
       data-shape={note.shape}
       data-base={note.base}
+      data-accidental={note.accidental ?? undefined}
       data-selected={selected || undefined}
     >
       {note.ledgerSteps.map((step) => (

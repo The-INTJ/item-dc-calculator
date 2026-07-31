@@ -7,19 +7,11 @@ import {
   type StaffStave,
 } from '../../../domain/notation';
 import type { VoiceId } from '../../../domain/music-types';
-import { content } from '../../../content';
 import { GlyphMark } from './GlyphMark';
 import { NoteSprite } from './NoteSprite';
+import { StaffHits } from './StaffHits';
 import { HEAD_WIDTH_PX, shiftX, SPACE_PX, stepY, unitX } from './staff-geometry';
 import styles from './StaffView.module.scss';
-
-/**
- * A note's target is a little taller than its head but shorter than the gap to
- * the next step, so two voices a third apart never cover each other. Voices a
- * second or a unison apart do overlap vertically — those are already pushed
- * sideways by the collision rule, so they separate anyway.
- */
-const HIT_HEIGHT_PX = SPACE_PX * 1.4;
 
 interface NoteSpritesProps {
   stave: StaffStave;
@@ -128,25 +120,12 @@ export function NoteSprites({
       </span>
 
       {onSelect ? (
-        <span className={styles.hits}>
-          {stave.notes.map((note) => (
-            <button
-              key={`hit-${note.id}`}
-              type="button"
-              className={styles.hit}
-              data-event-id={note.eventId}
-              data-selected={note.eventId === selectedEventId || undefined}
-              aria-label={content.noteGrid.label}
-              style={{
-                left: shiftX(unitX(note.startUnit, gridUnits), note.offsetHead ? HEAD_WIDTH_PX : 0),
-                top: stepY(note.stave, note.step) - HIT_HEIGHT_PX / 2,
-                width: HEAD_WIDTH_PX,
-                height: HIT_HEIGHT_PX,
-              }}
-              onClick={() => onSelect(note.voice, note.eventId)}
-            />
-          ))}
-        </span>
+        <StaffHits
+          stave={stave}
+          gridUnits={gridUnits}
+          selectedEventId={selectedEventId}
+          onSelect={onSelect}
+        />
       ) : null}
     </>
   );

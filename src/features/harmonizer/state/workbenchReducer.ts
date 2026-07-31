@@ -44,6 +44,7 @@ import {
   resizeVoiceEvent,
   stepVoiceEventPitch,
 } from './handlers/voice-editing';
+import { toggleVoiceEventRest } from './handlers/voice-rest';
 
 export const MIN_TEMPO_BPM = 40;
 export const MAX_TEMPO_BPM = 200;
@@ -73,6 +74,9 @@ function coreReducer(state: WorkbenchState, action: WorkbenchAction): WorkbenchS
 
     case 'STEP_VOICE_EVENT_PITCH':
       return stepVoiceEventPitch(state, action);
+
+    case 'TOGGLE_VOICE_EVENT_REST':
+      return toggleVoiceEventRest(state, action);
 
     case 'INSERT_VOICE_EVENT':
       return insertVoiceEvent(state, action);

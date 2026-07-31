@@ -1,9 +1,27 @@
 'use client';
 
 import type { Dispatch } from 'react';
-import type { VoiceEvent, VoiceId } from '../domain/music-types';
+import type { VoiceId } from '../domain/music-types';
 import type { WorkbenchState } from '../domain/workbench-state';
 import type { WorkbenchAction } from '../state/actions';
+import { useNoteLocks } from './useNoteLocks';
+
+/**
+ * How a pitch step differs from the plain one the lanes' arrows take. Both are
+ * optional so the lanes keep passing nothing at all.
+ */
+export interface StepNoteOptions {
+  /** Half steps rather than scale steps — the staff grid's y-axis. */
+  motion?: 'diatonic' | 'chromatic';
+  /** Ties several dispatches into one undo entry. */
+  gestureId?: string;
+}
+
+/** How the staff's add buttons differ from the lanes' ghost inserts. */
+export interface InsertNoteOptions {
+  /** Take the room that is left when the neighbour's length will not fit. */
+  shrinkToFit?: boolean;
+}
 
 /** Note-level edits on the working reading: locks, pitch steps, insert/delete, resize. */
 export function useVoiceEventEditing(
@@ -11,31 +29,23 @@ export function useVoiceEventEditing(
   dispatch: Dispatch<WorkbenchAction>,
   dispatchStructural: (action: WorkbenchAction) => void,
 ) {
-  const lockedEventIds = new Set(
-    state.locks
-      .filter(
-        (lock) =>
-          lock.targetType === 'voice_event' && lock.candidateId === state.selectedCandidateId,
-      )
-      .map((lock) => lock.targetId),
-  );
+  const locks = useNoteLocks(state, dispatchStructural);
 
-  function toggleNoteLock(candidateId: string, event: VoiceEvent) {
+  function stepNote(
+    candidateId: string,
+    voice: VoiceId,
+    eventId: string,
+    direction: 1 | -1,
+    options: StepNoteOptions = {},
+  ) {
     dispatchStructural({
-      type: 'TOGGLE_LOCK',
-      lock: {
-        id: `lock-${event.id}`,
-        targetType: 'voice_event',
-        targetId: event.id,
-        candidateId,
-        valueSnapshot: event,
-        createdAt: new Date().toISOString(),
-      },
+      type: 'STEP_VOICE_EVENT_PITCH',
+      candidateId,
+      voice,
+      eventId,
+      direction,
+      ...options,
     });
-  }
-
-  function stepNote(candidateId: string, voice: VoiceId, eventId: string, direction: 1 | -1) {
-    dispatchStructural({ type: 'STEP_VOICE_EVENT_PITCH', candidateId, voice, eventId, direction });
   }
 
   function insertNote(
@@ -44,6 +54,7 @@ export function useVoiceEventEditing(
     neighborEventId: string,
     side: 'before' | 'after',
     newEventId: string,
+    options: InsertNoteOptions = {},
   ) {
     dispatchStructural({
       type: 'INSERT_VOICE_EVENT',
@@ -52,11 +63,16 @@ export function useVoiceEventEditing(
       neighborEventId,
       side,
       newEventId,
+      ...options,
     });
   }
 
   function deleteNote(candidateId: string, voice: VoiceId, eventId: string) {
     dispatchStructural({ type: 'DELETE_VOICE_EVENT', candidateId, voice, eventId });
+  }
+
+  function toggleNoteRest(candidateId: string, voice: VoiceId, eventId: string) {
+    dispatchStructural({ type: 'TOGGLE_VOICE_EVENT_REST', candidateId, voice, eventId });
   }
 
   function resizeNote(
@@ -80,5 +96,5 @@ export function useVoiceEventEditing(
     });
   }
 
-  return { lockedEventIds, toggleNoteLock, stepNote, insertNote, deleteNote, resizeNote };
+  return { ...locks, stepNote, insertNote, deleteNote, toggleNoteRest, resizeNote };
 }

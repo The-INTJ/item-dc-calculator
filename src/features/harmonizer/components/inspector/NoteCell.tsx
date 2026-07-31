@@ -1,5 +1,6 @@
 'use client';
 
+import { content } from '../../content';
 import type { VoiceEvent } from '../../domain/music-types';
 import type { TimelineSpan } from '../../domain/timing';
 import { toTimelineSpan } from '../../domain/timing';
@@ -83,6 +84,30 @@ interface NoteCellProps extends NoteCellFlags {
 }
 
 /**
+ * What a cell reads as: the syllable it is sung on, over the pitch it sits on.
+ *
+ * A silenced note keeps its place and its pitch — it has only stopped being
+ * sung — so the lane says "rest" where the syllable would be and goes on
+ * showing the pitch it is still holding, faded. A tie mark would be a lie
+ * across a silence, so it goes away with the syllable.
+ */
+function CellReading({ event }: { event: VoiceEvent }) {
+  return (
+    <>
+      <span className={styles.voiceSyllable}>
+        {event.tieFromPrevious && !event.isRest ? (
+          <span aria-hidden="true" className={styles.tieMark}>
+            ‿
+          </span>
+        ) : null}
+        {event.isRest ? content.inspector.restCell : event.scaleDegree.syllable}
+      </span>
+      <span className={styles.voicePitch}>{pitchDisplay(event.pitch)}</span>
+    </>
+  );
+}
+
+/**
  * One note glyph in a lane: syllable over pitch on the time grid, its
  * draggable edge handles, and — while it is the note being edited — the
  * NoteTools cluster.
@@ -125,6 +150,7 @@ export function NoteCell({
       data-active={active || undefined}
       data-event-id={event.id}
       data-locked={locked || undefined}
+      data-rest={event.isRest || undefined}
       tabIndex={0}
       onClick={() => onEditNote(editing ? null : event.id)}
       onKeyDown={(keyEvent) => {
@@ -136,15 +162,7 @@ export function NoteCell({
       }}
     >
       {locked ? <Icon name="lock" outlined className={styles.noteLockBadge} /> : null}
-      <span className={styles.voiceSyllable}>
-        {event.tieFromPrevious ? (
-          <span aria-hidden="true" className={styles.tieMark}>
-            ‿
-          </span>
-        ) : null}
-        {event.scaleDegree.syllable}
-      </span>
-      <span className={styles.voicePitch}>{pitchDisplay(event.pitch)}</span>
+      <CellReading event={event} />
       {first ? (
         <EdgeHandle edge="left" eventId={event.id} gridUnits={gridUnits} onResize={onResize} />
       ) : null}

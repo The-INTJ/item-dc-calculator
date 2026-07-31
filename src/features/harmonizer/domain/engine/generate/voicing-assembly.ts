@@ -60,6 +60,9 @@ export function assembleVoicing(
     start: event.start,
     duration: event.duration,
     tieFromPrevious: event.tieFromPrevious,
+    // The soprano IS the melody, silences included — without this, regenerating
+    // after any soprano edit would quietly un-silence a rest.
+    isRest: event.isRest,
   }));
   const alto: VoiceEvent[] = [];
   const tenor: VoiceEvent[] = [];

@@ -45,6 +45,7 @@ export function InspectorSection({
         onStepNote={editing.stepNote}
         onInsertNote={editing.insertNote}
         onDeleteNote={editing.deleteNote}
+        onToggleNoteRest={editing.toggleNoteRest}
         onResizeNote={editing.resizeNote}
       />
     </section>

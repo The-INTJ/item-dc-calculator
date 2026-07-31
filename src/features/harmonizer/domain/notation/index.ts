@@ -21,9 +21,9 @@ export {
   REST_GLYPHS,
 } from './engraving-paths';
 export { DIATONIC_DEGREES, headGlyph, isHollow, shapeForDegree } from './shape-glyphs';
-export { decomposeNoteSpan, decomposeRestSpan, writtenValue } from './duration-notation';
+export { decomposeNoteSpan, decomposeRestSpan } from './duration-notation';
 export { keySigMarks, printedAccidental } from './key-signature';
-export { LENGTH_LADDER, ladderIndexFor, stepLength } from './length-ladder';
+export { stepUnits } from './length-steps';
 export { buildStaffModel } from './staff-model';
 export {
   ledgerStepsFor,

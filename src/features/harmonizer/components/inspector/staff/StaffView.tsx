@@ -3,7 +3,8 @@
 import { buildStaffModel, STEM_DIRECTION_OF_VOICE } from '../../../domain/notation';
 import type { CandidatePath } from '../../../domain/analysis-types';
 import type { TonalContext } from '../../../domain/music-types';
-import { durationToUnits } from '../../../domain/timing';
+import { durationToUnits, timeToUnits } from '../../../domain/timing';
+import { AddNoteButtons } from './AddNoteButtons';
 import { NoteGrid } from './NoteGrid';
 import { NoteSprites } from './NoteSprites';
 import { BARLINE_HEIGHT, BARLINE_TOP, StaffLines } from './StaffLines';
@@ -32,10 +33,8 @@ interface StaffViewProps {
 export function StaffView({ candidate, tonalContext, gridUnits, editing }: StaffViewProps) {
   const model = buildStaffModel(candidate.voicing, tonalContext, gridUnits);
   const headWidth = headWidthPx(model.staves[0]?.keySignature.length ?? 0);
-  const { selection, selected, placement, system, select, close, choose } = useStaffSelection(
-    candidate,
-    editing,
-  );
+  const { selection, selected, placement, system, select, close, choose, add, toggleRest, remove } =
+    useStaffSelection(candidate, editing);
 
   return (
     <div
@@ -70,6 +69,10 @@ export function StaffView({ candidate, tonalContext, gridUnits, editing }: Staff
             onSelect={editing ? select : undefined}
           />
         ))}
+
+        {editing ? (
+          <AddNoteButtons candidate={candidate} gridUnits={model.gridUnits} onAdd={add} />
+        ) : null}
       </span>
 
       {editing && selected && selection ? (
@@ -78,11 +81,20 @@ export function StaffView({ candidate, tonalContext, gridUnits, editing }: Staff
             pitch: selected.pitch,
             scaleDegree: selected.scaleDegree,
             units: durationToUnits(selected.duration),
+            startUnit: timeToUnits(selected.start),
           }}
           tonalContext={tonalContext}
           stem={STEM_DIRECTION_OF_VOICE[selection.voice]}
           reach={editing.reach}
           side={placement.side}
+          footer={{
+            isRest: selected.isRest === true,
+            // A part always keeps one note; silencing is how you empty a part
+            // without emptying it.
+            canDelete: candidate.voicing[selection.voice].length > 1,
+            onToggleRest: toggleRest,
+            onDelete: remove,
+          }}
           onChoose={choose}
           onClose={close}
         />

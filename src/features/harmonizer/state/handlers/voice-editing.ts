@@ -6,7 +6,7 @@
  */
 
 import type { VoiceEvent } from '../../domain/music-types';
-import { stepDiatonic } from '../../domain/scale';
+import { stepChromatic, stepDiatonic } from '../../domain/scale';
 import { unitsToDuration, unitsToTime } from '../../domain/timing';
 import {
   deleteTimedEvent,
@@ -27,10 +27,11 @@ export function stepVoiceEventPitch(
   action: Extract<WorkbenchAction, { type: 'STEP_VOICE_EVENT_PITCH' }>,
 ): WorkbenchState {
   if (isNoteLocked(state, action.candidateId, action.eventId)) return state;
+  const step = action.motion === 'chromatic' ? stepChromatic : stepDiatonic;
   const stepEvents = (events: VoiceEvent[]): VoiceEvent[] | null => {
     const index = events.findIndex((event) => event.id === action.eventId);
     if (index === -1) return null;
-    const stepped = stepDiatonic(state.tonalContext, events[index], action.direction);
+    const stepped = step(state.tonalContext, events[index], action.direction);
     if (!stepped) return null;
     return events.map((event, i) =>
       i === index ? { ...event, pitch: stepped.pitch, scaleDegree: stepped.scaleDegree } : event,
@@ -43,7 +44,7 @@ export function stepVoiceEventPitch(
     if (sopranoIndex === undefined || sopranoIndex < 0) return null;
     const melodyEvent = events[sopranoIndex];
     if (!melodyEvent) return null;
-    const stepped = stepDiatonic(state.tonalContext, melodyEvent, action.direction);
+    const stepped = step(state.tonalContext, melodyEvent, action.direction);
     if (!stepped) return null;
     return events.map((event, i) =>
       i === sopranoIndex
@@ -52,7 +53,12 @@ export function stepVoiceEventPitch(
     );
   });
   if (!result) return state;
-  const next = deriveCandidate({ ...pushHistory(state), ...result }, action.candidateId);
+  // A gesture that takes several steps — a grid click moving three half steps —
+  // coalesces into the single undo entry the user would expect.
+  const history = action.gestureId
+    ? pushHistoryForGesture(state, action.gestureId)
+    : pushHistory(state);
+  const next = deriveCandidate({ ...history, ...result }, action.candidateId);
   return action.voice === 'soprano' ? regenerate(next) : next;
 }
 
@@ -76,7 +82,7 @@ export function insertVoiceEvent(
         duration: unitsToDuration(placement.units),
         tieFromPrevious: false,
       }),
-      { maxTotalUnits: measureCap(events) },
+      { maxTotalUnits: measureCap(events), shrinkToFit: action.shrinkToFit },
     );
   };
   const sopranoNeighborIndex = state.candidates
@@ -103,7 +109,7 @@ export function insertVoiceEvent(
           duration: unitsToDuration(placement.units),
           tieFromPrevious: false,
         }),
-        { maxTotalUnits: measureCap(events) },
+        { maxTotalUnits: measureCap(events), shrinkToFit: action.shrinkToFit },
       );
     },
   );

@@ -145,6 +145,7 @@ const MelodyEventSchema: z.ZodType<MelodyEvent> = z.strictObject({
   start: MusicalTimeSchema,
   duration: RationalDurationSchema,
   tieFromPrevious: z.boolean(),
+  isRest: z.boolean().optional(),
   metricStrength: z.enum(['strong', 'medium', 'weak']).optional(),
   phraseBoundaryAfter: z.enum(['none', 'subphrase', 'phrase', 'stanza']).optional(),
 });
@@ -227,6 +228,7 @@ const VoiceEventSchema: z.ZodType<VoiceEvent> = z.strictObject({
   start: MusicalTimeSchema,
   duration: RationalDurationSchema,
   tieFromPrevious: z.boolean(),
+  isRest: z.boolean().optional(),
 });
 
 const SATBVoicingSchema: z.ZodType<SATBVoicing> = z.strictObject({

@@ -8,6 +8,7 @@
  * would distort its own noteheads.
  */
 
+import type { VoiceId } from '../../../domain/music-types';
 import type { StaveId } from '../../../domain/notation';
 
 /**
@@ -16,10 +17,15 @@ import type { StaveId } from '../../../domain/notation';
  */
 export const SPACE_PX = 14;
 
-/** The system, in staff spaces, top to bottom: margin, stave, gap, stave, margin. */
+/**
+ * The system, in staff spaces, top to bottom: margin, stave, gap, stave,
+ * margin. The gap is a space wider than a printed hymnal would use because the
+ * two inner parts' add buttons live in it — furniture the page has to hold, not
+ * just air between the staves.
+ */
 const TOP_MARGIN = 3;
 const STAVE_HEIGHT = 4;
-const STAVE_GAP = 5;
+const STAVE_GAP = 6;
 const BOTTOM_MARGIN = 3;
 
 export const SYSTEM_SPACES =
@@ -36,6 +42,21 @@ const STAVE_TOP: Record<StaveId, number> = {
 export function stepY(stave: StaveId, step: number): number {
   return (STAVE_TOP[stave] + step / 2) * SPACE_PX;
 }
+
+/**
+ * Where each part's add button sits, in staff steps: one and a half spaces off
+ * the line its part is written nearest. Each stave carries one above and one
+ * below, which puts all four the same distance from the music and leaves the
+ * two sharing the gap between the staves well clear of each other.
+ */
+const ADD_CLEARANCE_STEPS = 3;
+
+export const ADD_STEP_OF_VOICE: Record<VoiceId, number> = {
+  soprano: -ADD_CLEARANCE_STEPS,
+  alto: STAVE_HEIGHT * 2 + ADD_CLEARANCE_STEPS,
+  tenor: -ADD_CLEARANCE_STEPS,
+  bass: STAVE_HEIGHT * 2 + ADD_CLEARANCE_STEPS,
+};
 
 /** Notehead proportions, taken from the outlines themselves. */
 export const HEAD_WIDTH_PX = 1.44 * SPACE_PX;

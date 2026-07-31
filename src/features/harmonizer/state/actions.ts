@@ -26,6 +26,7 @@ export type WorkbenchActionType =
   | 'EDIT_TONAL_CONTEXT'
   | 'EDIT_PHRASE_INTENT'
   | 'STEP_VOICE_EVENT_PITCH'
+  | 'TOGGLE_VOICE_EVENT_REST'
   | 'INSERT_VOICE_EVENT'
   | 'DELETE_VOICE_EVENT'
   | 'RESIZE_VOICE_EVENT'
@@ -58,9 +59,34 @@ export type WorkbenchAction =
       voice: VoiceId;
       eventId: string;
       direction: 1 | -1;
+      /**
+       * How far a step goes. The lanes' arrows move to the next scale degree
+       * (the default); the staff's note grid moves by half steps, so it can
+       * reach the notes between them.
+       */
+      motion?: 'diatonic' | 'chromatic';
+      /**
+       * Shared by every dispatch belonging to ONE human action, so undo takes
+       * them back together. A grid click that moves three half steps is three
+       * dispatches but one thing the user did.
+       */
+      gestureId?: string;
+    }
+  | {
+      /** Silence a note, or let a silenced one speak again. It keeps its pitch. */
+      type: 'TOGGLE_VOICE_EVENT_REST';
+      candidateId: string;
+      voice: VoiceId;
+      eventId: string;
     }
   | {
       type: 'INSERT_VOICE_EVENT';
+      /**
+       * Take whatever room is left when the neighbour's length will not fit,
+       * rather than refusing. The staff's add buttons fill out a measure this
+       * way; the lanes' ghost inserts still want the plain all-or-nothing.
+       */
+      shrinkToFit?: boolean;
       candidateId: string;
       voice: VoiceId;
       neighborEventId: string;

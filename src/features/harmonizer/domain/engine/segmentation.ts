@@ -53,6 +53,10 @@ export function placedVoiceLines(voicing: SATBVoicing): Record<VoiceId, PlacedVo
   const lines = { soprano: [], alto: [], tenor: [], bass: [] } as Record<VoiceId, PlacedVoiceNote[]>;
   for (const voice of VOICES) {
     lines[voice] = voicing[voice]
+      // A silenced note is not sounding, so it offers the analysis no pitch.
+      // This is the single gate every reading passes through, which is why
+      // silencing a note thins the texture everywhere rather than in one view.
+      .filter((event) => !event.isRest)
       .map((event) => {
         const span = toTimelineSpan(event.start, event.duration);
         return {

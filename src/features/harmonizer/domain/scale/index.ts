@@ -17,5 +17,6 @@ export {
   type DegreeMember,
 } from './diatonic-degrees';
 export { respellDegree, scaleDegreeForPitchClass } from './degree-reading';
+export { stepChromatic } from './chromatic-step';
 export { MAX_MIDI, MIN_MIDI, stepDiatonic } from './diatonic-step';
 export { tonicWholeNoteFragment } from './tonic-fragment';

@@ -59,7 +59,9 @@ export class ToneJsPlaybackService implements PlaybackService {
 
   async playMelody(fragment: MelodyFragment, options?: PlaybackOptions): Promise<void> {
     await this.playNotes(
-      fragment.events.map((event) => toNote(event, VOICE_VELOCITY.soprano)),
+      fragment.events
+        .filter((event) => !event.isRest)
+        .map((event) => toNote(event, VOICE_VELOCITY.soprano)),
       startUnits(fragment.events),
       options,
     );
@@ -72,6 +74,7 @@ export class ToneJsPlaybackService implements PlaybackService {
       const span = toTimelineSpan(harmony.start, harmony.duration);
       for (const voice of voiceIds) {
         const sounding = candidate.voicing[voice].find((event) => {
+          if (event.isRest) return false; // a silenced note is not sounding here
           const eventSpan = toTimelineSpan(event.start, event.duration);
           return (
             eventSpan.startUnit <= span.startUnit &&
@@ -109,8 +112,12 @@ export class ToneJsPlaybackService implements PlaybackService {
     options?: PlaybackOptions,
   ): Promise<void> {
     const uniqueVoices = [...new Set(voices)];
+    // Rests are skipped as notes but kept in `events`: the silence still sets
+    // where the part begins, so dropping it would slide the music earlier.
     const notes = uniqueVoices.flatMap((voice) =>
-      candidate.voicing[voice].map((event) => toNote(event, VOICE_VELOCITY[voice])),
+      candidate.voicing[voice]
+        .filter((event) => !event.isRest)
+        .map((event) => toNote(event, VOICE_VELOCITY[voice])),
     );
     const events = uniqueVoices.flatMap((voice) => candidate.voicing[voice]);
     await this.playNotes(notes, startUnits(events), options);

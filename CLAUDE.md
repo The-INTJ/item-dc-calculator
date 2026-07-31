@@ -16,6 +16,18 @@
 - `npm run emulators:seed` -- Re-seed test accounts into already-running emulators
 - `npm run docs:validate` -- Validate OpenAPI spec at `app/api/contest/openapi.json`
 
+## Before starting a dev server
+
+**Check whether one is already running, and reuse it.** Two `next dev` processes share one `.next` directory and deadlock on Windows (`os error 1224`, memory-mapped file) — a stray server started for a quick preview will block the one you actually work in.
+
+```bash
+netstat -ano | grep LISTENING | grep -E ":(3000|4000|8080|9099)\s"
+```
+
+- Port **3000** listening and serving this app (`curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/harmonizer` → `200`) → use it; do not start another.
+- Nothing listening → start one, and **default to port 3000**. Ports 4000/8080/9099 come up with it (emulator UI, Firestore, Auth).
+- If you do start a server for a one-off visual check, stop it when the check is done.
+
 ## Local Firebase Emulators
 
 `npm run dev` orchestrates everything in a single process tree (`scripts/dev.mjs`):

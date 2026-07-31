@@ -2,6 +2,9 @@
    in useGridPlacement.ts, which moves the page rather than the panel. */
 
 .panel {
+  /* One number sizes the whole grid; the column COUNT is set inline from reach. */
+  --wb-grid-cell: 2.6rem;
+
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
@@ -9,7 +12,8 @@
   display: grid;
   grid-template-areas:
     '. axisY'
-    'axisX grid';
+    'axisX grid'
+    'footer footer';
   grid-template-columns: auto auto;
   align-items: center;
   gap: 0.35rem 0.5rem;
@@ -81,7 +85,7 @@
 .cell {
   display: grid;
   place-items: center;
-  height: 2.6rem;
+  height: var(--wb-grid-cell);
   padding: 0;
   border: 1px solid var(--wb-line);
   border-radius: var(--wb-radius-chip);
@@ -118,4 +122,87 @@
   height: 4px;
   border-radius: 50%;
   background: currentColor;
+}
+
+/* Lengths like five sixteenths have no symbol of their own. The cell draws the
+   first symbol of the pair and this arc — the tie that would join it to the
+   rest — so the cell still shows what you would get. */
+.cellTie {
+  width: 9px;
+  height: 5px;
+  border-bottom: 1.5px solid currentColor;
+  border-radius: 0 0 50% 50%;
+}
+
+/* The cells say what the note could become; the footer says what it IS and
+   whether it stays at all. Separated by a rule so the two never read as one
+   row of equal choices. */
+.footer {
+  grid-area: footer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.7rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--wb-line);
+}
+
+.toggle {
+  display: inline-flex;
+  border: 1px solid var(--wb-line-strong);
+  border-radius: var(--wb-radius-chip);
+  overflow: hidden;
+}
+
+.toggleOption {
+  padding: 0.3rem 0.7rem;
+  border: 0;
+  background: var(--wb-surface);
+  color: var(--wb-ink-soft);
+  font-size: 0.78rem;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--wb-ink);
+  }
+}
+
+/* The state reads as the state, not as the button you last pressed. */
+.toggleOption[aria-pressed='true'] {
+  background: var(--wb-accent);
+  color: var(--wb-surface-raised);
+  cursor: default;
+}
+
+/* Deliberately quieter than the toggle: this is the one that keeps nothing. */
+.delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid transparent;
+  border-radius: var(--wb-radius-chip);
+  background: none;
+  color: var(--wb-ink-soft);
+  font-size: 0.78rem;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--wb-danger, var(--wb-line-strong));
+    color: var(--wb-danger, var(--wb-ink));
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+}
+
+/* Seven columns do not fit a phone at the desktop size. */
+@media (max-width: 30rem) {
+  .panel {
+    --wb-grid-cell: 2.1rem;
+    padding: 0.75rem 0.8rem;
+  }
 }

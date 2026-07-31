@@ -4,19 +4,28 @@ import { useEffect, useState } from 'react';
 import type { CandidatePath } from '../../domain/analysis-types';
 import type { VoiceEvent, VoiceId } from '../../domain/music-types';
 import { newUserEventId } from '../shared/ids';
+import type { InsertNoteOptions, StepNoteOptions } from '../useVoiceEventEditing';
 
 /** The note-editing callbacks CandidateInspector receives from the workbench. */
 interface NoteEditActions {
   onToggleNoteLock: (candidateId: string, event: VoiceEvent) => void;
-  onStepNote: (candidateId: string, voice: VoiceId, eventId: string, direction: 1 | -1) => void;
+  onStepNote: (
+    candidateId: string,
+    voice: VoiceId,
+    eventId: string,
+    direction: 1 | -1,
+    options?: StepNoteOptions,
+  ) => void;
   onInsertNote: (
     candidateId: string,
     voice: VoiceId,
     neighborEventId: string,
     side: 'before' | 'after',
     newEventId: string,
+    options?: InsertNoteOptions,
   ) => void;
   onDeleteNote: (candidateId: string, voice: VoiceId, eventId: string) => void;
+  onToggleNoteRest: (candidateId: string, voice: VoiceId, eventId: string) => void;
   onResizeNote: (
     candidateId: string,
     voice: VoiceId,

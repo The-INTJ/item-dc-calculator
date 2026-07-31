@@ -72,7 +72,17 @@ function noteSymbols(placed: PlacedEvent, voice: VoiceId, context: TonalContext)
   }));
 }
 
-function restSymbols(gapStart: number, gapUnits: number, voice: VoiceId): RestSymbol[] {
+/**
+ * A stretch of silence as written rests. `eventId` is present when the silence
+ * is a SILENCED NOTE rather than an empty stretch of the bar — the rests look
+ * the same either way, but only one of them is something you can point at.
+ */
+function restSymbols(
+  gapStart: number,
+  gapUnits: number,
+  voice: VoiceId,
+  eventId?: string,
+): RestSymbol[] {
   const stave = STAVE_OF_VOICE[voice];
   return decomposeRestSpan(gapStart, gapUnits).map((rest) => ({
     id: `rest-${voice}@${rest.startUnit}`,
@@ -82,6 +92,7 @@ function restSymbols(gapStart: number, gapUnits: number, voice: VoiceId): RestSy
     units: rest.units,
     base: rest.base,
     step: restStepFor(rest.base, voice),
+    eventId,
   }));
 }
 
@@ -103,7 +114,12 @@ export function voiceSymbols(
     if (placed.startUnit > cursor) {
       rests.push(...restSymbols(cursor, placed.startUnit - cursor, voice));
     }
-    notes.push(...noteSymbols(placed, voice, context));
+    // A silenced note holds its place and its length; only its head goes away.
+    if (placed.event.isRest) {
+      rests.push(...restSymbols(placed.startUnit, placed.units, voice, placed.event.id));
+    } else {
+      notes.push(...noteSymbols(placed, voice, context));
+    }
     cursor = Math.max(cursor, placed.startUnit + placed.units);
   }
   if (cursor < gridUnits) {
