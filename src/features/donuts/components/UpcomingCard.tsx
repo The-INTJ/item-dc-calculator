@@ -43,7 +43,9 @@ export function UpcomingCard({
           onClick={onVolunteer}
           disabled={busy}
         >
-          I can do it
+          {sunday.personId
+            ? `I can do it instead (replaces ${sunday.personName})`
+            : 'I can do it'}
         </button>
       </div>
     </section>

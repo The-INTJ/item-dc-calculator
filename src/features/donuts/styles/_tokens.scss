@@ -1,27 +1,37 @@
-// Shared visual tokens for the donut rotation UI.
+// Visual tokens for the donut rotation UI.
+//
+// The look is an old Primitive Baptist meetinghouse: lime-washed plaster,
+// heart-pine floors, a cloth-bound hymnal, and letterpress type on aged paper.
+// That tradition is deliberately unadorned — no instruments, no stained glass,
+// no ornament — so the styling stays plain on purpose: square corners, hairline
+// rules instead of drop shadows, and no gradients anywhere.
 
-$glaze: #d94f8c;
-$glaze-dark: #ad3468;
-$glaze-soft: #fdeaf2;
-$glaze-line: #f2c3d7;
+// Lime-washed plaster and aged hymnal paper.
+$paper: #f1eade;
+$paper-deep: #e5dccb;
+$surface: #fbf7ef;
 
-$cocoa: #6b4326;
-$cocoa-soft: #f6ece2;
+// Letterpress ink on that paper.
+$ink: #1b1713;
+$ink-soft: #4e4640;
+$ink-faint: #857a6c;
 
-$ink: #241c20;
-$ink-soft: #63565c;
-$ink-faint: #948a8f;
+// Oxblood cloth hymnal binding — the one accent the room allows.
+$oxblood: #7a2a24;
+$oxblood-dark: #571d18;
+$oxblood-soft: #efe0dd;
 
-$red: #c0392b;
+// Heart-pine pews and floorboards.
+$pine: #5d4426;
+$pine-soft: #eae0cd;
 
-$line: rgba(36, 28, 32, 0.14);
-$line-strong: rgba(36, 28, 32, 0.32);
+// Hairline rules, the way a hymnal page is ruled.
+$rule: rgba(27, 23, 19, 0.2);
+$rule-strong: rgba(27, 23, 19, 0.45);
 
-$surface: #ffffff;
-$surface-sunken: #faf5f7;
+// Squared off. A meetinghouse has no rounded corners.
+$radius: 2px;
+$radius-sm: 2px;
 
-$radius: 16px;
-$radius-sm: 10px;
-
-$shadow: 0 1px 2px rgba(36, 28, 32, 0.08), 0 12px 30px rgba(36, 28, 32, 0.08);
-$shadow-lift: 0 2px 6px rgba(173, 52, 104, 0.16), 0 18px 44px rgba(173, 52, 104, 0.16);
+$serif: 'Fraunces', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+$sans: 'Inter', system-ui, -apple-system, sans-serif;

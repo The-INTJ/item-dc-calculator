@@ -18,45 +18,47 @@ export function DonutsAdminView() {
   const { board, loading, error, reload, busy, actionError, run } = useDonutsAdmin();
 
   return (
-    <div className={styles.page}>
-      <Link href="/donuts" className={styles.backLink}>
-        ← Sunday donuts
-      </Link>
+    <div className={styles.shell}>
+      <div className={styles.page}>
+        <Link href="/donuts" className={styles.backLink}>
+          ← Sunday Donuts
+        </Link>
 
-      <header className={styles.head}>
-        <h1 className={styles.title}>Donut rotation admin</h1>
-        <p className={styles.tagline}>
-          People, the base rotation, one-off overrides, and the history behind them.
-        </p>
-      </header>
+        <header className={styles.head}>
+          <h1 className={styles.title}>Donut rotation admin</h1>
+          <p className={styles.tagline}>
+            People, the base rotation, one-off overrides, and the history behind them.
+          </p>
+        </header>
 
-      {loading && <div className={styles.state}>Loading the board…</div>}
+        {loading && <div className={styles.state}>Loading the board…</div>}
 
-      {!loading && error && (
-        <div className={styles.state}>
-          <p className={styles.error}>{error}</p>
-          <button type="button" className={styles.button} onClick={reload}>
-            Try again
-          </button>
-        </div>
-      )}
+        {!loading && error && (
+          <div className={styles.state}>
+            <p className={styles.error}>{error}</p>
+            <button type="button" className={styles.button} onClick={reload}>
+              Try again
+            </button>
+          </div>
+        )}
 
-      {actionError && <p className={styles.error}>{actionError}</p>}
+        {actionError && <p className={styles.error}>{actionError}</p>}
 
-      {board && (
-        <>
-          <ScheduleOutlook board={board} busy={busy} run={run} />
-          <PeopleEditor people={board.people} busy={busy} run={run} />
-          <RotationEditor
-            rotation={board.rotation}
-            people={board.people}
-            busy={busy}
-            run={run}
-          />
-          <OverridesEditor board={board} busy={busy} run={run} />
-          <AdminLog log={board.log} />
-        </>
-      )}
+        {board && (
+          <>
+            <ScheduleOutlook board={board} busy={busy} run={run} />
+            <PeopleEditor people={board.people} busy={busy} run={run} />
+            <RotationEditor
+              rotation={board.rotation}
+              people={board.people}
+              busy={busy}
+              run={run}
+            />
+            <OverridesEditor board={board} busy={busy} run={run} />
+            <AdminLog log={board.log} />
+          </>
+        )}
+      </div>
     </div>
   );
 }

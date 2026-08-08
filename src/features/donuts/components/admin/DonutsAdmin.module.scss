@@ -1,13 +1,20 @@
 @use '../../styles/tokens' as *;
 
+.shell {
+  min-height: 100vh;
+  background: $paper;
+  color: $ink;
+  font-family: $sans;
+}
+
 .page {
   margin: 0 auto;
   max-width: 46rem;
   width: 100%;
-  padding: 1.75rem 1.1rem 4rem;
+  padding: 1.6rem 1.15rem 4rem;
   display: flex;
   flex-direction: column;
-  gap: 1.4rem;
+  gap: 1.3rem;
 
   input,
   select,
@@ -20,30 +27,35 @@
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 3px double $rule-strong;
 }
 
 .title {
   margin: 0;
-  font-size: 1.55rem;
-  font-weight: 700;
+  font-family: $serif;
+  font-size: 1.6rem;
+  font-weight: 600;
   color: $ink;
 }
 
 .tagline {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: $ink-soft;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .backLink {
-  font-size: 0.86rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  color: $ink-soft;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: $ink-faint;
   text-decoration: none;
 
   &:hover {
-    color: $glaze-dark;
+    color: $oxblood;
   }
 }
 
@@ -53,29 +65,31 @@
   gap: 0.75rem;
   padding: 1rem;
   background: $surface;
-  border: 1px solid $line;
+  border: 1px solid $rule-strong;
   border-radius: $radius;
-  box-shadow: $shadow;
 }
 
 .cardTitle {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid $rule;
+  font-family: $serif;
+  font-size: 1.05rem;
+  font-weight: 600;
   color: $ink;
 }
 
 .cardHint {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: $ink-soft;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .rows {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .row {
@@ -83,15 +97,17 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.55rem;
-  background: $surface-sunken;
-  border-radius: $radius-sm;
+  padding: 0.5rem;
+  background: $paper;
+  border: 1px solid $rule;
+  border-radius: $radius;
 }
 
 .rowLabel {
   flex: 0 0 5.5rem;
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-family: $serif;
+  font-size: 0.86rem;
+  font-weight: 600;
   color: $ink-soft;
 }
 
@@ -103,16 +119,19 @@
 .input,
 .select {
   min-height: 42px;
-  padding: 0.45rem 0.55rem;
-  border: 1px solid $line-strong;
-  border-radius: $radius-sm;
+  padding: 0.45rem 0.5rem;
+  border: 1px solid $rule-strong;
+  border-radius: $radius;
   background: $surface;
   color: $ink;
-  font: inherit;
+  font-family: $sans;
   font-size: 0.92rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
 
   &:focus-visible {
-    outline: 2px solid $glaze;
+    outline: 2px solid $oxblood;
     outline-offset: 1px;
   }
 }
@@ -121,50 +140,57 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.82rem;
-  font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: $ink-soft;
   white-space: nowrap;
 }
 
 .button {
   min-height: 42px;
-  padding: 0.45rem 0.85rem;
-  border: 1px solid $line-strong;
-  border-radius: $radius-sm;
-  background: $surface;
-  color: $ink;
-  font: inherit;
-  font-size: 0.88rem;
-  font-weight: 600;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid $rule-strong;
+  border-radius: $radius;
+  background: transparent;
+  color: $ink-soft;
+  font-family: $sans;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   cursor: pointer;
   white-space: nowrap;
 
   &:hover:not(:disabled) {
-    background: $surface-sunken;
+    background: $paper-deep;
+    color: $ink;
   }
   &:disabled {
-    opacity: 0.55;
+    opacity: 0.5;
     cursor: default;
   }
 }
 
 .buttonPrimary {
-  border-color: $glaze;
-  background: $glaze;
-  color: #ffffff;
+  border-color: $oxblood-dark;
+  background: $oxblood;
+  color: $paper;
 
   &:hover:not(:disabled) {
-    background: $glaze-dark;
+    background: $oxblood-dark;
+    color: $paper;
   }
 }
 
 .buttonDanger {
-  border-color: rgba(192, 57, 43, 0.4);
-  color: $red;
+  border-color: $rule-strong;
+  color: $oxblood;
 
   &:hover:not(:disabled) {
-    background: #fbeceb;
+    background: $oxblood-soft;
+    color: $oxblood-dark;
   }
 }
 
@@ -179,9 +205,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  font-size: 0.76rem;
+  font-size: 0.66rem;
   font-weight: 700;
-  color: $ink-soft;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: $ink-faint;
 }
 
 .list {
@@ -194,35 +222,38 @@
 }
 
 .listItem {
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   color: $ink-soft;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .muted {
   color: $ink-faint;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
 }
 
 .badge {
-  padding: 0.1rem 0.4rem;
-  border-radius: 999px;
-  background: $cocoa-soft;
-  color: $cocoa;
-  font-size: 0.72rem;
+  padding: 0.12rem 0.4rem;
+  border: 1px solid $rule;
+  border-radius: $radius;
+  background: $pine-soft;
+  color: $pine;
+  font-size: 0.66rem;
   font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
 .badgeCover {
-  background: $glaze-soft;
-  color: $glaze-dark;
+  background: $oxblood-soft;
+  color: $oxblood;
 }
 
 .error {
   margin: 0;
-  color: $red;
-  font-size: 0.85rem;
+  color: $oxblood;
+  font-size: 0.84rem;
 }
 
 .state {
@@ -230,6 +261,6 @@
   text-align: center;
   color: $ink-soft;
   background: $surface;
-  border: 1px dashed $line-strong;
+  border: 1px solid $rule;
   border-radius: $radius;
 }

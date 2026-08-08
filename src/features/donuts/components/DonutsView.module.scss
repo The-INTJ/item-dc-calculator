@@ -1,13 +1,21 @@
 @use '../styles/tokens' as *;
 
+/* The paper the whole page is printed on. */
+.shell {
+  min-height: 100vh;
+  background: $paper;
+  color: $ink;
+  font-family: $sans;
+}
+
 .page {
   margin: 0 auto;
-  max-width: 34rem;
+  max-width: 32rem;
   width: 100%;
-  padding: 1.75rem 1.1rem 4rem;
+  padding: 1.6rem 1.15rem 4rem;
   display: flex;
   flex-direction: column;
-  gap: 1.35rem;
+  gap: 1.3rem;
 
   input,
   select,
@@ -21,34 +29,44 @@
 }
 
 .backLink {
-  font-size: 0.86rem;
+  font-family: $sans;
+  font-size: 0.78rem;
   font-weight: 600;
-  color: $ink-soft;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: $ink-faint;
   text-decoration: none;
 
   &:hover {
-    color: $glaze-dark;
+    color: $oxblood;
   }
 }
 
+/* Header set like a hymnal title page: centred, serif, double rule beneath. */
 .head {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.3rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 3px double $rule-strong;
+  text-align: center;
 }
 
 .title {
   margin: 0;
-  font-size: 1.7rem;
-  font-weight: 700;
+  font-family: $serif;
+  font-size: 1.85rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   color: $ink;
 }
 
 .tagline {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.86rem;
   color: $ink-soft;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 /* --- The one thing you came here to read ------------------------------- */
@@ -57,97 +75,105 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.45rem;
-  padding: 2rem 1.2rem 1.6rem;
+  gap: 0.5rem;
+  padding: 2.2rem 1.2rem 1.7rem;
   text-align: center;
-  background: linear-gradient(180deg, $glaze-soft 0%, $surface 62%);
-  border: 1px solid $glaze-line;
+  background: $surface;
+  border: 1px solid $rule-strong;
   border-radius: $radius;
-  box-shadow: $shadow-lift;
 }
 
 .heroLabel {
   margin: 0;
-  font-size: 0.78rem;
+  font-family: $sans;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: $glaze-dark;
+  color: $oxblood;
 }
 
 .heroName {
   margin: 0;
-  font-size: clamp(2.4rem, 13vw, 3.6rem);
-  font-weight: 800;
-  line-height: 1.05;
+  font-family: $serif;
+  font-size: clamp(2.2rem, 12vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1.08;
   color: $ink;
   overflow-wrap: anywhere;
 }
 
 .heroDate {
   margin: 0;
+  font-family: $serif;
   font-size: 1.02rem;
-  font-weight: 600;
-  color: $cocoa;
+  font-style: italic;
+  color: $pine;
 }
 
 .heroWhy {
-  margin: 0.15rem 0 0;
-  font-size: 0.87rem;
+  margin: 0.3rem 0 0;
+  padding-top: 0.7rem;
+  border-top: 1px solid $rule;
+  max-width: 22rem;
+  font-size: 0.84rem;
   color: $ink-soft;
-  line-height: 1.45;
-  max-width: 24rem;
+  line-height: 1.55;
 }
 
 .heroActions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
+  flex-direction: column;
+  gap: 0.5rem;
   width: 100%;
-  margin-top: 1rem;
+  margin-top: 1.15rem;
 }
 
 .primaryButton,
 .secondaryButton {
-  flex: 1 1 12rem;
+  width: 100%;
   min-height: 50px;
-  padding: 0.7rem 1rem;
-  border-radius: $radius-sm;
-  font: inherit;
-  font-size: 1rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: $radius;
+  font-family: $sans;
+  font-size: 0.82rem;
   font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.35;
   cursor: pointer;
 
   &:disabled {
-    opacity: 0.55;
+    opacity: 0.5;
     cursor: default;
   }
 }
 
 .primaryButton {
-  border: 0;
-  background: $glaze;
-  color: #ffffff;
+  border: 1px solid $oxblood-dark;
+  background: $oxblood;
+  color: $paper;
 
   &:hover:not(:disabled) {
-    background: $glaze-dark;
+    background: $oxblood-dark;
   }
   &:focus-visible {
-    outline: 2px solid $glaze-dark;
+    outline: 2px solid $ink;
     outline-offset: 2px;
   }
 }
 
 .secondaryButton {
-  border: 1px solid $line-strong;
-  background: $surface;
-  color: $ink;
+  border: 1px solid $rule-strong;
+  background: transparent;
+  color: $ink-soft;
 
   &:hover:not(:disabled) {
-    background: $surface-sunken;
+    background: $paper-deep;
+    color: $ink;
   }
   &:focus-visible {
-    outline: 2px solid $glaze;
+    outline: 2px solid $oxblood;
     outline-offset: 2px;
   }
 }
@@ -157,29 +183,33 @@
 .nextUp {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   align-items: baseline;
   gap: 0.35rem;
-  padding: 0 0.15rem;
-  font-size: 0.87rem;
+  margin: 0;
+  font-size: 0.83rem;
   color: $ink-faint;
 }
 
 .nextUpName {
-  font-weight: 700;
+  font-family: $serif;
+  font-weight: 600;
   color: $ink-soft;
 }
 
 .logSection {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.55rem;
+  padding-top: 1rem;
+  border-top: 1px solid $rule;
 }
 
 .logHeading {
   margin: 0;
-  font-size: 0.76rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: $ink-faint;
 }
@@ -190,13 +220,13 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.35rem;
 }
 
 .logItem {
-  font-size: 0.83rem;
+  font-size: 0.82rem;
   color: $ink-soft;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .logReason {
@@ -212,16 +242,16 @@
   padding: 2.1rem 1rem;
   text-align: center;
   color: $ink-soft;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   background: $surface;
-  border: 1px dashed $line-strong;
+  border: 1px solid $rule;
   border-radius: $radius;
 }
 
 .error {
   margin: 0;
-  color: $red;
-  font-size: 0.85rem;
+  color: $oxblood;
+  font-size: 0.84rem;
 }
 
 /* --- Dialog shell ------------------------------------------------------ */
@@ -234,7 +264,7 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background: rgba(36, 28, 32, 0.55);
+  background: rgba(27, 23, 19, 0.6);
 }
 
 .dialog {
@@ -242,50 +272,59 @@
   flex-direction: column;
   gap: 0.85rem;
   width: 100%;
-  max-width: 26rem;
-  padding: 1.15rem;
+  max-width: 25rem;
+  padding: 1.2rem;
   background: $surface;
+  border: 1px solid $ink;
   border-radius: $radius;
-  box-shadow: 0 18px 50px rgba(36, 28, 32, 0.4);
+  font-family: $sans;
 }
 
 .dialogTitle {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
+  padding-bottom: 0.6rem;
+  border-bottom: 3px double $rule-strong;
+  font-family: $serif;
+  font-size: 1.15rem;
+  font-weight: 600;
   color: $ink;
 }
 
 .dialogHint {
   margin: 0;
-  font-size: 0.86rem;
+  font-size: 0.85rem;
   color: $ink-soft;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: $ink-soft;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: $ink-faint;
 }
 
 .input,
 .select {
   width: 100%;
   min-height: 46px;
-  padding: 0.6rem 0.7rem;
-  border: 1px solid $line-strong;
-  border-radius: $radius-sm;
-  background: $surface;
+  padding: 0.6rem 0.65rem;
+  border: 1px solid $rule-strong;
+  border-radius: $radius;
+  background: $paper;
   color: $ink;
-  font: inherit;
+  font-family: $sans;
+  font-size: 1rem;
   font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
 
   &:focus-visible {
-    outline: 2px solid $glaze;
+    outline: 2px solid $oxblood;
     outline-offset: 1px;
   }
 }
@@ -299,29 +338,34 @@
 .dialogButton {
   min-height: 44px;
   padding: 0.55rem 1rem;
-  border: 1px solid $line-strong;
-  border-radius: $radius-sm;
-  background: $surface;
-  color: $ink;
-  font: inherit;
-  font-weight: 600;
+  border: 1px solid $rule-strong;
+  border-radius: $radius;
+  background: transparent;
+  color: $ink-soft;
+  font-family: $sans;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   cursor: pointer;
 
   &:hover:not(:disabled) {
-    background: $surface-sunken;
+    background: $paper-deep;
+    color: $ink;
   }
   &:disabled {
-    opacity: 0.55;
+    opacity: 0.5;
     cursor: default;
   }
 }
 
 .dialogButtonPrimary {
-  border-color: $glaze;
-  background: $glaze;
-  color: #ffffff;
+  border-color: $oxblood-dark;
+  background: $oxblood;
+  color: $paper;
 
   &:hover:not(:disabled) {
-    background: $glaze-dark;
+    background: $oxblood-dark;
+    color: $paper;
   }
 }
