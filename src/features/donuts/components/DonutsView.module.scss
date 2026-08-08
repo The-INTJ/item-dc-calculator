@@ -1,0 +1,327 @@
+@use '../styles/tokens' as *;
+
+.page {
+  margin: 0 auto;
+  max-width: 34rem;
+  width: 100%;
+  padding: 1.75rem 1.1rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+
+  input,
+  select,
+  textarea {
+    font-size: 1rem;
+  }
+}
+
+.topBar {
+  display: flex;
+}
+
+.backLink {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: $ink-soft;
+  text-decoration: none;
+
+  &:hover {
+    color: $glaze-dark;
+  }
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: $ink;
+}
+
+.tagline {
+  margin: 0;
+  font-size: 0.95rem;
+  color: $ink-soft;
+  line-height: 1.45;
+}
+
+/* --- The one thing you came here to read ------------------------------- */
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 2rem 1.2rem 1.6rem;
+  text-align: center;
+  background: linear-gradient(180deg, $glaze-soft 0%, $surface 62%);
+  border: 1px solid $glaze-line;
+  border-radius: $radius;
+  box-shadow: $shadow-lift;
+}
+
+.heroLabel {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: $glaze-dark;
+}
+
+.heroName {
+  margin: 0;
+  font-size: clamp(2.4rem, 13vw, 3.6rem);
+  font-weight: 800;
+  line-height: 1.05;
+  color: $ink;
+  overflow-wrap: anywhere;
+}
+
+.heroDate {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: $cocoa;
+}
+
+.heroWhy {
+  margin: 0.15rem 0 0;
+  font-size: 0.87rem;
+  color: $ink-soft;
+  line-height: 1.45;
+  max-width: 24rem;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.primaryButton,
+.secondaryButton {
+  flex: 1 1 12rem;
+  min-height: 50px;
+  padding: 0.7rem 1rem;
+  border-radius: $radius-sm;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+.primaryButton {
+  border: 0;
+  background: $glaze;
+  color: #ffffff;
+
+  &:hover:not(:disabled) {
+    background: $glaze-dark;
+  }
+  &:focus-visible {
+    outline: 2px solid $glaze-dark;
+    outline-offset: 2px;
+  }
+}
+
+.secondaryButton {
+  border: 1px solid $line-strong;
+  background: $surface;
+  color: $ink;
+
+  &:hover:not(:disabled) {
+    background: $surface-sunken;
+  }
+  &:focus-visible {
+    outline: 2px solid $glaze;
+    outline-offset: 2px;
+  }
+}
+
+/* --- Everything below the fold stays quiet ----------------------------- */
+
+.nextUp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0 0.15rem;
+  font-size: 0.87rem;
+  color: $ink-faint;
+}
+
+.nextUpName {
+  font-weight: 700;
+  color: $ink-soft;
+}
+
+.logSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.logHeading {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $ink-faint;
+}
+
+.logList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.logItem {
+  font-size: 0.83rem;
+  color: $ink-soft;
+  line-height: 1.45;
+}
+
+.logReason {
+  color: $ink-faint;
+  font-style: italic;
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 2.1rem 1rem;
+  text-align: center;
+  color: $ink-soft;
+  font-size: 0.95rem;
+  background: $surface;
+  border: 1px dashed $line-strong;
+  border-radius: $radius;
+}
+
+.error {
+  margin: 0;
+  color: $red;
+  font-size: 0.85rem;
+}
+
+/* --- Dialog shell ------------------------------------------------------ */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(36, 28, 32, 0.55);
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  width: 100%;
+  max-width: 26rem;
+  padding: 1.15rem;
+  background: $surface;
+  border-radius: $radius;
+  box-shadow: 0 18px 50px rgba(36, 28, 32, 0.4);
+}
+
+.dialogTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: $ink;
+}
+
+.dialogHint {
+  margin: 0;
+  font-size: 0.86rem;
+  color: $ink-soft;
+  line-height: 1.45;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: $ink-soft;
+}
+
+.input,
+.select {
+  width: 100%;
+  min-height: 46px;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid $line-strong;
+  border-radius: $radius-sm;
+  background: $surface;
+  color: $ink;
+  font: inherit;
+  font-weight: 400;
+
+  &:focus-visible {
+    outline: 2px solid $glaze;
+    outline-offset: 1px;
+  }
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.dialogButton {
+  min-height: 44px;
+  padding: 0.55rem 1rem;
+  border: 1px solid $line-strong;
+  border-radius: $radius-sm;
+  background: $surface;
+  color: $ink;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $surface-sunken;
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+.dialogButtonPrimary {
+  border-color: $glaze;
+  background: $glaze;
+  color: #ffffff;
+
+  &:hover:not(:disabled) {
+    background: $glaze-dark;
+  }
+}

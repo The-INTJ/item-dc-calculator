@@ -35,6 +35,9 @@
       "@/plants/*": [
         "./src/features/plants/*"
       ],
+      "@/donuts/*": [
+        "./src/features/donuts/*"
+      ],
       "@/lib/*": [
         "./src/lib/*"
       ]

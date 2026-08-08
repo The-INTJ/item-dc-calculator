@@ -1,0 +1,235 @@
+@use '../../styles/tokens' as *;
+
+.page {
+  margin: 0 auto;
+  max-width: 46rem;
+  width: 100%;
+  padding: 1.75rem 1.1rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+
+  input,
+  select,
+  textarea {
+    font-size: 1rem;
+  }
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: $ink;
+}
+
+.tagline {
+  margin: 0;
+  font-size: 0.9rem;
+  color: $ink-soft;
+  line-height: 1.45;
+}
+
+.backLink {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: $ink-soft;
+  text-decoration: none;
+
+  &:hover {
+    color: $glaze-dark;
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: $surface;
+  border: 1px solid $line;
+  border-radius: $radius;
+  box-shadow: $shadow;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: $ink;
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: $ink-soft;
+  line-height: 1.45;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem;
+  background: $surface-sunken;
+  border-radius: $radius-sm;
+}
+
+.rowLabel {
+  flex: 0 0 5.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: $ink-soft;
+}
+
+.grow {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+
+.input,
+.select {
+  min-height: 42px;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid $line-strong;
+  border-radius: $radius-sm;
+  background: $surface;
+  color: $ink;
+  font: inherit;
+  font-size: 0.92rem;
+
+  &:focus-visible {
+    outline: 2px solid $glaze;
+    outline-offset: 1px;
+  }
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: $ink-soft;
+  white-space: nowrap;
+}
+
+.button {
+  min-height: 42px;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid $line-strong;
+  border-radius: $radius-sm;
+  background: $surface;
+  color: $ink;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: $surface-sunken;
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+.buttonPrimary {
+  border-color: $glaze;
+  background: $glaze;
+  color: #ffffff;
+
+  &:hover:not(:disabled) {
+    background: $glaze-dark;
+  }
+}
+
+.buttonDanger {
+  border-color: rgba(192, 57, 43, 0.4);
+  color: $red;
+
+  &:hover:not(:disabled) {
+    background: #fbeceb;
+  }
+}
+
+.inlineForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: flex-end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: $ink-soft;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.listItem {
+  font-size: 0.85rem;
+  color: $ink-soft;
+  line-height: 1.5;
+}
+
+.muted {
+  color: $ink-faint;
+  font-size: 0.82rem;
+}
+
+.badge {
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: $cocoa-soft;
+  color: $cocoa;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badgeCover {
+  background: $glaze-soft;
+  color: $glaze-dark;
+}
+
+.error {
+  margin: 0;
+  color: $red;
+  font-size: 0.85rem;
+}
+
+.state {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: $ink-soft;
+  background: $surface;
+  border: 1px dashed $line-strong;
+  border-radius: $radius;
+}

@@ -26,6 +26,11 @@ const experiences: Experience[] = [
     href: '/dc-calculator',
   },
   {
+    title: 'Sunday Donuts',
+    description: 'Whose turn it is to bring donuts for Sunday-morning breakfast.',
+    href: '/donuts',
+  },
+  {
     title: 'Hymn Harmonization Workbench',
     description: 'Audition four-part harmonizations of a hymn melody fragment (UI proof of concept).',
     href: '/harmonizer',

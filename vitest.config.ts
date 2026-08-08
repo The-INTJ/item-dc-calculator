@@ -6,6 +6,7 @@ export default defineConfig({
     alias: {
       '@/contest': path.resolve(__dirname, 'src/features/contest'),
       '@/plants': path.resolve(__dirname, 'src/features/plants'),
+      '@/donuts': path.resolve(__dirname, 'src/features/donuts'),
       '@/components': path.resolve(__dirname, 'src/components'),
       '@/features': path.resolve(__dirname, 'src/features'),
       '@/lib': path.resolve(__dirname, 'src/lib'),
