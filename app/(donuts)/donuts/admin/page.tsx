@@ -3,9 +3,8 @@ import type { Metadata, Viewport } from 'next';
 import { DonutsAdminView } from '@/donuts/components';
 
 /**
- * The canonical admin path. `app/[...donutsPath]/admin` serves the same view
- * from any other prefix (e.g. `/Dan/admin`); this explicit route exists because
- * Next.js resolves the static `donuts` segment before the root catch-all.
+ * The admin path — unlisted rather than gated, which is the access model the
+ * group asked for. `robots` keeps it out of search results.
  */
 export const metadata: Metadata = {
   title: 'Donut rotation admin',
