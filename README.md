@@ -1,9 +1,10 @@
 # Item DC Calculator
 
-This repository hosts two experiences inside one Next.js App Router app:
+This repository hosts several experiences inside one Next.js App Router app:
 
 - Contest app: the active product area for contest setup, judging, scoring, and display mode
 - DC calculator: the legacy D&D item calculator preserved on `/dc-calculator`
+- Grass Manager: a weather-aware lawn-care workspace on `/grass-manager`
 
 The contest app is the active focus. The DC calculator still ships, but it is treated as frozen unless a task explicitly targets it.
 
@@ -29,12 +30,14 @@ Recommended Node version: current LTS (`Node 20`).
 - `/admin/contest-setup`: contest creation flow
 - `/onboard`: guest/Google sign-in flow
 - `/dc-calculator`: legacy calculator
+- `/grass-manager`: weather-aware lawn care and yard-zone manager
 
 ## Repo map
 
 - `app/`: Next.js routes, layouts, and API handlers
 - `src/features/contest/`: contest UI, data logic, hooks, styles, and docs
 - `src/features/dc-calculator/`: frozen calculator code
+- `src/features/grass-manager/`: yard model, deterministic weather rules, local care state, and tip cards
 - `src/components/`: shared app-shell components
 - `public/`: static assets
 

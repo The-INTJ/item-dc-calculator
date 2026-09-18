@@ -26,6 +26,11 @@ const experiences: Experience[] = [
     href: '/dc-calculator',
   },
   {
+    title: 'Grass Manager',
+    description: 'Weather-aware lawn care, a clickable yard map, and a care log.',
+    href: '/grass-manager',
+  },
+  {
     title: 'Sunday Donuts',
     description: 'Whose turn it is to bring donuts for Sunday-morning breakfast.',
     href: '/donuts',
