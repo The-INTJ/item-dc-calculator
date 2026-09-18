@@ -2,12 +2,13 @@
 
 ## What this repo is
 
-This is a Next.js App Router application with four product/demo areas:
+This is a Next.js App Router application with five product/demo areas:
 
 - Contest app: active feature set for contest creation, judging, scoring, and display mode
 - Plant tracker: lightweight personal tracker for plant care, notes, and appearance logs
 - Pilates Mentors: static design preview of the redesigned pilatesmentors.com homepage, built for client feedback
 - DC calculator: legacy calculator preserved inside the same shell
+- Grass Manager: weather-aware lawn planning with a local yard model and care log
 
 The contest app is the active area. The DC calculator is intentionally stable and should only receive targeted changes.
 
@@ -24,6 +25,7 @@ The contest app is the active area. The DC calculator is intentionally stable an
 - `/pilates-mentors`: Pilates Mentors design preview (noindex, single static page)
 - `/plants`: plant tracker
 - `/dc-calculator`: legacy calculator
+- `/grass-manager`: weather-aware lawn care and clickable yard model
 
 Route groups:
 
@@ -127,6 +129,22 @@ Watering events may also carry optional `weightBefore` and `weightAfter` text
 values; existing watering events can be updated through the event PATCH route.
 Legacy `watered_nutrition` records remain valid and count as both watering and
 nutrition; new fertilizer-only actions should use `fertilized`.
+
+## Grass Manager data path
+
+The Grass Manager is local-first for personal yard state:
+
+1. `src/features/grass-manager/components/useGrassState.ts` persists the lawn profile, zone selection, and care events in browser `localStorage`.
+2. `app/api/grass-manager/locations` proxies Open-Meteo geocoding.
+3. `app/api/grass-manager/weather` proxies the Open-Meteo forecast response and keeps the public API off the client surface.
+4. `src/features/grass-manager/lib/weatherRules.ts` turns the normalized daily forecast and care history into a deterministic watering plan.
+
+Tip cards start from hand-authored guidance in `src/features/grass-manager/lib/tips.ts`.
+`GET /api/grass-manager/tips` returns the merged cards; approved Firebase identities may
+use `POST /api/grass-manager/tips` and `PATCH /api/grass-manager/tips/:id` to add or revise
+cards for the current situation. The route reuses the private plant-tracker allowlist, or
+accepts `x-grass-manager-key` when the server has `GRASS_MANAGER_TIPS_API_KEY` configured
+for an agent or scheduled content job.
 
 ## Contest, Round, Matchup hierarchy
 
