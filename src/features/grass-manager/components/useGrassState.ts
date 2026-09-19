@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react';
 
 import { DEFAULT_STATE, loadGrassState, saveGrassState } from '../lib/storage';
-import type { CareEvent, GrassManagerState, GrassProfile } from '../lib/types';
+import type { CareEvent, GrassManagerState, GrassProfile, YardSegment } from '../lib/types';
 
 export function useGrassState() {
   const [state, setState] = useState<GrassManagerState>(DEFAULT_STATE);
   const [hydrated, setHydrated] = useState(false);
+  const [saveError, setSaveError] = useState(false);
 
   useEffect(() => {
     setState(loadGrassState());
@@ -15,7 +16,7 @@ export function useGrassState() {
   }, []);
 
   useEffect(() => {
-    if (hydrated) saveGrassState(state);
+    if (hydrated) setSaveError(!saveGrassState(state));
   }, [hydrated, state]);
 
   function updateProfile(patch: Partial<GrassProfile>) {
@@ -23,7 +24,13 @@ export function useGrassState() {
   }
 
   function chooseSegment(segmentId: string) {
-    setState((current) => ({ ...current, selectedSegmentId: segmentId }));
+    setState((current) => ({ ...current, selectedSegmentId: current.selectedSegmentId === segmentId ? '' : segmentId }));
+  }
+
+  function updateZone(segment: YardSegment, patch: Partial<Pick<YardSegment, 'sun' | 'condition'>>) {
+    setState((current) => ({ ...current, zones: { ...current.zones,
+      [segment.id]: { sun: segment.sun, condition: segment.condition, ...patch },
+    } }));
   }
 
   function addCareEvent(input: Omit<CareEvent, 'id'>) {
@@ -35,5 +42,5 @@ export function useGrassState() {
     setState((current) => ({ ...current, events: current.events.filter((event) => event.id !== id) }));
   }
 
-  return { state, updateProfile, chooseSegment, addCareEvent, removeCareEvent };
+  return { state, hydrated, saveError, updateProfile, updateZone, chooseSegment, addCareEvent, removeCareEvent };
 }

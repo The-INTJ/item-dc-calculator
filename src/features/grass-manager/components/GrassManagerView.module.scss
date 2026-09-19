@@ -1,218 +1,157 @@
-$ink: #193126;
-$muted: #5c6d62;
-$faint: #829188;
-$line: rgba(25, 49, 38, 0.14);
-$line-strong: rgba(25, 49, 38, 0.28);
-$paper: #fbfdf9;
-$green: #2c7a54;
-$green-dark: #18553a;
-$green-soft: #e1f0e5;
-$blue: #387998;
-$blue-soft: #e5f2f7;
-$amber: #ac6b19;
-$amber-soft: #fff1d8;
-$red: #ae5143;
-$red-soft: #fce8e2;
-$purple: #6c5798;
-$shadow: 0 18px 50px rgba(37, 70, 51, 0.1), 0 2px 8px rgba(37, 70, 51, 0.06);
+$ink: #263b31;
+$muted: #647267;
+$green: #356947;
+$line: #dce4d7;
 
-.page {
-  min-height: 100dvh;
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 1.25rem clamp(1rem, 3vw, 3rem) 4rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.1rem;
-  background: radial-gradient(circle at 100% 0%, #e9f4e7 0, transparent 28rem), $paper;
-  color: $ink;
+.page { box-sizing: border-box; max-width: 112rem; margin: 0 auto; padding: 2.2rem 2.5rem 1rem; color: $ink; font: 15px/1.5 'Segoe UI', sans-serif; }
+.page *, .page *::before, .page *::after { box-sizing: border-box; }
+.page h1, .page h2, .page h3, .page p { margin: 0; }
+.page h2 { font: 500 1.5rem/1.2 Georgia, serif; letter-spacing: -0.025em; }
+.page h3 { font-size: 1rem; }
+.page button, .page input, .page select { font: inherit; }
+.page button { border: 1px solid $line; border-radius: 6px; background: #fff; color: $ink; padding: .4rem .75rem; cursor: pointer; }
+.page button:hover { border-color: $green; background: #f0f5eb; }
+.page button:disabled { opacity: .55; cursor: wait; }
+.page input, .page select { min-width: 0; width: 100%; border: 1px solid #c7d1c3; border-radius: 5px; padding: .45rem .55rem; background: #fff; color: $ink; }
+.page :focus-visible { outline: 3px solid #7daa8a; outline-offset: 3px; }
+.page a { color: $green; }
+.page summary { cursor: pointer; }
+.hero { display: grid; grid-template-columns: auto 1fr; align-items: end; gap: 2rem; margin-bottom: 1.6rem; }
+.backLink { font-size: .74rem; text-decoration: none; }
+.hero h1 { margin-top: .3rem; font: 500 2.1rem/1.1 Georgia, serif; letter-spacing: -.045em; }
+.hero h1 span { display: block; font: 400 .78rem/1.5 'Segoe UI', sans-serif; letter-spacing: 0; margin-top: .45rem; color: $muted; }
+.hero .careActions { justify-self: end; max-width: 52rem; }
+.buttonRow { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.buttonRow button { font-size: .8rem; white-space: nowrap; }
+.scopeLabel { margin-right: .45rem; color: $muted; font-size: .75rem; white-space: nowrap; }
+.page .primaryButton { background: $green; border-color: $green; color: #fff; }
+.page .textButton { padding: .15rem .25rem; background: transparent; border-color: transparent; color: $green; font-size: .8rem; }
+.dashboard { display: grid; grid-template-columns: 1.15fr 1fr; gap: 1rem; align-items: stretch; }
+.weatherCard, .lawnCard, .yardCard { min-width: 0; border: 1px solid $line; border-radius: 12px; background: #fffefa; padding: 1.4rem; }
+.weatherCard { background: linear-gradient(140deg, #f4f7ed, #fffefa 55%); }
+.cardHeading { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; }
+.subtle { color: $muted; font-size: .76rem; }
+.weatherNow { display: flex; align-items: center; gap: .65rem; white-space: nowrap; }
+.weatherNow > span { font-size: 1.35rem; font-weight: 600; }
+.weatherNow small { font-size: .72rem; font-weight: 400; color: $muted; }
+.locationPicker { position: relative; margin-top: .3rem; color: $muted; font-size: .76rem; }
+.locationPicker summary { width: fit-content; max-width: 24rem; }
+.locationMenu { position: absolute; z-index: 10; top: calc(100% + .5rem); left: 0; width: min(30rem, 80vw); padding: 1rem; border: 1px solid $line; border-radius: 8px; background: #fff; box-shadow: 0 8px 24px #233d2620; }
+.locationForm { display: flex; align-items: end; gap: .5rem; flex-wrap: wrap; }
+.locationForm label { flex: 1 1 10rem; }
+.locationForm > .textButton { flex-basis: 100%; text-align: left; }
+.locationResults { list-style: none; padding: 0; margin: .6rem 0 0; }
+.locationResults button { width: 100%; margin-top: .35rem; text-align: left; }
+.locationResults small { display: block; color: $muted; }
+.forecastStrip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .35rem; margin-top: 1.5rem; }
+.page .forecastDay { display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .75rem .2rem .55rem; border-color: transparent; border-radius: 7px; background: transparent; min-width: 0; }
+.page .forecastDay[aria-pressed='true'] { border-color: #adc3a5; background: #eaf1e2; }
+.forecastDay > strong { font-size: .8rem; font-weight: 600; }
+.weatherIcon { display: block; font-size: 1.85rem; line-height: 1.4; }
+.temperatures { font-size: 1.35rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.temperatures small { font-size: .85rem; color: $muted; font-weight: 400; }
+.rainBar { position: relative; display: block; width: 70%; height: 20px; margin-top: .3rem; border-bottom: 1px solid #cfdee4; }
+.rainBar i { position: absolute; bottom: 0; left: 0; right: 0; height: var(--rain); min-height: 1px; background: #a2c5d1; border-radius: 3px 3px 0 0; }
+.rainLabel { font-size: .7rem; color: #426778; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dayAction { margin-top: .45rem; font-size: .69rem; font-weight: 650; color: #536451; text-align: center; line-height: 1.25; min-height: 1.8rem; }
+.forecastDay[data-status='water-now'] .dayAction { color: #8b5c26; }
+.plan { border-top: 1px solid $line; margin-top: 1.1rem; padding-top: .95rem; }
+.plan h3 { color: $muted; font-size: .74rem; font-weight: 400; }
+.plan h3 span { display: inline-block; color: $green; font-size: 1.16rem; font-weight: 600; margin-left: .7rem; }
+.plan[data-status='water-now'] h3 span { color: #8b5c26; }
+.plan p { margin-top: .3rem; font-size: .85rem; max-width: 46rem; }
+.plan small { display: block; margin-top: .25rem; font-size: .75rem; color: $muted; }
+.forecastCaption { margin-top: .8rem !important; font-size: .64rem; color: $muted; }
+.weatherEmpty { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 260px; text-align: center; color: $muted; }
+.weatherEmpty > span { font-size: 3rem; color: #829879; }
+.weatherEmpty h3 { color: $ink; font-weight: 500; margin-top: .8rem; }
+.weatherEmpty p { font-size: .85rem; margin-top: .35rem; }
+.profileForm { display: grid; grid-template-columns: 1fr 1fr; gap: .85rem; margin-top: 1.4rem; }
+.field { display: flex; flex-direction: column; gap: .3rem; color: $muted; font-size: .73rem; }
+.wideField { grid-column: 1 / -1; }
+.formPair { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; align-content: start; }
+.subDetails { font-size: .76rem; color: $muted; }
+.subDetails > p { margin: .6rem 0; }
+.weedList { margin-top: .6rem; }
+.weedRow { display: grid; grid-template-columns: 7.5rem 1fr; gap: 1rem; padding: .65rem 0; border-bottom: 1px solid #e7eadf; }
+.weedRow > strong { font-size: .85rem; font-weight: 600; text-transform: capitalize; }
+.weedRow > strong span { display: block; font-size: .65rem; font-weight: 400; text-transform: none; color: $green; margin-top: .15rem; }
+.weedRow p { font-size: .8rem; line-height: 1.5; }
+.weedTiming { margin-top: .25rem; font-size: .67rem; color: $muted; }
+.weedTiming p { font-size: .73rem; margin: .35rem 0; }
+.seasonNote { display: grid; grid-template-columns: 7.5rem 1fr; gap: 1rem; margin-top: 1rem !important; font-size: .78rem; }
+.seasonNote strong { font-size: .75rem; font-weight: 600; color: $green; }
+.treatmentNote { font-size: .72rem; color: $muted; margin-top: .75rem !important; }
+.sourceLink { display: inline-block; margin-top: .4rem; font-size: .65rem; text-decoration: none; }
+.quiet { color: $muted; font-size: .8rem; }
+.inlineError { color: #933c30; font-size: .8rem; margin: .6rem 0 !important; }
+.yardCard { margin-top: 1rem; padding-block: 1rem; }
+.yardCard > .cardHeading { align-items: baseline; margin-bottom: .6rem; }
+.yardCard h2 { font-size: 1.25rem; }
+.yardMap { position: relative; isolation: isolate; display: grid; grid-template-columns: 1fr 3fr 1fr; grid-template-rows: 22px 50px 42px 30px; gap: 5px; padding: 0 1rem .35rem; background: #f3f2e8; border-radius: 8px; overflow: hidden; }
+.treeLine { grid-column: 1 / -1; grid-row: 1; z-index: -1; background: radial-gradient(ellipse at 40% 0%, #3c6548 15%, transparent 60%) 0 0 / 45px 44px repeat-x, #c7d6bc; text-align: center; color: #f2f5ee; font-size: .58rem; text-transform: uppercase; letter-spacing: .16em; line-height: 20px; pointer-events: none; }
+.page .zone { position: relative; z-index: 1; border: 1px solid #b1c79b; border-radius: 5px; background: #dce7cb; color: #3c593b; padding: .2rem; font-size: .78rem; transition: background .12s; }
+.page .zone:hover { background: #c6dcb0; }
+.page .zone[aria-pressed='true'] { border: 2px solid $green; background: #c7dcb2; }
+.zone[data-area='back'] { grid-column: 2; grid-row: 2; }
+.zone[data-area='left-side'] { grid-column: 1; grid-row: 2 / 5; background: repeating-linear-gradient(165deg, #d5dfbd 0 13px, #bdcca360 14px 15px); }
+.zone[data-area='right-side'] { grid-column: 3; grid-row: 2 / 5; }
+.zone[data-area='front'] { grid-column: 2; grid-row: 4; margin-inline: 28%; }
+.house { grid-column: 2; grid-row: 3; margin-inline: 20%; display: grid; place-items: center; background: repeating-linear-gradient(135deg, #d8d0c1 0 8px, #c9bfac 9px 10px); color: #756b59; border: 1px solid #b9ad98; border-radius: 3px; font-size: .6rem; letter-spacing: .15em; text-transform: uppercase; }
+.zoneDetails { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid $line; }
+.zoneDetails h3 { font: 500 1.15rem Georgia, serif; }
+.zoneGrid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.4rem; margin-bottom: 1rem; }
+.zoneGrid strong { font-size: .8rem; color: $green; }
+.zoneGrid p { font-size: .78rem; color: $muted; margin-top: .25rem; }
+.zoneGrid small { font-size: .7rem; color: $muted; }
+.careForm { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem; padding: 1rem; border: 1px solid $line; background: #f5f7f0; border-radius: 8px; margin-top: .6rem; }
+.careForm > strong, .careForm > .buttonRow { grid-column: 1 / -1; }
+.careForm > strong { font-size: .8rem; color: $green; }
+.savedLine { display: block; font-size: .72rem; color: $green; margin-top: .45rem; }
+.history { font-size: .72rem; color: $muted; margin-top: .65rem; }
+.historyList { max-height: 20rem; overflow: auto; padding-top: .5rem; }
+.logRow { display: flex; justify-content: space-between; align-items: center; gap: .75rem; padding: .45rem 0; border-bottom: 1px solid $line; }
+.logRow div { display: flex; flex-direction: column; }
+.logRow strong { color: $ink; font-weight: 500; }
+.logRow button { font-size: .68rem; }
+.fieldNote { padding: .8rem 1rem; margin-top: 1rem; border-left: 2px solid #96ad84; color: $muted; font-size: .8rem; }
+.fieldNote p { max-width: 70rem; margin-top: .5rem; }
+.footer { display: flex; justify-content: space-between; gap: 1rem; padding: .7rem .2rem; font-size: .64rem; color: $muted; }
+.footer a { color: inherit; text-decoration: none; }
+
+@media (min-width: 2400px) {
+  .page { padding-top: 3rem; }
 }
-
-.backLink {
-  width: fit-content;
-  color: $muted;
-  font-size: 0.84rem;
-  font-weight: 700;
-  text-decoration: none;
-  &:hover { color: $green-dark; text-decoration: underline; }
+@media (max-width: 1100px) {
+  .page { padding: 1.2rem; }
+  .hero { gap: 1rem; }
+  .dashboard { grid-template-columns: 1fr 1fr; }
+  .weatherNow small { display: none; }
+  .weedRow, .seasonNote { grid-template-columns: 6rem 1fr; gap: .7rem; }
+  .weatherCard, .lawnCard { padding: 1rem; }
+  .zoneGrid { grid-template-columns: 1fr 1fr; }
+  .zoneGrid > .formPair { grid-column: 1 / -1; }
 }
-
-.hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; padding: 1.2rem 0 0.5rem; }
-.hero h1 { max-width: 34rem; margin: 0.35rem 0 0.6rem; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(2.3rem, 5vw, 4.5rem); font-weight: 500; letter-spacing: -0.055em; line-height: 0.98; }
-.hero p { max-width: 46rem; margin: 0; color: $muted; font-size: 1rem; line-height: 1.6; }
-.eyebrow { display: block; color: $green; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; }
-.heroStamp { min-width: 8.5rem; padding: 0.8rem 1rem; border: 1px solid $line; border-radius: 1rem; background: rgba(255,255,255,0.68); text-align: right; box-shadow: $shadow; }
-.heroStamp span, .heroStamp small { display: block; color: $faint; font-size: 0.72rem; }
-.heroStamp strong { display: block; margin: 0.15rem 0 0.3rem; font-family: Georgia, 'Times New Roman', serif; font-size: 1.45rem; font-weight: 500; }
-
-.locationBar { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: 0.85rem 1rem; border: 1px solid $line; border-radius: 0.9rem; background: rgba(255,255,255,0.75); box-shadow: 0 4px 15px rgba(37,70,51,0.04); }
-.locationCopy { flex: 1 1 14rem; display: flex; flex-direction: column; gap: 0.25rem; }
-.locationCopy strong { font-size: 0.94rem; }
-.locationForm { flex: 2 1 30rem; display: flex; flex-wrap: wrap; gap: 0.45rem; }
-.locationForm input { flex: 1 1 13rem; min-width: 0; }
-.locationForm input, .field input, .field select { min-height: 2.7rem; padding: 0 0.75rem; border: 1px solid $line-strong; border-radius: 0.55rem; background: #fff; color: $ink; font-size: 0.9rem; }
-.locationForm input:focus, .field input:focus, .field select:focus { border-color: $green; outline: 3px solid rgba(44,122,84,0.16); }
-.smallButton, .ghostButton, .primaryButton, .iconButton { border: 0; border-radius: 0.55rem; font: inherit; font-weight: 750; cursor: pointer; }
-.smallButton { min-height: 2.7rem; padding: 0 0.9rem; background: $green; color: #fff; }
-.smallButton:disabled { cursor: default; opacity: 0.55; }
-.ghostButton { min-height: 2.7rem; padding: 0 0.85rem; border: 1px solid $line-strong; background: transparent; color: $green-dark; }
-.smallButton:hover:not(:disabled), .primaryButton:hover { background: $green-dark; }
-.ghostButton:hover { background: $green-soft; }
-.locationResults { position: absolute; z-index: 4; top: calc(100% - 0.4rem); right: 1rem; width: min(30rem, calc(100% - 2rem)); margin: 0; padding: 0.35rem; list-style: none; border: 1px solid $line; border-radius: 0.7rem; background: #fff; box-shadow: $shadow; }
-.locationResults button { width: 100%; display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding: 0.65rem 0.75rem; border: 0; border-radius: 0.45rem; background: transparent; color: $ink; text-align: left; cursor: pointer; }
-.locationResults button:hover { background: $green-soft; }
-.locationResults span { color: $muted; font-size: 0.78rem; }
-.inlineError { flex-basis: 100%; margin: 0; color: $red; font-size: 0.82rem; }
-.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-
-.weatherGrid, .workspaceGrid { display: grid; gap: 1rem; }
-.weatherGrid { grid-template-columns: minmax(0, 1.18fr) minmax(19rem, 0.82fr); }
-.workspaceGrid { grid-template-columns: minmax(0, 1.18fr) minmax(18rem, 0.82fr); align-items: start; }
-.weatherCard, .planCard, .mapCard, .profileCard, .careCard, .insightCard, .tipsSection { border: 1px solid $line; border-radius: 1.05rem; background: rgba(255,255,255,0.88); box-shadow: $shadow; }
-.weatherCard, .planCard, .mapCard, .profileCard, .careCard, .insightCard { padding: clamp(1rem, 2.3vw, 1.5rem); }
-.cardHeading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
-.cardHeading h2, .planCard h2, .tipsHeader h2 { margin: 0.3rem 0 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(1.35rem, 2.2vw, 1.9rem); font-weight: 500; letter-spacing: -0.035em; line-height: 1.08; }
-.sectionIntro, .emptyCopy, .formHint { margin: 0; color: $muted; font-size: 0.88rem; line-height: 1.55; }
-.mapKey, .planBadge, .aiBadge { display: inline-flex; align-items: center; min-height: 1.55rem; padding: 0 0.55rem; border-radius: 999px; background: $green-soft; color: $green-dark; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
-.iconButton { width: 2rem; height: 2rem; border: 1px solid $line; background: #fff; color: $green-dark; font-size: 1.15rem; }
-.iconButton:hover { background: $green-soft; }
-.loadingLine { margin: 0.7rem 0 0; color: $faint; font-size: 0.8rem; }
-
-.currentWeather { display: flex; align-items: center; gap: 0.9rem; margin: 1.25rem 0 0.8rem; }
-.weatherGlyph { font-size: 3rem; line-height: 1; }
-.weatherGlyph[data-tone='rain'], .weatherGlyph[data-tone='storm'] { filter: saturate(0.85); }
-.currentWeather > div { display: flex; flex-direction: column; gap: 0.1rem; }
-.currentWeather strong { font-family: Georgia, 'Times New Roman', serif; font-size: 2.4rem; font-weight: 500; line-height: 1; }
-.currentWeather div span { color: $muted; font-size: 0.84rem; }
-.weatherStats { display: flex; flex-wrap: wrap; gap: 0.8rem; margin: 0 0 0 auto; }
-.weatherStats div { display: flex; flex-direction: column; gap: 0.1rem; }
-.weatherStats dt { color: $faint; font-size: 0.67rem; text-transform: uppercase; }
-.weatherStats dd { margin: 0; font-size: 0.86rem; font-weight: 800; }
-.sunline { display: flex; flex-wrap: wrap; gap: 1rem; padding: 0.65rem 0; border-top: 1px solid $line; border-bottom: 1px solid $line; color: $muted; font-size: 0.78rem; }
-.forecastStrip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.35rem; margin-top: 0.8rem; }
-.forecastDay { display: flex; flex-direction: column; align-items: center; gap: 0.18rem; padding: 0.45rem 0.15rem; border-radius: 0.6rem; background: #f2f7f0; color: $muted; font-size: 0.7rem; }
-.forecastDay strong { font-size: 1.3rem; }
-.forecastDay b { color: $ink; font-size: 0.85rem; }
-.forecastDay small { font-size: 0.63rem; }
-
-.planCard { position: relative; overflow: hidden; }
-.planCard::before { position: absolute; inset: 0 auto 0 0; width: 0.35rem; background: $green; content: ''; }
-.planCard[data-status='skip']::before { background: $blue; }
-.planCard[data-status='wait']::before, .planCard[data-status='check-soil']::before { background: $amber; }
-.planCard[data-status='empty']::before { background: $faint; }
-.planTopline { display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; }
-.planCard h2 { max-width: 26rem; font-size: clamp(1.6rem, 3vw, 2.35rem); }
-.planDetail { margin: 0.75rem 0 0; color: $muted; line-height: 1.55; }
-.timingCallout { display: flex; flex-direction: column; gap: 0.25rem; margin-top: 1rem; padding: 0.8rem 0.9rem; border-radius: 0.7rem; background: $green-soft; }
-.timingCallout span, .minutesCallout span { color: $muted; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; }
-.timingCallout strong { font-size: 0.92rem; }
-.minutesCallout { display: flex; align-items: baseline; gap: 0.55rem; margin-top: 0.75rem; }
-.minutesCallout strong { color: $green-dark; font-family: Georgia, 'Times New Roman', serif; font-size: 1.65rem; font-weight: 500; }
-.reasonList { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 1rem 0 0; padding: 0; list-style: none; }
-.reasonList li { padding: 0.35rem 0.55rem; border: 1px solid $line; border-radius: 999px; color: $muted; font-size: 0.7rem; }
-.watchLine { margin: 1rem 0 0; color: $muted; font-size: 0.8rem; line-height: 1.45; }
-.watchLine strong { color: $ink; }
-
-.mapCard { grid-row: span 2; }
-.mapCard > .sectionIntro { margin-top: 0.6rem; }
-.yardMap { position: relative; display: grid; grid-template-columns: 0.75fr 1.75fr 0.75fr; grid-template-rows: 1.35fr 1fr 0.78fr; gap: 0.55rem; min-height: 22rem; margin-top: 1rem; padding: 0.65rem; overflow: hidden; border: 1px solid #b8cbb8; border-radius: 0.9rem; background: linear-gradient(145deg, #eff7ed, #dbe9d8); }
-.yardMap::after { position: absolute; inset: 0; pointer-events: none; border: 1px solid rgba(25,49,38,0.08); border-radius: 0.9rem; content: ''; }
-.treeLine { position: absolute; z-index: 1; top: 0.7rem; right: 0.9rem; left: 0.9rem; padding: 0.25rem 0.4rem; border-bottom: 2px dashed rgba(44,92,55,0.45); color: #426b4b; font-size: 0.58rem; font-weight: 800; letter-spacing: 0.12em; text-align: right; }
-.zone { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; min-width: 0; padding: 0.6rem; border: 1px solid rgba(44,92,55,0.2); border-radius: 0.65rem; background: rgba(137,187,124,0.56); color: $ink; text-align: left; cursor: pointer; transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease; }
-.zone:hover { transform: translateY(-2px); box-shadow: 0 5px 12px rgba(32,80,42,0.14); }
-.zone[data-selected='true'] { border-color: $green-dark; background: rgba(73,145,94,0.8); box-shadow: 0 0 0 3px rgba(44,122,84,0.2); color: #fff; }
-.zone span { font-size: 0.88rem; font-weight: 800; }
-.zone small { margin-top: 0.2rem; color: rgba(25,49,38,0.72); font-size: 0.63rem; }
-.zone[data-selected='true'] small { color: rgba(255,255,255,0.84); }
-.zone[data-segment-id='back-lawn'] { grid-column: 1 / -1; grid-row: 1; padding-top: 2rem; background: rgba(108,171,103,0.64); }
-.zone[data-segment-id='left-side'] { grid-column: 1; grid-row: 2; }
-.zone[data-segment-id='right-side-hill'] { grid-column: 3; grid-row: 2; background: repeating-linear-gradient(155deg, rgba(173,195,110,0.7) 0 10px, rgba(140,174,91,0.7) 10px 20px); }
-.zone[data-segment-id='front-square'] { grid-column: 1 / -1; grid-row: 3; background: rgba(196,178,101,0.55); }
-.zone[data-segment-id='treeline-edge'] { position: absolute; top: 2.6rem; right: 1.25rem; width: 28%; height: 35%; background: rgba(67,107,65,0.72); }
-.house { z-index: 3; grid-column: 2; grid-row: 2; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(103,72,53,0.4); border-radius: 0.4rem; background: repeating-linear-gradient(135deg, #d8cbb9 0 9px, #c9b9a5 9px 11px); color: #725c49; font-size: 0.66rem; font-weight: 900; letter-spacing: 0.15em; }
-.zoneDetails { margin-top: 0.9rem; padding-top: 0.9rem; border-top: 1px solid $line; }
-.zoneDetailTitle { display: flex; align-items: center; gap: 0.55rem; }
-.zoneDetailTitle h3 { margin: 0; font-size: 1rem; }
-.zoneDot { width: 0.75rem; height: 0.75rem; border-radius: 50%; background: $green; }
-.zoneDot[data-condition='thin'] { background: $amber; }
-.zoneDot[data-condition='weedy'], .zoneDot[data-condition='bare'] { background: $red; }
-.zoneTags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.55rem 0; }
-.zoneTags span { color: $muted; font-size: 0.72rem; }
-.zoneTags span + span::before { margin-right: 0.4rem; content: '·'; color: $faint; }
-.zoneDetails p { margin: 0; color: $muted; font-size: 0.82rem; line-height: 1.5; }
-
-.profileCard { display: flex; flex-direction: column; gap: 0.9rem; }
-.field { display: flex; flex-direction: column; gap: 0.35rem; color: $muted; font-size: 0.78rem; font-weight: 800; }
-.field small { font-weight: 500; }
-.field input, .field select { width: 100%; }
-.formHint { padding-top: 0.3rem; border-top: 1px solid $line; font-size: 0.76rem; }
-.careCard { grid-column: 2; }
-.careForm { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin-top: 0.8rem; }
-.fieldWide { grid-column: 1 / -1; }
-.primaryButton { min-height: 2.7rem; padding: 0 1rem; background: $green; color: #fff; }
-.careForm .primaryButton { grid-column: 1 / -1; }
-.logList { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid $line; }
-.logRow { display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; padding: 0.5rem 0; }
-.logRow div { display: flex; flex-direction: column; gap: 0.15rem; }
-.logRow strong { font-size: 0.8rem; }
-.logRow span { color: $muted; font-size: 0.7rem; }
-.logRow button { width: 1.6rem; height: 1.6rem; border: 0; border-radius: 50%; background: transparent; color: $faint; font-size: 1.2rem; cursor: pointer; }
-.logRow button:hover { background: $red-soft; color: $red; }
-
-.insightCard { border-color: rgba(44,122,84,0.22); background: linear-gradient(135deg, rgba(239,249,235,0.92), rgba(255,255,255,0.94)); }
-.insightSpark { display: inline-flex; width: 2.1rem; height: 2.1rem; align-items: center; justify-content: center; border-radius: 50%; background: #f4dfa4; color: #79571b; font-size: 1.2rem; }
-.insightGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-top: 1.2rem; }
-.insightGrid article { padding: 0.9rem; border-radius: 0.75rem; background: rgba(255,255,255,0.7); }
-.insightLabel { color: $green-dark; font-size: 0.68rem; font-weight: 850; letter-spacing: 0.1em; text-transform: uppercase; }
-.insightGrid p { margin: 0.45rem 0 0; color: $muted; font-size: 0.82rem; line-height: 1.5; }
-.actionList { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0 0; padding: 0; list-style: none; }
-.actionList li { flex: 1 1 14rem; padding: 0.65rem 0.75rem 0.65rem 1.8rem; border: 1px solid rgba(44,122,84,0.16); border-radius: 0.65rem; background: rgba(255,255,255,0.6); color: $muted; font-size: 0.78rem; line-height: 1.45; }
-.actionList li::before { margin-left: -1rem; margin-right: 0.45rem; color: $green; content: '✓'; font-weight: 900; }
-.insightFooter { margin: 1rem 0 0; color: $faint; font-size: 0.72rem; }
-
-.tipsSection { padding: clamp(1rem, 2.3vw, 1.5rem); }
-.tipsHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
-.tipsHeader p { max-width: 42rem; margin: 0.6rem 0 0; color: $muted; font-size: 0.84rem; line-height: 1.5; }
-.aiBadge { background: #eee8fb; color: $purple; }
-.tipFilters { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 1rem 0; }
-.tipFilters button { min-height: 2rem; padding: 0 0.75rem; border: 1px solid $line; border-radius: 999px; background: #fff; color: $muted; font: inherit; font-size: 0.75rem; font-weight: 750; cursor: pointer; }
-.tipFilters button[data-active='true'], .tipFilters button:hover { border-color: $green; background: $green-soft; color: $green-dark; }
-.tipGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.8rem; }
-.tipCard { display: flex; flex-direction: column; min-height: 15rem; padding: 1rem; border: 1px solid $line; border-radius: 0.8rem; background: #fff; }
-.tipCardTop { display: flex; justify-content: space-between; gap: 0.5rem; color: $green; font-size: 0.65rem; font-weight: 850; letter-spacing: 0.1em; text-transform: uppercase; }
-.tipCardTop time { color: $faint; font-weight: 600; letter-spacing: 0; text-transform: none; }
-.tipCard h3 { margin: 0.65rem 0 0.35rem; font-family: Georgia, 'Times New Roman', serif; font-size: 1.22rem; font-weight: 500; line-height: 1.1; }
-.tipCard p { margin: 0; color: $muted; font-size: 0.78rem; line-height: 1.5; }
-.tipCard .tipSummary { margin-bottom: 0.55rem; color: $ink; font-weight: 700; }
-.tagRow { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: auto; padding-top: 0.8rem; }
-.tagRow span { padding: 0.25rem 0.45rem; border-radius: 999px; background: #f1f5ef; color: $faint; font-size: 0.65rem; }
-.apiNote { margin-top: 1rem; color: $muted; font-size: 0.76rem; }
-.apiNote summary { width: fit-content; color: $green-dark; font-weight: 800; cursor: pointer; }
-.apiNote p { line-height: 1.5; }
-.apiNote code { padding: 0.1rem 0.25rem; border-radius: 0.25rem; background: #edf2ec; font-size: 0.7rem; }
-
-@media (max-width: 900px) {
-  .weatherGrid, .workspaceGrid { grid-template-columns: 1fr; }
-  .mapCard, .careCard { grid-row: auto; grid-column: auto; }
-  .profileCard { order: 2; }
-  .careCard { order: 3; }
-  .mapCard { order: 1; }
-  .tipGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
-@media (max-width: 620px) {
-  .page { padding-inline: 0.8rem; }
-  .hero { align-items: flex-start; flex-direction: column; }
-  .heroStamp { align-self: stretch; display: flex; align-items: baseline; justify-content: space-between; text-align: left; }
-  .heroStamp strong { margin: 0; }
-  .locationForm > * { flex: 1 1 8rem; }
-  .weatherStats { margin-left: 0; }
-  .currentWeather { align-items: flex-start; flex-wrap: wrap; }
-  .weatherStats { flex-basis: 100%; }
-  .forecastStrip { gap: 0.15rem; }
-  .forecastDay small { font-size: 0.55rem; }
-  .insightGrid, .tipGrid { grid-template-columns: 1fr; }
-  .careForm { grid-template-columns: 1fr; }
-  .fieldWide, .careForm .primaryButton { grid-column: auto; }
-  .yardMap { min-height: 20rem; }
+@media (max-width: 760px) {
+  .page { padding: 1rem .8rem; }
+  .hero { grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .hero .careActions { justify-self: start; }
+  .hero h1 { font-size: 1.8rem; }
+  .hero h1 span { display: none; }
+  .dashboard { grid-template-columns: 1fr; }
+  .cardHeading { gap: .4rem; }
+  .cardHeading h2 { font-size: 1.3rem; }
+  .forecastStrip { gap: .1rem; }
+  .weatherIcon { font-size: 1.5rem; }
+  .temperatures { font-size: 1.1rem; }
+  .rainLabel { font-size: .6rem; }
+  .dayAction { font-size: .62rem; }
+  .zoneGrid { grid-template-columns: 1fr; }
+  .yardCard { padding: .8rem; }
+  .yardMap { grid-template-columns: 1fr 2fr 1fr; padding-inline: .4rem; }
+  .page .zone { font-size: .65rem; }
+  .house { margin-inline: 10%; }
+  .zone[data-area='front'] { margin-inline: 15%; }
+  .footer { font-size: .6rem; }
+  .scopeLabel { width: 100%; }
 }

@@ -2,15 +2,15 @@
 
 import Link from 'next/link';
 
-import { CareLogPanel } from './CareLogPanel';
-import { GrassInsights } from './GrassInsights';
+import { WHOLE_YARD } from '../lib/yard';
+import { CareActions, CareHistory } from './care';
 import { GrassLocationBar } from './GrassLocationBar';
-import { GrassProfileForm } from './GrassProfileForm';
 import { GrassTipCards } from './GrassTipCards';
+import { LawnGuide } from './LawnGuide';
 import { useGrassManager } from './useGrassManager';
-import { WateringPlanCard } from './WateringPlanCard';
 import { WeatherSummary } from './WeatherSummary';
 import { YardMap } from './YardMap';
+import { ZoneDetails } from './ZoneDetails';
 import styles from './GrassManagerView.module.scss';
 
 export function GrassManagerView() {
@@ -18,23 +18,24 @@ export function GrassManagerView() {
   const { state, selectedSegment } = manager;
   return (
     <main className={styles.page}>
-      <Link href="/" className={styles.backLink}>← Experiments</Link>
       <header className={styles.hero}>
-        <div><span className={styles.eyebrow}>Field guide · grass manager</span><h1>Make the good grass contagious.</h1><p>One calm, repeatable plan for a yard that wraps around the house—weather-aware, zone-aware, and honest about what you actually did.</p></div>
-        <div className={styles.heroStamp}><span>Today</span><strong>{new Date().toLocaleDateString([], { month: 'short', day: 'numeric' })}</strong><small>{state.events.length} logged care {state.events.length === 1 ? 'step' : 'steps'}</small></div>
+        <div><Link href="/" className={styles.backLink}>← Experiments</Link><h1>Grass Manager</h1></div>
+        <CareActions scope={WHOLE_YARD} profile={state.profile} today={manager.today} onAdd={manager.addCareEvent} disabled={!manager.hydrated} />
       </header>
-      <GrassLocationBar locationName={state.profile.locationName} results={manager.locationResults} loading={manager.locationLoading} onSearch={manager.findLocations} onChoose={manager.chooseLocation} />
-      <div className={styles.weatherGrid}>
-        <WeatherSummary weather={manager.weather} loading={manager.weatherLoading} error={manager.weatherError} onRefresh={manager.refreshWeather} />
-        <WateringPlanCard plan={manager.plan} segmentName={selectedSegment.name} />
+      {manager.saveError && <p role="alert" className={styles.inlineError}>Browser storage is unavailable. Changes will be lost when this page closes.</p>}
+      <div className={styles.dashboard}>
+        <WeatherSummary weather={manager.weather} loading={manager.weatherLoading} error={manager.weatherError} onRefresh={manager.refreshWeather} outlook={manager.outlook}
+          locationControl={<GrassLocationBar locationName={state.profile.locationName} results={manager.locationResults} loading={manager.locationLoading} error={manager.locationError} onSearch={manager.findLocations} onChoose={manager.chooseLocation} />} />
+        {manager.hydrated && <LawnGuide profile={state.profile} events={state.events} today={manager.today} weather={manager.weather} onChange={manager.updateProfile} />}
       </div>
-      <div className={styles.workspaceGrid}>
-        <YardMap selectedId={state.selectedSegmentId} onChoose={manager.chooseSegment} selectedSegment={selectedSegment} />
-        <GrassProfileForm profile={state.profile} onChange={manager.updateProfile} />
-        <CareLogPanel events={state.events} selectedSegment={selectedSegment} onAdd={manager.addCareEvent} onRemove={manager.removeCareEvent} />
-      </div>
-      <GrassInsights insights={manager.insights} segment={selectedSegment} />
-      <GrassTipCards cards={manager.tips} loading={manager.tipsLoading} />
+      <section className={styles.yardCard} aria-labelledby="yard-heading">
+        <header className={styles.cardHeading}><h2 id="yard-heading">Your yard</h2><span className={styles.subtle}>Select an area for local care</span></header>
+        <YardMap segments={manager.segments} selectedId={state.selectedSegmentId} onChoose={manager.chooseSegment} />
+        {selectedSegment && <ZoneDetails segment={selectedSegment} plan={manager.selectedPlan} profile={state.profile} events={state.events} today={manager.today} onChange={manager.updateZone} onAdd={manager.addCareEvent} onClose={() => manager.chooseSegment(selectedSegment.id)} />}
+        <CareHistory events={state.events} onRemove={manager.removeCareEvent} />
+      </section>
+      <GrassTipCards cards={manager.tips} />
+      <footer className={styles.footer}><span>Saved in this browser · rules-based guidance</span><a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Weather by Open-Meteo</a></footer>
     </main>
   );
 }

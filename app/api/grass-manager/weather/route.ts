@@ -33,6 +33,8 @@ export async function GET(request: Request) {
   url.searchParams.set('longitude', String(longitude));
   url.searchParams.set('current', 'temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day');
   url.searchParams.set('daily', DAILY);
+  url.searchParams.set('hourly', 'precipitation,precipitation_probability');
+  url.searchParams.set('past_days', '7');
   url.searchParams.set('forecast_days', '7');
   url.searchParams.set('temperature_unit', 'fahrenheit');
   url.searchParams.set('wind_speed_unit', 'mph');
@@ -40,7 +42,7 @@ export async function GET(request: Request) {
   url.searchParams.set('timezone', 'auto');
 
   try {
-    const response = await fetch(url, { cache: 'no-store' });
+    const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(12_000) });
     if (!response.ok) {
       return NextResponse.json({ message: 'The weather service did not return a forecast.' }, { status: 502 });
     }
