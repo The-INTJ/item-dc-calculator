@@ -11,7 +11,7 @@ export const WEATHER_CODES: Record<number, WeatherCodeInfo> = {
   1: { label: 'Mainly clear', icon: '🌤️', tone: 'clear', waterSignal: 'drying' },
   2: { label: 'Partly cloudy', icon: '⛅', tone: 'cloud', waterSignal: 'neutral' },
   3: { label: 'Overcast', icon: '☁️', tone: 'cloud', waterSignal: 'neutral' },
-  45: { label: 'Fog', icon: '🌫️', tone: 'fog', waterSignal: 'wet' },
+  45: { label: 'Fog', icon: '🌫️', tone: 'fog', waterSignal: 'neutral' },
   48: { label: 'Rime fog', icon: '🌫️', tone: 'fog', waterSignal: 'freeze' },
   51: { label: 'Light drizzle', icon: '🌦️', tone: 'rain', waterSignal: 'wet' },
   53: { label: 'Drizzle', icon: '🌦️', tone: 'rain', waterSignal: 'wet' },

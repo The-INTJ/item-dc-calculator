@@ -134,12 +134,13 @@ nutrition; new fertilizer-only actions should use `fertilized`.
 
 The Grass Manager is local-first for personal yard state:
 
-1. `src/features/grass-manager/components/useGrassState.ts` persists the lawn profile, zone selection, and care events in browser `localStorage`.
+1. `src/features/grass-manager/components/useGrassState.ts` persists the lawn profile, per-area sun/condition observations, and scoped care events in browser `localStorage`. Selection is transient; the yard opens collapsed.
 2. `app/api/grass-manager/locations` proxies Open-Meteo geocoding.
-3. `app/api/grass-manager/weather` proxies the Open-Meteo forecast response and keeps the public API off the client surface.
-4. `src/features/grass-manager/lib/weatherRules.ts` turns the normalized daily forecast and care history into a deterministic watering plan.
+3. `app/api/grass-manager/weather` proxies Open-Meteo daily and hourly forecasts with seven days of recent model history. Missing data is not treated as zero rain.
+4. `src/features/grass-manager/lib/watering/` evaluates five daily decisions with next-24-hour rain, recent rain, care history, shade, temperature, and treatment/seedling safeguards. The top-level decision combines all four yard areas; top actions always log to `whole-yard`.
+5. `src/features/grass-manager/lib/lawnCare/` contains weed-specific removal/treatment guidance and seasonal planning. Sources, assumptions, and thresholds are documented in the [feature README](src/features/grass-manager/README.md).
 
-Tip cards start from hand-authored guidance in `src/features/grass-manager/lib/tips.ts`.
+Tip cards start from hand-authored guidance in `src/features/grass-manager/lib/tips.ts`. The compact UI hides unmodified starter cards and exposes the latest API-authored note as a disclosure, without a card grid or tags.
 `GET /api/grass-manager/tips` returns the merged cards; approved Firebase identities may
 use `POST /api/grass-manager/tips` and `PATCH /api/grass-manager/tips/:id` to add or revise
 cards for the current situation. The route reuses the private plant-tracker allowlist, or

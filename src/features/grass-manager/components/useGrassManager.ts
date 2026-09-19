@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
+import { dateInYard } from '../lib/careHistory';
 import { searchGrassLocations } from '../lib/grassApi';
-import { deriveGrassInsights } from '../lib/grassInsights';
-import { getSegment } from '../lib/yard';
-import { evaluateWateringPlan } from '../lib/weatherRules';
+import { YARD_SEGMENTS } from '../lib/yard';
+import { buildWateringOutlook, combineYardOutlooks } from '../lib/watering';
 import type { LocationSearchResult, WeatherLocation } from '../lib/types';
 import { useGrassState } from './useGrassState';
 import { useGrassTips } from './useGrassTips';
@@ -17,40 +17,43 @@ export function useGrassManager() {
   const tipData = useGrassTips();
   const [locationResults, setLocationResults] = useState<LocationSearchResult[]>([]);
   const [locationLoading, setLocationLoading] = useState(false);
-  const selectedSegment = getSegment(data.state.selectedSegmentId);
+  const [locationError, setLocationError] = useState('');
+  const searchId = useRef(0);
+  const segments = YARD_SEGMENTS.map((segment) => ({ ...segment, ...data.state.zones[segment.id] }));
+  const selectedSegment = segments.find((segment) => segment.id === data.state.selectedSegmentId) ?? null;
   const now = new Date();
-  const plan = weatherData.weather?.daily[0]
-    ? evaluateWateringPlan(weatherData.weather.daily[0], data.state.profile, selectedSegment, data.state.events, now)
-    : null;
-  const insights = deriveGrassInsights(data.state.profile, selectedSegment, data.state.events, now);
+  const today = dateInYard(now, weatherData.weather?.timezone);
+  const outlooks = weatherData.weather ? segments.map((segment) => ({
+    segment, days: buildWateringOutlook(weatherData.weather!, data.state.profile, segment, data.state.events, now),
+  })) : [];
+  const outlook = combineYardOutlooks(outlooks);
+  const selectedPlan = outlooks.find((item) => item.segment.id === selectedSegment?.id)?.days[0] ?? null;
 
   async function findLocations(query: string) {
-    if (query.trim().length < 2) {
-      setLocationResults([]);
-      return;
-    }
+    const id = ++searchId.current;
+    if (query.trim().length < 2) { setLocationResults([]); return; }
     setLocationLoading(true);
-    try { setLocationResults(await searchGrassLocations(query)); }
-    catch { setLocationResults([]); }
-    finally { setLocationLoading(false); }
+    setLocationError('');
+    try {
+      const results = await searchGrassLocations(query);
+      if (id !== searchId.current) return;
+      setLocationResults(results);
+      if (!results.length) setLocationError('No towns found. Try a nearby city.');
+    } catch { if (id === searchId.current) setLocationError('Location search unavailable. Try again.'); }
+    finally { if (id === searchId.current) setLocationLoading(false); }
   }
 
   function chooseLocation(location: WeatherLocation) {
+    searchId.current += 1;
     const locationName = [location.name, location.admin1, location.country].filter(Boolean).join(', ');
     data.updateProfile({ location, locationName });
     setLocationResults([]);
+    setLocationLoading(false);
+    setLocationError('');
   }
 
   return {
-    ...data,
-    ...weatherData,
-    ...tipData,
-    locationResults,
-    locationLoading,
-    selectedSegment,
-    plan,
-    insights,
-    findLocations,
-    chooseLocation,
+    ...data, ...weatherData, ...tipData, locationResults, locationLoading, locationError,
+    segments, selectedSegment, selectedPlan, outlook, today, findLocations, chooseLocation,
   };
 }

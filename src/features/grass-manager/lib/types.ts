@@ -8,10 +8,10 @@ export type GrassType =
   | 'centipede'
   | 'mixed-unsure';
 
-export type SunExposure = 'full-sun' | 'part-sun' | 'shade';
+export type SunExposure = 'unknown' | 'full-sun' | 'part-sun' | 'shade';
 export type Slope = 'flat' | 'gentle-slope' | 'steep-slope';
-export type YardCondition = 'strong' | 'thin' | 'weedy' | 'bare';
-export type CareEventType = 'watered' | 'fertilized' | 'weed-control';
+export type YardCondition = 'unknown' | 'strong' | 'thin' | 'weedy' | 'bare';
+export type CareEventType = 'watered' | 'fertilized' | 'weed-control' | 'hand-weeded';
 export type WateringStatus = 'water-now' | 'wait' | 'check-soil' | 'skip';
 
 export interface YardSegment {
@@ -30,6 +30,10 @@ export interface GrassProfile {
   grassType: GrassType;
   weedTypes: string[];
   sprinklerMinutes: number;
+  sprinklerInches?: number;
+  weedCoverage: 'scattered' | 'patches' | 'widespread';
+  lawnStage: 'established' | 'seeding' | 'new-seed' | 'dormant';
+  configured: boolean;
   locationName: string;
   location: WeatherLocation | null;
 }
@@ -58,6 +62,7 @@ export interface GrassManagerState {
   profile: GrassProfile;
   events: CareEvent[];
   selectedSegmentId: string;
+  zones: Record<string, Pick<YardSegment, 'sun' | 'condition'>>;
 }
 
 export interface WeatherCurrent {
@@ -76,7 +81,7 @@ export interface DailyWeather {
   temperatureMax: number;
   temperatureMin: number;
   precipitation: number;
-  precipitationProbability: number;
+  precipitationProbability: number | null;
   sunrise: string;
   sunset: string;
   sunshineDuration: number;
@@ -87,26 +92,22 @@ export interface WeatherSnapshot {
   timezone: string;
   current: WeatherCurrent;
   daily: DailyWeather[];
+  hourly: HourlyWeather[];
   fetchedAt: string;
 }
 
-export interface WateringPlan {
-  status: WateringStatus;
-  label: string;
-  headline: string;
-  detail: string;
-  timing: string;
-  minutes: number;
-  reasons: string[];
-  watchFor: string;
+export interface HourlyWeather {
+  time: string;
+  precipitation: number | null;
+  precipitationProbability: number | null;
 }
 
-export interface GrassInsights {
-  headline: string;
-  actions: string[];
-  propagation: string;
-  weedPlan: string;
-  sprinklerPlan: string;
+export interface WateringPlan {
+  date: string;
+  status: WateringStatus;
+  label: string;
+  reason: string;
+  timing: string;
 }
 
 export type TipCategory = 'water' | 'grow' | 'weeds' | 'sun' | 'soil';
