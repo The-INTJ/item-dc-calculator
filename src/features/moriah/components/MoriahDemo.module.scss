@@ -43,6 +43,17 @@
   --mo-font-display: 'Fraunces', 'Georgia', serif;
   --mo-font-body: 'Inter', 'Helvetica Neue', Arial, sans-serif;
 
+  /* Motion — hovers begin at once but ease out over a long tail, so the
+     page never feels twitchy. Reverence is mostly a matter of pacing. */
+  --mo-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --mo-dur: 480ms;
+  --mo-dur-quick: 320ms;
+
+  /* Tints used for hover states. Never white — a white-out flattens the warm
+     paper and reads as a cheap highlight. These sit *into* the page. */
+  --mo-hover-tint: rgba(153, 51, 0, 0.055);
+  --mo-hover-tint-strong: rgba(153, 51, 0, 0.09);
+
   /* Shape + elevation */
   --mo-radius-button: 999px;
   --mo-radius-card: 10px;
@@ -78,7 +89,7 @@
 .container {
   margin-inline: auto;
   max-width: var(--mo-max-width);
-  padding-inline: clamp(1.25rem, 4vw, 3rem);
+  padding-inline: clamp(1.5rem, 5vw, 4.25rem);
   width: 100%;
 }
 
@@ -149,7 +160,9 @@
   font-weight: 600;
   letter-spacing: 0.01em;
   padding: 0.8125rem 1.75rem;
-  transition: background 160ms ease, border-color 160ms ease;
+  transition:
+    background var(--mo-dur) var(--mo-ease),
+    border-color var(--mo-dur) var(--mo-ease);
 }
 
 .buttonPrimary:hover {
@@ -168,11 +181,13 @@
   font-size: 0.9375rem;
   font-weight: 600;
   padding: 0.8125rem 1.75rem;
-  transition: border-color 160ms ease, background 160ms ease;
+  transition:
+    border-color var(--mo-dur) var(--mo-ease),
+    background var(--mo-dur) var(--mo-ease);
 }
 
 .buttonGhost:hover {
-  background: var(--mo-white);
+  background: var(--mo-hover-tint);
   border-color: var(--mo-rust);
 }
 
@@ -181,7 +196,7 @@
   color: var(--mo-rust);
   font-weight: 600;
   padding-bottom: 2px;
-  transition: opacity 160ms ease;
+  transition: opacity var(--mo-dur) var(--mo-ease);
 }
 
 .textLink:hover {
@@ -230,15 +245,127 @@
 }
 
 .headerNav {
+  align-items: center;
   display: flex;
   font-size: 0.9375rem;
   font-weight: 500;
-  gap: clamp(0.875rem, 1.8vw, 1.875rem);
+  gap: clamp(1rem, 2vw, 2.125rem);
   white-space: nowrap;
 }
 
-.headerNav a:hover {
+.navLink,
+.navTrigger {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  padding: 0.375rem 0;
+  position: relative;
+  transition: color var(--mo-dur) var(--mo-ease);
+}
+
+.navLink:hover,
+.navTrigger:hover {
   color: var(--mo-rust);
+}
+
+/* A hairline that grows out from the centre rather than a background swap —
+   the quietest way to acknowledge a hover. */
+.navLink::after,
+.navTrigger::after {
+  background: var(--mo-rust);
+  bottom: 0;
+  content: '';
+  height: 1px;
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%);
+  transition: width var(--mo-dur) var(--mo-ease);
+  width: 0;
+}
+
+.navLink:hover::after,
+.navTrigger:hover::after,
+.navGroup:hover .navTrigger::after {
+  width: 100%;
+}
+
+.navCurrent {
+  color: var(--mo-rust);
+}
+
+.navLink.navCurrent::after,
+.navTrigger.navCurrent::after {
+  width: 100%;
+}
+
+.navCaret {
+  display: inline-block;
+  font-size: 0.625rem;
+  margin-left: 0.375rem;
+  transition: transform var(--mo-dur) var(--mo-ease);
+}
+
+.navGroup {
+  position: relative;
+}
+
+.navGroup:hover .navCaret {
+  transform: translateY(1px);
+}
+
+.navMenu {
+  background: var(--mo-paper);
+  border: 1px solid var(--mo-ink-10);
+  border-radius: var(--mo-radius-card);
+  box-shadow: var(--mo-shadow);
+  display: flex;
+  flex-direction: column;
+  left: 50%;
+  min-width: 12.5rem;
+  opacity: 0;
+  padding: 0.5rem;
+  pointer-events: none;
+  position: absolute;
+  top: calc(100% + 0.625rem);
+  transform: translate(-50%, -0.375rem);
+  transition:
+    opacity var(--mo-dur) var(--mo-ease),
+    transform var(--mo-dur) var(--mo-ease);
+  z-index: 30;
+}
+
+.navMenuOpen {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+
+.navMenu a {
+  border-radius: calc(var(--mo-radius-card) - 4px);
+  padding: 0.5625rem 0.875rem;
+  transition:
+    background var(--mo-dur) var(--mo-ease),
+    color var(--mo-dur) var(--mo-ease);
+}
+
+.navMenu a:hover {
+  background: var(--mo-hover-tint);
+  color: var(--mo-rust);
+}
+
+/* The menu needs a little hover bridge so moving the pointer down from the
+   trigger does not pass through a gap and close it. */
+.navGroup::after {
+  content: '';
+  height: 0.75rem;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 100%;
 }
 
 .headerCta {
@@ -253,8 +380,9 @@
   }
 }
 
-/* Below this the nav takes its own row and scrolls sideways rather than
-   disappearing, so the news page stays reachable on a phone. */
+/* Below this the nav takes its own row under the brand. It must NOT become a
+   horizontal scroller: `overflow-x: auto` also clips overflow-y, which would
+   cut the dropdowns off at the header's edge. Five short items fit at 375px. */
 @media (max-width: 720px) {
   .headerInner {
     flex-wrap: wrap;
@@ -264,17 +392,29 @@
   }
 
   .headerNav {
-    -webkit-overflow-scrolling: touch;
     font-size: 0.875rem;
-    margin-inline: calc(-1 * clamp(1.25rem, 4vw, 3rem));
-    overflow-x: auto;
-    padding-inline: clamp(1.25rem, 4vw, 3rem);
-    scrollbar-width: none;
-    width: 100vw;
+    gap: 0.875rem;
+    justify-content: space-between;
+    width: 100%;
   }
 
-  .headerNav::-webkit-scrollbar {
-    display: none;
+  /* Centred menus run off the left edge under the first item, and .page clips
+     the overflow, so anchor them to their trigger's left instead. */
+  .navMenu {
+    left: 0;
+    max-width: calc(100vw - 3rem);
+    min-width: 11rem;
+    transform: translate(0, -0.375rem);
+  }
+
+  .navMenuOpen {
+    transform: translate(0, 0);
+  }
+
+  /* The last group would then run off the right edge, so flip that one. */
+  .navGroup:last-of-type .navMenu {
+    left: auto;
+    right: 0;
   }
 }
 
@@ -337,8 +477,8 @@
 }
 
 .heroCtas .buttonGhost:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: var(--mo-white);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.8);
 }
 
 /* ---------- service times strip ---------- */
@@ -463,7 +603,9 @@
   font-family: inherit;
   font-size: 1.0625rem;
   padding: 1rem 3.25rem 1rem 3.25rem;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
+  transition:
+    border-color var(--mo-dur-quick) var(--mo-ease),
+    box-shadow var(--mo-dur-quick) var(--mo-ease);
   width: 100%;
 }
 
@@ -530,10 +672,14 @@
   font-family: inherit;
   font-size: 0.875rem;
   padding: 0.4375rem 0.9375rem;
-  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+  transition:
+    background var(--mo-dur) var(--mo-ease),
+    border-color var(--mo-dur) var(--mo-ease),
+    color var(--mo-dur) var(--mo-ease);
 }
 
 .chip:hover {
+  background: var(--mo-hover-tint);
   border-color: var(--mo-rust);
 }
 
@@ -581,11 +727,11 @@
   gap: 0.375rem 2rem;
   grid-template-columns: 10rem minmax(0, 1fr) auto;
   padding-block: 1.625rem;
-  transition: background 140ms ease;
+  transition: background var(--mo-dur) var(--mo-ease);
 }
 
 .sermonItem:hover {
-  background: var(--mo-white);
+  background: var(--mo-hover-tint);
 }
 
 .sermonScriptureCol {
@@ -653,10 +799,13 @@
   font-size: 0.875rem;
   font-weight: 600;
   padding: 0.5rem 1.125rem;
-  transition: border-color 140ms ease, color 140ms ease;
+  transition:
+    border-color var(--mo-dur) var(--mo-ease),
+    background var(--mo-dur) var(--mo-ease);
 }
 
 .playButton:hover {
+  background: var(--mo-hover-tint);
   border-color: var(--mo-rust);
 }
 
@@ -965,12 +1114,14 @@
   font-size: 1.25rem;
   height: 2.25rem;
   line-height: 1;
-  transition: border-color 140ms ease, background 140ms ease;
+  transition:
+    border-color var(--mo-dur) var(--mo-ease),
+    background var(--mo-dur) var(--mo-ease);
   width: 2.25rem;
 }
 
 .navButton:hover {
-  background: var(--mo-stone);
+  background: var(--mo-hover-tint);
   border-color: var(--mo-rust);
 }
 
@@ -1011,11 +1162,13 @@
   justify-content: center;
   padding: 0.25rem;
   position: relative;
-  transition: background 140ms ease, border-color 140ms ease;
+  transition:
+    background var(--mo-dur) var(--mo-ease),
+    border-color var(--mo-dur) var(--mo-ease);
 }
 
 .dayCell:hover {
-  background: var(--mo-stone);
+  background: var(--mo-hover-tint-strong);
 }
 
 .dayNumber {
@@ -1446,7 +1599,7 @@
 .memberName {
   font-size: 1rem;
   font-weight: 600;
-  transition: color 140ms ease;
+  transition: color var(--mo-dur) var(--mo-ease);
 }
 
 .memberRole {
@@ -1496,4 +1649,143 @@
 
 .spouseLink:hover {
   opacity: 0.7;
+}
+
+/* ---------- connect ---------- */
+
+.connectInner {
+  align-items: center;
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+@media (max-width: 800px) {
+  .connectInner {
+    grid-template-columns: 1fr;
+  }
+}
+
+.connectAction {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.socialLink {
+  align-items: center;
+  color: var(--mo-rust);
+  display: inline-flex;
+  font-weight: 600;
+  gap: 0.625rem;
+  transition: opacity var(--mo-dur) var(--mo-ease);
+}
+
+.socialLink:hover {
+  opacity: 0.72;
+}
+
+.socialLink span[aria-hidden] {
+  align-items: center;
+  border: 1px solid currentcolor;
+  border-radius: 50%;
+  display: inline-flex;
+  font-family: var(--mo-font-display);
+  font-size: 0.875rem;
+  height: 1.625rem;
+  justify-content: center;
+  width: 1.625rem;
+}
+
+.footerSocial {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin: 0 0 2rem;
+}
+
+.footerSocial .socialLink {
+  color: var(--mo-rust-soft);
+}
+
+/* ---------- blog (placeholder) ---------- */
+
+.blogGrid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+}
+
+.blogCard {
+  background: var(--mo-white);
+  border-radius: var(--mo-radius-card);
+  box-shadow: var(--mo-shadow);
+  display: flex;
+  flex-direction: column;
+  padding: clamp(1.5rem, 2.5vw, 2rem);
+  transition: box-shadow var(--mo-dur) var(--mo-ease);
+}
+
+.blogCard:hover {
+  box-shadow: 0 1px 2px rgba(33, 30, 26, 0.05), 0 18px 44px rgba(33, 30, 26, 0.11);
+}
+
+.blogCardHead {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: space-between;
+  margin-bottom: 0.875rem;
+}
+
+.blogTitle {
+  font-family: var(--mo-font-display);
+  font-size: 1.375rem;
+  font-variation-settings: 'SOFT' 40, 'WONK' 1;
+  font-weight: 400;
+  line-height: 1.25;
+  margin: 0 0 0.625rem;
+}
+
+.blogExcerpt {
+  color: var(--mo-ink-65);
+  font-size: 0.9375rem;
+  margin: 0 0 1.25rem;
+}
+
+.blogMore {
+  color: var(--mo-rust);
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-top: auto;
+}
+
+/* ---------- give (placeholder) ---------- */
+
+.giveGrid {
+  display: grid;
+  gap: clamp(2rem, 5vw, 4.25rem);
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+}
+
+@media (max-width: 900px) {
+  .giveGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.giveMethods {
+  display: grid;
+  gap: 2rem;
+  margin-top: 2.5rem;
+}
+
+.giveMethod {
+  border-top: 1px solid var(--mo-ink-16);
+  padding-top: 1.25rem;
 }

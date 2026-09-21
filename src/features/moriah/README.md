@@ -2,7 +2,12 @@
 
 A design preview of a refreshed moriahpbc.org, built to show the church
 (Rodney Chandler, a deacon) what a modern version of their site could be.
-Routes: `/moriah`, `/moriah/news`, `/moriah/directory`. All `noindex`.
+
+**One route, `/moriah`, with `?page=` selecting the body** — home, sermons,
+blog, pastor, beliefs, news, directory, visit, give. The nav therefore
+navigates for real (URL and title change, fresh server render) instead of
+scrolling to an anchor, without a route file per section. An unknown or
+missing `?page=` falls back to home rather than 404ing. All `noindex`.
 
 ## The copy rule — read this first
 
@@ -49,6 +54,13 @@ If you add a string, mark it. Do not write new prose about Moriah.
   placeholder tagged as such in the UI, and **no household relationships are
   asserted beyond the Brysons**.
 
+### Doctrine
+
+**There is no Sunday School anywhere on this site, and there must not be.**
+This congregation does not hold that the Bible teaches it. The service-times
+strip lists Morning Worship, Evening Worship and a Wednesday study, all with
+`—` for times.
+
 ### What was deliberately removed
 
 An earlier draft populated the lists from campcreek.church. That is all gone:
@@ -65,14 +77,28 @@ any of it, and do not pull from `glow-ccc`'s member-only content
 - `calendar-grid.ts` — month-grid math, event bucketing, upcoming list. Pure.
   Dates are `YYYY-MM-DD` parsed at local noon; parsing them as bare ISO would
   render a day early west of Greenwich.
-- `components/` — sections top to bottom. `MoriahDemo`, `MoriahNews` and
-  `MoriahDirectory` are the three page shells. The only client components are
-  `SermonLibrary`, `ChurchCalendar` and `DirectoryCards`.
+- `components/MoriahDemo.tsx` — the shell, plus the `PAGES` map that binds
+  each `?page=` key to its body. Add a page by adding a key there and to
+  `PageKey`/`pageTitles` in `content.ts`.
+- `components/MoriahNav.tsx` — header nav. Groups open on hover *and* click,
+  and close on Escape or an outside click; hover alone would strand keyboard
+  and touch users. Client component.
+- The only other client components are `SermonLibrary`, `ChurchCalendar` and
+  `DirectoryCards`.
 - `components/MoriahDemo.module.scss` — scoped styles. The custom properties
   on `.page` are the design tokens. Retheme = edit that block only.
 - `app/(moriah)/` — route group: fonts + metadata + the three routes.
 - `public/moriah/church-aerial.jpg` — the church's own drone photo from the
   old site, resized 4000×3000 → 2200×1650 (5.1 MB → 0.6 MB).
+
+## Nav and mobile
+
+The mobile nav must **not** become a horizontal scroller. `overflow-x: auto`
+also clips `overflow-y`, which cut the dropdowns off at the header's edge.
+Five short items fit at 375px on their own row. The menus are centred on their
+trigger at desktop width but left-anchored below 720px, because a centred menu
+under the first item ran off the left edge and `.page` clips the overflow; the
+last group flips to right-anchored for the mirror-image reason.
 
 ## Directory interaction
 
@@ -101,6 +127,20 @@ the refresh reads as the same church:
 Sampling the drone photo agreed with this: it averages warm olive (`#3a4029`)
 and khaki (`#544c2c`), so the whole palette stays earthy. Type is Fraunces
 (display) + Inter (body), both already vendored in this repo.
+
+### Motion and hover — reverence is mostly pacing
+
+- `--mo-dur` is **480ms** on `--mo-ease` `cubic-bezier(0.16, 1, 0.3, 1)`: the
+  change begins the instant the pointer lands, then settles over a long tail.
+  Typical 140–160ms hovers read as twitchy here.
+- **No hover state uses a white background.** A white-out flattens the warm
+  paper and reads as a cheap highlight. Hovers use `--mo-hover-tint`, a 5.5%
+  rust wash that sinks *into* the page. The one exception is the hero's ghost
+  button, which sits on a dark photo and uses 10% white.
+- Nav items underline from the centre outward rather than swapping a
+  background — the quietest way to acknowledge a hover.
+- Horizontal gutters are `clamp(1.5rem, 5vw, 4.25rem)`. Vertical rhythm is
+  deliberately untouched.
 
 ## Constraints
 

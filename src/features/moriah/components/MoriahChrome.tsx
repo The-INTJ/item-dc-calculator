@@ -1,29 +1,24 @@
 import Link from 'next/link';
 
-import { church, footer, nav, routes, urls } from '../content';
+import { BASE_PATH, church, connect, footer, pageHref, urls, type PageKey } from '../content';
 import styles from './MoriahDemo.module.scss';
+import { MoriahNav } from './MoriahNav';
 
-/** Sticky header shared by both pages of the preview. */
-export function MoriahHeader() {
+/** Sticky header, shared by every page of the preview. */
+export function MoriahHeader({ current }: { current: PageKey }) {
   return (
     <header className={styles.header}>
       <div className={`${styles.container} ${styles.headerInner}`}>
-        <Link href={routes.home} className={styles.brand}>
+        <Link href={BASE_PATH} className={styles.brand}>
           <span className={styles.brandName}>{church.name}</span>
           <span className={styles.brandPlace}>
             {church.address.city}, {church.address.state}
           </span>
         </Link>
-        <nav className={styles.headerNav} aria-label="Sections">
-          {nav.map((item) => (
-            <Link key={item.href} href={item.href}>
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-        <a href={urls.maps} className={`${styles.buttonPrimary} ${styles.headerCta}`}>
+        <MoriahNav current={current} />
+        <Link href={pageHref('visit')} className={`${styles.buttonPrimary} ${styles.headerCta}`}>
           Plan your visit
-        </a>
+        </Link>
       </div>
     </header>
   );
@@ -34,14 +29,25 @@ export function MoriahFooter() {
     <footer className={styles.footer}>
       <div className={styles.container}>
         <p className={styles.footerInvitation}>{footer.invitation}</p>
+
+        <p className={styles.footerSocial}>
+          <a href={urls.facebook} className={styles.socialLink}>
+            <span aria-hidden="true">f</span>
+            {connect.cta}
+          </a>
+          <span className={styles.placeholderTag}>{connect.placeholderTag}</span>
+        </p>
+
         <nav className={styles.footerLinks} aria-label="Footer">
-          <Link href={`${routes.home}#sermons`}>Sermons</Link>
-          <Link href={routes.news}>News &amp; Calendar</Link>
-          <Link href={routes.directory}>Directory</Link>
-          <Link href={`${routes.home}#beliefs`}>What We Believe</Link>
+          <Link href={pageHref('sermons')}>Sermons</Link>
+          <Link href={pageHref('blog')}>Blog</Link>
+          <Link href={pageHref('news')}>News &amp; Calendar</Link>
+          <Link href={pageHref('directory')}>Directory</Link>
+          <Link href={pageHref('beliefs')}>What We Believe</Link>
+          <Link href={pageHref('give')}>Give</Link>
           <a href={urls.maps}>Directions</a>
-          <a href={urls.history}>200 Years of Blessing</a>
         </nav>
+
         <p className={styles.footerNote}>
           {footer.note}
           <span className={styles.footerCopyright}>{footer.copyright}</span>

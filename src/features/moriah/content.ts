@@ -37,23 +37,104 @@ export const urls = {
   sermonArchive:
     'https://drive.google.com/drive/folders/1qUbxxYlBEG339YAOxQss-_FZvocVqwJX?usp=drive_link',
   pastorPhone: 'tel:+17063383536',
+  /** EXAMPLE — mocked. Facebook is the only place the church is today; swap
+      in their real page URL before this goes anywhere near the public. */
+  facebook: 'https://www.facebook.com/',
 } as const;
 
-/** Route paths owned by this preview. */
-export const routes = {
-  home: '/moriah',
-  news: '/moriah/news',
-  directory: '/moriah/directory',
-} as const;
+/**
+ * The preview is a single route; `?page=` selects which one you are on, so
+ * the nav behaves like real page navigation (URL changes, fresh render)
+ * without a route file per section.
+ */
+export const BASE_PATH = '/moriah';
 
-export const nav = [
-  { label: 'Sermons', href: `${routes.home}#sermons` },
-  { label: 'News & Calendar', href: routes.news },
-  { label: 'Directory', href: routes.directory },
-  { label: 'Our Pastor', href: `${routes.home}#pastor` },
-  { label: 'What We Believe', href: `${routes.home}#beliefs` },
-  { label: 'Visit', href: `${routes.home}#visit` },
-] as const;
+export type PageKey =
+  | 'home'
+  | 'sermons'
+  | 'blog'
+  | 'pastor'
+  | 'beliefs'
+  | 'news'
+  | 'directory'
+  | 'visit'
+  | 'give';
+
+const PAGE_KEYS: readonly PageKey[] = [
+  'home',
+  'sermons',
+  'blog',
+  'pastor',
+  'beliefs',
+  'news',
+  'directory',
+  'visit',
+  'give',
+];
+
+/** Unknown or missing `?page=` falls back to home rather than 404ing. */
+export function parsePageKey(value: string | undefined): PageKey {
+  return PAGE_KEYS.includes(value as PageKey) ? (value as PageKey) : 'home';
+}
+
+export function pageHref(page: PageKey): string {
+  return page === 'home' ? BASE_PATH : `${BASE_PATH}?page=${page}`;
+}
+
+/** Title shown in the browser tab and the page's own heading block. */
+export const pageTitles: Record<PageKey, string> = {
+  home: 'Moriah Primitive Baptist Church',
+  sermons: 'Sermons',
+  blog: 'Blog',
+  pastor: 'Our Pastor',
+  beliefs: 'What We Believe',
+  news: 'News & Calendar',
+  directory: 'Church Directory',
+  visit: 'Visit',
+  give: 'Give',
+};
+
+export interface NavLeaf {
+  label: string;
+  page: PageKey;
+}
+
+export interface NavGroup {
+  label: string;
+  items: readonly NavLeaf[];
+}
+
+export type NavEntry = NavLeaf | NavGroup;
+
+export function isNavGroup(entry: NavEntry): entry is NavGroup {
+  return 'items' in entry;
+}
+
+export const nav: readonly NavEntry[] = [
+  {
+    label: 'About',
+    items: [
+      { label: 'Our Pastor', page: 'pastor' },
+      { label: 'What We Believe', page: 'beliefs' },
+    ],
+  },
+  {
+    label: 'Media',
+    items: [
+      { label: 'Sermons', page: 'sermons' },
+      { label: 'Blog', page: 'blog' },
+    ],
+  },
+  {
+    label: 'Church Life',
+    items: [
+      { label: 'News & Calendar', page: 'news' },
+      { label: 'Directory', page: 'directory' },
+    ],
+  },
+  { label: 'Visit', page: 'visit' },
+  { label: 'Give', page: 'give' },
+];
 
 /**
  * MORIAH — headline and sub are consecutive sentences from Elder Bryson's
@@ -80,8 +161,8 @@ export const hero = {
 export const services = {
   note: 'Service times are not published on the current site — the church supplies these.',
   times: [
-    { day: 'Sunday', name: 'Sunday School', time: '—' },
     { day: 'Sunday', name: 'Morning Worship', time: '—' },
+    { day: 'Sunday', name: 'Evening Worship', time: '—' },
     { day: 'Wednesday', name: 'Prayer & Bible Study', time: '—' },
   ],
 } as const;
@@ -542,6 +623,109 @@ export const eventKindLabels: Record<CalendarEvent['kind'], string> = {
   conference: 'Conference',
   special: 'Special service',
 };
+
+
+/* ---------- connect ---------- */
+
+/**
+ * LABEL + EXAMPLE — Facebook is the one place the church has a presence today,
+ * so it is the only channel offered. The URL itself is mocked.
+ */
+export const connect = {
+  eyebrow: 'Connect with us',
+  headline: 'Find us on Facebook',
+  body: 'Facebook is where the congregation posts today. Everything else on this page links back to the church’s own material.',
+  cta: 'Moriah on Facebook',
+  placeholderTag: 'mock link',
+} as const;
+
+/* ---------- blog page ---------- */
+
+/**
+ * EXAMPLE — the church has written no blog. Every word below is lorem ipsum
+ * and every card carries a placeholder pill, so nothing here can be mistaken
+ * for something Moriah said. Replace wholesale when they write real posts.
+ */
+export const blogPage = {
+  eyebrow: 'Writing',
+  headline: 'Blog',
+  notice:
+    'Nothing here is real writing. The church has not published a blog, so these are lorem ipsum placeholders showing what the layout would do with real posts.',
+  placeholderTag: 'placeholder text',
+  posts: [
+    {
+      id: 'b-01',
+      title: 'Lorem ipsum dolor sit amet',
+      date: '2026-09-14',
+      excerpt:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.',
+    },
+    {
+      id: 'b-02',
+      title: 'Sed do eiusmod tempor incididunt',
+      date: '2026-08-31',
+      excerpt:
+        'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt.',
+    },
+    {
+      id: 'b-03',
+      title: 'Ut enim ad minim veniam',
+      date: '2026-08-17',
+      excerpt:
+        'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto.',
+    },
+    {
+      id: 'b-04',
+      title: 'Quis nostrud exercitation ullamco',
+      date: '2026-08-03',
+      excerpt:
+        'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.',
+    },
+    {
+      id: 'b-05',
+      title: 'Neque porro quisquam est',
+      date: '2026-07-20',
+      excerpt:
+        'At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint.',
+    },
+    {
+      id: 'b-06',
+      title: 'Temporibus autem quibusdam',
+      date: '2026-07-06',
+      excerpt:
+        'Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat.',
+    },
+  ],
+} as const;
+
+/* ---------- give page ---------- */
+
+/**
+ * EXAMPLE — the church publishes nothing about giving, so this page is
+ * lorem ipsum behind a notice. The only real thing on it is the church's own
+ * mailing address, which they do publish.
+ */
+export const givePage = {
+  eyebrow: 'Give',
+  headline: 'Give',
+  notice:
+    'The church publishes nothing about giving, so the copy below is lorem ipsum placeholder. The mailing address is their real published one.',
+  placeholderTag: 'placeholder text',
+  body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+  methods: [
+    {
+      id: 'g-01',
+      title: 'Lorem ipsum',
+      body: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
+    },
+    {
+      id: 'g-02',
+      title: 'Consectetur adipiscing',
+      body: 'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+    },
+  ],
+  byMailLabel: 'By mail',
+} as const;
 
 /* ---------- directory page ---------- */
 
