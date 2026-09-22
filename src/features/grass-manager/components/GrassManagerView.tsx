@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { BackToExperiments } from '@/components/ui/BackToExperiments';
 
 import { WHOLE_YARD } from '../lib/yard';
 import { CareActions, CareHistory } from './care';
@@ -19,7 +19,7 @@ export function GrassManagerView() {
   return (
     <main className={styles.page}>
       <header className={styles.hero}>
-        <div><Link href="/" className={styles.backLink}>← Experiments</Link><h1>Grass Manager</h1></div>
+        <div><BackToExperiments className={styles.backLink} /><h1>Grass Manager</h1></div>
         <CareActions scope={WHOLE_YARD} profile={state.profile} today={manager.today} onAdd={manager.addCareEvent} disabled={!manager.hydrated} />
       </header>
       {manager.saveError && <p role="alert" className={styles.inlineError}>Browser storage is unavailable. Changes will be lost when this page closes.</p>}

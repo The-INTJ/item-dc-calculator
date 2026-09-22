@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { PlantAccessBoundary, PlantWidget } from '@/plants/components';
+import { PlantExperienceCard } from '@/plants/components';
 import styles from './page.module.scss';
 
 export const metadata = {
@@ -49,10 +49,18 @@ export default function PortalPage() {
         <h1>Experiments</h1>
         <p>Pick an experience.</p>
       </header>
-      <PlantAccessBoundary variant="widget">
-        <PlantWidget />
-      </PlantAccessBoundary>
       <ul className={styles.list}>
+        <li>
+          <PlantExperienceCard
+            title="Plant Tracker"
+            description="Watering, fertilizer, notes, vibe checks, and replanting cycles."
+            classNames={{
+              card: styles.card,
+              title: styles.cardTitle,
+              description: styles.cardDescription,
+            }}
+          />
+        </li>
         {experiences.map((experience) => (
           <li key={experience.href}>
             <Link href={experience.href} className={styles.card}>

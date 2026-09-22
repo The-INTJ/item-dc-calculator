@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
+import { BackToExperiments } from '@/components/ui/BackToExperiments';
 import { AuthProvider, useAuth } from '@/contest/contexts/auth/AuthContext';
 
 import { isPlantTrackerEmailAllowed } from '../lib/access';
@@ -80,9 +81,7 @@ function AccessFrame({ children, variant }: { children: ReactNode; variant: 'pag
 
   return (
     <main className={`${styles.frame} ${styles.page}`}>
-      <Link href="/" className={styles.backLink}>
-        ← Experiments
-      </Link>
+      <BackToExperiments className={styles.backLink} />
       <section className={styles.card}>{children}</section>
     </main>
   );
