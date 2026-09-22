@@ -1,7 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
+
+import { BackToExperiments } from '@/components/ui/BackToExperiments';
 
 import { AddPlantForm } from './AddPlantForm';
 import { PlantCard } from './PlantCard';
@@ -18,9 +19,7 @@ export function PlantsView() {
   return (
     <div className={styles.page}>
       <div className={styles.topBar}>
-        <Link href="/" className={styles.backLink}>
-          ← Experiments
-        </Link>
+        <BackToExperiments className={styles.backLink} />
       </div>
 
       <header className={styles.head}>

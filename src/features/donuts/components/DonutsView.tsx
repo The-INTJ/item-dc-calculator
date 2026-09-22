@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { BackToExperiments } from '@/components/ui/BackToExperiments';
 
 import { DeclineDialog } from './DeclineDialog';
 import styles from './DonutsView.module.scss';
@@ -24,9 +24,7 @@ export function DonutsView() {
     <div className={styles.shell}>
       <div className={styles.page}>
         <div className={styles.topBar}>
-          <Link href="/" className={styles.backLink}>
-            ← Experiments
-          </Link>
+          <BackToExperiments className={styles.backLink} />
         </div>
 
         <header className={styles.head}>

@@ -1,0 +1,56 @@
+.host {
+  position: relative;
+}
+
+/**
+ * The card's own text keeps its space while the spinner is up — hidden, not
+ * removed — so the card, its row, and everything below it stay put.
+ */
+.blank {
+  visibility: hidden;
+}
+
+.spinnerLayer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  border-top-color: rgba(0, 0, 0, 0.55);
+  border-radius: 50%;
+  animation: plantCardSpin 700ms linear infinite;
+}
+
+@keyframes plantCardSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: plantCardPulse 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes plantCardPulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
