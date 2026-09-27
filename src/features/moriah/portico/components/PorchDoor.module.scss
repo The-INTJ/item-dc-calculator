@@ -1,0 +1,153 @@
+/* The double doors. Sizes come from --door-h on the scene, so the panels,
+   hardware and the leaves' thickness all scale with the door.
+
+   Raised panels are drawn the way a painter sees them: four mitred bevels,
+   brightest on top, then left, then right, darkest along the bottom — light
+   from the upper left — around a flat field. */
+
+.door {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.interior {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 92% 78% at 50% 60%,
+    #fffaf0 0%,
+    #fde9c0 30%,
+    #f4c67f 64%,
+    #d8924a 100%
+  );
+}
+
+.leaves {
+  position: absolute;
+  inset: 0;
+  perspective: calc(var(--door-h) * 2.6);
+  perspective-origin: 50% 46%;
+  transform-style: preserve-3d;
+}
+
+.leaf {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: 12.5fr 31.9fr 11.2fr 31.9fr 12.5fr;
+  grid-template-rows: 4.5fr 16fr 3.8fr 34fr 4.2fr 31fr 6.5fr;
+  width: 50%;
+  background: linear-gradient(90deg, #faf9f5 0%, #f3f2ed 58%, #e8e8ec 100%);
+  box-shadow: inset 0 0 0 1px rgba(110, 115, 138, 0.38);
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+
+  /* The leaf's thickness: a plane at its free edge, turned back into the room. */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: calc(var(--door-h) * 0.022);
+    background: linear-gradient(90deg, #c9ccd6, #e4e5ea);
+  }
+}
+
+.left {
+  left: 0;
+  transform: rotateY(calc(var(--open, 0) * 104deg + var(--ajar)));
+  transform-origin: left center;
+
+  &::after {
+    right: 0;
+    transform: rotateY(-90deg);
+    transform-origin: right center;
+  }
+}
+
+.right {
+  right: 0;
+  transform: rotateY(calc(var(--open, 0) * -104deg - var(--ajar)));
+  transform-origin: right center;
+
+  &::after {
+    left: 0;
+    transform: rotateY(90deg);
+    transform-origin: left center;
+  }
+
+  /* The astragal — the strip that covers the meeting of the two leaves. */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--door-h) * -0.006);
+    z-index: 1;
+    width: calc(var(--door-h) * 0.013);
+    background: linear-gradient(90deg, #fdfcf9, #d8dae2);
+    box-shadow: -1px 0 2px rgba(40, 44, 60, 0.35);
+  }
+}
+
+.panel {
+  border-color: #ffffff #cdd0da #afb3c3 #f0efeb;
+  border-style: solid;
+  border-width: calc(var(--door-h) * 0.013);
+  background: linear-gradient(180deg, #fcfbf8 0%, #f0efea 100%);
+  box-shadow: 0 0 0 1px rgba(95, 100, 122, 0.32);
+
+  &:nth-of-type(1) {
+    grid-area: 2 / 2;
+  }
+
+  &:nth-of-type(2) {
+    grid-area: 2 / 4;
+  }
+
+  &:nth-of-type(3) {
+    grid-area: 4 / 2;
+  }
+
+  &:nth-of-type(4) {
+    grid-area: 4 / 4;
+  }
+
+  &:nth-of-type(5) {
+    grid-area: 6 / 2;
+  }
+
+  &:nth-of-type(6) {
+    grid-area: 6 / 4;
+  }
+}
+
+.knob,
+.deadbolt {
+  position: absolute;
+  left: 7%;
+  z-index: 2;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 30%,
+    #ffffff 0 12%,
+    #d8d4c9 38%,
+    #8e897d 78%,
+    #5e5a50 100%
+  );
+  box-shadow: 1px 2px 3px rgba(20, 20, 30, 0.45);
+  transform: translate(-50%, -50%);
+}
+
+.knob {
+  top: 52%;
+  width: calc(var(--door-h) * 0.032);
+}
+
+.deadbolt {
+  top: 45.5%;
+  width: calc(var(--door-h) * 0.022);
+}

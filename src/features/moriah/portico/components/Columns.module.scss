@@ -1,0 +1,107 @@
+/* The porch columns. Each straddles an edge of <main>: the outer half stands
+   in the dusk, the inner half in the light — the threshold, every page.
+
+   They are square, as Moriah's are: every block shows a flat front face and a
+   narrow return in cool shade on its right, split by a crisp arris. That hard
+   edge, not a soft gradient, is what keeps them from reading as round. */
+
+.columns {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.stick {
+  position: sticky;
+  top: var(--nav-h);
+  height: calc(100dvh - var(--nav-h));
+  max-height: 100%;
+}
+
+.column {
+  --face: linear-gradient(
+    90deg,
+    #ffffff 0 3%,
+    #f8f7f3 3% 40%,
+    #efeee9 78%,
+    #9da1b4 78% 79.5%,
+    #d0d3dd 79.5% 88%,
+    #bec1ce 100%
+  );
+
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: calc(var(--col-w) * 1.36);
+}
+
+.left {
+  left: 0;
+  transform: translateX(-50%);
+}
+
+.right {
+  right: 0;
+  transform: translateX(50%);
+}
+
+.abacus,
+.neck,
+.torus,
+.plinth {
+  display: block;
+  flex: none;
+  background: var(--face);
+}
+
+/* The cap: a square block over a narrower collar. */
+.abacus {
+  width: 100%;
+  height: calc(var(--col-w) * 0.36);
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    inset 0 -1px 0 rgba(110, 115, 138, 0.6),
+    0 4px 6px -3px rgba(28, 30, 42, 0.45);
+}
+
+.neck {
+  width: 84%;
+  height: calc(var(--col-w) * 0.2);
+  box-shadow:
+    inset 0 -1px 0 rgba(110, 115, 138, 0.5),
+    0 3px 4px -3px rgba(28, 30, 42, 0.35);
+}
+
+.shaft {
+  position: relative;
+  display: block;
+  flex: 1;
+  width: 73.5%;
+  background:
+    linear-gradient(180deg, rgba(40, 44, 60, 0.16) 0%, rgba(40, 44, 60, 0) 5%),
+    linear-gradient(0deg, rgba(40, 44, 60, 0.1) 0%, rgba(40, 44, 60, 0) 4%),
+    var(--face);
+  box-shadow: 18px 0 28px -16px rgba(36, 30, 24, 0.38);
+}
+
+/* The base: a collar over a square plinth. */
+.torus {
+  width: 84%;
+  height: calc(var(--col-w) * 0.18);
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    inset 0 -1px 0 rgba(110, 115, 138, 0.45);
+}
+
+.plinth {
+  width: 100%;
+  height: calc(var(--col-w) * 0.42);
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    inset 0 -1px 0 rgba(110, 115, 138, 0.5),
+    0 5px 8px -4px rgba(20, 22, 30, 0.5);
+}

@@ -1,0 +1,203 @@
+@use './type' as *;
+
+.page {
+  display: grid;
+  justify-items: center;
+  gap: 2rem;
+  padding: clamp(3.5rem, 8vw, 6rem) var(--gutter) clamp(4.5rem, 9vw, 7rem);
+}
+
+.calendar {
+  display: grid;
+  justify-items: center;
+  gap: 1.6rem;
+  width: 100%;
+  max-width: 46rem;
+}
+
+/* The month, on a small plaque, with raised-panel turns either side. */
+.plaque {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.month {
+  @include display(clamp(1.6rem, 3vw, 2.3rem));
+
+  min-width: 11ch;
+  margin: 0;
+  text-align: center;
+}
+
+.turn {
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  padding: 0 0 0.2rem;
+  border: 3px solid;
+  border-color: #ffffff #cfd2dc #aeb2c2 #f1f0ec;
+  border-radius: 0;
+  background: linear-gradient(180deg, #fefdfb, #f1f0eb);
+  box-shadow: 0 0 0 1px rgba(80, 84, 104, 0.3);
+  color: var(--iron);
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  line-height: 1;
+
+  &:hover {
+    color: var(--link);
+  }
+
+  &:active {
+    border-color: #aeb2c2 #f1f0ec #ffffff #cfd2dc;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ember);
+    outline-offset: 3px;
+  }
+}
+
+/* The window: head casing with the weekdays, then panes between muntins. */
+.window {
+  position: relative;
+  width: 100%;
+  padding: 0 clamp(8px, 1.2vw, 14px) clamp(8px, 1.2vw, 14px);
+  background: linear-gradient(90deg, #faf9f5 0%, #f1f0eb 55%, #dcdde4 100%);
+  box-shadow:
+    0 0 0 1px rgba(40, 42, 56, 0.45),
+    10px 14px 28px rgba(24, 18, 12, 0.32);
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: -5%;
+    right: -5%;
+    bottom: -16px;
+    height: 16px;
+    background: linear-gradient(180deg, #ffffff, #d0d3dd);
+    box-shadow: 0 7px 9px rgba(24, 18, 12, 0.35);
+  }
+}
+
+.head {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 0.8rem 0 0.7rem;
+
+  span {
+    @include inscription(0.62rem, 0.24em);
+
+    color: var(--iron-soft);
+    text-align: center;
+  }
+}
+
+.panes {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: clamp(4px, 0.6vw, 7px);
+}
+
+.blank,
+.pane {
+  aspect-ratio: 1 / 0.84;
+  background:
+    linear-gradient(128deg, rgba(255, 255, 255, 0.09) 0 18%, rgba(255, 255, 255, 0) 32%),
+    linear-gradient(180deg, #313642 0%, #20242d 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(10, 10, 14, 0.7),
+    inset 0 6px 10px rgba(0, 0, 0, 0.35);
+}
+
+/* Panes outside the month: the same glass, unlit and a shade darker. */
+.blank {
+  filter: brightness(0.72);
+}
+
+.pane {
+  position: relative;
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  padding: 0.35rem 0.5rem;
+  border: 0;
+  border-radius: 0;
+  color: rgba(240, 232, 216, 0.8);
+  font-family: var(--font-text);
+  font-size: clamp(0.78rem, 1.3vw, 0.95rem);
+  font-variant-numeric: oldstyle-nums;
+  transition: color var(--slow) var(--ease);
+
+  /* The lamp behind the glass. */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 150% 140% at 50% 72%, rgba(255, 236, 196, 0.98) 0%, rgba(255, 214, 150, 0.85) 45%, rgba(236, 176, 102, 0.55) 100%);
+    mix-blend-mode: screen;
+    opacity: 0;
+    transition: opacity var(--slower) var(--ease);
+    pointer-events: none;
+  }
+
+  &:hover::after {
+    opacity: 0.28;
+  }
+
+  &[data-today]::after {
+    opacity: 0.5;
+  }
+
+  /* The number sits above the lamp so it stays legible when the pane is lit. */
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  &[aria-pressed='true'] {
+    color: var(--iron);
+  }
+
+  &[aria-pressed='true']::after {
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    z-index: 1;
+    outline: 2px solid var(--glow);
+    outline-offset: 2px;
+  }
+}
+
+.day {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  margin-top: 1.6rem;
+}
+
+.dayHeading {
+  @include display(clamp(1.35rem, 2.4vw, 1.75rem));
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.8rem;
+  margin: 0;
+}
+
+.today {
+  @include inscription(0.64rem, 0.3em);
+
+  color: var(--link);
+}
+
+.dayEmpty {
+  margin: 0;
+  color: var(--iron-soft);
+  font-style: italic;
+}

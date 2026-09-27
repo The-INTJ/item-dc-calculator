@@ -1,0 +1,93 @@
+/* The pinned stage for the home page's entrance. The section is tall; the
+   stage sticks under the architrave while the extra height scrolls by, and
+   that scroll is the walk. The section is the size container, so the scene
+   measures itself against the porch, not the window. */
+
+.threshold {
+  position: relative;
+  height: calc(100dvh - var(--nav-h) + 175vh);
+  container-type: inline-size;
+}
+
+.stage {
+  position: sticky;
+  top: var(--nav-h);
+  height: calc(100dvh - var(--nav-h));
+  overflow: hidden;
+  background: var(--canopy);
+}
+
+/* The room's light, filling the view once the doorway does. */
+.flood {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 62% at 50% 50%, #fffdf8 0%, var(--light) 72%);
+  opacity: var(--flood, 0);
+  pointer-events: none;
+}
+
+.words {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1.8rem;
+  margin: 0;
+  padding: 0 var(--gutter);
+  opacity: var(--words, 0);
+  text-align: center;
+  transform: translateY(calc((1 - var(--words, 0)) * 18px));
+  pointer-events: none;
+}
+
+.prayer {
+  max-width: 27ch;
+  margin: 0;
+  color: var(--iron);
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3.3vw, 2.85rem);
+  line-height: 1.26;
+  text-wrap: balance;
+
+  p {
+    margin: 0;
+  }
+}
+
+.signature {
+  margin-right: -0.3em;
+  color: var(--iron-soft);
+  font-size: 0.72rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+/* Reduced motion: no pinning, no walk. The door stands slightly open with its
+   light on the steps, and the prayer sits beneath it on the page. */
+@media (prefers-reduced-motion: reduce) {
+  .threshold {
+    height: auto;
+  }
+
+  .stage {
+    --open: 0.14;
+
+    position: relative;
+    top: 0;
+    height: auto;
+    overflow: visible;
+    background: var(--light);
+  }
+
+  .flood {
+    display: none;
+  }
+
+  .words {
+    position: relative;
+    padding: clamp(3.5rem, 9vw, 7rem) var(--gutter);
+    opacity: 1;
+    transform: none;
+  }
+}

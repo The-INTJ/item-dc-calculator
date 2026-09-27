@@ -38,6 +38,8 @@
     "@fontsource-variable/material-symbols-rounded": "^5.2.43",
     "@fontsource/fraunces": "^5.2.9",
     "@fontsource/inter": "^5.2.8",
+    "@fontsource/libre-caslon-display": "^5.3.0",
+    "@fontsource/libre-caslon-text": "^5.3.0",
     "@fontsource/roboto": "^5.1.1",
     "@mui/material": "^6.4.2",
     "@scalar/nextjs-api-reference": "^0.9.11",

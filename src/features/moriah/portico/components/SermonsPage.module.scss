@@ -1,0 +1,193 @@
+@use './type' as *;
+
+.library {
+  display: grid;
+  justify-items: center;
+  gap: 1.6rem;
+  padding: clamp(3.5rem, 8vw, 6rem) var(--gutter) clamp(4.5rem, 9vw, 7rem);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The search field is routed into the paint: an inset panel, bevels reversed. */
+.search {
+  width: 100%;
+  max-width: 44rem;
+
+  input {
+    width: 100%;
+    padding: 1rem 1.3rem;
+    border: 4px solid;
+    border-color: #aeb2c2 #f1f0ec #ffffff #cfd2dc;
+    border-radius: 0;
+    background: #fcfbf8;
+    box-shadow: inset 0 3px 8px rgba(40, 42, 56, 0.16);
+    color: var(--iron);
+    font-family: var(--font-text);
+    font-size: 1.15rem;
+    font-style: italic;
+    appearance: none;
+
+    &::placeholder {
+      color: rgba(31, 28, 26, 0.5);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--ember);
+      outline-offset: 3px;
+    }
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  max-width: 50rem;
+}
+
+.chipsLabel {
+  @include inscription(0.66rem, 0.3em);
+
+  margin-right: 0.4rem;
+  color: var(--iron-soft);
+}
+
+/* Small raised panels; the chosen one is pressed in. */
+.chip {
+  padding: 0.45rem 0.85rem;
+  border: 3px solid;
+  border-color: #ffffff #cfd2dc #aeb2c2 #f1f0ec;
+  border-radius: 0;
+  background: linear-gradient(180deg, #fefdfb, #f1f0eb);
+  box-shadow: 0 0 0 1px rgba(80, 84, 104, 0.3);
+  color: var(--iron);
+  font-family: var(--font-text);
+  font-size: 0.9rem;
+  transition: color var(--slow) var(--ease);
+
+  &:hover {
+    color: var(--link);
+  }
+
+  &[aria-pressed='true'] {
+    border-color: #aeb2c2 #f1f0ec #ffffff #cfd2dc;
+    background: linear-gradient(180deg, #efeee9, #f8f7f3);
+    color: var(--link);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ember);
+    outline-offset: 3px;
+  }
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 58rem;
+  color: var(--iron-soft);
+  font-size: 0.92rem;
+  font-style: italic;
+}
+
+.sort {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--link);
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(138, 51, 36, 0.35);
+  text-underline-offset: 0.3em;
+}
+
+/* Clapboard: each board lapped over the next, its lower edge casting a line. */
+.boards {
+  width: 100%;
+  max-width: 58rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.board {
+  position: relative;
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1.5rem;
+  padding: 1.55rem 1.5rem 1.65rem;
+  background: linear-gradient(180deg, #fffefb 0%, #f3f2ed 100%);
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    inset 0 -2px 0 rgba(143, 148, 169, 0.38),
+    0 4px 5px -3px rgba(40, 42, 56, 0.3);
+  text-align: left;
+}
+
+.scripture {
+  @include inscription(0.7rem, 0.2em);
+
+  margin-top: 0.35rem;
+  margin-bottom: 0;
+  color: var(--link);
+  font-variant-numeric: oldstyle-nums;
+}
+
+.title {
+  @include display(clamp(1.3rem, 2vw, 1.6rem));
+
+  margin: 0 0 0.45rem;
+}
+
+.summary {
+  margin: 0;
+  color: var(--iron-soft);
+  line-height: 1.55;
+}
+
+.listen {
+  @include inscription(0.68rem, 0.26em);
+
+  margin-top: 0.4rem;
+  color: var(--link);
+  text-decoration: underline;
+  text-decoration-color: rgba(138, 51, 36, 0.35);
+  text-underline-offset: 0.5em;
+
+  &:focus-visible {
+    outline: 2px solid var(--ember);
+    outline-offset: 4px;
+  }
+}
+
+.mark {
+  padding: 0 0.08em;
+  background: rgba(246, 207, 134, 0.6);
+  color: inherit;
+}
+
+.empty {
+  @include display(1.6rem);
+
+  margin: 2rem 0;
+  color: var(--iron-soft);
+}
+
+@media (max-width: 719px) {
+  .board {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+}

@@ -1,0 +1,133 @@
+@use './type' as *;
+
+/* The Articles door. The <ol> is the door itself: its padding is the stiles
+   and rails, its column gap the meeting stiles, each <li> a raised panel. A
+   transom panel spans both leaves; below it the leaves meet down the middle,
+   where the knob is. */
+
+.wall {
+  padding: clamp(3rem, 7vw, 5.5rem) var(--gutter) clamp(4rem, 8vw, 6.5rem);
+  background:
+    linear-gradient(180deg, rgba(10, 8, 12, 0.55) 0%, rgba(10, 8, 12, 0.12) 12%, rgba(10, 8, 12, 0.22) 100%),
+    linear-gradient(90deg, rgba(10, 8, 12, 0.42) 0%, rgba(10, 8, 12, 0) 18%, rgba(10, 8, 12, 0) 82%, rgba(10, 8, 12, 0.42) 100%),
+    var(--brick-img) 50% 0 / var(--brick-tile) repeat;
+}
+
+/* The white door casing: head and both jambs. */
+.casing {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: clamp(12px, 1.5vw, 20px) clamp(12px, 1.5vw, 20px) 0;
+  background: linear-gradient(90deg, #fbfaf6 0%, #f1f0eb 50%, #dcdde4 100%);
+  box-shadow:
+    0 0 0 1px rgba(40, 42, 56, 0.5),
+    8px 12px 26px rgba(0, 0, 0, 0.55);
+}
+
+.door {
+  --row-gap: clamp(14px, 1.6vw, 20px);
+  --col-gap: clamp(26px, 3vw, 38px);
+  --bottom-rail: clamp(34px, 4vw, 52px);
+
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--row-gap) var(--col-gap);
+  margin: 0;
+  padding: clamp(18px, 2.4vw, 30px) clamp(18px, 2.4vw, 30px) var(--bottom-rail);
+  background: linear-gradient(90deg, #faf9f5 0%, #f3f2ed 55%, #e9e9ed 100%);
+  box-shadow: inset 0 0 0 1px rgba(110, 115, 138, 0.4);
+  list-style: none;
+}
+
+.panel {
+  @include reveal;
+
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+  padding: clamp(1.2rem, 2.3vw, 1.9rem) clamp(1.1rem, 2.1vw, 1.8rem) clamp(1.2rem, 2.1vw, 1.7rem);
+  border: clamp(7px, 0.85vw, 11px) solid;
+  border-color: #ffffff #cfd2dc #aeb2c2 #f1f0ec;
+  background: linear-gradient(180deg, #fdfcf9 0%, #f2f1ec 100%);
+  box-shadow: 0 0 0 1px rgba(80, 84, 104, 0.32);
+}
+
+/* Where the leaves meet: a line down the middle of the stile gap, drawn beside
+   each left-leaf panel (the even items, after the transom) and carried down
+   through the rail below it — so it starts under the transom, not above it. */
+.panel:nth-child(even)::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: calc(var(--col-gap) / -2 - 1px);
+  bottom: calc(var(--row-gap) * -1);
+  width: 2px;
+  background: #c4c7d2;
+}
+
+.panel:nth-last-child(2)::after {
+  bottom: calc(var(--bottom-rail) * -1);
+}
+
+/* The knob, on the active leaf's stile, beside the fourth pair of panels. */
+.panel:nth-child(9)::before {
+  content: '';
+  position: absolute;
+  top: 30%;
+  left: calc(var(--col-gap) / -2 + 3px);
+  width: calc(var(--col-gap) / 2 - 7px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0 12%, #d8d4c9 38%, #8e897d 78%, #5e5a50 100%);
+  box-shadow: 1px 2px 3px rgba(20, 20, 30, 0.45);
+}
+
+/* The transom: one true and living God, over both leaves. */
+.transom {
+  grid-column: 1 / -1;
+  justify-items: center;
+  margin-bottom: clamp(8px, 1.2vw, 16px);
+  padding-block: clamp(1.6rem, 3vw, 2.6rem);
+  text-align: center;
+}
+
+.numeral {
+  @include inscription(0.66rem, 0.3em);
+
+  color: var(--iron-soft);
+}
+
+.article {
+  margin: 0;
+  font-size: clamp(1.02rem, 1.25vw, 1.12rem);
+  line-height: 1.6;
+
+  .transom & {
+    @include display(clamp(1.35rem, 2.5vw, 1.95rem));
+
+    max-width: 36ch;
+    line-height: 1.3;
+  }
+}
+
+.refs {
+  margin: 0;
+  color: var(--link);
+  font-size: 0.9rem;
+  font-style: italic;
+  font-variant-numeric: oldstyle-nums;
+  line-height: 1.5;
+}
+
+@media (max-width: 719px) {
+  .door {
+    grid-template-columns: 1fr;
+  }
+
+  .panel:nth-child(even)::after,
+  .panel:nth-child(9)::before {
+    display: none;
+  }
+}

@@ -1,0 +1,288 @@
+/* The porch at dusk, laid out from the door. Everything is a multiple of
+   --door-h, so the whole facade scales as one drawing. Horizontal centring
+   uses calc() on `left`, never `translate`, because the walk-through measures
+   the doorway with offsetLeft/offsetTop, which ignore transforms.
+
+   The door is sized to fit the first screen under the gable: whatever height
+   is left under the header, within 210–440px — and on a narrow porch, small
+   enough to leave the lantern and the rails in view beside it. */
+
+.scene {
+  --door-h: min(
+    max(210px, calc(100dvh - var(--header-h) - 150px)),
+    440px,
+    calc((100cqw - 2 * var(--gutter)) / 1.4)
+  );
+  --door-w: calc(var(--door-h) * 0.9);
+  --door-top: clamp(26px, 5.5dvh, 64px);
+  --casing: calc(var(--door-h) * 0.058);
+  --floor-y: calc(var(--door-top) + var(--door-h));
+  --slab: calc(var(--door-h) * 0.045);
+  --riser: calc(var(--door-h) * 0.085);
+  --course-d: calc(var(--door-h) / 30);
+  --stair-y: calc(var(--floor-y) + var(--slab) + var(--course-d) * 2);
+  --lantern-x: calc(50% + var(--door-w) / 2 + var(--casing) + var(--door-h) * 0.118);
+
+  /* The windows sit in the free wall either side of the casing. */
+  --win-w: calc(var(--door-h) * 0.44);
+  --side: calc(50cqw - var(--door-w) / 2 - var(--casing) - var(--gutter));
+  --win-inset: calc(var(--door-w) / 2 + var(--casing) + (var(--side) - var(--win-w)) * 0.62);
+
+  position: absolute;
+  inset: 0;
+  background:
+    url('/moriah/portico/grain.svg') 0 0 / 180px 180px repeat,
+    linear-gradient(180deg, #1f211b 0%, #141512 100%);
+  will-change: transform;
+}
+
+.wall {
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--floor-y);
+  background:
+    linear-gradient(180deg, rgba(10, 8, 12, 0.66) 0%, rgba(10, 8, 12, 0.14) 15%, rgba(10, 8, 12, 0.2) 100%),
+    linear-gradient(90deg, rgba(10, 8, 12, 0.46) 0%, rgba(10, 8, 12, 0) 24%, rgba(10, 8, 12, 0) 76%, rgba(10, 8, 12, 0.46) 100%),
+    var(--brick-img) 50% 100% / calc(var(--course-d) * 15.25) calc(var(--course-d) * 8) repeat;
+}
+
+/* One-over-one windows, lit from within. */
+.window {
+  position: absolute;
+  top: calc(var(--door-top) + var(--door-h) * 0.04);
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: calc(var(--door-h) * 0.022);
+  width: var(--win-w);
+  height: calc(var(--door-h) * 0.8);
+  padding: calc(var(--door-h) * 0.03);
+  background: linear-gradient(90deg, #f7f6f1, #e3e4ea);
+  box-shadow:
+    0 0 0 1px rgba(40, 42, 56, 0.5),
+    4px 6px 12px rgba(0, 0, 0, 0.5);
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: -9%;
+    right: -9%;
+    bottom: calc(var(--door-h) * -0.03);
+    height: calc(var(--door-h) * 0.03);
+    background: linear-gradient(180deg, #ffffff, #d2d4de);
+    box-shadow: 0 5px 7px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.left {
+  left: calc(50% - var(--win-inset) - var(--win-w));
+}
+
+.right {
+  left: calc(50% + var(--win-inset));
+}
+
+.sash {
+  background:
+    linear-gradient(128deg, rgba(255, 255, 255, 0.14) 0 16%, rgba(255, 255, 255, 0) 30%),
+    radial-gradient(ellipse 110% 90% at 50% 100%, #f1d6a2 0%, #c49a62 40%, #6b5038 78%, #3d2e22 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(30, 24, 20, 0.65),
+    inset 0 7px 10px rgba(0, 0, 0, 0.35);
+}
+
+/* The door's light on the wall around it, as it opens. */
+.glow {
+  position: absolute;
+  top: calc(var(--door-top) - var(--door-h) * 0.3);
+  left: calc(50% - var(--door-w) * 1.4);
+  width: calc(var(--door-w) * 2.8);
+  height: calc(var(--door-h) * 1.6);
+  background: radial-gradient(ellipse 50% 50% at 50% 56%, rgba(255, 206, 140, 0.6), rgba(255, 190, 120, 0) 72%);
+  mix-blend-mode: screen;
+  opacity: var(--open, 0);
+  pointer-events: none;
+}
+
+.casing {
+  position: absolute;
+  top: calc(var(--door-top) - var(--casing));
+  left: calc(50% - var(--door-w) / 2 - var(--casing));
+  width: calc(var(--door-w) + 2 * var(--casing));
+  height: calc(var(--door-h) + var(--casing));
+  background: linear-gradient(90deg, #fbfaf6 0%, #f0efea 50%, #dcdde4 100%);
+  box-shadow:
+    0 0 0 1px rgba(40, 42, 56, 0.45),
+    5px 7px 14px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 #ffffff;
+}
+
+.doorway {
+  position: absolute;
+  top: var(--door-top);
+  left: calc(50% - var(--door-w) / 2);
+  width: var(--door-w);
+  height: var(--door-h);
+  padding: 0;
+  border: 0;
+  background: #2a2622;
+  box-shadow: inset 0 0 0 1px rgba(20, 20, 26, 0.6);
+  cursor: pointer;
+  transition: --ajar 1600ms var(--ease);
+
+  &:hover,
+  &:focus-visible {
+    --ajar: 11deg;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--glow);
+    outline-offset: calc(var(--casing) + 5px);
+  }
+}
+
+.lantern {
+  position: absolute;
+  top: calc(var(--door-top) + var(--door-h) * 0.2);
+  left: calc(var(--lantern-x) - var(--door-h) * 0.0435);
+  width: auto;
+  height: calc(var(--door-h) * 0.2);
+  filter: drop-shadow(3px 5px 4px rgba(0, 0, 0, 0.55));
+}
+
+.lanternHalo {
+  position: absolute;
+  top: calc(var(--door-top) + var(--door-h) * 0.2935 - var(--door-h) * 0.32);
+  left: calc(var(--lantern-x) - var(--door-h) * 0.32);
+  width: calc(var(--door-h) * 0.64);
+  aspect-ratio: 1;
+  background: radial-gradient(circle, rgba(255, 205, 130, 0.55) 0%, rgba(255, 190, 110, 0.16) 36%, transparent 68%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+/* The porch floor's concrete edge over two courses of its brick face. */
+.floor {
+  position: absolute;
+  top: var(--floor-y);
+  left: 0;
+  right: 0;
+  height: calc(var(--slab) + var(--course-d) * 2);
+  background:
+    linear-gradient(180deg, #dcd7ce 0%, #bab4a9 100%) 0 0 / 100% var(--slab) no-repeat,
+    var(--brick-img) 50% 0 / calc(var(--course-d) * 15.25) calc(var(--course-d) * 8) repeat;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 12px 20px -8px rgba(0, 0, 0, 0.65);
+}
+
+.steps {
+  position: absolute;
+  top: var(--stair-y);
+  left: calc(50% - var(--door-w) * 0.74);
+  display: grid;
+  width: calc(var(--door-w) * 1.48);
+
+  > span {
+    display: block;
+    height: var(--riser);
+    background:
+      linear-gradient(180deg, rgba(232, 222, 206, 0.55) 0 2px, transparent 2px),
+      var(--brick-img) 50% 0 / calc(var(--course-d) * 15.25) calc(var(--course-d) * 8) repeat;
+    box-shadow: inset 0 -6px 8px -6px rgba(0, 0, 0, 0.6);
+  }
+
+  > span + span {
+    margin-inline: calc(var(--door-w) * -0.08);
+    box-shadow:
+      inset 0 -6px 8px -6px rgba(0, 0, 0, 0.6),
+      0 14px 18px -8px rgba(0, 0, 0, 0.7);
+  }
+}
+
+/* Iron handrail posts either side of the steps, with a finial each. */
+.rails > span {
+  position: absolute;
+  top: calc(var(--floor-y) - var(--door-h) * 0.3);
+  width: max(2px, calc(var(--door-h) * 0.009));
+  height: calc(var(--stair-y) + var(--riser) * 2 - var(--floor-y) + var(--door-h) * 0.3);
+  background: #121110;
+  box-shadow: 2px 3px 4px rgba(0, 0, 0, 0.45);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -60%;
+    width: 220%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #121110;
+  }
+
+  &:first-child {
+    left: calc(50% - var(--door-w) / 2 - var(--casing) - var(--door-h) * 0.07);
+  }
+
+  &:last-child {
+    left: calc(50% + var(--door-w) / 2 + var(--casing) + var(--door-h) * 0.07);
+  }
+}
+
+.walk {
+  position: absolute;
+  top: calc(var(--stair-y) + var(--riser) * 2);
+  bottom: 0;
+  left: calc(50% - var(--door-w) * 1.6);
+  width: calc(var(--door-w) * 3.2);
+  background: linear-gradient(180deg, #121210, #0b0b0a);
+  clip-path: polygon(34% 0, 66% 0, 100% 100%, 0 100%);
+}
+
+/* Light falling out of the doorway, over the floor, the steps and the walk. */
+.spill {
+  position: absolute;
+  top: var(--floor-y);
+  bottom: 0;
+  left: calc(50% - var(--door-w) * 1.8);
+  width: calc(var(--door-w) * 3.6);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 220, 158, 0.88) 0%,
+    rgba(255, 196, 122, 0.42) 30%,
+    rgba(250, 178, 98, 0.14) 66%,
+    rgba(250, 178, 98, 0) 92%
+  );
+  clip-path: polygon(36.1% 0, 63.9% 0, 100% 100%, 0 100%);
+  mix-blend-mode: screen;
+  opacity: var(--open, 0);
+  pointer-events: none;
+}
+
+/* Wide enough for windows: keep the door small enough to leave them room. */
+@container (min-width: 701px) {
+  .scene {
+    --door-h: min(
+      max(210px, calc(100dvh - var(--header-h) - 150px)),
+      440px,
+      calc((100cqw - 2 * var(--gutter)) / 2.6)
+    );
+  }
+}
+
+@container (max-width: 700px) {
+  .window {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene {
+    position: relative;
+    height: calc(var(--stair-y) + var(--riser) * 2 + var(--door-h) * 0.3);
+    will-change: auto;
+  }
+
+  .doorway {
+    transition: none;
+  }
+}

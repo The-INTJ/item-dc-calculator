@@ -1,0 +1,36 @@
+@use './type' as *;
+
+.inscription {
+  @include inscription(0.76rem, 0.32em);
+
+  display: grid;
+  justify-items: center;
+  gap: 0.7rem;
+  margin-top: 0;
+  margin-bottom: 0;
+  color: var(--iron-soft);
+}
+
+/* A double rake, like the building's: an outer and an inner line. */
+.gable {
+  width: 34px;
+  height: 11px;
+  margin-right: 0.32em;
+  overflow: visible;
+
+  path {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.1;
+  }
+
+  path + path {
+    opacity: 0.55;
+  }
+}
+
+.light {
+  color: rgba(246, 240, 228, 0.82);
+}

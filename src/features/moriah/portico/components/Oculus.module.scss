@@ -1,0 +1,41 @@
+/* The gable vent. Hover or focus on the link that holds it parts the louvers
+   and lights the gaps — slowly, the way a lamp is turned up. */
+
+.oculus {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  transition: filter var(--slow, 900ms) var(--ease, ease-out);
+}
+
+.vent {
+  fill: #2a2d38;
+  transition: fill var(--slow, 900ms) var(--ease, ease-out);
+}
+
+.louver {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform var(--slow, 900ms) var(--ease, ease-out);
+}
+
+:is(a:hover, a:focus-visible) > .oculus {
+  filter: drop-shadow(0 0 12px rgba(246, 207, 134, 0.7));
+
+  .vent {
+    fill: #f7d48f;
+  }
+
+  .louver {
+    transform: scaleY(0.44);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oculus,
+  .vent,
+  .louver {
+    transition: none;
+  }
+}

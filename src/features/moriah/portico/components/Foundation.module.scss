@@ -1,0 +1,145 @@
+/* The foundation: porch floor, brick footing, steps and rails, then the
+   grounds at dusk with the church's name set like a cornerstone. */
+
+.foundation {
+  position: relative;
+  color: #efe8da;
+}
+
+.porchEdge {
+  width: min(100%, var(--porch-max));
+  margin: 0 auto;
+}
+
+/* The concrete porch floor the column plinths stand on. */
+.floor {
+  height: clamp(9px, 1.1vw, 15px);
+  background: linear-gradient(180deg, #e3dfd8 0%, #cdc8bf 45%, #aaa398 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.footing {
+  height: calc(var(--course) * 3);
+  background: var(--brick-img) 0 0 / var(--brick-tile) repeat;
+  box-shadow: inset 0 8px 10px -8px rgba(0, 0, 0, 0.55);
+}
+
+.stair {
+  position: relative;
+  width: clamp(190px, 42%, 480px);
+  margin: 0 auto;
+}
+
+.step {
+  display: block;
+  height: calc(var(--course) * 2);
+  background:
+    linear-gradient(180deg, rgba(236, 226, 212, 0.55) 0 2px, transparent 2px),
+    var(--brick-img) 0 0 / var(--brick-tile) repeat;
+  box-shadow: inset 0 -6px 8px -6px rgba(0, 0, 0, 0.5);
+}
+
+.stepLower {
+  width: 108%;
+  margin-left: -4%;
+  box-shadow:
+    inset 0 -6px 8px -6px rgba(0, 0, 0, 0.5),
+    0 14px 24px -8px rgba(0, 0, 0, 0.7);
+}
+
+/* Iron posts rise from the bottom step past the porch floor, as on the building. */
+.rail {
+  position: absolute;
+  bottom: 0;
+  width: 3px;
+  height: calc(var(--course) * 11);
+  background: #121110;
+  box-shadow: 2px 3px 4px rgba(0, 0, 0, 0.45);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -2.5px;
+    width: 8px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #121110;
+  }
+
+  &:nth-of-type(3) {
+    left: -2%;
+  }
+
+  &:nth-of-type(4) {
+    right: -2%;
+  }
+}
+
+.grounds {
+  display: grid;
+  justify-items: center;
+  gap: clamp(1.6rem, 3vw, 2.4rem);
+  padding: clamp(3rem, 7vw, 5.5rem) 1.5rem clamp(2.5rem, 5vw, 3.5rem);
+  background: radial-gradient(ellipse 60% 70% at 50% 0%, #2a2d22 0%, #17190f 70%);
+  text-align: center;
+}
+
+.stone {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+}
+
+.stoneName {
+  margin-right: -0.34em;
+  font-size: clamp(0.78rem, 1.5vw, 0.98rem);
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+
+.stoneAddress {
+  color: rgba(239, 232, 218, 0.72);
+  font-size: 0.95rem;
+  font-style: italic;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 1.6rem;
+  max-width: 44rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  a {
+    color: rgba(239, 232, 218, 0.86);
+    font-size: 0.7rem;
+    letter-spacing: 0.24em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition:
+      color var(--slow) var(--ease),
+      text-shadow var(--slow) var(--ease);
+
+    &:hover,
+    &:focus-visible {
+      color: var(--glow);
+      text-shadow: 0 0 14px rgba(246, 207, 134, 0.55);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--glow);
+      outline-offset: 4px;
+    }
+  }
+}
+
+.preview {
+  margin: 0;
+  color: rgba(239, 232, 218, 0.45);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}

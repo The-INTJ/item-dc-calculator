@@ -1,0 +1,118 @@
+/* The header: the church's own trees at dusk, the porch gable, the frieze
+   inscription. Sizes inside the frame use container units (cqw), so the gable,
+   its vent, its title and its inscription all scale together with the porch. */
+
+.gable {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(60, 58, 84, 0.18) 0%,
+      rgba(27, 29, 22, 0.1) 30%,
+      rgba(27, 29, 22, 0.66) 66%,
+      var(--canopy) 88%
+    ),
+    url('/moriah/portico/trees.jpg') center 30% / cover no-repeat,
+    var(--canopy);
+}
+
+.frame {
+  position: relative;
+  width: min(100%, var(--porch-max));
+  margin: 0 auto;
+  padding-top: clamp(18px, 4vw, 56px);
+  container-type: inline-size;
+}
+
+.pedimentBox {
+  position: relative;
+}
+
+.pediment {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.oculusLink {
+  position: absolute;
+  left: var(--oc-left);
+  top: var(--oc-top);
+  width: var(--oc-size);
+  aspect-ratio: 1;
+  border-radius: 50%;
+
+  &:focus-visible {
+    outline: 2px solid var(--ember);
+    outline-offset: 5px;
+  }
+}
+
+/* The page title, set in the lower tympanum like a dedication. */
+.title {
+  position: absolute;
+  left: 50%;
+  top: 80%;
+  width: 60%;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  color: var(--iron);
+  font-family: var(--font-text);
+  font-size: clamp(0.95rem, 3.5cqw, 2.6rem);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  line-height: 1.02;
+  text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* The frieze board with the church's name in raised letters. */
+.frieze {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  column-gap: 1.1em;
+  row-gap: 0.1em;
+  margin: 0;
+  padding: clamp(10px, 1.9cqw, 22px) 1rem clamp(9px, 1.6cqw, 19px);
+  background: linear-gradient(180deg, #fffefb 0%, #f5f4ef 55%, #e2e2e7 100%);
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 1px 0 rgba(118, 123, 146, 0.55),
+    0 8px 12px -6px rgba(16, 18, 26, 0.5);
+  color: var(--iron);
+  font-family: var(--font-text);
+  font-weight: 400;
+  line-height: 1.1;
+  text-align: center;
+  text-shadow:
+    1px 1.5px 0 rgba(104, 108, 128, 0.32),
+    2px 4px 6px rgba(36, 40, 56, 0.2);
+  text-transform: uppercase;
+}
+
+.friezeFirst {
+  margin-right: -0.36em;
+  font-size: clamp(1.1rem, 2.7cqw, 2.05rem);
+  font-weight: 700;
+  letter-spacing: 0.36em;
+}
+
+.friezeRest {
+  margin-right: -0.38em;
+  font-size: clamp(0.64rem, 1.4cqw, 1.02rem);
+  letter-spacing: 0.38em;
+}
+
+@container (max-width: 560px) {
+  .frieze {
+    flex-direction: column;
+    align-items: center;
+  }
+}

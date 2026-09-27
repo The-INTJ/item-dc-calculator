@@ -84,6 +84,7 @@ app/                          # Next.js App Router pages and API routes
   (dc-calculator)/            # Route group: legacy DC calculator
   (harmonizer)/               # Route group: hymn harmonization workbench POC
   (pilates-mentors)/          # Route group: Pilates Mentors design preview
+  (moriah)/                   # Route group: Moriah church previews (/moriah, /moriah-2 "Portico")
   api/contest/                # REST API routes (see below)
   layout.tsx                  # Root layout (server component; no global providers)
   page.tsx                    # Home page / experiences portal (server component)
@@ -130,7 +131,7 @@ Import restriction: `@/src/*` imports are banned by ESLint. Use the aliases abov
 
 - Server components by default; client components use `'use client'` directive.
 - Pages are async server components (e.g., `page.tsx` uses `await getCurrentUser()`).
-- Route groups `(contest)`, `(dc-calculator)`, `(harmonizer)`, and `(pilates-mentors)` separate layout concerns; each group owns its fonts, styles, and providers (nothing global lives in the root layout).
+- Route groups `(contest)`, `(dc-calculator)`, `(harmonizer)`, `(pilates-mentors)`, and `(moriah)` separate layout concerns; each group owns its fonts, styles, and providers (nothing global lives in the root layout).
 - SCSS Modules for page/component styles (e.g., `page.module.scss`, `ContestList.module.scss`).
 - Shared components use barrel exports (`src/components/index.ts`).
 

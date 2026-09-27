@@ -3,6 +3,10 @@
 A design preview of a refreshed moriahpbc.org, built to show the church
 (Rodney Chandler, a deacon) what a modern version of their site could be.
 
+There are two directions. This README covers `/moriah` (v1). The **Portico**
+preview at `/moriah-2` — every page built from the church's own porch — lives
+in `portico/` and shares this folder's `content.ts`; see `portico/README.md`.
+
 **One route, `/moriah`, with `?page=` selecting the body** — home, sermons,
 blog, pastor, beliefs, news, directory, visit, give. The nav therefore
 navigates for real (URL and title change, fresh server render) instead of
@@ -87,7 +91,7 @@ any of it, and do not pull from `glow-ccc`'s member-only content
   `DirectoryCards`.
 - `components/MoriahDemo.module.scss` — scoped styles. The custom properties
   on `.page` are the design tokens. Retheme = edit that block only.
-- `app/(moriah)/` — route group: fonts + metadata + the three routes.
+- `app/(moriah)/` — route group: fonts + metadata for `/moriah` and `/moriah-2`.
 - `public/moriah/church-aerial.jpg` — the church's own drone photo from the
   old site, resized 4000×3000 → 2200×1650 (5.1 MB → 0.6 MB).
 
@@ -146,5 +150,7 @@ and khaki (`#544c2c`), so the whole palette stays earthy. Type is Fraunces
 
 - Self-contained and disposable: no imports from other features, no MUI, no
   global styles beyond what the route-group layout loads. Deleting this
-  directory, `app/(moriah)/`, and `public/moriah/` removes it without trace.
+  directory, `app/(moriah)/`, and `public/moriah/` removes both previews
+  without trace. `portico/` imports this folder's `content.ts`,
+  `sermon-search.ts` and `calendar-grid.ts`, so change those with both in mind.
 - The host app's `body` styles are fully overridden by the `.page` wrapper.

@@ -1,0 +1,94 @@
+/**
+ * The Portico preview — root tokens and the porch.
+ *
+ * Materials, not a palette: everything on the page is one of the things on
+ * Moriah's front. White trim is warm where the evening light falls and cool
+ * lavender in shade, as it is in the photograph; brick is the church's Georgia
+ * red; iron is the rails and the lantern; the light is what comes through the
+ * doors. Outside the columns it is dusk.
+ *
+ * Contrast: iron on light 15.9:1; link (brick red) on light 7.5:1.
+ */
+
+/* Registered so the door's hover can ease open while scroll drives the rest. */
+@property --ajar {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+
+.portico {
+  /* Materials */
+  --canopy: #1b1d16;
+  --paint: #f6f5f0;
+  --paint-cool: #d5d7e0;
+  --paint-deep: #a7abbd;
+  --brick: #7f3a2a;
+  --brick-deep: #5c281c;
+  --mortar: #b2a696;
+  --iron: #1f1c1a;
+  --iron-soft: rgba(31, 28, 26, 0.72);
+  --iron-faint: rgba(31, 28, 26, 0.14);
+  --light: #fbf6ea;
+  --light-deep: #f3e9d2;
+  --glow: #f6cf86;
+  --glow-deep: #dc9c46;
+  --ember: #b06a1a;
+  --link: #8a3324;
+
+  /* Type — Caslon, the face of the young republic this congregation was
+     founded in. Text for reading; Display for the few large lines. */
+  --font-text: 'Libre Caslon Text', 'Georgia', serif;
+  --font-display: 'Libre Caslon Display', 'Libre Caslon Text', 'Georgia', serif;
+
+  /* Motion — reverence is mostly pacing. */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --slow: 900ms;
+  --slower: 1500ms;
+
+  /* The porch */
+  --porch-max: 1180px;
+  --col-w: clamp(12px, 3.2vw, 44px);
+  --eave: calc(var(--col-w) * 0.68 + clamp(0px, 1.2vw, 16px));
+  --inset: clamp(18px, 4.6vw, 72px);
+  --gutter: calc(var(--col-w) * 0.68 + var(--inset));
+  --nav-h: 54px;
+
+  /* The gable and architrave's height on first paint — sky margin, the
+     pediment at its fixed pitch (0.2442 × width), the frieze, the nav — so
+     the home page can size its door to fit the first screen without JS. */
+  --header-h: calc(
+    clamp(18px, 4vw, 56px) + min(100vw, var(--porch-max)) * 0.2442 + clamp(52px, 5.4vw, 80px) +
+      var(--nav-h)
+  );
+
+  /* Brick: one course is a brick and its joint. The tile is 8 courses. */
+  --course: clamp(9px, 1.05vw, 13px);
+  --brick-img: url('/moriah/portico/brick.svg');
+  --brick-tile: calc(var(--course) * 15.25) calc(var(--course) * 8);
+
+  min-height: 100vh;
+  overflow-x: clip;
+  background: var(--canopy);
+  color: var(--iron);
+  font-family: var(--font-text);
+  font-size: 1.125rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+
+  @media (max-width: 719px) {
+    --nav-h: 62px;
+
+    font-size: 1.0625rem;
+  }
+}
+
+/* Between the columns: the light. */
+.porch {
+  position: relative;
+  display: block;
+  width: calc(min(100%, var(--porch-max)) - 2 * var(--eave));
+  min-height: 50vh;
+  margin: 0 auto;
+  background: var(--light);
+}

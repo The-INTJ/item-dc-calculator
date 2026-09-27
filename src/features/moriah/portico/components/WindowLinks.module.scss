@@ -1,0 +1,139 @@
+@use './type' as *;
+
+/* Four lit windows on a band of the church's brick. The upper sash holds the
+   lamp; the lower sash is darker glass carrying the page's name in gold leaf,
+   the way a sign painter would letter it. */
+
+.wall {
+  position: relative;
+  padding: clamp(3.5rem, 8vw, 6.5rem) var(--gutter) clamp(4.5rem, 9vw, 7.5rem);
+  background:
+    linear-gradient(180deg, rgba(10, 8, 12, 0.5) 0%, rgba(10, 8, 12, 0.14) 30%, rgba(10, 8, 12, 0.28) 100%),
+    linear-gradient(90deg, rgba(10, 8, 12, 0.42) 0%, rgba(10, 8, 12, 0) 20%, rgba(10, 8, 12, 0) 80%, rgba(10, 8, 12, 0.42) 100%),
+    var(--brick-img) 50% 0 / var(--brick-tile) repeat;
+  box-shadow:
+    inset 0 16px 20px -14px rgba(0, 0, 0, 0.7),
+    inset 0 -16px 20px -14px rgba(0, 0, 0, 0.7);
+}
+
+/* The windows rise into place; the brick they are set in does not. */
+.row {
+  @include reveal;
+
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1.25rem, 4.2vw, 3.75rem);
+  max-width: 58rem;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.window {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: clamp(5px, 0.6vw, 8px);
+  aspect-ratio: 0.56;
+  padding: clamp(6px, 0.8vw, 10px);
+  background: linear-gradient(90deg, #f8f7f2 0%, #efeee9 60%, #dfe0e7 100%);
+  box-shadow:
+    0 0 0 1px rgba(40, 42, 56, 0.55),
+    6px 9px 16px rgba(0, 0, 0, 0.5);
+  text-decoration: none;
+
+  /* The sill. */
+  &::after {
+    content: '';
+    position: absolute;
+    left: -9%;
+    right: -9%;
+    bottom: -12px;
+    height: 12px;
+    background: linear-gradient(180deg, #ffffff, #d0d3dd);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.5);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--glow);
+    outline-offset: 10px;
+  }
+}
+
+.upper,
+.lower {
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 0 1px rgba(30, 24, 20, 0.7),
+    inset 0 8px 12px rgba(0, 0, 0, 0.42);
+
+  /* The lamp inside, turned up on hover. */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 100% 90% at 50% 80%, rgba(255, 228, 176, 0.8), rgba(255, 200, 120, 0) 76%);
+    mix-blend-mode: screen;
+    opacity: 0;
+    transition: opacity var(--slower) var(--ease);
+  }
+
+  .window:hover &::after,
+  .window:focus-visible &::after {
+    opacity: 1;
+  }
+}
+
+.upper {
+  background:
+    linear-gradient(128deg, rgba(255, 255, 255, 0.12) 0 16%, rgba(255, 255, 255, 0) 30%),
+    radial-gradient(ellipse 110% 90% at 50% 100%, #efd2a0 0%, #b88b56 42%, #5d4430 78%, #34271d 100%);
+}
+
+.lower {
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(128deg, rgba(255, 255, 255, 0.07) 0 14%, rgba(255, 255, 255, 0) 28%),
+    radial-gradient(ellipse 120% 70% at 50% 0%, rgba(240, 200, 130, 0.3), rgba(240, 200, 130, 0) 70%),
+    linear-gradient(180deg, #2e2824 0%, #1b1815 100%);
+
+  .window:hover &::after,
+  .window:focus-visible &::after {
+    opacity: 0.45;
+  }
+}
+
+.gilt {
+  @include inscription(clamp(0.6rem, 1.05vw, 0.8rem), 0.22em);
+
+  position: relative;
+  z-index: 1;
+  padding: 0 0.3rem;
+  background: linear-gradient(180deg, #f9e6ae 0%, #dcb25c 52%, #b3852f 100%);
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.7));
+  text-align: center;
+}
+
+@media (max-width: 719px) {
+  .row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 3.2rem;
+    max-width: 22rem;
+  }
+
+  .window::after {
+    left: -5%;
+    right: -5%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .upper::after,
+  .lower::after {
+    transition: none;
+  }
+}

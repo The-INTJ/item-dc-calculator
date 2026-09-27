@@ -1,0 +1,91 @@
+@use './type' as *;
+
+.wall {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.25rem, 5vw, 4.5rem);
+  padding: clamp(4rem, 9vw, 7rem) var(--gutter);
+  background:
+    linear-gradient(180deg, rgba(10, 8, 12, 0.5) 0%, rgba(10, 8, 12, 0.16) 30%, rgba(10, 8, 12, 0.3) 100%),
+    linear-gradient(90deg, rgba(10, 8, 12, 0.42) 0%, rgba(10, 8, 12, 0) 22%, rgba(10, 8, 12, 0) 78%, rgba(10, 8, 12, 0.42) 100%),
+    var(--brick-img) 50% 0 / var(--brick-tile) repeat;
+  box-shadow:
+    inset 0 16px 20px -14px rgba(0, 0, 0, 0.7),
+    inset 0 -16px 20px -14px rgba(0, 0, 0, 0.7);
+}
+
+.lamp,
+.plaque {
+  @include reveal;
+}
+
+.lamp {
+  position: relative;
+  display: grid;
+  place-items: center;
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: 320%;
+    aspect-ratio: 1;
+    background: radial-gradient(circle, rgba(255, 205, 130, 0.5) 0%, rgba(255, 190, 110, 0.14) 36%, transparent 66%);
+    mix-blend-mode: screen;
+  }
+}
+
+.lantern {
+  position: relative;
+  width: auto;
+  height: clamp(58px, 7.5vw, 100px);
+  filter: drop-shadow(3px 5px 4px rgba(0, 0, 0, 0.55));
+}
+
+/* A tablet, cut like a raised door panel, with the book's title set on it. */
+.plaque {
+  display: grid;
+  justify-items: center;
+  gap: 0.45rem;
+  padding: clamp(1.6rem, 3.6vw, 2.6rem) clamp(2rem, 5.5vw, 4.25rem);
+  border: 6px solid;
+  border-color: #ffffff #cfd2dc #aeb2c2 #f1f0ec;
+  background: linear-gradient(180deg, #fefdfb 0%, #efeee8 100%);
+  box-shadow:
+    0 0 0 1px rgba(40, 42, 56, 0.55),
+    7px 11px 22px rgba(0, 0, 0, 0.55);
+  color: var(--iron);
+  text-decoration: none;
+  transition: box-shadow var(--slow) var(--ease);
+
+  &:hover,
+  &:focus-visible {
+    box-shadow:
+      0 0 0 1px rgba(40, 42, 56, 0.55),
+      7px 11px 22px rgba(0, 0, 0, 0.55),
+      0 0 60px rgba(246, 199, 118, 0.55);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--glow);
+    outline-offset: 6px;
+  }
+}
+
+.figure {
+  font-family: var(--font-display);
+  font-size: clamp(3.2rem, 8vw, 6rem);
+  line-height: 0.95;
+}
+
+.words {
+  @include inscription(clamp(0.66rem, 1.25vw, 0.86rem), 0.32em);
+
+  color: var(--iron-soft);
+  transition: color var(--slow) var(--ease);
+
+  .plaque:hover &,
+  .plaque:focus-visible & {
+    color: var(--link);
+  }
+}

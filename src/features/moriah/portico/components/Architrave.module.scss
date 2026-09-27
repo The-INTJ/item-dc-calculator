@@ -1,0 +1,169 @@
+/* The architrave: a white beam in the frieze's shadow, carrying the nav in
+   small inscribed capitals. Hover draws a tiny gable over the word; the
+   current page keeps its gable. */
+
+.sentinel {
+  height: 1px;
+  margin-bottom: -1px;
+}
+
+.architrave {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, var(--porch-max));
+  min-height: var(--nav-h);
+  margin: 0 auto;
+  padding: 0 calc(var(--eave) + var(--col-w));
+  background: linear-gradient(180deg, #dfe0e5 0%, #f2f1ec 34%, #eceae4 100%);
+  box-shadow:
+    inset 0 -1px 0 rgba(118, 123, 146, 0.45),
+    0 0 0 rgba(0, 0, 0, 0);
+  transition: box-shadow var(--slow) var(--ease);
+
+  &[data-stuck] {
+    box-shadow:
+      inset 0 -1px 0 rgba(118, 123, 146, 0.45),
+      0 14px 26px -16px rgba(8, 10, 6, 0.7);
+  }
+}
+
+.home {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--eave) + var(--col-w) * 0.5);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--iron);
+  opacity: 0;
+  pointer-events: none;
+  text-decoration: none;
+  transform: translateY(-50%);
+  transition: opacity var(--slow) var(--ease);
+
+  .architrave[data-stuck] & {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ember);
+    outline-offset: 4px;
+  }
+}
+
+.home .homeVent {
+  flex: none;
+  width: 28px;
+}
+
+.homeName {
+  font-size: 0.7rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  column-gap: clamp(0.9rem, 2.6vw, 2.5rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  position: relative;
+  display: inline-block;
+  margin-right: -0.24em;
+  padding: 1rem 0 0.55rem;
+  color: var(--iron);
+  font-size: 0.74rem;
+  letter-spacing: 0.24em;
+  line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color var(--slow) var(--ease);
+
+  &:hover,
+  &:focus-visible,
+  &[aria-current='page'] {
+    color: var(--link);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ember);
+    outline-offset: 3px;
+  }
+}
+
+/* Floats over the word, so it costs the row no height. */
+.mark {
+  position: absolute;
+  top: 0.3rem;
+  left: calc(50% - 0.12em);
+  width: 26px;
+  height: 9px;
+  overflow: visible;
+  transform: translateX(-50%);
+
+  line {
+    fill: none;
+    stroke: currentColor;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    stroke-linecap: round;
+    stroke-width: 1.2;
+    transition: stroke-dashoffset var(--slow) var(--ease);
+  }
+
+  .item:hover &,
+  .item:focus-visible &,
+  .item[aria-current='page'] & {
+    line {
+      stroke-dashoffset: 0;
+    }
+  }
+}
+
+@media (max-width: 719px) {
+  .architrave {
+    height: var(--nav-h);
+    min-height: 0;
+    padding: 0 calc(var(--eave) + var(--col-w) * 1.2);
+  }
+
+  .list {
+    column-gap: 1.1rem;
+    max-width: 22rem;
+  }
+
+  .item {
+    padding: 0.72rem 0 0.28rem;
+    font-size: 0.64rem;
+    letter-spacing: 0.2em;
+  }
+
+  .mark {
+    top: 0.18rem;
+    width: 22px;
+  }
+
+  .home {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .architrave,
+  .home,
+  .item,
+  .mark line {
+    transition: none;
+  }
+}
