@@ -68,6 +68,22 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Tracer: public by unguessable link. Anyone may GET one game (spectators
+    // need no sign-in) and read its turn history; nobody may LIST games, and
+    // all writes go through /api/tracer/* with the Admin SDK.
+    match /tracerGames/{gameId} {
+      allow get: if true;
+      allow list: if false;
+      allow write: if false;
+
+      // Nested (never {path=**}), so collection-group queries over `turns`
+      // stay denied and game ids cannot be enumerated.
+      match /turns/{turnId} {
+        allow read: if true;
+        allow write: if false;
+      }
+    }
+
     // Deny everything else
     match /{document=**} {
       allow read, write: if false;
