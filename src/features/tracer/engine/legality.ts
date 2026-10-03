@@ -10,6 +10,7 @@
 import type { GameState, Side } from './types';
 import { neighbours, parseSquare } from './geometry';
 import { boardOf, type Board } from './occupancy';
+import { kingPatternList } from './pattern-codes';
 import { pieceHits } from './piece-reach';
 
 /** True when some path of king steps from `from` can end on an empty square. */
@@ -34,6 +35,6 @@ export function hasLegalMainAction(state: GameState, side: Side): boolean {
     if (piece.side !== side) return false;
     const from = parseSquare(piece.at);
     if (piece.kind === 'tracer' && from !== null && canChart(board, from)) return true;
-    return pieceHits(board, piece, state.library[side]).length > 0;
+    return pieceHits(board, piece, kingPatternList(state, side)).length > 0;
   });
 }

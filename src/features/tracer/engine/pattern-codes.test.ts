@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
-import { chartedPattern, libraryKey, parsePattern } from './pattern-codes';
+import { chartedPattern, kingPatternList, parsePattern } from './pattern-codes';
 
 describe('parsePattern', () => {
   it('reads riders and jumpers', () => {
@@ -17,28 +17,6 @@ describe('parsePattern', () => {
   );
 });
 
-describe('libraryKey', () => {
-  it('keys riders by their largest orientation', () => {
-    expect(libraryKey('R:221')).toBe('R:889');
-    expect(libraryKey('R:966')).toBe('R:988');
-    expect(libraryKey('R:2')).toBe('R:8');
-  });
-
-  it('keeps step order significant', () => {
-    expect(libraryKey('R:89')).not.toBe(libraryKey('R:98'));
-  });
-
-  it('keys jumpers by their sorted absolute offset', () => {
-    expect(libraryKey('J:-2,1')).toBe('J:1,2');
-    expect(libraryKey('J:0,-3')).toBe('J:0,3');
-    expect(libraryKey('J:-1,7')).toBe('J:1,7');
-  });
-
-  it('never merges a rider with a jumper', () => {
-    expect(libraryKey('R:88')).not.toBe(libraryKey('J:0,2'));
-  });
-});
-
 describe('chartedPattern', () => {
   it('keeps a clean path as a rider in charted orientation', () => {
     expect(chartedPattern('966', false)).toBe('R:966');
@@ -52,5 +30,13 @@ describe('chartedPattern', () => {
     // N, W, S: three distinct squares that end one step west of the start.
     expect(chartedPattern('842', true)).toBe('R:4');
     expect(chartedPattern('86', true)).toBe('R:9');
+  });
+});
+
+describe('kingPatternList', () => {
+  it('lists what each Tracer lends, in Tracer order', () => {
+    const state = { kingPatterns: { w: { wT8: 'R:88', wT3: 'J:0,2' }, b: {} } };
+    expect(kingPatternList(state, 'w')).toEqual(['J:0,2', 'R:88']);
+    expect(kingPatternList(state, 'b')).toEqual([]);
   });
 });

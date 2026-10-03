@@ -5,11 +5,12 @@
  *     8 . . . . . . . k
  *     3 . W . T . . . .
  *     1 K . . . . . . .
- *   `, { patterns: { d3: 'R:8888' } })
+ *   `, { patterns: { d3: 'R:8888' }, ranges: { d3: 5 } })
  *
  * Each row starts with its rank number; rows that are left out are empty.
  * K/T/W are White's king, tracer and warden; k/t/w are Black's. Pieces get
- * ids in reading order (`wT1`, `wT2`, …), matching the real setup's style.
+ * ids in reading order (`wT1`, `wT2`, …). Tracers have no step limit unless
+ * `ranges` gives one.
  */
 
 import type { GameState, Piece, PieceKind, Side } from '../types';
@@ -20,7 +21,8 @@ const FILES = 'abcdefgh';
 export interface PositionOptions {
   ply?: number;
   patterns?: Record<string, string>;
-  library?: Partial<Record<Side, string[]>>;
+  ranges?: Record<string, number>;
+  kingPatterns?: Partial<Record<Side, Record<string, string>>>;
   stepStreak?: Partial<Record<Side, number>>;
 }
 
@@ -41,7 +43,7 @@ function pieceFor(char: string, at: string, counters: Map<string, number>): Piec
   const count = (counters.get(key) ?? 0) + 1;
   counters.set(key, count);
   const id = kind === 'king' ? key : `${key}${count}`;
-  return { id, side, kind, at, pattern: null };
+  return { id, side, kind, at, pattern: null, range: null };
 }
 
 export function positionFrom(diagram: string, options: PositionOptions = {}): GameState {
@@ -55,14 +57,15 @@ export function positionFrom(diagram: string, options: PositionOptions = {}): Ga
       const at = `${FILES[file]}${row.rank}`;
       const piece = pieceFor(char, at, counters);
       piece.pattern = options.patterns?.[at] ?? null;
+      if (piece.kind === 'tracer') piece.range = options.ranges?.[at] ?? null;
       pieces.push(piece);
     });
   }
   return {
-    rulesVersion: 1,
+    rulesVersion: 2,
     ply: options.ply ?? 0,
     pieces,
-    library: { w: options.library?.w ?? [], b: options.library?.b ?? [] },
+    kingPatterns: { w: options.kingPatterns?.w ?? {}, b: options.kingPatterns?.b ?? {} },
     stepStreak: { w: options.stepStreak?.w ?? 0, b: options.stepStreak?.b ?? 0 },
     result: { status: 'active' },
   };

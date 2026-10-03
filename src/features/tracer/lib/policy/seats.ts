@@ -22,8 +22,9 @@ export function emptySeat(game: TracerGame): Side | null {
 
 /** When the opponent may reopen `side`'s seat, or null if it never can now. */
 export function seatReleaseAvailableAt(game: TracerGame, side: Side): number | null {
-  if (game.mode !== 'online' || game.status !== 'active') return null;
+  if (game.status !== 'active') return null;
   if (!game.seats[side].uid || sideToMove(game.state) !== side) return null;
+  if (game.seats.w.uid === game.seats.b.uid) return null;
   return game.turnStartedAt === null ? null : game.turnStartedAt + SEAT_RELEASE_AFTER_MS;
 }
 

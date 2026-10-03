@@ -25,10 +25,10 @@ test('a signed-out friend joins as a guest; a third visitor spectates', async ({
   await expect(watcher.getByText(/Watching Gina vs Hana/)).toBeVisible({ timeout: 20_000 });
 
   // The guest moves; host and watcher both see it without reloading.
-  await tap(guest, 'f2', 'f3');
+  await tap(guest, 'e2', 'e3');
   await submitTurn(guest);
   await expect(host.getByText('Your move.', { exact: true })).toBeVisible({ timeout: 20_000 });
-  await expect(watcher.getByRole('button', { name: /^f3, White Warden/ })).toBeVisible();
+  await expect(watcher.getByRole('button', { name: /^e3, White Warden/ })).toBeVisible();
 
   // A reload keeps the guest in their seat.
   await guest.reload();

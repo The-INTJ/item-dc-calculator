@@ -11,6 +11,12 @@ export interface RecentGame {
   id: string;
   title: string;
   at: number;
+  /** Where the game lives; online games default to `/tracer/<id>`. */
+  href?: string;
+}
+
+export function recentGameHref(game: RecentGame): string {
+  return game.href ?? `/tracer/${game.id}`;
 }
 
 const STORAGE_KEY = 'tracer:recentGames';
@@ -36,7 +42,10 @@ function parse(raw: string | null): RecentGame[] {
     if (!Array.isArray(value)) return [];
     return value.filter(
       (item): item is RecentGame =>
-        typeof item?.id === 'string' && typeof item?.title === 'string' && typeof item?.at === 'number',
+        typeof item?.id === 'string' &&
+        typeof item?.title === 'string' &&
+        typeof item?.at === 'number' &&
+        (item.href === undefined || (typeof item.href === 'string' && item.href.startsWith('/tracer/'))),
     );
   } catch {
     return [];
@@ -62,7 +71,7 @@ function subscribe(onChange: () => void) {
   };
 }
 
-export function rememberGame(game: { id: string; title: string }): void {
+export function rememberGame(game: { id: string; title: string; href?: string }): void {
   try {
     const rest = parse(readRaw()).filter((entry) => entry.id !== game.id);
     const next = [{ ...game, at: Date.now() }, ...rest].slice(0, MAX_ENTRIES);

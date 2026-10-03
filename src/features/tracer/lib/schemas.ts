@@ -22,7 +22,6 @@ export const DisplayNameSchema = z
 export const CreateGameSchema = z.object({
   displayName: DisplayNameSchema,
   seat: z.enum(['w', 'b', 'random']),
-  mode: z.enum(['online', 'hotseat']),
 });
 
 export const JoinGameSchema = z.object({

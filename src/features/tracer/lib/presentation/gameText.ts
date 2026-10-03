@@ -9,6 +9,7 @@ import {
   patternKind,
   type ActionRecord,
   type PatternCode,
+  type Piece,
   type PieceKind,
   type Side,
 } from '../../engine';
@@ -16,6 +17,11 @@ import type { TracerGame } from '../types';
 
 export const SIDE_NAME: Record<Side, string> = { w: 'White', b: 'Black' };
 export const KIND_NAME: Record<PieceKind, string> = { king: 'King', tracer: 'Tracer', warden: 'Warden' };
+
+/** "3-step Tracer", "Warden", "King". */
+export function pieceName(piece: Pick<Piece, 'kind' | 'range'>): string {
+  return piece.kind === 'tracer' && piece.range !== null ? `${piece.range}-step Tracer` : KIND_NAME[piece.kind];
+}
 
 export function seatName(game: TracerGame, side: Side): string {
   const seat = game.seats[side];

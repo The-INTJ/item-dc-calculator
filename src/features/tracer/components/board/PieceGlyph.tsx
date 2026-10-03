@@ -7,36 +7,53 @@ import styles from './Board.module.scss';
 const SHAPES = {
   king: 'M18 72 L18 36 L34 52 L50 22 L66 52 L82 36 L82 72 Z',
   warden: 'M50 14 L82 25 L82 50 Q82 74 50 88 Q18 74 18 50 L18 25 Z',
-  tracer: 'M50 10 L88 50 L50 90 L12 50 Z',
+  tracer: 'M50 8 L90 50 L50 92 L10 50 Z',
 } as const;
 
-/** The small mark inside a tracer: empty ring (unformed), zigzag (rider), arc (jumper). */
-function TracerMark({ piece, line }: { piece: Piece; line: CSSProperties }) {
+/**
+ * A tracer's face: its step limit as a number, with a small mark under it
+ * once it has a pattern — a zigzag for a rider, an arc for a jumper.
+ */
+function TracerFace({ piece, line, ink }: { piece: Piece; line: CSSProperties; ink: string }) {
   const kind = piece.pattern ? patternKind(piece.pattern) : null;
-  if (kind === 'rider') {
-    return <polyline points="34,58 44,42 56,58 66,42" style={line} strokeWidth="6" strokeLinejoin="round" strokeLinecap="round" />;
-  }
-  if (kind === 'jumper') {
-    return <path d="M32 60 Q50 24 68 60" style={line} strokeWidth="6" strokeLinecap="round" />;
-  }
-  return <circle cx="50" cy="50" r="9" style={line} strokeWidth="5" />;
+  return (
+    <>
+      {piece.range !== null && (
+        <text x="50" y="59" textAnchor="middle" className={styles.tierNumber} style={{ fill: ink }}>
+          {piece.range}
+        </text>
+      )}
+      {kind === 'rider' && (
+        <polyline points="38,75 44,69 50,75 56,69 62,75" style={line} strokeWidth="5" strokeLinejoin="round" strokeLinecap="round" />
+      )}
+      {kind === 'jumper' && <path d="M38 77 Q50 61 62 77" style={line} strokeWidth="5" strokeLinecap="round" />}
+    </>
+  );
 }
 
 /**
  * Pieces are told apart by silhouette, not just colour: a crown for the
- * king, a shield for wardens, a diamond for tracers. Colours are set through
- * `style` so the CSS custom properties resolve in every browser.
+ * king, a shield for wardens, a diamond for tracers (dashed until a tracer
+ * has charted). Colours are set through `style` so the CSS custom
+ * properties resolve in every browser.
  */
 export function PieceGlyph({ piece }: { piece: Piece }) {
   const fill = piece.side === 'w' ? 'var(--tr-piece-w)' : 'var(--tr-piece-b)';
   const edge = piece.side === 'w' ? 'var(--tr-piece-w-edge)' : 'var(--tr-piece-b-edge)';
   const body: CSSProperties = { fill, stroke: edge };
   const line: CSSProperties = { fill: 'none', stroke: edge };
+  const unformed = piece.kind === 'tracer' && piece.pattern === null;
   return (
     <svg className={styles.glyph} viewBox="0 0 100 100" aria-hidden="true" focusable="false">
-      <path d={SHAPES[piece.kind]} style={body} strokeWidth="5" strokeLinejoin="round" />
+      <path
+        d={SHAPES[piece.kind]}
+        style={body}
+        strokeWidth="5"
+        strokeLinejoin="round"
+        strokeDasharray={unformed ? '9 6' : undefined}
+      />
       {piece.kind === 'king' && <rect x="18" y="77" width="64" height="9" rx="3" style={body} strokeWidth="5" />}
-      {piece.kind === 'tracer' && <TracerMark piece={piece} line={line} />}
+      {piece.kind === 'tracer' && <TracerFace piece={piece} line={line} ink={edge} />}
     </svg>
   );
 }

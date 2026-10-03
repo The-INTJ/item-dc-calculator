@@ -13,6 +13,7 @@ import type {
 } from './types';
 import { parseSquare, squareName } from './geometry';
 import { boardOf } from './occupancy';
+import { kingPatternList } from './pattern-codes';
 import { pieceHits } from './piece-reach';
 import { walkChart } from './chart';
 import { hasLegalMainAction } from './legality';
@@ -43,7 +44,7 @@ function applyMove(work: GameState, side: Side, from: SquareName, to: SquareName
   if (parseSquare(to) === null) return fail('BAD_SQUARE');
   if (piece.kind === 'tracer' && !piece.pattern) return fail('UNFORMED_TRACER');
   const board = boardOf(work.pieces);
-  const hit = pieceHits(board, piece, work.library[side]).find((h) => squareName(h.sq) === to);
+  const hit = pieceHits(board, piece, kingPatternList(work, side)).find((h) => squareName(h.sq) === to);
   if (!hit) return fail('UNREACHABLE');
   const victim = board[hit.sq];
   if (victim) work.pieces = work.pieces.filter((candidate) => candidate !== victim);
@@ -71,22 +72,15 @@ function applyChart(work: GameState, side: Side, from: SquareName, steps: string
   if (!walk.ok) return fail(walk.code);
   piece.at = squareName(walk.to);
   piece.pattern = walk.pattern;
-  const library = work.library[side];
-  const libraryAdded = !library.includes(walk.key);
-  if (libraryAdded) work.library = { ...work.library, [side]: [...library, walk.key] };
+  // The new pattern replaces whatever this Tracer lent its king before.
+  work.kingPatterns = {
+    ...work.kingPatterns,
+    [side]: { ...work.kingPatterns[side], [piece.id]: walk.pattern },
+  };
   return {
     ok: true,
     captured: null,
-    record: {
-      kind: 'chart',
-      pieceId: piece.id,
-      from,
-      to: piece.at,
-      steps,
-      pattern: walk.pattern,
-      key: walk.key,
-      libraryAdded,
-    },
+    record: { kind: 'chart', pieceId: piece.id, from, to: piece.at, steps, pattern: walk.pattern },
   };
 }
 

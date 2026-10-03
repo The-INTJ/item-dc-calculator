@@ -1,24 +1,15 @@
 /**
- * Pattern codes and library keys.
+ * Pattern codes.
  *
  *   R:<steps>   a rider — walks its oriented path, may stop on any square
  *   J:<dx>,<dy> a jumper — lands exactly on the oriented net offset
  *
  * A jump whose net offset is a single king step behaves exactly like the
- * one-step rider in that direction, so it is stored as that rider. Library
- * keys are canonical under the eight symmetries: rider keys use the largest
- * of the oriented step strings (`R:221` → `R:889`, drawn upright), jumper keys
- * use the sorted absolute offset (`J:-2,1` → `J:1,2`).
+ * one-step rider in that direction, so it is stored as that rider.
  */
 
-import type { PatternCode, StepString } from './types';
-import {
-  isStepString,
-  netDisplacement,
-  orientations,
-  vectorDigit,
-  type Vec,
-} from './geometry';
+import type { GameState, PatternCode, Side, StepString } from './types';
+import { isStepString, netDisplacement, vectorDigit, type Vec } from './geometry';
 
 export type ParsedPattern =
   | { kind: 'rider'; steps: StepString }
@@ -59,21 +50,17 @@ export function chartedPattern(steps: StepString, jumped: boolean): PatternCode 
   return single === null ? jumperCode(net) : riderCode(single);
 }
 
-/** Canonical key: patterns that are rotations or mirrors share one key. */
-export function libraryKey(code: PatternCode): PatternCode {
-  const parsed = parsePattern(code);
-  if (!parsed) {
-    throw new Error(`Invalid pattern code: ${code}`);
-  }
-  if (parsed.kind === 'rider') {
-    const best = orientations(parsed.steps).reduce((a, b) => (b > a ? b : a));
-    return riderCode(best);
-  }
-  const a = Math.min(Math.abs(parsed.dx), Math.abs(parsed.dy));
-  const b = Math.max(Math.abs(parsed.dx), Math.abs(parsed.dy));
-  return jumperCode({ dx: a, dy: b });
-}
-
 export function patternKind(code: PatternCode): 'rider' | 'jumper' | null {
   return parsePattern(code)?.kind ?? null;
+}
+
+/**
+ * The patterns `side`'s king may use besides its one-square step: one per
+ * Tracer that has charted, ordered by Tracer id (3-step, 5-step, 8-step).
+ */
+export function kingPatternList(state: Pick<GameState, 'kingPatterns'>, side: Side): PatternCode[] {
+  const lent = state.kingPatterns[side];
+  return Object.keys(lent)
+    .sort()
+    .map((tracerId) => lent[tracerId]);
 }

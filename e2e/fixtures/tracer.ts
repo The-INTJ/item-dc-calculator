@@ -8,24 +8,30 @@
 import { expect, type Page } from '@playwright/test';
 
 export const GAME_URL = /\/tracer\/[A-Za-z0-9]{20}$/;
+export const LOCAL_GAME_URL = /\/tracer\/local\/local-[a-z0-9]{10}$/;
 
 interface NewGameOptions {
   name: string;
   side?: 'White' | 'Black' | 'Random';
-  hotseat?: boolean;
 }
 
-/** Create a game from the lobby and wait for its board. Returns the game URL. */
+/** Create an online game from the lobby and wait for its board. Returns the game URL. */
 export async function createGameInLobby(page: Page, options: NewGameOptions): Promise<string> {
   await page.goto('/tracer');
   await page.getByLabel('Your name').fill(options.name);
-  if (options.hotseat) {
-    await page.getByLabel('Play both sides on this device').check();
-  } else {
-    await page.getByText(options.side ?? 'White', { exact: true }).click();
-  }
-  await page.getByRole('button', { name: options.hotseat ? 'Start game' : /create game/i }).click();
+  await page.getByText(options.side ?? 'White', { exact: true }).click();
+  await page.getByRole('button', { name: /create game/i }).click();
   await expect(page).toHaveURL(GAME_URL, { timeout: 20_000 });
+  await expect(page.getByRole('group', { name: 'Tracer board' })).toBeVisible();
+  return page.url();
+}
+
+/** Start a game on this device (both sides) from the lobby. Returns its URL. */
+export async function startLocalGameInLobby(page: Page): Promise<string> {
+  await page.goto('/tracer');
+  await page.getByLabel('Play both sides on this device').check();
+  await page.getByRole('button', { name: 'Start local game' }).click();
+  await expect(page).toHaveURL(LOCAL_GAME_URL, { timeout: 20_000 });
   await expect(page.getByRole('group', { name: 'Tracer board' })).toBeVisible();
   return page.url();
 }

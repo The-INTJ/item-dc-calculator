@@ -90,8 +90,8 @@ Seeded accounts are defined in `scripts/seed-emulator.mjs`:
 `tracer-invite-play` (two players by link, live turns), `tracer-guest-join`
 (signed-out guest joins by name; signed-out spectator watches — covers the
 public-read rule), `tracer-endings` (draw offers, rematch, resign),
-`tracer-hotseat` (one person playing both sides), and `mobile-tracer` (Pixel 7
-layout). Game page `<title>`s repeat result text, so assert results with
+`tracer-local` (both sides on one device with zero server calls, signed out
+and signed in; reload and undo), and `mobile-tracer` (Pixel 7 layout). Game page `<title>`s repeat result text, so assert results with
 `getByText(..., { exact: true })`.
 
 ## Common failure modes

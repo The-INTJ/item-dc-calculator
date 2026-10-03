@@ -19,9 +19,8 @@ function seat(uid: string | null, name: string | null): Seat {
 export function activeGame(overrides: Partial<TracerGame> = {}): TracerGame {
   return {
     id: GAME_ID,
-    schemaVersion: 1,
+    schemaVersion: 2,
     status: 'active',
-    mode: 'online',
     createdBy: { uid: ALICE.uid, name: 'Alice' },
     seats: { w: seat(ALICE.uid, 'Alice'), b: seat(BOB.uid, 'Bob') },
     state: initialState(),
@@ -49,10 +48,9 @@ export function openGame(overrides: Partial<TracerGame> = {}): TracerGame {
   });
 }
 
-/** Alice plays both sides on one device. */
-export function hotseatGame(overrides: Partial<TracerGame> = {}): TracerGame {
+/** Alice holds both seats (how a game reads when one person plays both sides). */
+export function bothSeatsGame(overrides: Partial<TracerGame> = {}): TracerGame {
   return activeGame({
-    mode: 'hotseat',
     seats: { w: seat(ALICE.uid, 'Alice'), b: seat(ALICE.uid, 'Alice') },
     ...overrides,
   });
@@ -64,8 +62,8 @@ export function finishedGame(overrides: Partial<TracerGame> = {}): TracerGame {
   return activeGame({ status: 'finished', state, finishedAt: T0 + 1, ...overrides });
 }
 
-/** White's opening chart, b1 over both wardens to a8. */
+/** White's opening chart: the 3-step Tracer on b1, over its Warden to b3. */
 export const OPENING_CHART = {
   clientTurnId: 'turn-0001-abc',
-  turn: { ply: 0, main: { kind: 'chart' as const, from: 'b1', steps: '8888887' }, freeStep: null },
+  turn: { ply: 0, main: { kind: 'chart' as const, from: 'b1', steps: '88' }, freeStep: null },
 };

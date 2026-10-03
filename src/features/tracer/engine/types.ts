@@ -26,18 +26,20 @@ export type StepString = string;
  * A movement pattern. `R:<steps>` is a rider (walks the path, may stop on any
  * square, blocked by pieces); `J:<dx>,<dy>` is a jumper (lands exactly on the
  * net offset, ignores what lies between). A tracer stores its pattern in the
- * orientation it was charted; the king's library stores canonical keys.
+ * orientation it was charted, and its king borrows the same code.
  */
 export type PatternCode = string;
 
 export interface Piece {
-  /** Stable id: `wK`, `wT1`..`wT3`, `wW1`..`wW4`, and the same with `b`. */
+  /** Stable id: `wK`, `wT3`/`wT5`/`wT8` (by step limit), `wW1`..`wW4`, and the same with `b`. */
   id: string;
   side: Side;
   kind: PieceKind;
   at: SquareName;
   /** Tracers only: the current pattern, or null while unformed. */
   pattern: PatternCode | null;
+  /** Tracers only: the most squares one chart may cover (3, 5 or 8). Null = no limit. */
+  range: number | null;
 }
 
 export type WinReason = 'king-capture' | 'lone-king' | 'resignation';
@@ -49,12 +51,15 @@ export type GameResult =
   | { status: 'drawn'; reason: DrawReason; atPly: number };
 
 export interface GameState {
-  rulesVersion: 1;
+  rulesVersion: 2;
   /** Turns played so far. White moves on even plies, Black on odd. */
   ply: number;
   pieces: Piece[];
-  /** Each side's king library: canonical pattern keys in the order learned. */
-  library: Record<Side, PatternCode[]>;
+  /**
+   * The patterns each king borrows, keyed by the Tracer that lends them: a
+   * Tracer's current pattern, or — once it has been captured — its last one.
+   */
+  kingPatterns: Record<Side, Record<string, PatternCode>>;
   /** Consecutive own turns that took the free king step with no capture. */
   stepStreak: Record<Side, number>;
   result: GameResult;
@@ -62,7 +67,7 @@ export interface GameState {
 
 /**
  * The one main action of a turn. `move` covers a warden step, a tracer
- * strike, and a king move (base step or library pattern): the piece standing
+ * strike, and a king move (base step or a borrowed pattern): the piece standing
  * on `from` decides which. `pass` exists for future variants and is never
  * legal in v1, because a legal main action always exists.
  */
@@ -111,12 +116,8 @@ export type ActionRecord =
       from: SquareName;
       to: SquareName;
       steps: StepString;
-      /** The tracer's new pattern, in charted orientation. */
+      /** The tracer's new pattern, in charted orientation (also lent to its king). */
       pattern: PatternCode;
-      /** Its canonical library key. */
-      key: PatternCode;
-      /** True when the key was new to the library. */
-      libraryAdded: boolean;
     }
   | { kind: 'pass' };
 
@@ -143,6 +144,7 @@ export type EngineErrorCode =
   | 'CHART_OFF_BOARD'
   | 'CHART_REVISIT'
   | 'CHART_END_OCCUPIED'
+  | 'CHART_TOO_LONG'
   | 'STEP_NOT_ADJACENT'
   | 'STEP_NOT_EMPTY'
   | 'STEP_WITH_KING_MOVE'

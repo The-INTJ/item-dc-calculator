@@ -32,17 +32,17 @@ describe('POST /api/tracer/games', () => {
 
   it('creates a game for the caller and answers 201', async () => {
     createNewGameMock.mockResolvedValue({ gameId: 'AbCdEfGhIjKlMnOpQrSt' });
-    const response = await post({ displayName: ' Alice ', seat: 'random', mode: 'online' });
+    const response = await post({ displayName: ' Alice ', seat: 'random' });
     expect(response.status).toBe(201);
     expect(await response.json()).toEqual({ gameId: 'AbCdEfGhIjKlMnOpQrSt' });
     expect(createNewGameMock).toHaveBeenCalledWith(
       { uid: 'alice-uid' },
-      { displayName: 'Alice', seat: 'random', mode: 'online' },
+      { displayName: 'Alice', seat: 'random' },
     );
   });
 
   it('rejects an unknown seat choice', async () => {
-    const response = await post({ displayName: 'Alice', seat: 'purple', mode: 'online' });
+    const response = await post({ displayName: 'Alice', seat: 'purple' });
     expect(response.status).toBe(400);
     expect(createNewGameMock).not.toHaveBeenCalled();
   });

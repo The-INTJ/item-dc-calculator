@@ -21,7 +21,10 @@ const PieceSchema: z.ZodType<Piece> = z.object({
   kind: PieceKindSchema,
   at: SquareSchema,
   pattern: PatternSchema.nullable(),
+  range: z.number().int().min(1).max(63).nullable(),
 });
+
+const LentPatternsSchema = z.record(z.string(), PatternSchema);
 
 const ResultSchema: z.ZodType<GameResult> = z.union([
   z.object({ status: z.literal('active') }),
@@ -39,10 +42,10 @@ const ResultSchema: z.ZodType<GameResult> = z.union([
 ]);
 
 export const GameStateSchema: z.ZodType<GameState> = z.object({
-  rulesVersion: z.literal(1),
+  rulesVersion: z.literal(2),
   ply: z.number().int().min(0),
   pieces: z.array(PieceSchema),
-  library: z.object({ w: z.array(PatternSchema), b: z.array(PatternSchema) }),
+  kingPatterns: z.object({ w: LentPatternsSchema, b: LentPatternsSchema }),
   stepStreak: z.object({ w: z.number().int().min(0), b: z.number().int().min(0) }),
   result: ResultSchema,
 });
@@ -69,8 +72,6 @@ const ActionRecordSchema: z.ZodType<ActionRecord> = z.union([
     to: SquareSchema,
     steps: StepsSchema,
     pattern: PatternSchema,
-    key: PatternSchema,
-    libraryAdded: z.boolean(),
   }),
   z.object({ kind: z.literal('pass') }),
 ]);

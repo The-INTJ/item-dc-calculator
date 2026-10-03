@@ -9,7 +9,7 @@ import {
   CAROL,
   finishedGame,
   GAME_ID,
-  hotseatGame,
+  bothSeatsGame,
   OPENING_CHART,
   openGame,
   T0,
@@ -27,17 +27,10 @@ function codeOf(run: () => unknown): string | null {
 
 describe('createGame', () => {
   it('opens an online game with the creator in the chosen seat', () => {
-    const game = createGame(GAME_ID, ALICE, { displayName: 'Alice', seat: 'b', mode: 'online' }, T0);
-    expect(game.status).toBe('open');
+    const game = createGame(GAME_ID, ALICE, { displayName: 'Alice', seat: 'b' }, T0);
+    expect(game).toMatchObject({ status: 'open', schemaVersion: 2, startedAt: null });
     expect(game.seats.b).toEqual({ uid: ALICE.uid, name: 'Alice', joinedAt: T0 });
     expect(game.seats.w.uid).toBeNull();
-    expect(game.startedAt).toBeNull();
-  });
-
-  it('starts a hotseat game at once with the creator on both sides', () => {
-    const game = createGame(GAME_ID, ALICE, { displayName: 'Alice', seat: 'w', mode: 'hotseat' }, T0);
-    expect(game.status).toBe('active');
-    expect([game.seats.w.uid, game.seats.b.uid]).toEqual([ALICE.uid, ALICE.uid]);
   });
 });
 
@@ -65,7 +58,7 @@ describe('submitTurn', () => {
   it('applies a legal turn and writes the turn record', () => {
     const result = submitTurn(activeGame(), ALICE, OPENING_CHART, T0 + 9);
     expect(result.response).toEqual({ ply: 1, status: 'active', replayed: false });
-    expect(result.game?.state.library.w).toEqual(['J:1,7']);
+    expect(result.game?.state.kingPatterns.w).toEqual({ wT3: 'J:0,2' });
     expect(result.game?.lastTurn).toMatchObject({ ply: 0, clientTurnId: OPENING_CHART.clientTurnId });
     expect(result.game?.turnStartedAt).toBe(T0 + 9);
     expect(result.turn).toMatchObject({ ply: 0, side: 'w', byUid: ALICE.uid, at: T0 + 9 });
@@ -102,8 +95,8 @@ describe('submitTurn', () => {
     expect(submitTurn(own, ALICE, OPENING_CHART, T0).game?.drawOffer).toEqual(own.drawOffer);
   });
 
-  it('lets one person move both sides in hotseat', () => {
-    const first = submitTurn(hotseatGame(), ALICE, OPENING_CHART, T0).game!;
+  it('lets one person who holds both seats move both sides', () => {
+    const first = submitTurn(bothSeatsGame(), ALICE, OPENING_CHART, T0).game!;
     const reply = {
       clientTurnId: 'turn-0002-abc',
       turn: { ply: 1, main: { kind: 'move' as const, from: 'd7', to: 'd6' }, freeStep: null },

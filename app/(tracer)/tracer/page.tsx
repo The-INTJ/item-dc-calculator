@@ -1,5 +1,9 @@
-import { TracerLobby } from '@/features/tracer';
+import { TracerAuth, TracerLobby } from '@/features/tracer';
 
 export default function TracerLobbyPage() {
-  return <TracerLobby />;
+  return (
+    <TracerAuth>
+      <TracerLobby />
+    </TracerAuth>
+  );
 }

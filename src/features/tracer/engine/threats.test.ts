@@ -56,8 +56,10 @@ describe('attackedSquares', () => {
     expect(isKingInDanger(adjacent, 'b')).toBe(true);
   });
 
-  it('uses library patterns from the king’s current square', () => {
-    const state = positionFrom('8 . . . . . . . k\n1 . . . . . . . K', { library: { w: ['R:8888888'] } });
+  it('uses borrowed patterns from the king’s current square', () => {
+    const state = positionFrom('8 . . . . . . . k\n1 . . . . . . . K', {
+      kingPatterns: { w: { wT1: 'R:8888888' } },
+    });
     expect(attackedSquares(state, 'w')).toContain('h8');
   });
 });

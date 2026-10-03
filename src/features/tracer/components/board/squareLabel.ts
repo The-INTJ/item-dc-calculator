@@ -1,9 +1,9 @@
 import type { Piece, SquareName } from '../../engine';
-import { KIND_NAME, patternLabel, SIDE_NAME } from '../../lib/presentation/gameText';
+import { patternLabel, pieceName, SIDE_NAME } from '../../lib/presentation/gameText';
 import type { SquareMarks } from './boardMarks';
 
 function pieceText(piece: Piece): string {
-  const base = `${SIDE_NAME[piece.side]} ${KIND_NAME[piece.kind]}`;
+  const base = `${SIDE_NAME[piece.side]} ${pieceName(piece)}`;
   if (piece.kind !== 'tracer') return base;
   return piece.pattern ? `${base}, ${patternLabel(piece.pattern).toLowerCase()}` : `${base}, unformed`;
 }

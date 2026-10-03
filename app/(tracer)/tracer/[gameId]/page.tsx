@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { TracerGameView } from '@/features/tracer';
+import { TracerAuth, TracerGameView } from '@/features/tracer';
 import { gameTitle } from '@/features/tracer/lib/presentation/gameText';
 import { loadGameForPage } from '@/features/tracer/lib/server';
 
@@ -17,9 +18,10 @@ const DESCRIPTION = 'Chess where pieces learn their moves from the paths you dra
 /** Link previews: "Drew challenged you to Tracer" unfurls in messaging apps. */
 export async function generateMetadata({ params }: GamePageProps): Promise<Metadata> {
   const { gameId } = await params;
-  const game = await loadGameForPage(gameId);
-  if (!game) return { title: 'Game not found' };
-  const title = gameTitle(game);
+  const loaded = await loadGameForPage(gameId);
+  if (loaded.status === 'missing') return { title: 'Game not found' };
+  if (loaded.status === 'outdated') return { title: 'Game from the first rules' };
+  const title = gameTitle(loaded.game);
   return {
     title,
     description: DESCRIPTION,
@@ -28,9 +30,24 @@ export async function generateMetadata({ params }: GamePageProps): Promise<Metad
   };
 }
 
+function OutdatedGame() {
+  return (
+    <main style={{ display: 'grid', gap: '0.75rem', padding: '2rem 1rem', maxWidth: '32rem', margin: '0 auto' }}>
+      <h1>This game used the first rules</h1>
+      <p>Tracer has changed since this game was played, so it cannot be continued.</p>
+      <Link href="/tracer">Start a new game</Link>
+    </main>
+  );
+}
+
 export default async function TracerGamePage({ params }: GamePageProps) {
   const { gameId } = await params;
-  const game = await loadGameForPage(gameId);
-  if (!game) notFound();
-  return <TracerGameView key={game.id} initialGame={game} />;
+  const loaded = await loadGameForPage(gameId);
+  if (loaded.status === 'missing') notFound();
+  if (loaded.status === 'outdated') return <OutdatedGame />;
+  return (
+    <TracerAuth>
+      <TracerGameView key={loaded.game.id} initialGame={loaded.game} />
+    </TracerAuth>
+  );
 }

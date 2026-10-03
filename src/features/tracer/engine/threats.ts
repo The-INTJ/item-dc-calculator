@@ -4,8 +4,8 @@
  * empty controlled square is unsafe to step onto.
  *
  * Two kinds of turn can capture:
- *   - a king turn: the king's base step or a library pattern, from where the
- *     king stands now;
+ *   - a king turn: the king's base step or a pattern its Tracers lend it,
+ *     from where the king stands now;
  *   - a piece turn: a warden step or tracer strike, either straight away or
  *     after a free king step (which moves the king out of — or into — lines).
  * Charts never capture and the free step never captures, so neither counts.
@@ -14,6 +14,7 @@
 import type { GameState, Piece, Side, SquareName } from './types';
 import { parseSquare, squareName } from './geometry';
 import { boardOf, findKing, otherSide } from './occupancy';
+import { kingPatternList } from './pattern-codes';
 import { pieceHits } from './piece-reach';
 import { freeStepSquares } from './free-step';
 
@@ -29,7 +30,7 @@ function launchPositions(state: GameState, side: Side): Piece[][] {
 
 function addReach(target: Set<number>, pieces: Piece[], piece: Piece, state: GameState) {
   const board = boardOf(pieces);
-  for (const hit of pieceHits(board, piece, state.library[piece.side])) {
+  for (const hit of pieceHits(board, piece, kingPatternList(state, piece.side))) {
     target.add(hit.sq);
   }
 }

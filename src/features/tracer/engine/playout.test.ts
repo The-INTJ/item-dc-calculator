@@ -13,6 +13,7 @@ import { freeStepSquares } from './free-step';
 import { hasLegalMainAction } from './legality';
 import { parsePattern } from './pattern-codes';
 import { moveTargets } from './queries';
+import { turnInputFromRecord } from './replay';
 import { initialState } from './setup';
 import { applyTurn, sideToMove } from './turn';
 
@@ -32,11 +33,11 @@ function pick<T>(rng: Rng, items: readonly T[]): T {
   return items[Math.floor(rng() * items.length)];
 }
 
-function randomPath(rng: Rng, from: number): string {
+function randomPath(rng: Rng, from: number, range: number): string {
   const used = new Set([from]);
   let current = from;
   let steps = '';
-  const length = 1 + Math.floor(rng() * 12);
+  const length = 1 + Math.floor(rng() * range);
   for (let i = 0; i < length; i += 1) {
     const options = neighbours(current).filter((sq) => !used.has(sq));
     if (options.length === 0) break;
@@ -52,7 +53,7 @@ function randomTurn(rng: Rng, state: GameState, side: Side): TurnInput {
   const piece = pick(rng, state.pieces.filter((p) => p.side === side));
   let main: MainAction;
   if (piece.kind === 'tracer' && (!piece.pattern || rng() < 0.5)) {
-    main = { kind: 'chart', from: piece.at, steps: randomPath(rng, parseSquare(piece.at)!) };
+    main = { kind: 'chart', from: piece.at, steps: randomPath(rng, parseSquare(piece.at)!, piece.range ?? 8) };
   } else {
     const targets = moveTargets(state, piece.at);
     main = targets.length ? { kind: 'move', from: piece.at, to: pick(rng, targets).to } : { kind: 'pass' };
@@ -63,19 +64,6 @@ function randomTurn(rng: Rng, state: GameState, side: Side): TurnInput {
   return { ply: state.ply, main, freeStep };
 }
 
-function inputFromRecord(record: TurnRecord): TurnInput {
-  const mainIndex = record.actions.findIndex((a) => a.kind !== 'step');
-  const main = record.actions[mainIndex];
-  const stepIndex = record.actions.findIndex((a) => a.kind === 'step');
-  const step = record.actions[stepIndex];
-  const freeStep = step?.kind === 'step'
-    ? { to: step.to, when: stepIndex < mainIndex ? 'before' as const : 'after' as const }
-    : null;
-  let action: MainAction = { kind: 'pass' };
-  if (main.kind === 'chart') action = { kind: 'chart', from: main.from, steps: main.steps };
-  else if (main.kind !== 'pass' && main.kind !== 'step') action = { kind: 'move', from: main.from, to: main.to };
-  return { ply: record.ply, main: action, freeStep };
-}
 
 function assertFirestoreSafe(value: unknown, insideArray = false): void {
   expect(value).not.toBeUndefined();
@@ -92,8 +80,17 @@ function assertInvariants(state: GameState): void {
   expect(new Set(state.pieces.map((p) => p.id)).size).toBe(state.pieces.length);
   for (const side of ['w', 'b'] as const) {
     expect(state.pieces.filter((p) => p.side === side && p.kind === 'king').length).toBeLessThanOrEqual(1);
-    expect(new Set(state.library[side]).size).toBe(state.library[side].length);
-    state.library[side].forEach((key) => expect(parsePattern(key)).not.toBeNull());
+    // Each king borrows at most one pattern per Tracer of its own side.
+    const lent = Object.entries(state.kingPatterns[side]);
+    expect(lent.length).toBeLessThanOrEqual(3);
+    for (const [tracerId, pattern] of lent) {
+      expect(tracerId).toMatch(new RegExp(`^${side}T[358]$`));
+      expect(parsePattern(pattern)).not.toBeNull();
+    }
+    for (const tracer of state.pieces.filter((p) => p.side === side && p.kind === 'tracer')) {
+      expect(state.kingPatterns[side][tracer.id] ?? null).toBe(tracer.pattern);
+      if (tracer.pattern?.startsWith('R:')) expect(tracer.pattern.length - 2).toBeLessThanOrEqual(tracer.range!);
+    }
   }
   expect(JSON.parse(JSON.stringify(state))).toEqual(state);
   assertFirestoreSafe(state);
@@ -132,7 +129,7 @@ describe('random self-play', () => {
       endings.add(state.result.status === 'won' ? state.result.reason : state.result.status);
       let replay = initialState();
       for (const record of records) {
-        const outcome = applyTurn(replay, record.side, inputFromRecord(record));
+        const outcome = applyTurn(replay, record.side, turnInputFromRecord(record)!);
         expect(outcome.ok).toBe(true);
         if (outcome.ok) replay = outcome.state;
       }

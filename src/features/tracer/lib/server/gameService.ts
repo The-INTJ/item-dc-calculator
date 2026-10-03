@@ -22,12 +22,7 @@ import { insertGame, newGameId, runGameCommand } from './gameRepository';
 
 export async function createNewGame(actor: Actor, input: CreateGameInput) {
   const seat: Side = input.seat === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : input.seat;
-  const game = createGame(
-    newGameId(),
-    actor,
-    { displayName: input.displayName, seat, mode: input.mode },
-    Date.now(),
-  );
+  const game = createGame(newGameId(), actor, { displayName: input.displayName, seat }, Date.now());
   await insertGame(game);
   return { gameId: game.id };
 }

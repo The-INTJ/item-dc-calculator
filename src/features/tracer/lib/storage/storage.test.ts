@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { activeGame, OPENING_CHART, T0 } from '../fixtures/game';
 import { CreateGameSchema, isGameId, SubmitTurnSchema } from '../schemas';
 import { submitTurn } from '../server/commands';
-import { fromGameDoc, fromTurnDoc, toGameDoc, turnDocId } from './gameDocument';
+import { fromGameDoc, fromTurnDoc, isOutdatedGameDoc, toGameDoc, turnDocId } from './gameDocument';
 
 describe('game documents', () => {
   it('round-trip through the stored shape', () => {
@@ -19,7 +19,14 @@ describe('game documents', () => {
     expect(fromGameDoc('x', { ...doc, status: 'paused' })).toBeNull();
     const badPiece = { ...doc.state.pieces[0], at: 'z9' };
     expect(fromGameDoc('x', { ...doc, state: { ...doc.state, pieces: [badPiece] } })).toBeNull();
-    expect(fromGameDoc('x', { ...doc, state: { ...doc.state, library: { w: ['R:5'], b: [] } } })).toBeNull();
+    const badLoan = { ...doc.state, kingPatterns: { w: { wT3: 'R:5' }, b: {} } };
+    expect(fromGameDoc('x', { ...doc, state: badLoan })).toBeNull();
+  });
+
+  it('recognise games saved under the first rules', () => {
+    expect(isOutdatedGameDoc({ schemaVersion: 1 })).toBe(true);
+    expect(isOutdatedGameDoc(toGameDoc(activeGame()))).toBe(false);
+    expect(isOutdatedGameDoc(null)).toBe(false);
   });
 
   it('parse stored turns and key them by padded ply', () => {
@@ -32,7 +39,7 @@ describe('game documents', () => {
 
 describe('request schemas', () => {
   it('trims names and rejects empty, long, or control-character names', () => {
-    const base = { seat: 'w', mode: 'online' };
+    const base = { seat: 'w' };
     expect(CreateGameSchema.parse({ ...base, displayName: '  Sam  ' }).displayName).toBe('Sam');
     expect(CreateGameSchema.safeParse({ ...base, displayName: '   ' }).success).toBe(false);
     expect(CreateGameSchema.safeParse({ ...base, displayName: 'x'.repeat(25) }).success).toBe(false);

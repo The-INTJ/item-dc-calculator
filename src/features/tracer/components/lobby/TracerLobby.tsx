@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 import { BackToExperiments } from '@/components/ui/BackToExperiments';
 
-import { useRecentGames } from '../../lib/recentGames';
+import { recentGameHref, useRecentGames } from '../../lib/recentGames';
 import { RulesList } from '../panels/GamePanels';
 import { NewGameForm } from './NewGameForm';
 import styles from './Lobby.module.scss';
@@ -20,7 +20,7 @@ function RecentGames() {
       <ul className={styles.recent}>
         {recent.map((game) => (
           <li key={game.id}>
-            <Link href={`/tracer/${game.id}`}>{game.title}</Link>
+            <Link href={recentGameHref(game)}>{game.title}</Link>
           </li>
         ))}
       </ul>

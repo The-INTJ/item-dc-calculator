@@ -85,7 +85,7 @@ app/                          # Next.js App Router pages and API routes
   (harmonizer)/               # Route group: hymn harmonization workbench POC
   (pilates-mentors)/          # Route group: Pilates Mentors design preview
   (moriah)/                   # Route group: Moriah church previews (/moriah, /moriah-2 "Portico")
-  (tracer)/                   # Route group: Tracer board game (/tracer lobby, /tracer/[gameId])
+  (tracer)/                   # Route group: Tracer board game (/tracer lobby, /tracer/[gameId], /tracer/local/[localId])
   api/contest/                # REST API routes (see below)
   api/tracer/                 # Tracer game commands (server-authoritative; see the feature README)
   layout.tsx                  # Root layout (server component; no global providers)

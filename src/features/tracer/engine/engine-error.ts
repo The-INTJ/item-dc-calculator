@@ -19,6 +19,7 @@ const MESSAGES: Record<EngineErrorCode, string> = {
   CHART_OFF_BOARD: 'The path runs off the board.',
   CHART_REVISIT: 'A path cannot cross itself or return to its start.',
   CHART_END_OCCUPIED: 'A path must end on an empty square.',
+  CHART_TOO_LONG: 'That path is longer than this Tracer can chart.',
   STEP_NOT_ADJACENT: 'The free king step must be to a neighbouring square.',
   STEP_NOT_EMPTY: 'The free king step must be to an empty square.',
   STEP_WITH_KING_MOVE: 'A king move is the whole turn — no free step with it.',

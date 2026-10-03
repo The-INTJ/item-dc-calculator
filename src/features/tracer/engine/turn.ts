@@ -3,7 +3,7 @@
  *
  *   - a piece turn: one tracer or warden move, plus an optional free king
  *     step before or after it;
- *   - a king turn: one king move (base step or library pattern), alone.
+ *   - a king turn: one king move (base step or a borrowed pattern), alone.
  *
  * `applyTurn` is pure: it validates against `state`, works on a clone, and
  * returns the next state with a record of what happened — or the first
@@ -27,7 +27,7 @@ export function cloneState(state: GameState): GameState {
   return {
     ...state,
     pieces: state.pieces.map((piece) => ({ ...piece })),
-    library: { w: [...state.library.w], b: [...state.library.b] },
+    kingPatterns: { w: { ...state.kingPatterns.w }, b: { ...state.kingPatterns.b } },
     stepStreak: { ...state.stepStreak },
     result: { ...state.result },
   };

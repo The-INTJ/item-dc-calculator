@@ -82,6 +82,12 @@
   z-index: 1;
 }
 
+.tierNumber {
+  font-family: var(--tr-font-ui);
+  font-size: 34px;
+  font-weight: 700;
+}
+
 .rankLabel,
 .fileLabel {
   color: var(--tr-coord);

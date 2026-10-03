@@ -34,7 +34,7 @@ describe('building a piece turn', () => {
     const s = session(initialState());
     s.tap('d2', 'd3');
     expect(s.view().turn).toEqual({ ply: 0, main: { kind: 'move', from: 'd2', to: 'd3' }, freeStep: null });
-    s.tap('d1');
+    s.tap('e1');
     expect(s.view().stepTargets).toContain('d2');
     s.tap('d2');
     expect(s.view().turn?.freeStep).toEqual({ to: 'd2', when: 'after' });
@@ -43,7 +43,7 @@ describe('building a piece turn', () => {
 
   it('undoes in reverse order', () => {
     const s = session(initialState());
-    s.tap('d2', 'd3', 'd1', 'd2');
+    s.tap('d2', 'd3', 'e1', 'd2');
     s.dispatch({ type: 'undo' });
     expect(s.view().turn?.freeStep).toBeNull();
     s.dispatch({ type: 'undo' });
@@ -52,13 +52,13 @@ describe('building a piece turn', () => {
 
   it('turns a quiet king step into the free step of a later piece move', () => {
     const s = session(initialState());
-    s.tap('d1', 'c1');
-    expect(s.view().turn).toEqual({ ply: 0, main: { kind: 'move', from: 'd1', to: 'c1' }, freeStep: null });
+    s.tap('e1', 'f1');
+    expect(s.view().turn).toEqual({ ply: 0, main: { kind: 'move', from: 'e1', to: 'f1' }, freeStep: null });
     s.tap('b2', 'b3');
     expect(s.view().turn).toEqual({
       ply: 0,
       main: { kind: 'move', from: 'b2', to: 'b3' },
-      freeStep: { to: 'c1', when: 'before' },
+      freeStep: { to: 'f1', when: 'before' },
     });
   });
 

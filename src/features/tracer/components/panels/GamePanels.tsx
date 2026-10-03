@@ -1,19 +1,20 @@
 'use client';
 
+import type { ReactNode } from 'react';
+
 import type { Side } from '../../engine';
 import type { ComposerView } from '../../hooks/composer/composerView';
 import type { TracerGame } from '../../lib/types';
 import { RULES } from './content';
-import { KingLibrary } from './KingLibrary';
+import { KingPatterns } from './KingPatterns';
 import { PieceInspector } from './PieceInspector';
-import { TurnHistory } from './TurnHistory';
 import styles from './Panels.module.scss';
 
-export type PanelTab = 'piece' | 'library' | 'history' | 'rules';
+export type PanelTab = 'piece' | 'kings' | 'history' | 'rules';
 
 const TABS: { id: PanelTab; label: string }[] = [
   { id: 'piece', label: 'Piece' },
-  { id: 'library', label: 'Libraries' },
+  { id: 'kings', label: 'Kings' },
   { id: 'history', label: 'Moves' },
   { id: 'rules', label: 'Rules' },
 ];
@@ -41,9 +42,11 @@ interface GamePanelsProps {
   view: ComposerView;
   game: TracerGame;
   ownSide: Side;
+  /** The move list for this kind of game — only mounted while its tab is open. */
+  history: ReactNode;
 }
 
-export function GamePanels({ tab, onTab, view, game, ownSide }: GamePanelsProps) {
+export function GamePanels({ tab, onTab, view, game, ownSide, history }: GamePanelsProps) {
   return (
     <section className={styles.panels} aria-label="Game details">
       <div className={styles.tabs} role="tablist">
@@ -64,8 +67,8 @@ export function GamePanels({ tab, onTab, view, game, ownSide }: GamePanelsProps)
       </div>
       <div className={styles.panelBody} role="tabpanel" id="tracer-tab-panel" aria-labelledby={`tracer-tab-${tab}`}>
         {tab === 'piece' && <PieceInspector view={view} game={game} />}
-        {tab === 'library' && <KingLibrary game={game} firstSide={ownSide} />}
-        {tab === 'history' && <TurnHistory game={game} />}
+        {tab === 'kings' && <KingPatterns game={game} firstSide={ownSide} />}
+        {tab === 'history' && history}
         {tab === 'rules' && <RulesList />}
       </div>
     </section>

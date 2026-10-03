@@ -24,10 +24,11 @@ const LastTurnSchema = z.object({
   clientTurnId: z.string(),
 });
 
+export const GAME_SCHEMA_VERSION = 2;
+
 const GameDocSchema = z.object({
-  schemaVersion: z.literal(1),
+  schemaVersion: z.literal(GAME_SCHEMA_VERSION),
   status: z.enum(['open', 'active', 'finished']),
-  mode: z.enum(['online', 'hotseat']),
   createdBy: z.object({ uid: z.string(), name: z.string() }),
   seats: z.object({ w: SeatSchema, b: SeatSchema }),
   state: GameStateSchema,
@@ -60,6 +61,12 @@ export function toGameDoc(game: TracerGame): GameDoc {
 export function fromGameDoc(id: string, data: unknown): TracerGame | null {
   const parsed = GameDocSchema.safeParse(data);
   return parsed.success ? { id, ...parsed.data } : null;
+}
+
+/** A game saved by an earlier version of the rules, which cannot be continued. */
+export function isOutdatedGameDoc(data: unknown): boolean {
+  const version = (data as { schemaVersion?: unknown } | null)?.schemaVersion;
+  return typeof version === 'number' && version < GAME_SCHEMA_VERSION;
 }
 
 export function fromTurnDoc(data: unknown): StoredTurn | null {

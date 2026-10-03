@@ -7,9 +7,6 @@ import type { GameState, Side, TurnRecord } from '../engine';
 
 export type GameStatus = 'open' | 'active' | 'finished';
 
-/** `hotseat`: one person plays both sides on one device. */
-export type GameMode = 'online' | 'hotseat';
-
 export interface Seat {
   uid: string | null;
   /** Kept when a seat is reopened, so the board can say "was Sam". */
@@ -32,9 +29,9 @@ export interface LastTurn extends TurnRecord {
 
 export interface TracerGame {
   id: string;
-  schemaVersion: 1;
+  /** 2 = tiered Tracers lending their current patterns. v1 games are not readable. */
+  schemaVersion: 2;
   status: GameStatus;
-  mode: GameMode;
   createdBy: { uid: string; name: string };
   seats: Record<Side, Seat>;
   state: GameState;

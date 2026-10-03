@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { TracerError } from '../errors';
 import { negotiateDraw, releaseSeat } from '../server/commands';
-import { activeGame, ALICE, BOB, CAROL, finishedGame, hotseatGame, openGame, T0 } from '../fixtures/game';
+import { activeGame, ALICE, BOB, CAROL, finishedGame, bothSeatsGame, openGame, T0 } from '../fixtures/game';
 import { deriveViewer } from './viewer';
 import { canReleaseSeat, SEAT_RELEASE_AFTER_MS, seatReleaseAvailableAt } from './seats';
 
@@ -21,8 +21,8 @@ describe('deriveViewer', () => {
     expect(deriveViewer(activeGame(), null)).toMatchObject({ role: 'spectator', canMove: false });
   });
 
-  it('follows the side to move in hotseat', () => {
-    const viewer = deriveViewer(hotseatGame({ state: { ...hotseatGame().state, ply: 1 } }), ALICE.uid);
+  it('follows the side to move for someone holding both seats', () => {
+    const viewer = deriveViewer(bothSeatsGame({ state: { ...bothSeatsGame().state, ply: 1 } }), ALICE.uid);
     expect(viewer).toMatchObject({ role: 'both', actingSide: 'b', orientation: 'b', canMove: true });
   });
 
@@ -45,7 +45,7 @@ describe('seat release', () => {
     expect(canReleaseSeat(stalled, CAROL.uid, 'w', later)).toBe(false);
     expect(canReleaseSeat(stalled, ALICE.uid, 'w', later)).toBe(false);
     expect(canReleaseSeat(stalled, ALICE.uid, 'b', later)).toBe(false);
-    expect(canReleaseSeat(hotseatGame(), ALICE.uid, 'w', later)).toBe(false);
+    expect(canReleaseSeat(bothSeatsGame(), ALICE.uid, 'w', later)).toBe(false);
   });
 
   it('keeps the old name on the reopened seat', () => {
@@ -74,7 +74,7 @@ describe('draw negotiation', () => {
   });
 
   it('works for one person holding both seats', () => {
-    const offered = negotiateDraw(hotseatGame(), ALICE, 'offer', T0).game!;
+    const offered = negotiateDraw(bothSeatsGame(), ALICE, 'offer', T0).game!;
     expect(negotiateDraw(offered, ALICE, 'accept', T0).game?.status).toBe('finished');
   });
 

@@ -6,6 +6,7 @@
 
 export type TracerErrorCode =
   | 'GAME_NOT_FOUND'
+  | 'GAME_OUTDATED'
   | 'CORRUPT_GAME'
   | 'STORAGE_UNAVAILABLE'
   | 'NOT_A_PLAYER'
@@ -21,6 +22,7 @@ export type TracerErrorCode =
 
 export const TRACER_ERROR_STATUS: Record<TracerErrorCode, number> = {
   GAME_NOT_FOUND: 404,
+  GAME_OUTDATED: 410,
   CORRUPT_GAME: 500,
   STORAGE_UNAVAILABLE: 503,
   NOT_A_PLAYER: 403,

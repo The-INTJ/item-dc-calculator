@@ -29,9 +29,8 @@ export function requestRematch(
   const requester = game.seats.w.uid === actor.uid ? game.seats.w : game.seats.b;
   const newGame: TracerGame = {
     id: newId,
-    schemaVersion: 1,
+    schemaVersion: 2,
     status: full ? 'active' : 'open',
-    mode: game.mode,
     createdBy: { uid: actor.uid, name: requester.name ?? game.createdBy.name },
     seats,
     state: initialState(),

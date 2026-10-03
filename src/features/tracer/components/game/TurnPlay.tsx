@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import { attackedSquares, otherSide, type Side } from '../../engine';
 import type { ComposerView } from '../../hooks/composer/composerView';
 import { useTurnComposer } from '../../hooks/composer/useTurnComposer';
-import { useTurnSubmission, type TurnWarning } from '../../hooks/composer/useTurnSubmission';
+import { useTurnSubmission, type TurnSender, type TurnWarning } from '../../hooks/composer/useTurnSubmission';
 import type { Viewer } from '../../lib/policy';
 import type { TracerGame } from '../../lib/types';
 import { Board } from '../board/Board';
@@ -33,6 +33,7 @@ interface TurnPlayProps {
   viewer: Viewer;
   orientation: Side;
   showThreats: boolean;
+  sendTurn: TurnSender;
   topBar: ReactNode;
   bottomBar: ReactNode;
   toolbar: ReactNode;
@@ -44,9 +45,9 @@ interface TurnPlayProps {
  * One turn's worth of play. Keyed by ply by its parent, so every new turn —
  * yours or a live update from your opponent — starts from a clean slate.
  */
-export function TurnPlay({ game, viewer, orientation, showThreats, ...slots }: TurnPlayProps) {
+export function TurnPlay({ game, viewer, orientation, showThreats, sendTurn, ...slots }: TurnPlayProps) {
   const { composer, view, dispatch, tap, finishChart } = useTurnComposer(game, viewer);
-  const submission = useTurnSubmission(game.id, viewer.actingSide, () => dispatch({ type: 'reset' }));
+  const submission = useTurnSubmission(sendTurn, viewer.actingSide, () => dispatch({ type: 'reset' }));
   const { phase } = submission;
   const busy = phase.kind === 'sending' || phase.kind === 'sent';
   const threats = showThreats ? attackedSquares(view.board, otherSide(orientation)) : [];

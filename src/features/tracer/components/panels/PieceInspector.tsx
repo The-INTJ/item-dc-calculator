@@ -1,15 +1,20 @@
-import { patternKind, type Piece } from '../../engine';
-import { KIND_NAME, patternLabel, SIDE_NAME } from '../../lib/presentation/gameText';
+import { kingPatternList, patternKind, type Piece } from '../../engine';
+import { patternLabel, pieceName, SIDE_NAME } from '../../lib/presentation/gameText';
 import type { TracerGame } from '../../lib/types';
 import type { ComposerView } from '../../hooks/composer/composerView';
 import { PatternDiagram } from './PatternDiagram';
 import styles from './Panels.module.scss';
 
-const KIND_HELP: Record<Piece['kind'], string> = {
-  warden: 'Moves one square in any direction and always captures.',
-  tracer: 'Strikes with its pattern, or charts a new one (charting never captures).',
-  king: 'Steps one square, or moves by any pattern in its library. Lose it and you lose.',
-};
+function kindHelp(piece: Piece): string {
+  switch (piece.kind) {
+    case 'warden':
+      return 'Moves one square in any direction and always captures.';
+    case 'tracer':
+      return `Strikes with its pattern, or charts a new one of up to ${piece.range ?? 'any number of'} squares (charting never captures). Its king borrows the pattern too.`;
+    case 'king':
+      return 'Steps one square, or moves by any pattern its Tracers lend it. Lose it and you lose.';
+  }
+}
 
 function TracerDetail({ piece }: { piece: Piece }) {
   if (!piece.pattern) {
@@ -37,18 +42,17 @@ export function PieceInspector({ view, game }: { view: ComposerView; game: Trace
   if (!piece) {
     return <p className={styles.muted}>Tap any piece to see how it moves and what it can reach.</p>;
   }
-  const library = game.state.library[piece.side];
+  const borrowed = kingPatternList(game.state, piece.side).length;
   return (
     <div className={styles.inspector}>
       <p className={styles.strong}>
-        {SIDE_NAME[piece.side]} {KIND_NAME[piece.kind]} on {piece.at}
+        {SIDE_NAME[piece.side]} {pieceName(piece)} on {piece.at}
       </p>
-      <p className={styles.muted}>{KIND_HELP[piece.kind]}</p>
+      <p className={styles.muted}>{kindHelp(piece)}</p>
       {piece.kind === 'tracer' && <TracerDetail piece={piece} />}
       {piece.kind === 'king' && (
         <p className={styles.muted}>
-          Library: {library.length} pattern{library.length === 1 ? '' : 's'}. Reach shown on the board: {view.targets.length}{' '}
-          squares.
+          Borrowing {borrowed} pattern{borrowed === 1 ? '' : 's'} (see Kings). It can reach {view.targets.length} squares now.
         </p>
       )}
     </div>

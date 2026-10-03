@@ -21,8 +21,9 @@ export {
   stepDigit,
   withKingAt,
 } from './queries';
-export { libraryKey, parsePattern, patternKind, type ParsedPattern } from './pattern-codes';
+export { kingPatternList, parsePattern, patternKind, type ParsedPattern } from './pattern-codes';
 export { formatAction, formatTurn, turnNumberLabel } from './notation';
+export { replayTurns, turnInputFromRecord } from './replay';
 export { engineMessage } from './engine-error';
 export { otherSide } from './occupancy';
 export {
