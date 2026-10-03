@@ -85,7 +85,9 @@ app/                          # Next.js App Router pages and API routes
   (harmonizer)/               # Route group: hymn harmonization workbench POC
   (pilates-mentors)/          # Route group: Pilates Mentors design preview
   (moriah)/                   # Route group: Moriah church previews (/moriah, /moriah-2 "Portico")
+  (tracer)/                   # Route group: Tracer board game (/tracer lobby, /tracer/[gameId])
   api/contest/                # REST API routes (see below)
+  api/tracer/                 # Tracer game commands (server-authoritative; see the feature README)
   layout.tsx                  # Root layout (server component; no global providers)
   page.tsx                    # Home page / experiences portal (server component)
 
@@ -112,6 +114,7 @@ src/
       presentation/           # UI mapping and display model logic
     styles/                   # SCSS partials organized by domain
   features/harmonizer/        # Hymn Harmonization Workbench POC (self-contained; see its README.md)
+  features/tracer/            # Tracer: pure rules engine + multiplayer game (rules spec in its README.md)
 ```
 
 ## Path Aliases
@@ -131,7 +134,7 @@ Import restriction: `@/src/*` imports are banned by ESLint. Use the aliases abov
 
 - Server components by default; client components use `'use client'` directive.
 - Pages are async server components (e.g., `page.tsx` uses `await getCurrentUser()`).
-- Route groups `(contest)`, `(dc-calculator)`, `(harmonizer)`, `(pilates-mentors)`, and `(moriah)` separate layout concerns; each group owns its fonts, styles, and providers (nothing global lives in the root layout).
+- Route groups `(contest)`, `(dc-calculator)`, `(harmonizer)`, `(pilates-mentors)`, `(moriah)`, and `(tracer)` separate layout concerns; each group owns its fonts, styles, and providers (nothing global lives in the root layout).
 - SCSS Modules for page/component styles (e.g., `page.module.scss`, `ContestList.module.scss`).
 - Shared components use barrel exports (`src/components/index.ts`).
 
