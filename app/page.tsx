@@ -36,6 +36,11 @@ const experiences: Experience[] = [
     href: '/donuts',
   },
   {
+    title: 'Tracer',
+    description: 'Chess where pieces learn their moves from the paths you draw. Send a link, play a friend.',
+    href: '/tracer',
+  },
+  {
     title: 'Hymn Harmonization Workbench',
     description: 'Audition four-part harmonizations of a hymn melody fragment (UI proof of concept).',
     href: '/harmonizer',

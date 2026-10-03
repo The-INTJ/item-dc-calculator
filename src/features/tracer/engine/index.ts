@@ -13,6 +13,7 @@ export { attackedSquares, isKingInDanger } from './threats';
 export { hasLegalMainAction } from './legality';
 export {
   moveTargets,
+  pathSquares,
   patternTargets,
   pieceAt,
   squareCoords,
@@ -24,4 +25,10 @@ export { libraryKey, parsePattern, patternKind, type ParsedPattern } from './pat
 export { formatAction, formatTurn, turnNumberLabel } from './notation';
 export { engineMessage } from './engine-error';
 export { otherSide } from './occupancy';
-export { ALL_SQUARE_NAMES, isStepString, MAX_PATH_LENGTH, netDisplacement } from './geometry';
+export {
+  ALL_SQUARE_NAMES,
+  digitVector,
+  isStepString,
+  MAX_PATH_LENGTH,
+  netDisplacement,
+} from './geometry';

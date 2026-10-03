@@ -2,8 +2,17 @@
  * Read-only questions the UI asks about a position, in square names.
  */
 
-import type { GameState, MoveTarget, PatternCode, RiderWalk, Side, SquareName } from './types';
-import { fileOf, parseSquare, rankOf, squareAt, squareName, vectorDigit } from './geometry';
+import type { GameState, MoveTarget, PatternCode, RiderWalk, Side, SquareName, StepString } from './types';
+import {
+  fileOf,
+  isStepString,
+  parseSquare,
+  rankOf,
+  squareAt,
+  squareName,
+  stepFrom,
+  vectorDigit,
+} from './geometry';
 import { boardOf, findKing } from './occupancy';
 import { pieceHits } from './piece-reach';
 import { patternReach } from './pattern-reach';
@@ -57,6 +66,19 @@ export function withKingAt(state: GameState, side: Side, to: SquareName): GameSt
   const king = findKing(next.pieces, side);
   if (king) king.at = to;
   return next;
+}
+
+/** The squares a path visits from `from`, stopping if it would leave the board. */
+export function pathSquares(from: SquareName, steps: StepString): SquareName[] {
+  let current = parseSquare(from);
+  const squares: SquareName[] = [];
+  for (const digit of steps) {
+    if (current === null || !isStepString(digit)) break;
+    current = stepFrom(current, digit);
+    if (current === null) break;
+    squares.push(squareName(current));
+  }
+  return squares;
 }
 
 /** The direction digit for one step from `from` to `to`, or null if not adjacent. */
