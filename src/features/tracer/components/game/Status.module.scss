@@ -1,0 +1,88 @@
+@use '../styles/controls' as *;
+
+.stack {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.card {
+  @include card;
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+}
+
+.attention {
+  border-color: var(--tr-accent);
+}
+
+.result {
+  background: var(--tr-good-soft);
+}
+
+.eyebrow {
+  @include eyebrow;
+}
+
+.resultText {
+  font-family: var(--tr-font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+
+.notice {
+  align-items: center;
+  background: var(--tr-surface-2);
+  border-radius: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  justify-content: space-between;
+  padding: 0.6rem 0.85rem;
+}
+
+.yourMove {
+  background: var(--tr-good-soft);
+}
+
+.danger {
+  background: var(--tr-danger-soft);
+  color: var(--tr-danger);
+}
+
+.link {
+  @include field;
+  font-size: 0.85rem;
+}
+
+.note {
+  color: var(--tr-muted);
+  font-size: 0.85rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.primary {
+  @include button-primary;
+}
+
+.quiet {
+  @include button-quiet;
+}
+
+.link_button {
+  @include focus-ring;
+  background: none;
+  border: 0;
+  color: var(--tr-accent);
+  cursor: pointer;
+  font-weight: 600;
+  min-height: 44px;
+  padding: 0;
+  text-decoration: underline;
+}

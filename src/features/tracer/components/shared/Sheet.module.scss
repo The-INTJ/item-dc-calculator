@@ -1,0 +1,47 @@
+@use '../styles/controls' as *;
+
+.sheet {
+  @include card;
+  color: var(--tr-ink);
+  display: grid;
+  gap: 0.85rem;
+  max-width: min(26rem, calc(100vw - 32px));
+  padding: 1.25rem;
+
+  &::backdrop {
+    background: rgba(10, 12, 14, 0.45);
+  }
+
+  &:not([open]) {
+    display: none;
+  }
+}
+
+.title {
+  font-size: 1.25rem;
+}
+
+.body {
+  color: var(--tr-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.primary {
+  @include button-primary;
+}
+
+.quiet {
+  @include button-quiet;
+}
+
+.danger {
+  @include button-base;
+  background: var(--tr-danger);
+  color: #fff;
+}

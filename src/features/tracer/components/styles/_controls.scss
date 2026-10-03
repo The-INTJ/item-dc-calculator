@@ -1,0 +1,84 @@
+// Shared control styles for Tracer. Every value comes from the --tr-* tokens
+// declared on the .tracer root (TracerRoot.module.scss).
+
+@mixin focus-ring {
+  &:focus-visible {
+    outline: 3px solid var(--tr-focus);
+    outline-offset: 2px;
+  }
+}
+
+@mixin button-base {
+  @include focus-ring;
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 600;
+  gap: 0.4rem;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 1.1rem;
+  touch-action: manipulation;
+  transition: background-color 120ms ease, border-color 120ms ease, opacity 120ms ease;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+}
+
+@mixin button-primary {
+  @include button-base;
+  background: var(--tr-accent);
+  color: var(--tr-on-accent);
+
+  &:hover:not(:disabled) {
+    background: var(--tr-accent-strong);
+  }
+}
+
+@mixin button-quiet {
+  @include button-base;
+  background: var(--tr-surface);
+  border-color: var(--tr-line);
+  color: var(--tr-ink);
+
+  &:hover:not(:disabled) {
+    border-color: var(--tr-muted);
+  }
+}
+
+@mixin button-danger {
+  @include button-base;
+  background: transparent;
+  border-color: var(--tr-danger);
+  color: var(--tr-danger);
+}
+
+@mixin field {
+  @include focus-ring;
+  background: var(--tr-surface);
+  border: 1px solid var(--tr-line);
+  border-radius: 10px;
+  color: var(--tr-ink);
+  min-height: 44px;
+  padding: 0 0.85rem;
+  width: 100%;
+}
+
+@mixin card {
+  background: var(--tr-surface);
+  border: 1px solid var(--tr-line);
+  border-radius: var(--tr-radius);
+  box-shadow: var(--tr-shadow);
+}
+
+@mixin eyebrow {
+  color: var(--tr-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

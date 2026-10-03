@@ -2,13 +2,14 @@
 
 ## What this repo is
 
-This is a Next.js App Router application with five product/demo areas:
+This is a Next.js App Router application with several product/demo areas, including:
 
 - Contest app: active feature set for contest creation, judging, scoring, and display mode
 - Plant tracker: lightweight personal tracker for plant care, notes, and appearance logs
 - Pilates Mentors: static design preview of the redesigned pilatesmentors.com homepage, built for client feedback
 - DC calculator: legacy calculator preserved inside the same shell
 - Grass Manager: weather-aware lawn planning with a local yard model and care log
+- Tracer: an online two-player board game played by sharing a link
 
 The contest app is the active area. The DC calculator is intentionally stable and should only receive targeted changes.
 
@@ -28,6 +29,8 @@ The contest app is the active area. The DC calculator is intentionally stable an
 - `/plants`: plant tracker
 - `/dc-calculator`: legacy calculator
 - `/grass-manager`: weather-aware lawn care and clickable yard model
+- `/tracer`: Tracer lobby (new game, recent games, rules)
+- `/tracer/[gameId]`: a live Tracer game — players, guests and spectators share the same link
 
 Route groups:
 
@@ -35,6 +38,7 @@ Route groups:
 - `app/(pilates-mentors)/`: standalone Pilates Mentors design-preview layout and page
 - `app/(moriah)/`: both Moriah previews; `moriah-2/layout.tsx` adds the Caslon faces the Portico sets in
 - `app/(dc-calculator)/`: legacy calculator layout and page
+- `app/(tracer)/`: Tracer lobby and game pages; the layout mounts `TracerRoot` (design tokens + one shared `AuthProvider`)
 
 ## Provider and shell structure
 
@@ -150,6 +154,27 @@ use `POST /api/grass-manager/tips` and `PATCH /api/grass-manager/tips/:id` to ad
 cards for the current situation. The route reuses the private plant-tracker allowlist, or
 accepts `x-grass-manager-key` when the server has `GRASS_MANAGER_TIPS_API_KEY` configured
 for an agent or scheduled content job.
+
+## Tracer data path
+
+Tracer is server-authoritative multiplayer; the rules spec and module map live
+in `src/features/tracer/README.md`.
+
+1. Every write is `POST /api/tracer/games/...` (`app/api/tracer/`). Routes
+   verify the caller with the contest `requireAuth` (guests are anonymous
+   Firebase users), then run a pure command inside a Firestore transaction
+   (`src/features/tracer/lib/server/`). The pure rules engine
+   (`src/features/tracer/engine/`) re-validates every turn.
+2. Every read is a live `onSnapshot` of `tracerGames/{id}` (and its `turns`
+   subcollection) from the browser. `firestore.rules` allows `get` by id to
+   anyone — the 20-character id is the invitation — denies `list`, and denies
+   all client writes.
+3. The game page server-renders from the Admin SDK (`loadGameForPage`) so
+   shared links unfurl with titles like "Drew challenged you to Tracer", then
+   hands over to the live listener.
+
+Rules deploy separately from the app: `npm run deploy:rules` must ship the
+`tracerGames` rules before a Tracer build reaches production.
 
 ## Contest, Round, Matchup hierarchy
 

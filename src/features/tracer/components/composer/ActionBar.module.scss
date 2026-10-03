@@ -1,0 +1,72 @@
+@use '../styles/controls' as *;
+
+.bar {
+  @include card;
+  bottom: calc(8px + env(safe-area-inset-bottom));
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.75rem 0.85rem;
+  position: sticky;
+  z-index: 5;
+}
+
+.hint {
+  font-size: 0.95rem;
+  min-height: 2.6em;
+}
+
+.error {
+  background: var(--tr-danger-soft);
+  border-radius: 8px;
+  color: var(--tr-danger);
+  font-size: 0.9rem;
+  padding: 0.4rem 0.6rem;
+}
+
+.buttons {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.primary {
+  @include button-primary;
+}
+
+.quiet {
+  @include button-quiet;
+}
+
+.toggle {
+  background: var(--tr-surface-2);
+  border-radius: 999px;
+  display: inline-flex;
+  margin-right: auto;
+  padding: 3px;
+}
+
+.toggleOn,
+.toggleOff {
+  @include button-base;
+  min-height: 38px;
+  padding: 0 0.9rem;
+}
+
+.toggleOn {
+  background: var(--tr-surface);
+  box-shadow: var(--tr-shadow);
+  color: var(--tr-ink);
+}
+
+.toggleOff {
+  background: transparent;
+  color: var(--tr-muted);
+}
+
+@media (min-width: 900px) {
+  .bar {
+    position: static;
+  }
+}

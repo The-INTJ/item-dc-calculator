@@ -1,0 +1,113 @@
+/**
+ * Tracer design tokens — scoped to .tracer, never :root (other experiences
+ * own :root). The root also resets font, background and colour, because the
+ * site-shell body styles leak into every page. Components consume var(--tr-*)
+ * only, so a retheme is an edit to this block.
+ *
+ * Character: a cartographer's table — stone-and-sage board, ivory and
+ * charcoal pieces, teal ink for riders, magenta ink for jumpers.
+ */
+.tracer {
+  --tr-bg: #f3f1ea;
+  --tr-surface: #fffefa;
+  --tr-surface-2: #ebe8de;
+  --tr-ink: #1e2124;
+  --tr-muted: #61676d;
+  --tr-line: #dcd8cc;
+  --tr-accent: #22577a;
+  --tr-accent-strong: #183f59;
+  --tr-on-accent: #ffffff;
+  --tr-focus: #2f7fbf;
+  --tr-danger: #b3261e;
+  --tr-danger-soft: rgba(179, 38, 30, 0.1);
+  --tr-good-soft: rgba(44, 110, 92, 0.12);
+
+  --tr-board-light: #e9e5d8;
+  --tr-board-dark: #93ab9c;
+  --tr-board-frame: #5d7466;
+  --tr-coord: rgba(30, 33, 36, 0.55);
+  --tr-piece-w: #fdfbf5;
+  --tr-piece-w-edge: #22262a;
+  --tr-piece-b: #262b30;
+  --tr-piece-b-edge: #f1efe7;
+
+  --tr-rider: #127a8a;
+  --tr-jumper: #b03d96;
+  --tr-last: rgba(226, 172, 38, 0.38);
+  --tr-last-line: #b7810f;
+  --tr-select: #22577a;
+  --tr-dot: rgba(30, 33, 36, 0.38);
+  --tr-capture: #c0392b;
+  --tr-step: #22577a;
+  --tr-threat: rgba(192, 57, 43, 0.22);
+
+  --tr-radius: 14px;
+  --tr-shadow: 0 1px 2px rgba(30, 33, 36, 0.06), 0 6px 18px rgba(30, 33, 36, 0.06);
+  --tr-font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --tr-font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+
+  background: var(--tr-bg);
+  color: var(--tr-ink);
+  color-scheme: light;
+  font-family: var(--tr-font-ui);
+  font-size: 16px;
+  line-height: 1.45;
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+
+  :global(*) {
+    box-sizing: border-box;
+  }
+
+  :where(h1, h2, h3) {
+    font-family: var(--tr-font-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    margin: 0;
+  }
+
+  :where(p) {
+    margin: 0;
+  }
+
+  :where(a) {
+    color: var(--tr-accent);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .tracer {
+    --tr-bg: #121417;
+    --tr-surface: #1a1d21;
+    --tr-surface-2: #23272c;
+    --tr-ink: #ecebe6;
+    --tr-muted: #a2a8ae;
+    --tr-line: #31363c;
+    --tr-accent: #6aa6d6;
+    --tr-accent-strong: #8dbbe0;
+    --tr-on-accent: #0d1a24;
+    --tr-focus: #8dbbe0;
+    --tr-danger: #ef6f62;
+    --tr-danger-soft: rgba(239, 111, 98, 0.14);
+    --tr-good-soft: rgba(111, 191, 160, 0.14);
+
+    --tr-board-light: #b9b6aa;
+    --tr-board-dark: #627d6c;
+    --tr-board-frame: #3e5145;
+    --tr-coord: rgba(18, 20, 23, 0.65);
+
+    --tr-rider: #43b5c6;
+    --tr-jumper: #e277c7;
+    --tr-last: rgba(232, 182, 60, 0.4);
+    --tr-last-line: #7a5200;
+    --tr-select: #0f2a3d;
+    --tr-dot: rgba(18, 20, 23, 0.5);
+    --tr-capture: #b8261a;
+    --tr-step: #10283a;
+    --tr-threat: rgba(239, 111, 98, 0.32);
+
+    --tr-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.25);
+    color-scheme: dark;
+  }
+}

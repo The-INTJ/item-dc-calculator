@@ -81,6 +81,18 @@ Seeded accounts are defined in `scripts/seed-emulator.mjs`:
 - `fixtures/waitForTally.ts` — `expect.poll` wrapper for reading an entry's
   displayed aggregate score. Use instead of `page.waitForTimeout` — the
   onSnapshot listener is paced at 300ms.
+- `fixtures/tracer.ts` — Tracer helpers that act like a player: create a game
+  in the lobby, read the invite link off the page, tap board squares (real
+  buttons named by square, e.g. `e4, White Warden`), chart a path, submit.
+
+## Tracer specs
+
+`tracer-invite-play` (two players by link, live turns), `tracer-guest-join`
+(signed-out guest joins by name; signed-out spectator watches — covers the
+public-read rule), `tracer-endings` (draw offers, rematch, resign),
+`tracer-hotseat` (one person playing both sides), and `mobile-tracer` (Pixel 7
+layout). Game page `<title>`s repeat result text, so assert results with
+`getByText(..., { exact: true })`.
 
 ## Common failure modes
 
