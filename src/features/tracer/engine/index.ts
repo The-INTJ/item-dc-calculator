@@ -12,6 +12,7 @@ export {
   dodgeLimit,
   FREE_STEP,
   hasChartLimit,
+  isDodge,
   KING_MEMORY,
   kingPatterns,
   loneKingWins,
@@ -19,7 +20,7 @@ export {
 } from './rulebook';
 export { previewChart, type ChartPreview } from './chart';
 export { freeStepSquares } from './free-step';
-export { attackedSquares, isKingInDanger } from './threats';
+export { attackedSquares, controlMap, defenders, isKingInDanger, threatMap, type Threat, type ThreatMap } from './threats';
 export { hasLegalMainAction } from './legality';
 export {
   moveTargets,

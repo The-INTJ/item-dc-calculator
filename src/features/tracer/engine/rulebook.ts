@@ -71,9 +71,19 @@ export function stepCombinesWith(rules: RuleSet, kind: PieceKind): boolean {
   }
 }
 
-/** Free steps in a row that draw the game, or null when that never happens. */
+/** Dodges in a row that draw the game, or null when that never happens. */
 export function dodgeLimit(rules: RuleSet): number | null {
   return rules.dodgeDraw > 0 ? rules.dodgeDraw : null;
+}
+
+/**
+ * Whether a turn counts toward the dodge draw: it took the free king step —
+ * and, where the rules say dodges need a threat, the king was threatened as
+ * the turn began. `threatened` is only asked when the answer matters.
+ */
+export function isDodge(rules: RuleSet, tookStep: boolean, threatened: () => boolean): boolean {
+  if (!tookStep || dodgeLimit(rules) === null) return false;
+  return !rules.dodgeNeedsThreat || threatened();
 }
 
 export function loneKingWins(rules: RuleSet): boolean {

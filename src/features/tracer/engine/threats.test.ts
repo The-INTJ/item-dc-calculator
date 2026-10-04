@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { positionFrom } from './fixtures/position';
 import { TEST_RULES } from './fixtures/rules';
 import { initialState } from './setup';
-import { attackedSquares, isKingInDanger } from './threats';
+import { attackedSquares, controlMap, defenders, isKingInDanger, threatMap } from './threats';
 import { hasLegalMainAction } from './legality';
 
 describe('attackedSquares', () => {
@@ -74,5 +74,32 @@ describe('hasLegalMainAction', () => {
   it('holds for a lone king hemmed in by enemies it can capture', () => {
     const state = positionFrom('2 w w . . . . . .\n1 K w . . . . . .');
     expect(hasLegalMainAction(state, 'w')).toBe(true);
+  });
+});
+
+describe('threatMap, defenders and controlMap', () => {
+  it('names each attacker, the path it walks, and whether it needs the free step first', () => {
+    const state = positionFrom(
+      `
+      8 . . . . . . . k
+      5 . . . w . . . .
+      2 . . . K . . . .
+      1 . . . T . . . .
+      `,
+      { patterns: { d1: 'R:8888' } },
+    );
+    expect(threatMap(state, 'w').get('d5')).toEqual([
+      { pieceId: 'wT1', from: 'd1', via: 'R:8888', path: '8888', afterStep: expect.any(String) },
+    ]);
+  });
+
+  it('finds the pieces a side would recapture on, and only those', () => {
+    // The Wardens on c3 and d2 guard each other; the one on h2 stands alone.
+    const state = positionFrom('8 . . . . . . . k\n3 . . W . . . . .\n2 . . . W . . . W\n1 K . . . . . . .');
+    expect([...defenders(state, 'w').keys()]).toEqual(['c3', 'd2']);
+    expect(defenders(state, 'w').get('c3')).toMatchObject([{ pieceId: 'wW2', from: 'd2' }]);
+    expect(threatMap(state, 'w').has('c3')).toBe(false);
+    expect(controlMap(state, 'w').has('c3')).toBe(true);
+    expect(controlMap(state, 'w').has('h2')).toBe(false);
   });
 });

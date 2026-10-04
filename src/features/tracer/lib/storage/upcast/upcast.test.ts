@@ -12,14 +12,14 @@ import { applyTurn, initialState, replayTurns, sideToMove, turnInputFromRecord }
 import type { GameState, TurnRecord } from '../../../engine';
 import type { TracerGame } from '../../types';
 import { randomTurn, seeded } from '../../../engine/fixtures/self-play';
-import { ORIGINAL_V1, TIERED_V2 } from '../../../variants';
+import { ORIGINAL_V1, TIERED_V2, tweaksBetween } from '../../../variants';
 import { ALICE, BOB, T0 } from '../../fixtures/game';
 import { undoLocalTurn } from '../../local/localGame';
 import { loadLocalGame } from '../../local/localStore';
 import { submitTurn } from '../../server/commands';
 import { fromGameDoc, isNewerGameDoc, toGameDoc } from '../gameDocument';
 import { GameStateSchema } from '../stateSchema';
-import { upcastState } from './state';
+import { TIERED_V2_AS_PLAYED, upcastState } from './state';
 import golden from './fixtures/v1-golden.json';
 import v2Doc from './fixtures/v2-game-doc.json';
 import v2Local from './fixtures/v2-local-record.json';
@@ -106,9 +106,10 @@ describe('Original (v1) games saved by production', () => {
 describe('Tiered (v2) records from the local-only branch', () => {
   beforeEach(() => window.localStorage.clear());
 
-  it('reads a v2 game document as Tiered (v2), the king keeping exactly what it held', () => {
+  it('reads a v2 game document as Tiered (v2) under the rules it was played by', () => {
     const game = fromGameDoc(v2Doc.id, v2Doc.doc);
-    expect(game).toMatchObject({ schemaVersion: 3, style: { id: 'v2-tiered' }, state: { rules: TIERED_V2.rules } });
+    expect(game).toMatchObject({ schemaVersion: 3, style: { id: 'v2-tiered' }, state: { rules: TIERED_V2_AS_PLAYED } });
+    expect(tweaksBetween(TIERED_V2, game!.state.rules)).toEqual(['dodgeDraw', 'dodgeNeedsThreat']);
     expect(game!.state.lastCharted).toEqual(v2Doc.doc.state.kingPatterns);
   });
 
@@ -117,7 +118,7 @@ describe('Tiered (v2) records from the local-only branch', () => {
     window.localStorage.setItem(`tracer:local:${record.id}`, JSON.stringify(record));
     const loaded = loadLocalGame(record.id)!;
     expect(loaded).toMatchObject({ style: { id: 'v2-tiered' }, turns: record.turns });
-    expect(replayTurns(TIERED_V2.rules, loaded.turns)).toEqual(loaded.state);
+    expect(replayTurns(loaded.state.rules, loaded.turns)).toEqual(loaded.state);
     const undone = undoLocalTurn(loaded, T0);
     expect(undone.turns).toHaveLength(record.turns.length - 1);
     expect(undone.state.ply).toBe(loaded.state.ply - 1);

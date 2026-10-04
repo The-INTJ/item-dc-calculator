@@ -28,7 +28,8 @@ import { applyMainAction } from './main-action';
 import { captureResult, nextStepStreak, streakResult } from './outcome';
 import { turnFailure } from './engine-error';
 import { isTurnInput } from './turn-input';
-import { stepCombinesWith } from './rulebook';
+import { isDodge, stepCombinesWith } from './rulebook';
+import { isKingInDanger } from './threats';
 
 function pieceAt(state: GameState, at: string): Piece | undefined {
   return state.pieces.find((piece) => piece.at === at);
@@ -99,7 +100,8 @@ export function applyTurn(state: GameState, side: Side, input: TurnInput): TurnO
     actions.push(stepped);
   }
 
-  work.stepStreak = nextStepStreak(state.stepStreak, side, step !== null, main.captured !== null);
+  const dodged = isDodge(state.rules, step !== null, () => isKingInDanger(state, side));
+  work.stepStreak = nextStepStreak(state.stepStreak, side, dodged, main.captured !== null);
   work.result = won ?? streakResult(state.rules, work.stepStreak, side, state.ply) ?? { status: 'active' };
   work.ply = state.ply + 1;
   return { ok: true, state: work, record: { ply: state.ply, side, actions, result: work.result } };

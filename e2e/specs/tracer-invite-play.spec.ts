@@ -33,7 +33,8 @@ test('invite a friend by link and trade live turns', async ({ voter1Page: alice,
 
   await expectYourMove(alice);
   await expect(square(alice, 'f8')).toHaveAccessibleName(/Black King/);
-  await expect(alice.getByText('Dodges 1/6')).toBeVisible();
+  // Black's king wasn't threatened, so the step is no dodge: no dodge count.
+  await expect(alice.getByText(/^Dodges \d/)).toHaveCount(0);
 
   await alice.getByRole('tab', { name: 'Moves' }).click();
   await expect(alice.getByText('1. Tb1~b3 J88')).toBeVisible();

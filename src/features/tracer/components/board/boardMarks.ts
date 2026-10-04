@@ -17,7 +17,10 @@ export interface SquareMarks {
   step: boolean;
   selected: boolean;
   lastMove: boolean;
+  /** The opponent could capture here next turn. */
   threatened: boolean;
+  /** One of the viewer's pieces that the viewer could recapture on. */
+  guarded: boolean;
 }
 
 const BLANK: SquareMarks = {
@@ -29,6 +32,7 @@ const BLANK: SquareMarks = {
   selected: false,
   lastMove: false,
   threatened: false,
+  guarded: false,
 };
 
 function touchedSquares(action: ActionRecord): SquareName[] {
@@ -38,7 +42,7 @@ function touchedSquares(action: ActionRecord): SquareName[] {
 export function boardMarks(
   view: ComposerView,
   lastTurn: TurnRecord | null,
-  threats: readonly SquareName[],
+  threats: { squares: readonly SquareName[]; guarded: readonly SquareName[] },
 ): Map<SquareName, SquareMarks> {
   const marks = new Map<SquareName, SquareMarks>();
   const mark = (square: SquareName, patch: Partial<SquareMarks>) =>
@@ -46,7 +50,8 @@ export function boardMarks(
   const kindOf = (target: MoveTarget) => (target.capture ? 'capture' : 'move');
 
   lastTurn?.actions.flatMap(touchedSquares).forEach((square) => mark(square, { lastMove: true }));
-  threats.forEach((square) => mark(square, { threatened: true }));
+  threats.squares.forEach((square) => mark(square, { threatened: true }));
+  threats.guarded.forEach((square) => mark(square, { guarded: true }));
   if (view.selectedPiece) mark(view.selectedPiece.at, { selected: true });
   for (const target of view.targets) {
     mark(target.to, view.inspecting ? { reach: kindOf(target) } : { target: kindOf(target) });

@@ -39,7 +39,9 @@
   --tr-dot: rgba(30, 33, 36, 0.38);
   --tr-capture: #c0392b;
   --tr-step: #22577a;
-  --tr-threat: rgba(192, 57, 43, 0.22);
+  --tr-threat: rgba(192, 57, 43, 0.3);
+  --tr-threat-edge: rgba(176, 38, 26, 0.85);
+  --tr-guard: #22577a;
 
   --tr-radius: 14px;
   --tr-shadow: 0 1px 2px rgba(30, 33, 36, 0.06), 0 6px 18px rgba(30, 33, 36, 0.06);
@@ -105,7 +107,9 @@
     --tr-dot: rgba(18, 20, 23, 0.5);
     --tr-capture: #b8261a;
     --tr-step: #10283a;
-    --tr-threat: rgba(239, 111, 98, 0.32);
+    --tr-threat: rgba(239, 111, 98, 0.36);
+    --tr-threat-edge: rgba(150, 22, 12, 0.9);
+    --tr-guard: #10283a;
 
     --tr-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.25);
     color-scheme: dark;

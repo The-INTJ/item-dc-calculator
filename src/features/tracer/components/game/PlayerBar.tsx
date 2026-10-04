@@ -28,7 +28,10 @@ export function PlayerBar({ game, side, isViewer }: PlayerBarProps) {
         T{count('tracer')} · W{count('warden')}
       </span>
       {streak > 0 && limit !== null && (
-        <span className={styles.streak} title="Free king steps in a row with no capture">
+        <span
+          className={styles.streak}
+          title={game.state.rules.dodgeNeedsThreat ? 'Dodges in a row: free king steps while threatened, no capture' : 'Free king steps in a row with no capture'}
+        >
           Dodges {streak}/{limit}
         </span>
       )}
@@ -44,13 +47,21 @@ interface BoardToolbarProps {
 
 export function BoardToolbar({ showThreats, onToggleThreats, onFlip }: BoardToolbarProps) {
   return (
-    <div className={styles.toolbar}>
-      <button type="button" className={styles.chip} aria-pressed={showThreats} onClick={onToggleThreats}>
-        {showThreats ? 'Hide threats' : 'Show threats'}
-      </button>
-      <button type="button" className={styles.chip} onClick={onFlip}>
-        Flip board
-      </button>
-    </div>
+    <>
+      <div className={styles.toolbar}>
+        <button type="button" className={styles.chip} aria-pressed={showThreats} onClick={onToggleThreats}>
+          {showThreats ? 'Hide threats' : 'Show threats'}
+        </button>
+        <button type="button" className={styles.chip} onClick={onFlip}>
+          Flip board
+        </button>
+      </div>
+      {showThreats && (
+        <p className={styles.legend}>
+          Red squares: where your opponent could capture next turn, their defended pieces included. A shield: your
+          piece is defended. Hover or tap a square to see what covers it.
+        </p>
+      )}
+    </>
   );
 }

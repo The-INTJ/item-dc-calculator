@@ -90,18 +90,29 @@ re-checks everything.
 ### Ending
 - **Capture the king** — immediate win.
 - **Lone king** — a capture that leaves the opponent only its king wins.
-- **Dodge-streak draw** — six of one player's own turns in a row with the
-  free step, and no capture by either side meanwhile, draws on the sixth. A
-  turn without the free step resets that player's count; any capture resets
-  both.
+- **Dodge-streak draw** — three dodges in a row by one player, and no
+  capture by either side meanwhile, draws on the third. A **dodge** is a turn
+  that takes the free king step while that player's king is threatened (as
+  the turn begins); any other turn — including a free step when the king
+  isn't threatened — resets that player's count, and any capture resets both.
+  (*Original (v1)* counts every free step, six to draw; both are toggles.)
 - Resign any time; draws by agreement (online, an offer stands until
   answered, or until the recipient moves instead).
 - No check rules: moving into danger is legal; the UI warns first.
 
+### Seeing threats
+**Show threats** hatches every square the opponent could capture on next
+turn — their own defended pieces included, since taking one gets it taken
+back — and draws a line from each attacker into any of your threatened
+pieces. Hover, focus or tap any square to draw the lines of whatever covers
+it. A small shield marks your pieces that are defended. The hatch carries its
+own red edge, so it shows over the last-move highlight too.
+
 ### Open questions (defaults in place)
 1. Shuffles outside the dodge streak can loop forever; resign / agreed draws
    cover it. Add a ply cap if playtests show stalling.
-2. Warden-plus-step turns count toward the streak; any capture resets both.
+2. A free step counts as a dodge only if the king was threatened when the
+   turn began (judged before the step and the piece move).
 3. A stalled online seat can be reopened by the opponent after 15 minutes
    (`SEAT_RELEASE_AFTER_MS`).
 
@@ -227,5 +238,6 @@ to `engine/rulebook.test.ts` asserting the behaviour, and update How to play
   (`npx playwright test tracer mobile-tracer`) cover it end to end.
 - **Deploying:** rules ship with `npm run deploy:rules` (production Firebase)
   before app code that depends on them; merging to `main` deploys the app to
-  production. Both need explicit approval. v1 is live; **v2 and game styles
-  are local-only until Drew says otherwise.**
+  production. Both need explicit approval. v1 went live on 2026-10-03; v2,
+  game styles and the threats view shipped together on 2026-10-04 (no rules
+  change was needed: games are still written only by the server).

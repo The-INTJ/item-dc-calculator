@@ -1,8 +1,8 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
-import { attackedSquares, otherSide, type RuleSet, type Side } from '../../engine';
+import type { RuleSet, Side, SquareName } from '../../engine';
 import type { ComposerView } from '../../hooks/composer/composerView';
 import { useTurnComposer } from '../../hooks/composer/useTurnComposer';
 import { useTurnSubmission, type TurnSender, type TurnWarning } from '../../hooks/composer/useTurnSubmission';
@@ -12,6 +12,7 @@ import type { TracerGame } from '../../lib/types';
 import { Board } from '../board/Board';
 import { boardMarks } from '../board/boardMarks';
 import { overlayLines } from '../board/overlayModel';
+import { NO_THREATS, threatView } from '../board/threatOverlay';
 import { ActionBar } from '../composer/ActionBar';
 import { ConfirmSheet } from '../shared/Sheet';
 import styles from './Game.module.scss';
@@ -26,7 +27,7 @@ function warningCopy(warning: TurnWarning, rules: RuleSet): { title: string; bod
   }
   return {
     title: 'This step draws the game',
-    body: `That is your ${ordinalWord(rules.dodgeDraw)} free king step in a row with no capture, which ends the game in a draw.`,
+    body: `That is your ${ordinalWord(rules.dodgeDraw)} ${rules.dodgeNeedsThreat ? 'dodge' : 'free king step'} in a row with no capture, which ends the game in a draw.`,
     confirm: 'Draw the game',
   };
 }
@@ -53,9 +54,10 @@ export function TurnPlay({ game, viewer, orientation, showThreats, sendTurn, ...
   const submission = useTurnSubmission(sendTurn, viewer.actingSide, () => dispatch({ type: 'reset' }));
   const { phase } = submission;
   const busy = phase.kind === 'sending' || phase.kind === 'sent';
-  const threats = showThreats ? attackedSquares(view.board, otherSide(orientation)) : [];
+  const [probe, setProbe] = useState<SquareName | null>(null);
+  const threats = showThreats ? threatView(view.board, orientation, probe) : NO_THREATS;
   const marks = boardMarks(view, view.outcome?.ok ? null : game.lastTurn, threats);
-  const lines = overlayLines(view, composer.selected, game.lastTurn, orientation);
+  const lines = [...threats.lines, ...overlayLines(view, composer.selected, game.lastTurn, orientation)];
   const warning = phase.kind === 'confirm' ? warningCopy(phase.warnings[0], game.state.rules) : null;
 
   return (
@@ -68,7 +70,11 @@ export function TurnPlay({ game, viewer, orientation, showThreats, sendTurn, ...
           marks={marks}
           lines={lines}
           label="Tracer board"
-          onTap={(square) => !busy && tap(square)}
+          onTap={(square) => {
+            setProbe(square);
+            if (!busy) tap(square);
+          }}
+          onProbe={setProbe}
         />
         {slots.bottomBar}
         {slots.toolbar}

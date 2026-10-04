@@ -8,14 +8,19 @@
  *     becomes `chartedKeys`; each living Tracer's pattern seeds
  *     `lastCharted` (v1 never recorded captured Tracers' patterns, and the
  *     Original rules never read them).
- *   rulesVersion 2 (Tiered): rules = Tiered (v2); `range` becomes `tier`;
+ *   rulesVersion 2 (Tiered): rules = Tiered (v2) as the local-only branch
+ *     played it — six free steps in a row drew, threatened or not (so these
+ *     games read as "Tiered (v2) · 2 tweaks"); `range` becomes `tier`;
  *     the king's per-Tracer `kingPatterns` are exactly `lastCharted`.
  *     `chartedKeys` is rebuilt from the turn list when there is one (local
  *     games), else from the patterns the king held.
  */
 
-import { canonicalKey, parsePattern, type Layout, type PatternCode, type Side } from '../../../engine';
+import { canonicalKey, parsePattern, type Layout, type PatternCode, type RuleSet, type Side } from '../../../engine';
 import { ORIGINAL_V1, TIERED_V2 } from '../../../variants';
+
+/** Tiered (v2) as the v2 branch played it, before dodges needed a threat. */
+export const TIERED_V2_AS_PLAYED: RuleSet = { ...TIERED_V2.rules, dodgeDraw: 6, dodgeNeedsThreat: false };
 
 export type Json = Record<string, unknown>;
 
@@ -86,7 +91,7 @@ function upcastV1(state: Json): Json {
 
 function upcastV2(state: Json, turns: unknown[] | null): Json {
   const { rulesVersion: _version, kingPatterns, ...rest } = state;
-  const rules = TIERED_V2.rules;
+  const rules = TIERED_V2_AS_PLAYED;
   const lent = isJson(kingPatterns) ? kingPatterns : {};
   const fromLent = () =>
     perSide((side) => {

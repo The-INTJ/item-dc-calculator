@@ -10,50 +10,102 @@
  *     where the rules allow a free step with that piece — after a free king
  *     step (which moves the king out of, or into, lines).
  * Charts never capture and the free step never captures, so neither counts.
+ *
+ * `threatMap` also names the pieces behind each square, for drawing their
+ * lines; `defenders` does the same for a side's own pieces it could recapture.
  */
 
-import type { GameState, Piece, Side, SquareName } from './types';
+import type { GameState, MoveSource, Piece, Side, SquareName, StepString } from './types';
 import { parseSquare, squareName } from './geometry';
 import { boardOf, findKing, otherSide } from './occupancy';
 import { pieceHits } from './piece-reach';
 import { freeStepSquares } from './free-step';
 import { kingPatterns, stepCombinesWith } from './rulebook';
 
-/** The piece list as it stands, then once per square the king could step to. */
-function launchPositions(state: GameState, side: Side): Piece[][] {
-  const king = findKing(state.pieces, side);
-  if (!king) return [state.pieces];
-  const stepped = freeStepSquares(state, side).map((to) =>
-    state.pieces.map((piece) => (piece === king ? { ...piece, at: to } : piece)),
-  );
-  return [state.pieces, ...stepped];
+/** One piece's hold on one square. */
+export interface Threat {
+  pieceId: string;
+  from: SquareName;
+  via: MoveSource;
+  /** Rider moves: the oriented steps walked to the square. Otherwise null. */
+  path: StepString | null;
+  /** Set when the move needs the side's free king step first: where the king steps. */
+  afterStep: SquareName | null;
 }
 
-function addReach(target: Set<number>, pieces: Piece[], piece: Piece, state: GameState) {
-  const board = boardOf(pieces);
-  for (const hit of pieceHits(board, piece, kingPatterns(state, piece.side))) {
-    target.add(hit.sq);
+/** Controlled squares, in board order, each with the pieces that control it. */
+export type ThreatMap = Map<SquareName, Threat[]>;
+
+interface Launch {
+  pieces: Piece[];
+  afterStep: SquareName | null;
+}
+
+/** The piece list as it stands, then once per square the king could step to. */
+function launchPositions(state: GameState, side: Side): Launch[] {
+  const king = findKing(state.pieces, side);
+  if (!king) return [{ pieces: state.pieces, afterStep: null }];
+  const stepped = freeStepSquares(state, side).map((to) => ({
+    pieces: state.pieces.map((piece) => (piece === king ? { ...piece, at: to } : piece)),
+    afterStep: to,
+  }));
+  return [{ pieces: state.pieces, afterStep: null }, ...stepped];
+}
+
+function addReach(found: Map<number, Threat[]>, launch: Launch, piece: Piece, state: GameState) {
+  for (const hit of pieceHits(boardOf(launch.pieces), piece, kingPatterns(state, piece.side))) {
+    const threats = found.get(hit.sq) ?? [];
+    if (threats.some((threat) => threat.pieceId === piece.id)) continue;
+    threats.push({ pieceId: piece.id, from: piece.at, via: hit.via, path: hit.path, afterStep: launch.afterStep });
+    found.set(hit.sq, threats);
   }
 }
 
-export function attackedSquares(state: GameState, attacker: Side): SquareName[] {
-  const attacked = new Set<number>();
+export function threatMap(state: GameState, attacker: Side): ThreatMap {
+  const found = new Map<number, Threat[]>();
   const king = findKing(state.pieces, attacker);
-  if (king) addReach(attacked, state.pieces, king, state);
-  launchPositions(state, attacker).forEach((pieces, index) => {
-    const afterStep = index > 0;
-    for (const piece of pieces) {
+  if (king) addReach(found, { pieces: state.pieces, afterStep: null }, king, state);
+  for (const launch of launchPositions(state, attacker)) {
+    for (const piece of launch.pieces) {
       if (piece.side !== attacker || piece.kind === 'king') continue;
-      if (afterStep && !stepCombinesWith(state.rules, piece.kind)) continue;
-      addReach(attacked, pieces, piece, state);
+      if (launch.afterStep && !stepCombinesWith(state.rules, piece.kind)) continue;
+      addReach(found, launch, piece, state);
     }
-  });
-  return [...attacked].sort((a, b) => a - b).map(squareName);
+  }
+  const ordered = [...found.entries()].sort(([a], [b]) => a - b);
+  return new Map(ordered.map(([sq, threats]) => [squareName(sq), threats]));
+}
+
+export function attackedSquares(state: GameState, attacker: Side): SquareName[] {
+  return [...threatMap(state, attacker).keys()];
+}
+
+/**
+ * `side`'s own pieces (not its king) that it could recapture on if an enemy
+ * took them, with the pieces that would do it — found by handing each piece
+ * to the enemy in turn and asking who then attacks its square.
+ */
+export function defenders(state: GameState, side: Side): ThreatMap {
+  const found: ThreatMap = new Map();
+  for (const piece of state.pieces) {
+    if (piece.side !== side || piece.kind === 'king') continue;
+    const taken = state.pieces.map((p) => (p === piece ? { ...p, side: otherSide(side) } : p));
+    const guards = threatMap({ ...state, pieces: taken }, side).get(piece.at);
+    if (guards) found.set(piece.at, guards);
+  }
+  return found;
+}
+
+/** Everywhere `side` could capture next turn: the squares it attacks plus its own defended pieces. */
+export function controlMap(state: GameState, side: Side): ThreatMap {
+  const map = threatMap(state, side);
+  defenders(state, side).forEach((guards, square) => map.set(square, guards));
+  return map;
 }
 
 /** Could `side`'s king be captured if the opponent moved next? */
 export function isKingInDanger(state: GameState, side: Side): boolean {
   const king = findKing(state.pieces, side);
   if (!king || parseSquare(king.at) === null) return false;
-  return attackedSquares(state, otherSide(side)).includes(king.at);
+  return threatMap(state, otherSide(side)).has(king.at);
 }

@@ -2,9 +2,10 @@
  * Test support: frozen rule sets for engine tests.
  *
  * Deliberately NOT imported from the variants catalogue — editing or adding a
- * game style must never break an engine scenario test. TEST_RULES matches the
- * tiered (v2) game: classic layout, 3/5/8-step Tracers, the king keeping each
- * Tracer's last pattern, free steps with Tracer or Warden moves.
+ * game style must never break an engine scenario test. TEST_RULES is the
+ * tiered game as first built: classic layout, 3/5/8-step Tracers, the king
+ * keeping each Tracer's last pattern, free steps with Tracer or Warden moves,
+ * and six free steps in a row (threatened or not) to draw.
  */
 
 import type { Placement, RuleSet } from '../types';
@@ -34,6 +35,7 @@ export const TEST_RULES: RuleSet = {
   freeStep: 'with-tracer-or-warden',
   loneKingWins: true,
   dodgeDraw: 6,
+  dodgeNeedsThreat: false,
 };
 
 export function rulesWith(patch: Partial<RuleSet>): RuleSet {

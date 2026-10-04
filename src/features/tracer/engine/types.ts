@@ -79,8 +79,10 @@ export interface RuleSet {
   freeStep: FreeStepRule;
   /** A capture that leaves only the enemy king wins. */
   loneKingWins: boolean;
-  /** Free steps in a row (with no capture) that draw the game; 0 = never. */
+  /** Dodges in a row (with no capture) that draw the game; 0 = never. */
   dodgeDraw: number;
+  /** A free king step counts as a dodge only if the king was threatened as the turn began. */
+  dodgeNeedsThreat: boolean;
 }
 
 export type WinReason = 'king-capture' | 'lone-king' | 'resignation';
@@ -105,7 +107,7 @@ export interface GameState {
   lastCharted: Record<Side, Record<string, PatternCode>>;
   /** Canonical keys of every pattern each side has charted, first-charted first. */
   chartedKeys: Record<Side, PatternCode[]>;
-  /** Consecutive own turns that took the free king step with no capture. */
+  /** Consecutive own turns that were dodges (see rulebook `isDodge`), with no capture meanwhile. */
   stepStreak: Record<Side, number>;
   result: GameResult;
 }

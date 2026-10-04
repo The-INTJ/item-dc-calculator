@@ -77,14 +77,20 @@ function turn(rules: RuleSet): string[] {
   ];
 }
 
-function ending(rules: RuleSet): string[] {
+function dodgeDraw(rules: RuleSet): string[] {
   const dodges = dodgeLimit(rules);
+  if (dodges === null || !stepCompanions(rules)) return [];
+  const count = countWord(dodges).replace(/^./, (c) => c.toUpperCase());
+  return rules.dodgeNeedsThreat
+    ? [
+        `${count} dodges in a row by one player, with no capture by anyone meanwhile, draws the game. A dodge is a free king step taken while your king is threatened; any other turn resets your count.`,
+      ]
+    : [`${count} free king steps in a row by one player, with no capture by anyone meanwhile, draws the game.`];
+}
+
+function ending(rules: RuleSet): string[] {
   const capture = rules.loneKingWins ? 'Capture the king, or capture the last piece beside it, and you win.' : 'Capture the king and you win.';
-  const draw =
-    dodges !== null && stepCompanions(rules)
-      ? [`${countWord(dodges).replace(/^./, (c) => c.toUpperCase())} free king steps in a row by one player, with no capture by anyone meanwhile, draws the game.`]
-      : [];
-  return [capture, ...draw, 'You can resign or agree a draw at any time.'];
+  return [capture, ...dodgeDraw(rules), 'You can resign or agree a draw at any time.'];
 }
 
 export function howToPlay(rules: RuleSet): RuleSection[] {

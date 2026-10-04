@@ -44,6 +44,7 @@ export const ORIGINAL_V1: GameStyle = deepFreeze({
     freeStep: 'with-tracer-or-warden',
     loneKingWins: true,
     dodgeDraw: 6,
+    dodgeNeedsThreat: false,
   },
 });
 
@@ -57,7 +58,8 @@ export const TIERED_V2: GameStyle = deepFreeze({
     kingMemory: 'current-kept',
     freeStep: 'with-tracer-or-warden',
     loneKingWins: true,
-    dodgeDraw: 6,
+    dodgeDraw: 3,
+    dodgeNeedsThreat: true,
   },
 });
 

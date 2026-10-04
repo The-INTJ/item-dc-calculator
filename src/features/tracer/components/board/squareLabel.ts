@@ -20,6 +20,7 @@ export function squareLabel(square: SquareName, piece: Piece | null, marks: Squa
   if (marks.step) parts.push('free king step here');
   if (marks.reach) parts.push(marks.reach === 'capture' ? 'can be captured by selection' : 'in reach');
   if (marks.threatened) parts.push('covered by opponent');
+  if (marks.guarded) parts.push('protected');
   if (marks.lastMove) parts.push('last move');
   return parts.join(', ');
 }

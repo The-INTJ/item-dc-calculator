@@ -125,6 +125,24 @@ describe('loneKingWins', () => {
   });
 });
 
+describe('dodgeNeedsThreat: which free steps count as dodges', () => {
+  // A black Warden on e2 threatens White's king on d1; one on e4 does not.
+  const threatened = '8 . . . k . . . .\n2 . W . . w . . .\n1 . . . K . . . .';
+  const calm = '8 . . . k . . . .\n4 . . . . w . . .\n2 . W . . . . . .\n1 . . . K . . . .';
+  it.each([
+    ['a threatened king’s step is a dodge', true, threatened, 3, 'drawn'],
+    ['an unthreatened step is not, and resets the count', true, calm, 0, 'active'],
+    ['without the rule, every step is a dodge', false, calm, 3, 'drawn'],
+  ] as const)('%s', (_label, dodgeNeedsThreat, board, streak, status) => {
+    const state = positionFrom(board, { rules: { dodgeDraw: 3, dodgeNeedsThreat }, stepStreak: { w: 2 } });
+    const outcome = applyTurn(state, 'w', {
+      ply: 0, main: { kind: 'move', from: 'b2', to: 'b3' }, freeStep: { to: 'c1', when: 'before' },
+    });
+    expect(outcome.ok && outcome.state.stepStreak.w).toBe(streak);
+    expect(outcome.ok && outcome.state.result.status).toBe(status);
+  });
+});
+
 describe('dodgeDraw', () => {
   it.each([
     [0, 20, 'active'],

@@ -143,6 +143,14 @@
   justify-content: center;
 }
 
+.legend {
+  color: var(--tr-muted);
+  font-size: 0.82rem;
+  margin-inline: auto;
+  max-width: 34rem;
+  text-align: center;
+}
+
 .chip {
   @include button-quiet;
   font-size: 0.85rem;

@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from 'react';
+import type { KeyboardEvent, PointerEvent } from 'react';
 
 import type { Piece, RuleSet, SquareName } from '../../engine';
 import { shownLimit } from '../../lib/presentation/ruleText';
@@ -18,6 +18,17 @@ interface BoardSquareProps {
   focusable: boolean;
   onTap: (square: SquareName) => void;
   onArrow: (event: KeyboardEvent<HTMLButtonElement>, square: SquareName) => void;
+  /** The square a mouse is over or focus is on — for showing who covers it. */
+  onProbe: (square: SquareName) => void;
+}
+
+/** A small shield: this piece is defended. */
+function GuardBadge() {
+  return (
+    <svg className={styles.guard} viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+      <path d="M50 8 L88 22 L88 50 Q88 80 50 94 Q12 80 12 50 L12 22 Z" />
+    </svg>
+  );
 }
 
 function squareClass(square: SquareName, marks: SquareMarks): string {
@@ -46,6 +57,8 @@ export function BoardSquare(props: BoardSquareProps) {
       tabIndex={props.focusable ? 0 : -1}
       onClick={() => props.onTap(square)}
       onKeyDown={(event) => props.onArrow(event, square)}
+      onFocus={() => props.onProbe(square)}
+      onPointerEnter={(event: PointerEvent) => event.pointerType === 'mouse' && props.onProbe(square)}
     >
       {props.rankLabel && <span className={styles.rankLabel}>{props.rankLabel}</span>}
       {props.fileLabel && <span className={styles.fileLabel}>{props.fileLabel}</span>}
@@ -55,6 +68,7 @@ export function BoardSquare(props: BoardSquareProps) {
       {marks.chartNext && <span className={styles.chartNext} />}
       {marks.step && <span className={styles.stepMark} />}
       {marks.chartIndex !== null && <span className={styles.pathIndex}>{marks.chartIndex}</span>}
+      {marks.guarded && <GuardBadge />}
     </button>
   );
 }

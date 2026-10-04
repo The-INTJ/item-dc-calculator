@@ -59,4 +59,6 @@ export const RuleSetSchema = z.object({
   freeStep: z.enum(FREE_STEP),
   loneKingWins: z.boolean(),
   dodgeDraw: z.number().int().min(0).max(99),
+  // Added 2026-10-04. Games saved before it counted every free step as a dodge.
+  dodgeNeedsThreat: z.boolean().default(false),
 }) satisfies z.ZodType<RuleSet>;

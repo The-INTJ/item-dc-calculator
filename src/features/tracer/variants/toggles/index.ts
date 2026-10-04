@@ -5,7 +5,7 @@
  */
 
 import type { RuleSet } from '../../engine';
-import { DODGE_DRAW_TOGGLE, LONE_KING_TOGGLE } from './endings';
+import { DODGE_DRAW_TOGGLE, DODGE_THREAT_TOGGLE, LONE_KING_TOGGLE } from './endings';
 import { KING_MEMORY_TOGGLE } from './king';
 import { LAYOUT_TOGGLE } from './layout';
 import { TRACER_REACH_TOGGLE } from './tracer-reach';
@@ -19,6 +19,7 @@ export const TOGGLES: { [K in keyof RuleSet]: Toggle<K> } = {
   freeStep: FREE_STEP_TOGGLE,
   loneKingWins: LONE_KING_TOGGLE,
   dodgeDraw: DODGE_DRAW_TOGGLE,
+  dodgeNeedsThreat: DODGE_THREAT_TOGGLE,
 };
 
 export const TOGGLE_KEYS = Object.keys(TOGGLES) as (keyof RuleSet)[];

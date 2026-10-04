@@ -4,9 +4,10 @@
  * - Capturing the enemy king wins on the spot.
  * - A capture that leaves the opponent with only its king wins ("lone king"),
  *   when the rules say so.
- * - Dodge streak: taking the free king step on N of your own turns in a row
- *   (N from the rules), with no capture by either side meanwhile, draws the
- *   game. A turn without the free step resets that player's count; any
+ * - Dodge streak: N dodges in a row by one player (N from the rules), with
+ *   no capture by either side meanwhile, draws the game. A dodge is a turn
+ *   that takes the free king step — where the rules say so, only while the
+ *   king is threatened. Any other turn resets that player's count; any
  *   capture resets both counts.
  * - Resignation and agreed draws come from outside the turn flow.
  */
@@ -34,11 +35,11 @@ export function captureResult(
 export function nextStepStreak(
   streak: Record<Side, number>,
   mover: Side,
-  tookStep: boolean,
+  dodged: boolean,
   captured: boolean,
 ): Record<Side, number> {
   if (captured) return { w: 0, b: 0 };
-  return { ...streak, [mover]: tookStep ? streak[mover] + 1 : 0 };
+  return { ...streak, [mover]: dodged ? streak[mover] + 1 : 0 };
 }
 
 export function streakResult(
