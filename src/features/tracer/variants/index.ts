@@ -15,3 +15,16 @@ export {
 } from './profiles';
 export { CLASSIC_LAYOUT, layoutById, LAYOUTS, SPACED_LAYOUT } from './layouts';
 export { LayoutSchema, layoutProblems, MAX_TIERS, RuleSetSchema } from './rule-schema';
+export {
+  describeRule,
+  sameRule,
+  tierSquares,
+  TOGGLE_KEYS,
+  TOGGLES,
+  withRule,
+  type ControlFor,
+  type Toggle,
+  type ToggleGroup,
+} from './toggles';
+export { styleLabel, tweaksBetween } from './tweaks';
+export { hasSetupParams, parseSetupParams, setupParams, STYLE_PARAM, type GameSetup, type ParsedSetup } from './share';
