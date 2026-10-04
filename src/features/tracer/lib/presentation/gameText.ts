@@ -3,25 +3,11 @@
  * the page metadata (link previews) and the UI.
  */
 
-import {
-  otherSide,
-  parsePattern,
-  patternKind,
-  type ActionRecord,
-  type PatternCode,
-  type Piece,
-  type PieceKind,
-  type Side,
-} from '../../engine';
+import { otherSide, parsePattern, patternKind, type ActionRecord, type PatternCode, type Side } from '../../engine';
 import type { TracerGame } from '../types';
+import { countWord, KIND_NAME } from './ruleText';
 
 export const SIDE_NAME: Record<Side, string> = { w: 'White', b: 'Black' };
-export const KIND_NAME: Record<PieceKind, string> = { king: 'King', tracer: 'Tracer', warden: 'Warden' };
-
-/** "3-step Tracer", "Warden", "King". */
-export function pieceName(piece: Pick<Piece, 'kind' | 'range'>): string {
-  return piece.kind === 'tracer' && piece.range !== null ? `${piece.range}-step Tracer` : KIND_NAME[piece.kind];
-}
 
 export function seatName(game: TracerGame, side: Side): string {
   const seat = game.seats[side];
@@ -33,7 +19,8 @@ export function resultText(game: TracerGame): string {
   const result = game.state.result;
   if (result.status === 'active') return 'In progress';
   if (result.status === 'drawn') {
-    return result.reason === 'agreement' ? 'Drawn by agreement' : 'Drawn — six dodges in a row';
+    if (result.reason === 'agreement') return 'Drawn by agreement';
+    return `Drawn — ${countWord(game.state.rules.dodgeDraw)} dodges in a row`;
   }
   const winner = seatName(game, result.winner);
   switch (result.reason) {

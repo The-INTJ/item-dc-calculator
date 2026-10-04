@@ -24,10 +24,16 @@ const LastTurnSchema = z.object({
   clientTurnId: z.string(),
 });
 
-export const GAME_SCHEMA_VERSION = 2;
+export const GAME_SCHEMA_VERSION = 3;
+
+export const StyleRefSchema = z.object({
+  id: z.string().regex(/^[a-z0-9-]{1,40}$/, 'Not a style id'),
+  name: z.string().min(1).max(60),
+});
 
 const GameDocSchema = z.object({
   schemaVersion: z.literal(GAME_SCHEMA_VERSION),
+  style: StyleRefSchema,
   status: z.enum(['open', 'active', 'finished']),
   createdBy: z.object({ uid: z.string(), name: z.string() }),
   seats: z.object({ w: SeatSchema, b: SeatSchema }),

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { styleRef, TIERED_V2 } from '../../variants';
 import { deriveViewer } from '../policy';
 import {
   endLocalGame,
@@ -16,6 +17,10 @@ import { loadLocalGame, newLocalGameId, saveLocalGame } from './localStore';
 const ID = 'local-abcde12345';
 const T0 = 1_700_000_000_000;
 
+function fresh(): LocalGameRecord {
+  return newLocalGame(ID, T0, styleRef(TIERED_V2), TIERED_V2.rules);
+}
+
 function played(record: LocalGameRecord, from: string, to: string): LocalGameRecord {
   const outcome = playLocalTurn(record, { ply: record.state.ply, main: { kind: 'move', from, to }, freeStep: null }, T0);
   if (!outcome.ok) throw new Error(outcome.code);
@@ -24,7 +29,7 @@ function played(record: LocalGameRecord, from: string, to: string): LocalGameRec
 
 describe('local games', () => {
   it('play turns through the engine and keep the move list', () => {
-    const game = played(played(newLocalGame(ID, T0), 'd2', 'd3'), 'd7', 'd6');
+    const game = played(played(fresh(), 'd2', 'd3'), 'd7', 'd6');
     expect(game.state.ply).toBe(2);
     expect(game.turns.map((turn) => turn.side)).toEqual(['w', 'b']);
     const illegal = playLocalTurn(game, { ply: 2, main: { kind: 'move', from: 'd3', to: 'd6' }, freeStep: null }, T0);
@@ -32,7 +37,7 @@ describe('local games', () => {
   });
 
   it('undo takes back the last turn, and nothing before the first', () => {
-    const start = newLocalGame(ID, T0);
+    const start = fresh();
     const game = played(played(start, 'd2', 'd3'), 'd7', 'd6');
     const undone = undoLocalTurn(game, T0 + 1);
     expect(undone.turns).toHaveLength(1);
@@ -41,7 +46,7 @@ describe('local games', () => {
   });
 
   it('undo after a resignation reopens the game without losing a move', () => {
-    const game = played(newLocalGame(ID, T0), 'd2', 'd3');
+    const game = played(fresh(), 'd2', 'd3');
     const resigned = endLocalGame(game, 'resign', T0);
     expect(resigned.state.result).toMatchObject({ status: 'won', winner: 'w', reason: 'resignation' });
     const reopened = undoLocalTurn(resigned, T0);
@@ -50,7 +55,7 @@ describe('local games', () => {
   });
 
   it('reads like an online game played by one person on both sides', () => {
-    const game = localAsTracerGame(played(newLocalGame(ID, T0), 'd2', 'd3'));
+    const game = localAsTracerGame(played(fresh(), 'd2', 'd3'));
     expect(game.seats.w).toMatchObject({ uid: LOCAL_UID, name: 'White' });
     expect(game.seats.b).toMatchObject({ uid: LOCAL_UID, name: 'Black' });
     expect(game.lastTurn?.ply).toBe(0);
@@ -62,10 +67,10 @@ describe('local game storage', () => {
   beforeEach(() => window.localStorage.clear());
 
   it('saves and reloads a game exactly', () => {
-    const start = newLocalGame(ID, T0);
+    const start = fresh();
     const charted = playLocalTurn(start, { ply: 0, main: { kind: 'chart', from: 'g1', steps: '98' }, freeStep: null }, T0);
     if (!charted.ok) throw new Error(charted.code);
-    expect(charted.record.state.kingPatterns.w).toEqual({ wT5: 'R:98' });
+    expect(charted.record.state.lastCharted.w).toEqual({ wT5: 'R:98' });
     expect(saveLocalGame(charted.record)).toBe(true);
     expect(loadLocalGame(ID)).toEqual(charted.record);
   });
@@ -74,7 +79,7 @@ describe('local game storage', () => {
     expect(loadLocalGame('not-a-local-id')).toBeNull();
     window.localStorage.setItem(`tracer:local:${ID}`, '{broken');
     expect(loadLocalGame(ID)).toBeNull();
-    window.localStorage.setItem(`tracer:local:${ID}`, JSON.stringify({ ...newLocalGame(ID, T0), state: { rulesVersion: 1 } }));
+    window.localStorage.setItem(`tracer:local:${ID}`, JSON.stringify({ ...fresh(), state: { rulesVersion: 1 } }));
     expect(loadLocalGame(ID)).toBeNull();
   });
 

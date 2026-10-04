@@ -2,11 +2,12 @@
 
 import type { ReactNode } from 'react';
 
-import { attackedSquares, otherSide, type Side } from '../../engine';
+import { attackedSquares, otherSide, type RuleSet, type Side } from '../../engine';
 import type { ComposerView } from '../../hooks/composer/composerView';
 import { useTurnComposer } from '../../hooks/composer/useTurnComposer';
 import { useTurnSubmission, type TurnSender, type TurnWarning } from '../../hooks/composer/useTurnSubmission';
 import type { Viewer } from '../../lib/policy';
+import { ordinalWord } from '../../lib/presentation/ruleText';
 import type { TracerGame } from '../../lib/types';
 import { Board } from '../board/Board';
 import { boardMarks } from '../board/boardMarks';
@@ -15,18 +16,20 @@ import { ActionBar } from '../composer/ActionBar';
 import { ConfirmSheet } from '../shared/Sheet';
 import styles from './Game.module.scss';
 
-const WARNINGS: Record<TurnWarning, { title: string; body: string; confirm: string }> = {
-  'king-in-danger': {
-    title: 'Your king can be captured',
-    body: 'After this turn your opponent could take your king and win. Submit anyway?',
-    confirm: 'Submit anyway',
-  },
-  'streak-draw': {
+function warningCopy(warning: TurnWarning, rules: RuleSet): { title: string; body: string; confirm: string } {
+  if (warning === 'king-in-danger') {
+    return {
+      title: 'Your king can be captured',
+      body: 'After this turn your opponent could take your king and win. Submit anyway?',
+      confirm: 'Submit anyway',
+    };
+  }
+  return {
     title: 'This step draws the game',
-    body: 'That is your sixth free king step in a row with no capture, which ends the game in a draw.',
+    body: `That is your ${ordinalWord(rules.dodgeDraw)} free king step in a row with no capture, which ends the game in a draw.`,
     confirm: 'Draw the game',
-  },
-};
+  };
+}
 
 interface TurnPlayProps {
   game: TracerGame;
@@ -53,7 +56,7 @@ export function TurnPlay({ game, viewer, orientation, showThreats, sendTurn, ...
   const threats = showThreats ? attackedSquares(view.board, otherSide(orientation)) : [];
   const marks = boardMarks(view, view.outcome?.ok ? null : game.lastTurn, threats);
   const lines = overlayLines(view, composer.selected, game.lastTurn, orientation);
-  const warning = phase.kind === 'confirm' ? WARNINGS[phase.warnings[0]] : null;
+  const warning = phase.kind === 'confirm' ? warningCopy(phase.warnings[0], game.state.rules) : null;
 
   return (
     <div className={styles.table}>

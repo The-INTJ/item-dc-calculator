@@ -4,7 +4,7 @@
  * used for undo in local games and to prove determinism in tests.
  */
 
-import type { GameState, MainAction, TurnInput, TurnRecord } from './types';
+import type { GameState, MainAction, RuleSet, TurnInput, TurnRecord } from './types';
 import { initialState } from './setup';
 import { applyTurn } from './turn';
 
@@ -24,9 +24,9 @@ export function turnInputFromRecord(record: TurnRecord): TurnInput | null {
   return { ply: record.ply, main: action, freeStep };
 }
 
-/** The position after replaying `turns` from the opening, or null if any fails. */
-export function replayTurns(turns: readonly TurnRecord[]): GameState | null {
-  let state = initialState();
+/** The position after replaying `turns` under `rules` from the opening, or null if any fails. */
+export function replayTurns(rules: RuleSet, turns: readonly TurnRecord[]): GameState | null {
+  let state = initialState(rules);
   for (const record of turns) {
     const input = turnInputFromRecord(record);
     if (!input) return null;

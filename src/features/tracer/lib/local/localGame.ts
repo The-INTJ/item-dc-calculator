@@ -13,9 +13,11 @@ import {
   sideToMove,
   type EngineErrorCode,
   type GameState,
+  type RuleSet,
   type TurnInput,
   type TurnRecord,
 } from '../../engine';
+import type { StyleRef } from '../../variants';
 import type { TracerGame } from '../types';
 
 /** The identity both seats of a local game belong to. */
@@ -27,6 +29,8 @@ export interface LocalGameRecord {
   id: string;
   createdAt: number;
   updatedAt: number;
+  /** The game style it was started from; `state.rules` holds the rules in force. */
+  style: StyleRef;
   state: GameState;
   /** Every turn played, in order — the move list, and the basis for undo. */
   turns: TurnRecord[];
@@ -36,8 +40,8 @@ export type LocalPlay =
   | { ok: true; record: LocalGameRecord }
   | { ok: false; code: EngineErrorCode; message: string };
 
-export function newLocalGame(id: string, now: number): LocalGameRecord {
-  return { id, createdAt: now, updatedAt: now, state: initialState(), turns: [] };
+export function newLocalGame(id: string, now: number, style: StyleRef, rules: RuleSet): LocalGameRecord {
+  return { id, createdAt: now, updatedAt: now, style, state: initialState(rules), turns: [] };
 }
 
 export function playLocalTurn(record: LocalGameRecord, turn: TurnInput, now: number): LocalPlay {
@@ -58,7 +62,7 @@ export function undoLocalTurn(record: LocalGameRecord, now: number): LocalGameRe
   const endedOffBoard = result.status !== 'active' && (result.reason === 'resignation' || result.reason === 'agreement');
   const turns = endedOffBoard ? record.turns : record.turns.slice(0, -1);
   if (!endedOffBoard && record.turns.length === 0) return record;
-  const state = replayTurns(turns);
+  const state = replayTurns(record.state.rules, turns);
   return state ? { ...record, state, turns, updatedAt: now } : record;
 }
 
@@ -74,7 +78,8 @@ export function localAsTracerGame(record: LocalGameRecord): TracerGame {
   const finished = record.state.result.status !== 'active';
   return {
     id: record.id,
-    schemaVersion: 2,
+    schemaVersion: 3,
+    style: record.style,
     status: finished ? 'finished' : 'active',
     createdBy: { uid: LOCAL_UID, name: 'You' },
     seats: { w: seat('White'), b: seat('Black') },

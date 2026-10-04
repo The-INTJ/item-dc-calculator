@@ -7,6 +7,7 @@
 import 'server-only';
 
 import type { Side } from '../../engine';
+import { styleRef, TIERED_V2 } from '../../variants';
 import type { CreateGameInput, DrawAction, SubmitTurnInput } from '../schemas';
 import type { Actor } from '../types';
 import {
@@ -22,7 +23,13 @@ import { insertGame, newGameId, runGameCommand } from './gameRepository';
 
 export async function createNewGame(actor: Actor, input: CreateGameInput) {
   const seat: Side = input.seat === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : input.seat;
-  const game = createGame(newGameId(), actor, { displayName: input.displayName, seat }, Date.now());
+  const style = TIERED_V2;
+  const game = createGame(
+    newGameId(),
+    actor,
+    { displayName: input.displayName, seat, style: styleRef(style), rules: style.rules },
+    Date.now(),
+  );
   await insertGame(game);
   return { gameId: game.id };
 }

@@ -1,16 +1,20 @@
 /**
  * Charting: validating and classifying a drawn path.
  *
- * A path is a chain of distinct king steps that never returns to its origin,
- * ends on an empty square, and is no longer than the Tracer's step limit.
- * Squares before the end may hold anything; if any of them is occupied the
- * result is a jumper, otherwise a rider.
+ * A path is a chain of distinct king steps that never returns to its origin
+ * and ends on an empty square. Squares before the end may hold anything; if
+ * any of them is occupied the result is a jumper, otherwise a rider.
+ *
+ * How long a path may be is not charting's business: callers pass the limit
+ * in (from the rulebook), so limited and unlimited Tracers share every line
+ * of this code.
  */
 
 import type { GameState, PatternCode, SquareName, StepString } from './types';
 import { isStepString, MAX_PATH_LENGTH, neighbours, parseSquare, squareName, stepFrom } from './geometry';
 import { chartedPattern, patternKind } from './pattern-codes';
 import { boardOf, type Board } from './occupancy';
+import { chartLimit } from './rulebook';
 
 export type ChartFailure =
   | 'BAD_STEPS'
@@ -47,15 +51,9 @@ function trace(board: Board, from: number, steps: StepString): Traced {
   return { squares, passedPiece, failure: null };
 }
 
-/** The step limit of the Tracer on `from` (no limit for anything else). */
-export function chartRange(board: Board, from: number): number {
-  return board[from]?.range ?? MAX_PATH_LENGTH;
-}
-
-export function walkChart(board: Board, from: number, steps: StepString): ChartWalk {
+export function walkChart(board: Board, from: number, steps: StepString, limit: number): ChartWalk {
   if (!isStepString(steps)) return { ok: false, code: 'BAD_STEPS', atStep: 0 };
-  const range = chartRange(board, from);
-  if (steps.length > range) return { ok: false, code: 'CHART_TOO_LONG', atStep: range };
+  if (steps.length > limit) return { ok: false, code: 'CHART_TOO_LONG', atStep: limit };
   const traced = trace(board, from, steps);
   if (traced.failure) return { ok: false, ...traced.failure };
   const to = traced.squares[traced.squares.length - 1];
@@ -68,8 +66,8 @@ export interface ChartPreview {
   squares: SquareName[];
   /** Squares that may be tapped next (none once the step limit is reached). */
   next: SquareName[];
-  /** The most squares this Tracer may chart. */
-  range: number;
+  /** This Tracer's step limit, or null when it has none. */
+  limit: number | null;
   /** The path so far ends on an empty square and could be submitted. */
   canFinish: boolean;
   /** Some square drawn so far holds a piece (so a longer path will jump). */
@@ -81,8 +79,8 @@ export interface ChartPreview {
   error: ChartFailure | null;
 }
 
-function nextTaps(board: Board, origin: number, squares: number[], range: number): SquareName[] {
-  if (squares.length >= range) return [];
+function nextTaps(board: Board, origin: number, squares: number[], limit: number): SquareName[] {
+  if (squares.length >= limit) return [];
   const last = squares.length > 0 ? squares[squares.length - 1] : origin;
   const used = new Set([origin, ...squares]);
   return neighbours(last)
@@ -94,21 +92,22 @@ function nextTaps(board: Board, origin: number, squares: number[], range: number
 export function previewChart(state: GameState, from: SquareName, steps: StepString): ChartPreview {
   const board = boardOf(state.pieces);
   const origin = parseSquare(from);
-  const range = origin === null ? 0 : chartRange(board, origin);
+  const piece = origin === null ? null : board[origin];
+  const limit = piece ? chartLimit(state.rules, piece) : MAX_PATH_LENGTH;
   const empty: ChartPreview = {
-    squares: [], next: [], range, canFinish: false, touchesPiece: false,
-    kind: null, pattern: null, error: null,
+    squares: [], next: [], limit: limit < MAX_PATH_LENGTH ? limit : null, canFinish: false,
+    touchesPiece: false, kind: null, pattern: null, error: null,
   };
   if (origin === null) return { ...empty, error: 'BAD_STEPS' };
-  if (steps === '') return { ...empty, next: nextTaps(board, origin, [], range) };
+  if (steps === '') return { ...empty, next: nextTaps(board, origin, [], limit) };
   if (!isStepString(steps)) return { ...empty, error: 'BAD_STEPS' };
-  if (steps.length > range) return { ...empty, error: 'CHART_TOO_LONG' };
+  if (steps.length > limit) return { ...empty, error: 'CHART_TOO_LONG' };
   const traced = trace(board, origin, steps);
   const squares = traced.squares.map(squareName);
   if (traced.failure) return { ...empty, squares, error: traced.failure.code };
   const last = traced.squares[traced.squares.length - 1];
   const touchesPiece = traced.passedPiece || board[last] !== null;
-  const base = { ...empty, squares, touchesPiece, next: nextTaps(board, origin, traced.squares, range) };
+  const base = { ...empty, squares, touchesPiece, next: nextTaps(board, origin, traced.squares, limit) };
   if (board[last] !== null) return base;
   const pattern = chartedPattern(steps, traced.passedPiece);
   return { ...base, canFinish: true, kind: patternKind(pattern), pattern };

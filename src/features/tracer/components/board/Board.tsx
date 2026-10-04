@@ -47,6 +47,7 @@ export function Board({ board, orientation, marks, lines, label, onTap }: BoardP
             square={square}
             piece={pieces.get(square) ?? null}
             marks={marksFor(marks, square)}
+            rules={board.rules}
             fileLabel={index >= 56 ? square[0] : null}
             rankLabel={index % 8 === 0 ? square[1] : null}
             focusable={square === focusSquare}

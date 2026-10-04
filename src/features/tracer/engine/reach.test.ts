@@ -2,9 +2,9 @@
 import { describe, expect, it } from 'vitest';
 
 import { positionFrom } from './fixtures/position';
+import { TEST_RULES } from './fixtures/rules';
 import { initialState } from './setup';
 import { moveTargets, patternTargets } from './queries';
-import { applyTurn } from './turn';
 
 function summary(targets: { to: string; capture: boolean }[]) {
   return targets.map((t) => (t.capture ? `x${t.to}` : t.to)).sort();
@@ -80,7 +80,7 @@ describe('jumper reach', () => {
 
 describe('piece reach', () => {
   it('gives an unformed tracer no strike targets', () => {
-    expect(moveTargets(initialState(), 'b1')).toEqual([]);
+    expect(moveTargets(initialState(TEST_RULES), 'b1')).toEqual([]);
   });
 
   it('gives wardens one step in any direction, capturing enemies', () => {
@@ -90,27 +90,8 @@ describe('piece reach', () => {
     );
   });
 
-  it('lets the king keep a captured Tracer’s last pattern', () => {
-    const state = positionFrom(
-      `
-      8 . . . . . . . k
-      3 . . w . . . . .
-      2 . T . . . . . W
-      1 . . . . K . . .
-      `,
-      { ply: 1, patterns: { b2: 'J:0,3' }, kingPatterns: { w: { wT1: 'J:0,3' } } },
-    );
-    const outcome = applyTurn(state, 'b', {
-      ply: 1, main: { kind: 'move', from: 'c3', to: 'b2' }, freeStep: null,
-    });
-    expect(outcome.ok).toBe(true);
-    if (!outcome.ok) return;
-    expect(outcome.state.kingPatterns.w).toEqual({ wT1: 'J:0,3' });
-    expect(moveTargets(outcome.state, 'e1').find((t) => t.to === 'e4')?.via).toBe('J:0,3');
-  });
-
-  it('gives the king its base step first, then the patterns its Tracers lend', () => {
-    const state = positionFrom('1 . . . K . . . .', { kingPatterns: { w: { wT1: 'J:0,3' } } });
+  it('gives the king its base step first, then the patterns its rules lend it', () => {
+    const state = positionFrom('1 . . . K . . . .', { lastCharted: { w: { wT1: 'J:0,3' } } });
     const targets = moveTargets(state, 'd1');
     expect(targets.find((t) => t.to === 'd2')?.via).toBe('base');
     expect(targets.find((t) => t.to === 'd4')?.via).toBe('J:0,3');

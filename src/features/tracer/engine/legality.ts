@@ -1,30 +1,35 @@
 /**
  * Does a side have any legal main action at all?
  *
- * In v1 the answer is always yes while a tracer lives (some empty square is
- * always reachable by a path through pieces) and almost always otherwise, but
- * the engine checks rather than assumes, so future variants that add fixed
- * board obstacles keep `pass` honest.
+ * With the standard layouts the answer is effectively always yes, but the
+ * engine checks rather than assumes, so tight step limits or future variants
+ * with fixed obstacles keep `pass` honest.
  */
 
 import type { GameState, Side } from './types';
 import { neighbours, parseSquare } from './geometry';
 import { boardOf, type Board } from './occupancy';
-import { kingPatternList } from './pattern-codes';
 import { pieceHits } from './piece-reach';
+import { chartLimit, kingPatterns } from './rulebook';
 
-/** True when some path of king steps from `from` can end on an empty square. */
-export function canChart(board: Board, from: number): boolean {
+/**
+ * True when some path of at most `limit` king steps from `from` can end on an
+ * empty square. Breadth-first, so the first empty square found is the nearest.
+ */
+export function canChart(board: Board, from: number, limit: number): boolean {
   const seen = new Set<number>([from]);
-  const queue = [from];
-  while (queue.length > 0) {
-    const current = queue.shift() as number;
-    for (const next of neighbours(current)) {
-      if (seen.has(next)) continue;
-      if (board[next] === null) return true;
-      seen.add(next);
-      queue.push(next);
+  let frontier = [from];
+  for (let depth = 1; depth <= limit && frontier.length > 0; depth += 1) {
+    const next: number[] = [];
+    for (const current of frontier) {
+      for (const square of neighbours(current)) {
+        if (seen.has(square)) continue;
+        if (board[square] === null) return true;
+        seen.add(square);
+        next.push(square);
+      }
     }
+    frontier = next;
   }
   return false;
 }
@@ -34,7 +39,9 @@ export function hasLegalMainAction(state: GameState, side: Side): boolean {
   return state.pieces.some((piece) => {
     if (piece.side !== side) return false;
     const from = parseSquare(piece.at);
-    if (piece.kind === 'tracer' && from !== null && canChart(board, from)) return true;
-    return pieceHits(board, piece, kingPatternList(state, side)).length > 0;
+    if (piece.kind === 'tracer' && from !== null && canChart(board, from, chartLimit(state.rules, piece))) {
+      return true;
+    }
+    return pieceHits(board, piece, kingPatterns(state, side)).length > 0;
   });
 }

@@ -2,6 +2,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { positionFrom } from './fixtures/position';
+import { TEST_RULES } from './fixtures/rules';
+import { canonicalKey } from './pattern-codes';
 import { initialState } from './setup';
 import { previewChart } from './chart';
 import { applyTurn } from './turn';
@@ -57,47 +59,50 @@ describe('charting', () => {
   });
 
   it('holds each Tracer to its step limit', () => {
-    const limited = positionFrom('1 . T . . . . . .', { ranges: { b1: 3 } });
+    const limited = positionFrom('1 . T . . . . . .', { tiers: { b1: 0 } });
     const charted = (steps: string) =>
       applyTurn(limited, 'w', { ply: 0, main: { kind: 'chart', from: 'b1', steps }, freeStep: null });
     expect(charted('966')).toMatchObject({ ok: true });
     expect(charted('9666')).toMatchObject({ ok: false, code: 'CHART_TOO_LONG' });
   });
 
-  it('lends the new pattern to the king, replacing the Tracer’s old one', () => {
-    const lent = positionFrom('1 . T . K . . . .', { kingPatterns: { w: { wT1: 'R:8' } } });
-    const outcome = applyTurn(lent, 'w', {
+  it('records the new pattern as the Tracer’s latest and adds it to the charted set', () => {
+    const formed = positionFrom('1 . T . K . . . .', {
+      patterns: { b1: 'R:8' }, lastCharted: { w: { wT1: 'R:8' } }, chartedKeys: { w: [canonicalKey('R:8')] },
+    });
+    const outcome = applyTurn(formed, 'w', {
       ply: 0, main: { kind: 'chart', from: 'b1', steps: '966' }, freeStep: null,
     });
-    expect(outcome.ok && outcome.state.kingPatterns.w).toEqual({ wT1: 'R:966' });
+    expect(outcome.ok && outcome.state.lastCharted.w).toEqual({ wT1: 'R:966' });
+    expect(outcome.ok && outcome.state.chartedKeys.w).toEqual([canonicalKey('R:8'), canonicalKey('R:966')]);
   });
 });
 
 describe('previewChart', () => {
   it('offers every neighbour before the first tap', () => {
-    const preview = previewChart(initialState(), 'b1', '');
+    const preview = previewChart(initialState(TEST_RULES), 'b1', '');
     expect(preview.next.sort()).toEqual(['a1', 'a2', 'b2', 'c1', 'c2']);
-    expect(preview).toMatchObject({ canFinish: false, range: 3 });
+    expect(preview).toMatchObject({ canFinish: false, limit: 3 });
   });
 
   it('cannot finish on an occupied square, but notes the piece', () => {
-    const preview = previewChart(initialState(), 'b1', '8');
+    const preview = previewChart(initialState(TEST_RULES), 'b1', '8');
     expect(preview).toMatchObject({ squares: ['b2'], canFinish: false, touchesPiece: true });
     expect(preview.next).not.toContain('b1');
   });
 
   it('reports what finishing now would produce', () => {
-    const preview = previewChart(initialState(), 'b1', '88');
+    const preview = previewChart(initialState(TEST_RULES), 'b1', '88');
     expect(preview).toMatchObject({ canFinish: true, kind: 'jumper', pattern: 'J:0,2' });
   });
 
   it('stops offering squares at the step limit', () => {
-    const preview = previewChart(initialState(), 'b1', '888');
+    const preview = previewChart(initialState(TEST_RULES), 'b1', '888');
     expect(preview).toMatchObject({ squares: ['b2', 'b3', 'b4'], next: [], canFinish: true });
-    expect(previewChart(initialState(), 'b1', '8888').error).toBe('CHART_TOO_LONG');
+    expect(previewChart(initialState(TEST_RULES), 'b1', '8888').error).toBe('CHART_TOO_LONG');
   });
 
   it('flags an invalid partial path', () => {
-    expect(previewChart(initialState(), 'b1', '2').error).toBe('CHART_OFF_BOARD');
+    expect(previewChart(initialState(TEST_RULES), 'b1', '2').error).toBe('CHART_OFF_BOARD');
   });
 });

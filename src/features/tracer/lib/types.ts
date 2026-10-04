@@ -4,6 +4,7 @@
  */
 
 import type { GameState, Side, TurnRecord } from '../engine';
+import type { StyleRef } from '../variants';
 
 export type GameStatus = 'open' | 'active' | 'finished';
 
@@ -29,8 +30,10 @@ export interface LastTurn extends TurnRecord {
 
 export interface TracerGame {
   id: string;
-  /** 2 = tiered Tracers lending their current patterns. v1 games are not readable. */
-  schemaVersion: 2;
+  /** 3 = each game stores its own rules. Older documents are upcast on read. */
+  schemaVersion: 3;
+  /** The game style it was started from; `state.rules` holds the rules actually in force. */
+  style: StyleRef;
   status: GameStatus;
   createdBy: { uid: string; name: string };
   seats: Record<Side, Seat>;

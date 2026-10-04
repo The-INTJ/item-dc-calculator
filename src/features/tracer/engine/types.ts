@@ -31,15 +31,56 @@ export type StepString = string;
 export type PatternCode = string;
 
 export interface Piece {
-  /** Stable id: `wK`, `wT3`/`wT5`/`wT8` (by step limit), `wW1`..`wW4`, and the same with `b`. */
+  /** Stable id from the layout, prefixed by side: `wK`, `wT1`, `bW3`… */
   id: string;
   side: Side;
   kind: PieceKind;
   at: SquareName;
   /** Tracers only: the current pattern, or null while unformed. */
   pattern: PatternCode | null;
-  /** Tracers only: the most squares one chart may cover (3, 5 or 8). Null = no limit. */
-  range: number | null;
+  /** Tracers only: which tier this Tracer is (its step limit comes from the rules). */
+  tier: number | null;
+}
+
+// ─── Rules ────────────────────────────────────────────────────────────────
+// A RuleSet is plain data stored with every game and frozen for that game.
+// The engine reads it only through engine/rulebook.ts (and setup.ts places
+// the layout); the variants/ layer defines the named rule sets.
+
+/** Where the king's extra patterns come from (besides its one-square step). */
+export type KingMemory = 'none' | 'current' | 'current-kept' | 'every-chart';
+
+/** Which main moves may take the free king step along. */
+export type FreeStepRule = 'off' | 'with-tracer' | 'with-tracer-or-warden';
+
+/** One of White's starting pieces; Black's mirror it across the board. */
+export interface Placement {
+  /** Piece id without the side prefix, e.g. `K`, `T1`, `W3`. */
+  id: string;
+  kind: PieceKind;
+  file: string;
+  /** 0 = back rank, 1 = the rank in front of it. */
+  row: 0 | 1;
+  /** Tracers only. */
+  tier: number | null;
+}
+
+export interface Layout {
+  id: string;
+  name: string;
+  pieces: Placement[];
+}
+
+export interface RuleSet {
+  layout: Layout;
+  /** Step limits by Tracer tier; a missing or null tier has no limit. */
+  tracerReach: { limited: boolean; limits: (number | null)[] };
+  kingMemory: KingMemory;
+  freeStep: FreeStepRule;
+  /** A capture that leaves only the enemy king wins. */
+  loneKingWins: boolean;
+  /** Free steps in a row (with no capture) that draw the game; 0 = never. */
+  dodgeDraw: number;
 }
 
 export type WinReason = 'king-capture' | 'lone-king' | 'resignation';
@@ -50,16 +91,20 @@ export type GameResult =
   | { status: 'won'; winner: Side; reason: WinReason; atPly: number }
   | { status: 'drawn'; reason: DrawReason; atPly: number };
 
+/**
+ * A position. Besides where the pieces are, it records facts that any rule
+ * set might need — each Tracer's last pattern, every pattern ever charted —
+ * whether or not the current rules use them.
+ */
 export interface GameState {
-  rulesVersion: 2;
+  rules: RuleSet;
   /** Turns played so far. White moves on even plies, Black on odd. */
   ply: number;
   pieces: Piece[];
-  /**
-   * The patterns each king borrows, keyed by the Tracer that lends them: a
-   * Tracer's current pattern, or — once it has been captured — its last one.
-   */
-  kingPatterns: Record<Side, Record<string, PatternCode>>;
+  /** Each Tracer's latest pattern, by Tracer id — kept after it is captured. */
+  lastCharted: Record<Side, Record<string, PatternCode>>;
+  /** Canonical keys of every pattern each side has charted, first-charted first. */
+  chartedKeys: Record<Side, PatternCode[]>;
   /** Consecutive own turns that took the free king step with no capture. */
   stepStreak: Record<Side, number>;
   result: GameResult;
@@ -148,6 +193,7 @@ export type EngineErrorCode =
   | 'STEP_NOT_ADJACENT'
   | 'STEP_NOT_EMPTY'
   | 'STEP_WITH_KING_MOVE'
+  | 'STEP_NOT_ALLOWED'
   | 'STEP_AFTER_WIN'
   | 'PASS_NOT_ALLOWED';
 

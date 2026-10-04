@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
+import { styleRef, TIERED_V2 } from '../../../variants';
 import { TracerError } from '../../errors';
 import {
   activeGame,
@@ -26,9 +27,11 @@ function codeOf(run: () => unknown): string | null {
 }
 
 describe('createGame', () => {
-  it('opens an online game with the creator in the chosen seat', () => {
-    const game = createGame(GAME_ID, ALICE, { displayName: 'Alice', seat: 'b' }, T0);
-    expect(game).toMatchObject({ status: 'open', schemaVersion: 2, startedAt: null });
+  it('opens an online game with the creator in the chosen seat, under the chosen rules', () => {
+    const input = { displayName: 'Alice', seat: 'b' as const, style: styleRef(TIERED_V2), rules: TIERED_V2.rules };
+    const game = createGame(GAME_ID, ALICE, input, T0);
+    expect(game).toMatchObject({ status: 'open', schemaVersion: 3, startedAt: null, style: { id: 'v2-tiered' } });
+    expect(game.state.rules).toEqual(TIERED_V2.rules);
     expect(game.seats.b).toEqual({ uid: ALICE.uid, name: 'Alice', joinedAt: T0 });
     expect(game.seats.w.uid).toBeNull();
   });
@@ -58,7 +61,7 @@ describe('submitTurn', () => {
   it('applies a legal turn and writes the turn record', () => {
     const result = submitTurn(activeGame(), ALICE, OPENING_CHART, T0 + 9);
     expect(result.response).toEqual({ ply: 1, status: 'active', replayed: false });
-    expect(result.game?.state.kingPatterns.w).toEqual({ wT3: 'J:0,2' });
+    expect(result.game?.state.lastCharted.w).toEqual({ wT3: 'J:0,2' });
     expect(result.game?.lastTurn).toMatchObject({ ply: 0, clientTurnId: OPENING_CHART.clientTurnId });
     expect(result.game?.turnStartedAt).toBe(T0 + 9);
     expect(result.turn).toMatchObject({ ply: 0, side: 'w', byUid: ALICE.uid, at: T0 + 9 });
@@ -119,6 +122,7 @@ describe('requestRematch', () => {
     expect(first.newGame?.seats.w.uid).toBe(BOB.uid);
     expect(first.newGame?.seats.b.uid).toBe(ALICE.uid);
     expect(first.newGame).toMatchObject({ status: 'active', rematchOf: GAME_ID, createdBy: { name: 'Bob' } });
+    expect(first.newGame).toMatchObject({ style: finishedGame().style, state: { rules: finishedGame().state.rules, ply: 0 } });
     expect(first.game?.rematchGameId).toBe('NewGameId00000000000');
     const again = requestRematch(first.game!, ALICE, 'OtherId0000000000000', T0 + 8);
     expect(again).toMatchObject({ response: { gameId: 'NewGameId00000000000' }, newGame: null, game: null });

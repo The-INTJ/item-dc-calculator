@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
-import { chartedPattern, kingPatternList, parsePattern } from './pattern-codes';
+import { canonicalKey, chartedPattern, parsePattern } from './pattern-codes';
 
 describe('parsePattern', () => {
   it('reads riders and jumpers', () => {
@@ -33,10 +33,15 @@ describe('chartedPattern', () => {
   });
 });
 
-describe('kingPatternList', () => {
-  it('lists what each Tracer lends, in Tracer order', () => {
-    const state = { kingPatterns: { w: { wT8: 'R:88', wT3: 'J:0,2' }, b: {} } };
-    expect(kingPatternList(state, 'w')).toEqual(['J:0,2', 'R:88']);
-    expect(kingPatternList(state, 'b')).toEqual([]);
+describe('canonicalKey', () => {
+  it('gives every rotation and mirror image of a pattern one key', () => {
+    const images = ['R:966', 'R:322', 'R:144', 'R:788', 'R:744', 'R:988', 'R:366', 'R:122'];
+    expect(new Set(images.map(canonicalKey))).toEqual(new Set(['R:988']));
+    expect(['J:-1,7', 'J:7,1', 'J:1,-7', 'J:-7,-1'].map(canonicalKey)).toEqual(Array(4).fill('J:1,7'));
+  });
+
+  it('keeps different shapes apart', () => {
+    expect(canonicalKey('R:966')).not.toBe(canonicalKey('R:996'));
+    expect(canonicalKey('J:1,2')).not.toBe(canonicalKey('J:2,2'));
   });
 });

@@ -2,18 +2,18 @@
  * How games end.
  *
  * - Capturing the enemy king wins on the spot.
- * - A capture that leaves the opponent with only its king wins ("lone king").
- * - Dodge streak: taking the free king step on six of your own turns in a
- *   row, with no capture by either side meanwhile, draws the game. A turn
- *   without the free step resets that player's count; any capture resets
- *   both counts.
+ * - A capture that leaves the opponent with only its king wins ("lone king"),
+ *   when the rules say so.
+ * - Dodge streak: taking the free king step on N of your own turns in a row
+ *   (N from the rules), with no capture by either side meanwhile, draws the
+ *   game. A turn without the free step resets that player's count; any
+ *   capture resets both counts.
  * - Resignation and agreed draws come from outside the turn flow.
  */
 
-import type { GameResult, GameState, Piece, Side } from './types';
+import type { GameResult, GameState, Piece, RuleSet, Side } from './types';
 import { otherSide } from './occupancy';
-
-export const STEP_STREAK_LIMIT = 6;
+import { dodgeLimit, loneKingWins } from './rulebook';
 
 export function captureResult(
   work: GameState,
@@ -25,6 +25,7 @@ export function captureResult(
   if (captured.kind === 'king') {
     return { status: 'won', winner: mover, reason: 'king-capture', atPly };
   }
+  if (!loneKingWins(work.rules)) return null;
   const opponent = otherSide(mover);
   const hasArmy = work.pieces.some((piece) => piece.side === opponent && piece.kind !== 'king');
   return hasArmy ? null : { status: 'won', winner: mover, reason: 'lone-king', atPly };
@@ -41,11 +42,13 @@ export function nextStepStreak(
 }
 
 export function streakResult(
+  rules: RuleSet,
   streak: Record<Side, number>,
   mover: Side,
   atPly: number,
 ): GameResult | null {
-  return streak[mover] >= STEP_STREAK_LIMIT
+  const limit = dodgeLimit(rules);
+  return limit !== null && streak[mover] >= limit
     ? { status: 'drawn', reason: 'step-streak', atPly }
     : null;
 }

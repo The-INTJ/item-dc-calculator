@@ -4,9 +4,19 @@
  */
 
 export type * from './types';
-export { initialState, RULES_VERSION, STARTING_LAYOUT } from './setup';
+export { initialState } from './setup';
 export { applyTurn, sideToMove } from './turn';
-export { agreeDraw, resign, STEP_STREAK_LIMIT } from './outcome';
+export { agreeDraw, resign } from './outcome';
+export {
+  chartLimit,
+  dodgeLimit,
+  FREE_STEP,
+  hasChartLimit,
+  KING_MEMORY,
+  kingPatterns,
+  loneKingWins,
+  stepCombinesWith,
+} from './rulebook';
 export { previewChart, type ChartPreview } from './chart';
 export { freeStepSquares } from './free-step';
 export { attackedSquares, isKingInDanger } from './threats';
@@ -21,7 +31,7 @@ export {
   stepDigit,
   withKingAt,
 } from './queries';
-export { kingPatternList, parsePattern, patternKind, type ParsedPattern } from './pattern-codes';
+export { canonicalKey, parsePattern, patternKind, type ParsedPattern } from './pattern-codes';
 export { formatAction, formatTurn, turnNumberLabel } from './notation';
 export { replayTurns, turnInputFromRecord } from './replay';
 export { engineMessage } from './engine-error';

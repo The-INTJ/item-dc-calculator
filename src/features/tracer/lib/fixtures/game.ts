@@ -3,6 +3,7 @@
  */
 
 import { initialState } from '../../engine';
+import { styleRef, TIERED_V2 } from '../../variants';
 import type { Seat, TracerGame } from '../types';
 
 export const ALICE = { uid: 'alice-uid' };
@@ -15,15 +16,16 @@ function seat(uid: string | null, name: string | null): Seat {
   return { uid, name, joinedAt: uid ? T0 : null };
 }
 
-/** An online game: Alice is White, Bob is Black, the game is under way. */
+/** An online game of the Tiered (v2) style: Alice is White, Bob is Black, the game is under way. */
 export function activeGame(overrides: Partial<TracerGame> = {}): TracerGame {
   return {
     id: GAME_ID,
-    schemaVersion: 2,
+    schemaVersion: 3,
+    style: styleRef(TIERED_V2),
     status: 'active',
     createdBy: { uid: ALICE.uid, name: 'Alice' },
     seats: { w: seat(ALICE.uid, 'Alice'), b: seat(BOB.uid, 'Bob') },
-    state: initialState(),
+    state: initialState(TIERED_V2.rules),
     lastTurn: null,
     drawOffer: null,
     rematchOf: null,
@@ -58,7 +60,7 @@ export function bothSeatsGame(overrides: Partial<TracerGame> = {}): TracerGame {
 
 /** A finished game White won by resignation. */
 export function finishedGame(overrides: Partial<TracerGame> = {}): TracerGame {
-  const state = { ...initialState(), result: { status: 'won', winner: 'w', reason: 'resignation', atPly: 0 } as const };
+  const state = { ...initialState(TIERED_V2.rules), result: { status: 'won', winner: 'w', reason: 'resignation', atPly: 0 } as const };
   return activeGame({ status: 'finished', state, finishedAt: T0 + 1, ...overrides });
 }
 

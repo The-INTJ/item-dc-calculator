@@ -4,19 +4,20 @@
  * empty controlled square is unsafe to step onto.
  *
  * Two kinds of turn can capture:
- *   - a king turn: the king's base step or a pattern its Tracers lend it,
+ *   - a king turn: the king's base step or a pattern its rules let it use,
  *     from where the king stands now;
- *   - a piece turn: a warden step or tracer strike, either straight away or
- *     after a free king step (which moves the king out of — or into — lines).
+ *   - a piece turn: a warden step or tracer strike, either straight away or —
+ *     where the rules allow a free step with that piece — after a free king
+ *     step (which moves the king out of, or into, lines).
  * Charts never capture and the free step never captures, so neither counts.
  */
 
 import type { GameState, Piece, Side, SquareName } from './types';
 import { parseSquare, squareName } from './geometry';
 import { boardOf, findKing, otherSide } from './occupancy';
-import { kingPatternList } from './pattern-codes';
 import { pieceHits } from './piece-reach';
 import { freeStepSquares } from './free-step';
+import { kingPatterns, stepCombinesWith } from './rulebook';
 
 /** The piece list as it stands, then once per square the king could step to. */
 function launchPositions(state: GameState, side: Side): Piece[][] {
@@ -30,7 +31,7 @@ function launchPositions(state: GameState, side: Side): Piece[][] {
 
 function addReach(target: Set<number>, pieces: Piece[], piece: Piece, state: GameState) {
   const board = boardOf(pieces);
-  for (const hit of pieceHits(board, piece, kingPatternList(state, piece.side))) {
+  for (const hit of pieceHits(board, piece, kingPatterns(state, piece.side))) {
     target.add(hit.sq);
   }
 }
@@ -39,13 +40,14 @@ export function attackedSquares(state: GameState, attacker: Side): SquareName[] 
   const attacked = new Set<number>();
   const king = findKing(state.pieces, attacker);
   if (king) addReach(attacked, state.pieces, king, state);
-  for (const pieces of launchPositions(state, attacker)) {
+  launchPositions(state, attacker).forEach((pieces, index) => {
+    const afterStep = index > 0;
     for (const piece of pieces) {
-      if (piece.side === attacker && piece.kind !== 'king') {
-        addReach(attacked, pieces, piece, state);
-      }
+      if (piece.side !== attacker || piece.kind === 'king') continue;
+      if (afterStep && !stepCombinesWith(state.rules, piece.kind)) continue;
+      addReach(attacked, pieces, piece, state);
     }
-  }
+  });
   return [...attacked].sort((a, b) => a - b).map(squareName);
 }
 

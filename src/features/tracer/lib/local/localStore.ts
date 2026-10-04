@@ -9,6 +9,7 @@
 import { useSyncExternalStore } from 'react';
 import { z } from 'zod';
 
+import { StyleRefSchema } from '../storage/gameDocument';
 import { GameStateSchema, TurnRecordSchema } from '../storage/stateSchema';
 import { LOCAL_GAME_ID, type LocalGameRecord } from './localGame';
 
@@ -19,6 +20,7 @@ const RecordSchema = z.object({
   id: z.string().regex(LOCAL_GAME_ID),
   createdAt: z.number(),
   updatedAt: z.number(),
+  style: StyleRefSchema,
   state: GameStateSchema,
   turns: z.array(TurnRecordSchema),
 });

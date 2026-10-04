@@ -23,6 +23,7 @@ const MESSAGES: Record<EngineErrorCode, string> = {
   STEP_NOT_ADJACENT: 'The free king step must be to a neighbouring square.',
   STEP_NOT_EMPTY: 'The free king step must be to an empty square.',
   STEP_WITH_KING_MOVE: 'A king move is the whole turn — no free step with it.',
+  STEP_NOT_ALLOWED: 'These rules do not allow a free king step with that move.',
   STEP_AFTER_WIN: 'The game ended before the free step.',
   PASS_NOT_ALLOWED: 'You have a legal move, so you cannot pass.',
 };

@@ -14,10 +14,10 @@ import {
   vectorDigit,
 } from './geometry';
 import { boardOf, findKing } from './occupancy';
-import { kingPatternList } from './pattern-codes';
 import { pieceHits } from './piece-reach';
 import { patternReach } from './pattern-reach';
 import { cloneState } from './turn';
+import { kingPatterns } from './rulebook';
 
 export function pieceAt(state: GameState, at: SquareName) {
   return state.pieces.find((piece) => piece.at === at) ?? null;
@@ -28,7 +28,7 @@ export function moveTargets(state: GameState, from: SquareName): MoveTarget[] {
   const piece = pieceAt(state, from);
   if (!piece) return [];
   const board = boardOf(state.pieces);
-  return pieceHits(board, piece, kingPatternList(state, piece.side)).map((hit) => ({
+  return pieceHits(board, piece, kingPatterns(state, piece.side)).map((hit) => ({
     to: squareName(hit.sq),
     capture: hit.capture,
     via: hit.via,

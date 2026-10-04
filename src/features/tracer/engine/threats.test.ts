@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { positionFrom } from './fixtures/position';
+import { TEST_RULES } from './fixtures/rules';
 import { initialState } from './setup';
 import { attackedSquares, isKingInDanger } from './threats';
 import { hasLegalMainAction } from './legality';
@@ -58,7 +59,7 @@ describe('attackedSquares', () => {
 
   it('uses borrowed patterns from the king’s current square', () => {
     const state = positionFrom('8 . . . . . . . k\n1 . . . . . . . K', {
-      kingPatterns: { w: { wT1: 'R:8888888' } },
+      lastCharted: { w: { wT1: 'R:8888888' } },
     });
     expect(attackedSquares(state, 'w')).toContain('h8');
   });
@@ -66,8 +67,8 @@ describe('attackedSquares', () => {
 
 describe('hasLegalMainAction', () => {
   it('holds for both sides at the start', () => {
-    expect(hasLegalMainAction(initialState(), 'w')).toBe(true);
-    expect(hasLegalMainAction(initialState(), 'b')).toBe(true);
+    expect(hasLegalMainAction(initialState(TEST_RULES), 'w')).toBe(true);
+    expect(hasLegalMainAction(initialState(TEST_RULES), 'b')).toBe(true);
   });
 
   it('holds for a lone king hemmed in by enemies it can capture', () => {

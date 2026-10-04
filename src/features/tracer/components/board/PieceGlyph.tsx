@@ -10,17 +10,25 @@ const SHAPES = {
   tracer: 'M50 8 L90 50 L50 92 L10 50 Z',
 } as const;
 
+interface TracerFaceProps {
+  piece: Piece;
+  limit: number | null;
+  line: CSSProperties;
+  ink: string;
+}
+
 /**
- * A tracer's face: its step limit as a number, with a small mark under it
- * once it has a pattern — a zigzag for a rider, an arc for a jumper.
+ * A tracer's face: its step limit as a number (when the rules give it one),
+ * with a small mark under it once it has a pattern — a zigzag for a rider,
+ * an arc for a jumper.
  */
-function TracerFace({ piece, line, ink }: { piece: Piece; line: CSSProperties; ink: string }) {
+function TracerFace({ piece, limit, line, ink }: TracerFaceProps) {
   const kind = piece.pattern ? patternKind(piece.pattern) : null;
   return (
     <>
-      {piece.range !== null && (
+      {limit !== null && (
         <text x="50" y="59" textAnchor="middle" className={styles.tierNumber} style={{ fill: ink }}>
-          {piece.range}
+          {limit}
         </text>
       )}
       {kind === 'rider' && (
@@ -37,7 +45,7 @@ function TracerFace({ piece, line, ink }: { piece: Piece; line: CSSProperties; i
  * has charted). Colours are set through `style` so the CSS custom
  * properties resolve in every browser.
  */
-export function PieceGlyph({ piece }: { piece: Piece }) {
+export function PieceGlyph({ piece, limit }: { piece: Piece; limit: number | null }) {
   const fill = piece.side === 'w' ? 'var(--tr-piece-w)' : 'var(--tr-piece-b)';
   const edge = piece.side === 'w' ? 'var(--tr-piece-w-edge)' : 'var(--tr-piece-b-edge)';
   const body: CSSProperties = { fill, stroke: edge };
@@ -53,7 +61,7 @@ export function PieceGlyph({ piece }: { piece: Piece }) {
         strokeDasharray={unformed ? '9 6' : undefined}
       />
       {piece.kind === 'king' && <rect x="18" y="77" width="64" height="9" rx="3" style={body} strokeWidth="5" />}
-      {piece.kind === 'tracer' && <TracerFace piece={piece} line={line} ink={edge} />}
+      {piece.kind === 'tracer' && <TracerFace piece={piece} limit={limit} line={line} ink={edge} />}
     </svg>
   );
 }

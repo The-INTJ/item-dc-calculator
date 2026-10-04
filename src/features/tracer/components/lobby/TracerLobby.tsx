@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { BackToExperiments } from '@/components/ui/BackToExperiments';
 
 import { recentGameHref, useRecentGames } from '../../lib/recentGames';
+import { TIERED_V2 } from '../../variants';
 import { RulesList } from '../panels/GamePanels';
 import { NewGameForm } from './NewGameForm';
 import styles from './Lobby.module.scss';
@@ -48,7 +49,7 @@ export function TracerLobby() {
           <h2 id="tracer-rules" className={styles.cardTitle}>
             How to play
           </h2>
-          <RulesList />
+          <RulesList rules={TIERED_V2.rules} />
         </section>
       </div>
     </main>

@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { TurnRecord } from './types';
+import { TEST_RULES } from './fixtures/rules';
 import { formatAction, formatTurn } from './notation';
 import { initialState } from './setup';
 import { applyTurn } from './turn';
@@ -29,7 +30,7 @@ describe('notation', () => {
   });
 
   it('numbers turns and marks results', () => {
-    const outcome = applyTurn(initialState(), 'w', {
+    const outcome = applyTurn(initialState(TEST_RULES), 'w', {
       ply: 0, main: { kind: 'chart', from: 'b1', steps: '88' }, freeStep: null,
     });
     expect(outcome.ok && formatTurn(outcome.record)).toBe('1. Tb1~b3 J88');

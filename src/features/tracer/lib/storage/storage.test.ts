@@ -19,8 +19,10 @@ describe('game documents', () => {
     expect(fromGameDoc('x', { ...doc, status: 'paused' })).toBeNull();
     const badPiece = { ...doc.state.pieces[0], at: 'z9' };
     expect(fromGameDoc('x', { ...doc, state: { ...doc.state, pieces: [badPiece] } })).toBeNull();
-    const badLoan = { ...doc.state, kingPatterns: { w: { wT3: 'R:5' }, b: {} } };
-    expect(fromGameDoc('x', { ...doc, state: badLoan })).toBeNull();
+    const badPattern = { ...doc.state, lastCharted: { w: { wT3: 'R:5' }, b: {} } };
+    expect(fromGameDoc('x', { ...doc, state: badPattern })).toBeNull();
+    const twoKings = { ...doc.state.rules.layout, pieces: [...doc.state.rules.layout.pieces, { id: 'K2', kind: 'king', file: 'a', row: 0, tier: null }] };
+    expect(fromGameDoc('x', { ...doc, state: { ...doc.state, rules: { ...doc.state.rules, layout: twoKings } } })).toBeNull();
   });
 
   it('recognise games saved under the first rules', () => {

@@ -1,18 +1,26 @@
-import { kingPatternList, patternKind, type Piece } from '../../engine';
-import { patternLabel, pieceName, SIDE_NAME } from '../../lib/presentation/gameText';
+import { kingPatterns, patternKind, type Piece, type RuleSet } from '../../engine';
+import { patternLabel, SIDE_NAME } from '../../lib/presentation/gameText';
+import { pieceName, shownLimit } from '../../lib/presentation/ruleText';
 import type { TracerGame } from '../../lib/types';
 import type { ComposerView } from '../../hooks/composer/composerView';
 import { PatternDiagram } from './PatternDiagram';
 import styles from './Panels.module.scss';
 
-function kindHelp(piece: Piece): string {
+function kindHelp(piece: Piece, rules: RuleSet): string {
+  const learns = rules.kingMemory !== 'none';
   switch (piece.kind) {
     case 'warden':
       return 'Moves one square in any direction and always captures.';
-    case 'tracer':
-      return `Strikes with its pattern, or charts a new one of up to ${piece.range ?? 'any number of'} squares (charting never captures). Its king borrows the pattern too.`;
+    case 'tracer': {
+      const limit = shownLimit(rules, piece);
+      const reach = limit === null ? 'any length' : `up to ${limit} squares`;
+      const lends = learns ? ' Its king learns the pattern too.' : '';
+      return `Strikes with its pattern, or charts a new one of ${reach} (charting never captures).${lends}`;
+    }
     case 'king':
-      return 'Steps one square, or moves by any pattern its Tracers lend it. Lose it and you lose.';
+      return learns
+        ? 'Steps one square, or moves by any of its patterns. Lose it and you lose.'
+        : 'Steps one square in any direction. Lose it and you lose.';
   }
 }
 
@@ -42,17 +50,19 @@ export function PieceInspector({ view, game }: { view: ComposerView; game: Trace
   if (!piece) {
     return <p className={styles.muted}>Tap any piece to see how it moves and what it can reach.</p>;
   }
-  const borrowed = kingPatternList(game.state, piece.side).length;
+  const rules = game.state.rules;
+  const known = kingPatterns(game.state, piece.side).length;
   return (
     <div className={styles.inspector}>
       <p className={styles.strong}>
-        {SIDE_NAME[piece.side]} {pieceName(piece)} on {piece.at}
+        {SIDE_NAME[piece.side]} {pieceName(piece, rules)} on {piece.at}
       </p>
-      <p className={styles.muted}>{kindHelp(piece)}</p>
+      <p className={styles.muted}>{kindHelp(piece, rules)}</p>
       {piece.kind === 'tracer' && <TracerDetail piece={piece} />}
       {piece.kind === 'king' && (
         <p className={styles.muted}>
-          Borrowing {borrowed} pattern{borrowed === 1 ? '' : 's'} (see Kings). It can reach {view.targets.length} squares now.
+          {rules.kingMemory === 'none' ? '' : `Knows ${known} pattern${known === 1 ? '' : 's'} (see Kings). `}
+          It can reach {view.targets.length} squares now.
         </p>
       )}
     </div>

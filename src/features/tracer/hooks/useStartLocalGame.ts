@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 
 import { newLocalGame } from '../lib/local/localGame';
+import { styleRef, TIERED_V2 } from '../variants';
 import { newLocalGameId, saveLocalGame } from '../lib/local/localStore';
 import { rememberGame } from '../lib/recentGames';
 
@@ -10,7 +11,7 @@ import { rememberGame } from '../lib/recentGames';
 export function useStartLocalGame() {
   const router = useRouter();
   return () => {
-    const record = newLocalGame(newLocalGameId(), Date.now());
+    const record = newLocalGame(newLocalGameId(), Date.now(), styleRef(TIERED_V2), TIERED_V2.rules);
     const href = `/tracer/local/${record.id}`;
     saveLocalGame(record);
     rememberGame({ id: record.id, title: 'Local game · turn 1', href });

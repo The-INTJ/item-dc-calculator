@@ -1,4 +1,4 @@
-import { sideToMove, STEP_STREAK_LIMIT, type PieceKind, type Side } from '../../engine';
+import { dodgeLimit, sideToMove, type PieceKind, type Side } from '../../engine';
 import { SIDE_NAME, seatName } from '../../lib/presentation/gameText';
 import type { TracerGame } from '../../lib/types';
 import styles from './Game.module.scss';
@@ -15,6 +15,7 @@ export function PlayerBar({ game, side, isViewer }: PlayerBarProps) {
   const pieces = game.state.pieces.filter((piece) => piece.side === side);
   const count = (kind: PieceKind) => pieces.filter((piece) => piece.kind === kind).length;
   const streak = game.state.stepStreak[side];
+  const limit = dodgeLimit(game.state.rules);
   return (
     <div className={toMove ? `${styles.player} ${styles.playerToMove}` : styles.player}>
       <span className={styles.swatch} data-side={side} aria-label={SIDE_NAME[side]} role="img" />
@@ -26,9 +27,9 @@ export function PlayerBar({ game, side, isViewer }: PlayerBarProps) {
       <span className={styles.material} aria-label={`${count('tracer')} Tracers and ${count('warden')} Wardens left`}>
         T{count('tracer')} · W{count('warden')}
       </span>
-      {streak > 0 && (
+      {streak > 0 && limit !== null && (
         <span className={styles.streak} title="Free king steps in a row with no capture">
-          Dodges {streak}/{STEP_STREAK_LIMIT}
+          Dodges {streak}/{limit}
         </span>
       )}
     </div>

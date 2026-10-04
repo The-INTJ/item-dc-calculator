@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { GameState, TurnInput } from './types';
 import { positionFrom } from './fixtures/position';
+import { TEST_RULES } from './fixtures/rules';
 import { initialState } from './setup';
 import { applyTurn, sideToMove } from './turn';
 
@@ -15,7 +16,7 @@ function snapshot(state: GameState) {
 }
 
 describe('turn guards', () => {
-  const start = initialState();
+  const start = initialState(TEST_RULES);
 
   it('rejects malformed input without throwing', () => {
     for (const garbage of [null, 7, {}, { ply: 0 }, { ply: 0, main: { kind: 'fly' }, freeStep: null }]) {
@@ -59,7 +60,7 @@ describe('turn guards', () => {
 });
 
 describe('the free king step', () => {
-  const start = initialState();
+  const start = initialState(TEST_RULES);
 
   it('may come before a warden move', () => {
     const outcome = applyTurn(start, 'w', move('b2', 'b3', { to: 'f1', when: 'before' }));
