@@ -22,6 +22,7 @@ export {
   TOGGLE_KEYS,
   TOGGLES,
   withRule,
+  type AnyControl,
   type ControlFor,
   type Toggle,
   type ToggleGroup,

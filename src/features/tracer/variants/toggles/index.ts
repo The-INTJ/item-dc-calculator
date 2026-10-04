@@ -45,4 +45,4 @@ export function describeRule<K extends keyof RuleSet>(key: K, rules: RuleSet): s
 }
 
 export { tierSquares } from './tracer-reach';
-export { withRule, type ControlFor, type Toggle, type ToggleGroup } from './types';
+export { withRule, type AnyControl, type ControlFor, type Toggle, type ToggleGroup } from './types';

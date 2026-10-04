@@ -3,10 +3,13 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import type { GameSetupControls } from '../../hooks/useGameSetup';
 import { usePlayerIdentity } from '../../hooks/usePlayerIdentity';
 import { useStartLocalGame } from '../../hooks/useStartLocalGame';
 import { errorCopy, tracerApi } from '../../lib/api/tracerApi';
 import { NameField } from '../shared/NameField';
+import { RuleTweaks } from './RuleTweaks';
+import { StylePicker } from './StylePicker';
 import styles from './Lobby.module.scss';
 
 type SeatChoice = 'w' | 'b' | 'random';
@@ -32,10 +35,11 @@ function SeatPicker({ seat, onChange }: { seat: SeatChoice; onChange: (seat: Sea
 }
 
 /**
- * Online: a name and a side, then a link to send. Both sides on this
- * device: straight to a local board — no name, no sign-in, no server.
+ * One form for both kinds of game. Online: a name and a side, then a link to
+ * send. Both sides on this device: straight to a local board — no name, no
+ * sign-in, no server. Either way the game is played under the chosen rules.
  */
-export function NewGameForm() {
+export function NewGameForm({ controls }: { controls: GameSetupControls }) {
   const router = useRouter();
   const startLocalGame = useStartLocalGame();
   const { defaultName, ensurePlayer, loading } = usePlayerIdentity();
@@ -50,7 +54,8 @@ export function NewGameForm() {
     setBusy(true);
     setError(null);
     const signedIn = await ensurePlayer(displayName);
-    const created = signedIn.ok ? await tracerApi.createGame({ displayName, seat }) : null;
+    const { styleId, rules } = controls.setup;
+    const created = signedIn.ok ? await tracerApi.createGame({ displayName, seat, styleId, rules }) : null;
     if (created?.ok) {
       router.push(`/tracer/${created.data.gameId}`);
       return;
@@ -64,11 +69,13 @@ export function NewGameForm() {
       className={styles.card}
       onSubmit={(event) => {
         event.preventDefault();
-        if (local) startLocalGame();
+        if (local) startLocalGame(controls.setup);
         else void createOnline();
       }}
     >
       <h2 className={styles.cardTitle}>New game</h2>
+      <StylePicker controls={controls} />
+      <RuleTweaks controls={controls} />
       {!local && <NameField value={name ?? defaultName} onChange={setName} />}
       {!local && <SeatPicker seat={seat} onChange={setSeat} />}
       <label className={styles.check}>

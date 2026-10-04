@@ -4,6 +4,8 @@
  */
 
 import { chartLimit, hasChartLimit, stepCombinesWith, type Piece, type PieceKind, type RuleSet } from '../../engine';
+import { styleById, styleLabel, tweaksBetween } from '../../variants';
+import type { TracerGame } from '../types';
 
 export const KIND_NAME: Record<PieceKind, string> = { king: 'King', tracer: 'Tracer', warden: 'Warden' };
 
@@ -40,4 +42,15 @@ const STEP_MOVERS: PieceKind[] = ['tracer', 'warden'];
 export function stepCompanions(rules: RuleSet): string | null {
   const names = STEP_MOVERS.filter((kind) => stepCombinesWith(rules, kind)).map((kind) => KIND_NAME[kind]);
   return names.length > 0 ? names.join(' or ') : null;
+}
+
+/** The rules a game changed from the style it started from (none if that style is unknown here). */
+export function gameTweaks(game: Pick<TracerGame, 'style' | 'state'>): (keyof RuleSet)[] {
+  const style = styleById(game.style.id);
+  return style ? tweaksBetween(style, game.state.rules) : [];
+}
+
+/** "Tiered (v2)", or "Tiered (v2) · 2 tweaks". */
+export function gameStyleLabel(game: Pick<TracerGame, 'style' | 'state'>): string {
+  return styleLabel(game.style.name, gameTweaks(game).length);
 }

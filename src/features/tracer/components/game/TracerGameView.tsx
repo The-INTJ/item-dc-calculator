@@ -16,6 +16,7 @@ import { GameHeader } from './GameHeader';
 import { GameMenu } from './GameMenu';
 import { PlayerBar } from './PlayerBar';
 import { StatusPanel } from './StatusPanel';
+import { StyleChip } from './StyleChip';
 import { TurnPlay } from './TurnPlay';
 import { useBoardDisplay } from './useBoardDisplay';
 import styles from './Game.module.scss';
@@ -47,10 +48,17 @@ export function TracerGameView({ initialGame }: { initialGame: TracerGame }) {
   }
 
   if (missing) return <MissingGame />;
+  const openRules = () => {
+    setTab('rules');
+    document.getElementById('tracer-tab-panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
 
   return (
     <main className={styles.page}>
-      <GameHeader menu={<GameMenu game={game} viewer={viewer} commands={commands} now={now} />} />
+      <GameHeader
+        menu={<GameMenu game={game} viewer={viewer} commands={commands} now={now} />}
+        chip={<StyleChip game={game} onOpen={openRules} />}
+      />
       <TurnPlay
         key={game.state.ply}
         game={game}

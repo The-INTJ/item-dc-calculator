@@ -21,7 +21,7 @@ export function LocalStatus({ game, onUndo, onNewGame }: LocalStatusProps) {
             Undo last move
           </button>
           <button type="button" className={styles.primary} onClick={onNewGame}>
-            New local game
+            New game, same rules
           </button>
         </div>
       </div>

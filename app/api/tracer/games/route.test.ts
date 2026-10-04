@@ -1,6 +1,8 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { ORIGINAL_V1 } from '@/features/tracer/variants';
+
 import { POST } from './route';
 
 const createNewGameMock = vi.fn();
@@ -37,8 +39,30 @@ describe('POST /api/tracer/games', () => {
     expect(await response.json()).toEqual({ gameId: 'AbCdEfGhIjKlMnOpQrSt' });
     expect(createNewGameMock).toHaveBeenCalledWith(
       { uid: 'alice-uid' },
-      { displayName: 'Alice', seat: 'random' },
+      { displayName: 'Alice', seat: 'random', styleId: 'v2-tiered' },
     );
+  });
+
+  it('passes a published style with tweaked rules through', async () => {
+    createNewGameMock.mockResolvedValue({ gameId: 'AbCdEfGhIjKlMnOpQrSt' });
+    const rules = { ...ORIGINAL_V1.rules, kingMemory: 'none', dodgeDraw: 0 };
+    const response = await post({ displayName: 'Alice', seat: 'w', styleId: 'v1-original', rules });
+    expect(response.status).toBe(201);
+    expect(createNewGameMock.mock.calls[0][1]).toMatchObject({ styleId: 'v1-original', rules });
+  });
+
+  it('rejects an unknown style, an unknown layout, or rules that break the schema', async () => {
+    const layout = { ...ORIGINAL_V1.rules.layout, id: 'homebrew' };
+    const bodies = [
+      { styleId: 'v9-secret' },
+      { styleId: 'v1-original', rules: { ...ORIGINAL_V1.rules, layout } },
+      { styleId: 'v1-original', rules: { ...ORIGINAL_V1.rules, dodgeDraw: -1 } },
+    ];
+    for (const body of bodies) {
+      const response = await post({ displayName: 'Alice', seat: 'w', ...body });
+      expect(response.status).toBe(400);
+    }
+    expect(createNewGameMock).not.toHaveBeenCalled();
   });
 
   it('rejects an unknown seat choice', async () => {

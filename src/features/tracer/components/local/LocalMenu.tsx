@@ -49,7 +49,7 @@ export function LocalMenu({ game, canUndo, onUndo, onDraw, onResign, onNewGame }
             </button>
           )}
           <button type="button" role="menuitem" onClick={run(onNewGame)}>
-            New local game
+            New game, same rules
           </button>
         </div>
       )}

@@ -199,3 +199,14 @@
     font-size: 0.92rem;
   }
 }
+
+.changed {
+  background: var(--tr-good-soft);
+  border-radius: 999px;
+  color: var(--tr-ink);
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.45rem;
+  white-space: nowrap;
+}

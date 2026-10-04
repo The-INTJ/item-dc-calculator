@@ -33,6 +33,9 @@ export interface CustomControl {
   id: 'layout' | 'tracer-reach';
 }
 
+/** Any toggle's control, for code that renders whichever one it is given. */
+export type AnyControl = SwitchControl | ChoiceControl<string> | NumberControl | CustomControl;
+
 export type ControlFor<V> = [V] extends [boolean]
   ? SwitchControl
   : [V] extends [string]

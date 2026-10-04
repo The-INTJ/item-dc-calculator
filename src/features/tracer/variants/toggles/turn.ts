@@ -17,7 +17,7 @@ export const FREE_STEP_TOGGLE: Toggle<'freeStep'> = {
     options: {
       off: 'Never',
       'with-tracer': 'With a Tracer move',
-      'with-tracer-or-warden': 'With a Tracer or Warden move',
+      'with-tracer-or-warden': 'With Tracer or Warden',
     },
   },
   describe: (value) => DESCRIPTIONS[value],

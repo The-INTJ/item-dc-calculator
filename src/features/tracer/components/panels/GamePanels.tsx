@@ -5,9 +5,10 @@ import type { ReactNode } from 'react';
 import type { RuleSet, Side } from '../../engine';
 import type { ComposerView } from '../../hooks/composer/composerView';
 import type { TracerGame } from '../../lib/types';
-import { howToPlay } from './content';
+import { GameRules } from './GameRules';
 import { KingPatterns } from './KingPatterns';
 import { PieceInspector } from './PieceInspector';
+import { RuleSections } from './RuleSections';
 import styles from './Panels.module.scss';
 
 export type PanelTab = 'piece' | 'kings' | 'history' | 'rules';
@@ -23,16 +24,7 @@ const TABS: { id: PanelTab; label: string }[] = [
 export function RulesList({ rules }: { rules: RuleSet }) {
   return (
     <div className={styles.rules}>
-      {howToPlay(rules).map((section) => (
-        <section key={section.title}>
-          <h3>{section.title}</h3>
-          <ul>
-            {section.points.map((point) => (
-              <li key={point}>{point}</li>
-            ))}
-          </ul>
-        </section>
-      ))}
+      <RuleSections rules={rules} />
     </div>
   );
 }
@@ -70,7 +62,7 @@ export function GamePanels({ tab, onTab, view, game, ownSide, history }: GamePan
         {tab === 'piece' && <PieceInspector view={view} game={game} />}
         {tab === 'kings' && <KingPatterns game={game} firstSide={ownSide} />}
         {tab === 'history' && history}
-        {tab === 'rules' && <RulesList rules={game.state.rules} />}
+        {tab === 'rules' && <GameRules game={game} />}
       </div>
     </section>
   );

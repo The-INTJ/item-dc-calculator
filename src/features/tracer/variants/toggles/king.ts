@@ -17,9 +17,9 @@ export const KING_MEMORY_TOGGLE: Toggle<'kingMemory'> = {
     kind: 'choice',
     options: {
       none: 'None — just its step',
-      current: 'Its Tracers’ current patterns',
-      'current-kept': 'Current patterns, kept when a Tracer falls',
-      'every-chart': 'Every pattern ever charted',
+      current: 'Current patterns',
+      'current-kept': 'Current, kept on capture',
+      'every-chart': 'Every pattern charted',
     },
   },
   describe: (value) => DESCRIPTIONS[value],

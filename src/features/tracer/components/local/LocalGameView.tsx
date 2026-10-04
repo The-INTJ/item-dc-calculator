@@ -9,6 +9,7 @@ import { LOCAL_UID } from '../../lib/local/localGame';
 import { deriveViewer } from '../../lib/policy';
 import { GameHeader } from '../game/GameHeader';
 import { PlayerBar } from '../game/PlayerBar';
+import { StyleChip } from '../game/StyleChip';
 import { TurnPlay } from '../game/TurnPlay';
 import { useBoardDisplay } from '../game/useBoardDisplay';
 import { GamePanels, type PanelTab } from '../panels/GamePanels';
@@ -42,8 +43,13 @@ export function LocalGameView({ localId }: { localId: string }) {
   const display = useBoardDisplay(viewer?.orientation ?? 'w');
 
   if (local.record === undefined) return <main className={gameStyles.page} aria-busy="true" />;
-  if (!game || !viewer || !local.record) return <MissingLocalGame onNewGame={startLocalGame} />;
+  if (!game || !viewer || !local.record) return <MissingLocalGame onNewGame={() => startLocalGame()} />;
   const turns = local.record.turns;
+  const sameRules = () => startLocalGame({ styleId: game.style.id, rules: game.state.rules });
+  const openRules = () => {
+    setTab('rules');
+    document.getElementById('tracer-tab-panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
   const menu = (
     <LocalMenu
       game={game}
@@ -51,13 +57,13 @@ export function LocalGameView({ localId }: { localId: string }) {
       onUndo={local.undo}
       onDraw={local.draw}
       onResign={local.resign}
-      onNewGame={startLocalGame}
+      onNewGame={sameRules}
     />
   );
 
   return (
     <main className={gameStyles.page}>
-      <GameHeader menu={menu} />
+      <GameHeader menu={menu} chip={<StyleChip game={game} onOpen={openRules} />} />
       <TurnPlay
         key={game.state.ply}
         game={game}
@@ -68,7 +74,7 @@ export function LocalGameView({ localId }: { localId: string }) {
         topBar={<PlayerBar game={game} side={otherSide(display.orientation)} isViewer={false} />}
         bottomBar={<PlayerBar game={game} side={display.orientation} isViewer={false} />}
         toolbar={display.toolbar}
-        status={<LocalStatus game={game} onUndo={local.undo} onNewGame={startLocalGame} />}
+        status={<LocalStatus game={game} onUndo={local.undo} onNewGame={sameRules} />}
         panels={(view) => (
           <GamePanels tab={tab} onTab={setTab} view={view} game={game} ownSide={display.orientation} history={<TurnList game={game} turns={turns} />} />
         )}

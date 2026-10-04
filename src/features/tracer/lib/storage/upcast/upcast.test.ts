@@ -10,6 +10,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { applyTurn, initialState, replayTurns, sideToMove, turnInputFromRecord } from '../../../engine';
 import type { GameState, TurnRecord } from '../../../engine';
+import type { TracerGame } from '../../types';
 import { randomTurn, seeded } from '../../../engine/fixtures/self-play';
 import { ORIGINAL_V1, TIERED_V2 } from '../../../variants';
 import { ALICE, BOB, T0 } from '../../fixtures/game';
@@ -52,6 +53,17 @@ function replayGolden(game: GoldenGame): GameState {
   return state;
 }
 
+/** Play one legal turn in `game` through the server command; returns the stored-and-reread game. */
+function playNextTurn(game: TracerGame, clientTurnId: string): TracerGame {
+  const rng = seeded(7);
+  const side = sideToMove(game.state);
+  let turn = randomTurn(rng, game.state, side);
+  while (!applyTurn(game.state, side, turn).ok) turn = randomTurn(rng, game.state, side);
+  const actor = game.seats[side].uid === ALICE.uid ? ALICE : BOB;
+  const played = submitTurn(game, actor, { clientTurnId, turn }, T0 + 61).game!;
+  return fromGameDoc(played.id, JSON.parse(JSON.stringify(toGameDoc(played))))!;
+}
+
 /** A v1 game document around a golden game's final position. */
 function v1GameDoc(game: GoldenGame) {
   const last = game.turns[game.turns.length - 1];
@@ -86,13 +98,8 @@ describe('Original (v1) games saved by production', () => {
     const active = golden.games.find((game) => game.finalState.result.status === 'active')!;
     const game = fromGameDoc('GoldenV1Doc00000000a', v1GameDoc(active));
     expect(game).toMatchObject({ schemaVersion: 3, style: { id: 'v1-original' }, state: { rules: ORIGINAL_V1.rules } });
-    const rng = seeded(7);
-    const side = sideToMove(game!.state);
-    let turn = randomTurn(rng, game!.state, side);
-    while (!applyTurn(game!.state, side, turn).ok) turn = randomTurn(rng, game!.state, side);
-    const actor = side === 'w' ? ALICE : BOB;
-    const played = submitTurn(game!, actor, { clientTurnId: 'after-upgrade-1', turn }, T0 + 61).game!;
-    expect(fromGameDoc(played.id, JSON.parse(JSON.stringify(toGameDoc(played))))).toEqual(played);
+    const next = playNextTurn(game!, 'after-upgrade-1');
+    expect(next.state.ply).toBe(game!.state.ply + 1);
   });
 });
 
@@ -118,10 +125,10 @@ describe('Tiered (v2) records from the local-only branch', () => {
 });
 
 describe('documents written by this version', () => {
-  it('always parse — new rule fields must default to how games played before them', () => {
+  it('always parse and keep playing — new rule fields must default to how games played before them', () => {
     const game = fromGameDoc(v3Launch.id, v3Launch.doc);
-    expect(game).not.toBeNull();
-    expect(toGameDoc(game!)).toEqual(v3Launch.doc);
+    expect(game).toMatchObject({ style: v3Launch.doc.style, state: { ply: v3Launch.doc.state.ply } });
+    expect(playNextTurn(game!, 'after-launch-1').state.ply).toBe(v3Launch.doc.state.ply + 1);
   });
 
   it('flag only documents from a newer version as unreadable', () => {
