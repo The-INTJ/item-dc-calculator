@@ -89,10 +89,3 @@ export function useGameSetup(setupQuery: string) {
 }
 
 export type GameSetupControls = ReturnType<typeof useGameSetup>;
-
-/** A link that opens the lobby with this setup. */
-export function setupUrl(setup: GameSetup): string {
-  const query = setupParams(setup).toString();
-  const origin = typeof window === 'undefined' ? '' : window.location.origin;
-  return `${origin}/tracer?${query}`;
-}

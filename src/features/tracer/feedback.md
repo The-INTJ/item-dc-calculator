@@ -23,6 +23,19 @@ or sign out at `/account`.
 
 ## Done
 
+### 6. Invite links didn't work for friends — 2026-10-04
+
+**What happened.** Links were built from the address the sender was on.
+Opened from the Vercel app, that is the deployment's own URL
+(`…-theintjs-projects.vercel.app`), which Vercel puts behind its login — so
+friends hit a Vercel sign-in page. The public domain worked end to end (a
+two-browser probe on production: guest creates, guest joins by link, both
+move).
+
+**Done (PR #69).** Production builds always link to the public production
+domain (`NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL`); previews and local dev
+link to wherever they run.
+
 ### 5. Dodges, threat lines, protection, and the last-move highlight — 2026-10-04
 
 **What Drew asked.**
