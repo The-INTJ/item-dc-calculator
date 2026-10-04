@@ -1,0 +1,261 @@
+{
+ "_source": {
+  "description": "v2 shapes (tiered Tracers, kingPatterns, range on pieces) produced by the local-only v2 branch.",
+  "codeCommit": "3c60e85",
+  "generatedAt": "2026-10-04"
+ },
+ "record": {
+  "id": "local-golden0002",
+  "createdAt": 1791100000000,
+  "updatedAt": 1791100005000,
+  "state": {
+   "rulesVersion": 2,
+   "ply": 5,
+   "pieces": [
+    {
+     "id": "wK",
+     "side": "w",
+     "kind": "king",
+     "at": "e2",
+     "pattern": null,
+     "range": null
+    },
+    {
+     "id": "wT3",
+     "side": "w",
+     "kind": "tracer",
+     "at": "b3",
+     "pattern": "J:0,2",
+     "range": 3
+    },
+    {
+     "id": "wT8",
+     "side": "w",
+     "kind": "tracer",
+     "at": "f5",
+     "pattern": "J:2,4",
+     "range": 8
+    },
+    {
+     "id": "wT5",
+     "side": "w",
+     "kind": "tracer",
+     "at": "g1",
+     "pattern": null,
+     "range": 5
+    },
+    {
+     "id": "wW1",
+     "side": "w",
+     "kind": "warden",
+     "at": "b2",
+     "pattern": null,
+     "range": null
+    },
+    {
+     "id": "wW2",
+     "side": "w",
+     "kind": "warden",
+     "at": "d2",
+     "pattern": null,
+     "range": null
+    },
+    {
+     "id": "wW3",
+     "side": "w",
+     "kind": "warden",
+     "at": "e3",
+     "pattern": null,
+     "range": null
+    },
+    {
+     "id": "wW4",
+     "side": "w",
+     "kind": "warden",
+     "at": "g2",
+     "pattern": null,
+     "range": null
+    },
+    {
+     "id": "bK",
+     "side": "b",
+     "kind": "king",
+     "at": "f8",
+     "pattern": null,
+     "range": null
+    },
+    {
+     "id": "bT3",
+     "side": "b",
+     "kind": "tracer",
+     "at": "b8",
+     "pattern": null,
+     "range": 3
+    },
+    {
+     "id": "bT8",
+     "side": "b",
+     "kind": "tracer",
+     "at": "d8",
+     "pattern": null,
+     "range": 8
+    },
+    {
+     "id": "bT5",
+     "side": "b",
+     "kind": "tracer",
+     "at": "f6",
+     "pattern": "R:12",
+     "range": 5
+    },
+    {
+     "id": "bW1",
+     "side": "b",
+     "kind": "warden",
+     "at": "b7",
+     "pattern": null,
+     "range": null
+    },
+    {
+     "id": "bW2",
+     "side": "b",
+     "kind": "warden",
+     "at": "d6",
+     "pattern": null,
+     "range": null
+    },
+    {
+     "id": "bW3",
+     "side": "b",
+     "kind": "warden",
+     "at": "e7",
+     "pattern": null,
+     "range": null
+    },
+    {
+     "id": "bW4",
+     "side": "b",
+     "kind": "warden",
+     "at": "g7",
+     "pattern": null,
+     "range": null
+    }
+   ],
+   "kingPatterns": {
+    "w": {
+     "wT3": "J:0,2",
+     "wT8": "J:2,4"
+    },
+    "b": {
+     "bT5": "R:12"
+    }
+   },
+   "stepStreak": {
+    "w": 1,
+    "b": 0
+   },
+   "result": {
+    "status": "active"
+   }
+  },
+  "turns": [
+   {
+    "ply": 0,
+    "side": "w",
+    "actions": [
+     {
+      "kind": "chart",
+      "pieceId": "wT3",
+      "from": "b1",
+      "to": "b3",
+      "steps": "88",
+      "pattern": "J:0,2"
+     }
+    ],
+    "result": {
+     "status": "active"
+    }
+   },
+   {
+    "ply": 1,
+    "side": "b",
+    "actions": [
+     {
+      "kind": "chart",
+      "pieceId": "bT5",
+      "from": "g8",
+      "to": "f6",
+      "steps": "12",
+      "pattern": "R:12"
+     },
+     {
+      "kind": "step",
+      "from": "e8",
+      "to": "f8"
+     }
+    ],
+    "result": {
+     "status": "active"
+    }
+   },
+   {
+    "ply": 2,
+    "side": "w",
+    "actions": [
+     {
+      "kind": "chart",
+      "pieceId": "wT8",
+      "from": "d1",
+      "to": "f5",
+      "steps": "8899",
+      "pattern": "J:2,4"
+     }
+    ],
+    "result": {
+     "status": "active"
+    }
+   },
+   {
+    "ply": 3,
+    "side": "b",
+    "actions": [
+     {
+      "kind": "warden",
+      "pieceId": "bW2",
+      "from": "d7",
+      "to": "d6",
+      "via": "base",
+      "path": null,
+      "captured": null
+     }
+    ],
+    "result": {
+     "status": "active"
+    }
+   },
+   {
+    "ply": 4,
+    "side": "w",
+    "actions": [
+     {
+      "kind": "warden",
+      "pieceId": "wW3",
+      "from": "e2",
+      "to": "e3",
+      "via": "base",
+      "path": null,
+      "captured": null
+     },
+     {
+      "kind": "step",
+      "from": "e1",
+      "to": "e2"
+     }
+    ],
+    "result": {
+     "status": "active"
+    }
+   }
+  ]
+ }
+}

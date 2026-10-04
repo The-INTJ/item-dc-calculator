@@ -1,0 +1,8685 @@
+{
+ "_source": {
+  "description": "Golden v1 games: seeded self-play by the Tracer engine exactly as shipped to production. Used to prove the \"Original (v1)\" style replays identically under the current engine.",
+  "engineCommit": "0d45e5bce7c61aac2bd04b67487e2e1aa4be9420",
+  "generator": "seeds 1-8, max 60 plies, king chosen 20%, chart 1-10 steps via previewChart, free step 40% on non-king turns",
+  "generatedAt": "2026-10-04"
+ },
+ "games": [
+  {
+   "seed": 1,
+   "turns": [
+    {
+     "ply": 0,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT1",
+       "from": "b1",
+       "to": "g3",
+       "steps": "993686",
+       "pattern": "J:5,2",
+       "key": "J:2,5",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 1,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "b7",
+       "to": "a6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 2,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT2",
+       "from": "f1",
+       "to": "c2",
+       "steps": "47842",
+       "pattern": "J:-3,1",
+       "key": "J:1,3",
+       "libraryAdded": true
+      },
+      {
+       "kind": "step",
+       "from": "d1",
+       "to": "e1"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 3,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "h7",
+       "to": "g6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 4,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "e1",
+       "to": "e2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 5,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "g6",
+       "to": "g5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 6,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "e2",
+       "to": "f3"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "h2",
+       "to": "g1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 7,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "a6",
+       "to": "b7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 8,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "f3",
+       "to": "d8",
+       "via": "J:2,5",
+       "path": null,
+       "captured": {
+        "id": "bK",
+        "kind": "king"
+       }
+      }
+     ],
+     "result": {
+      "status": "won",
+      "winner": "w",
+      "reason": "king-capture",
+      "atPly": 8
+     }
+    }
+   ],
+   "finalState": {
+    "rulesVersion": 1,
+    "ply": 9,
+    "pieces": [
+     {
+      "id": "wK",
+      "side": "w",
+      "kind": "king",
+      "at": "d8",
+      "pattern": null
+     },
+     {
+      "id": "wT1",
+      "side": "w",
+      "kind": "tracer",
+      "at": "g3",
+      "pattern": "J:5,2"
+     },
+     {
+      "id": "wT2",
+      "side": "w",
+      "kind": "tracer",
+      "at": "c2",
+      "pattern": "J:-3,1"
+     },
+     {
+      "id": "wT3",
+      "side": "w",
+      "kind": "tracer",
+      "at": "h1",
+      "pattern": null
+     },
+     {
+      "id": "wW1",
+      "side": "w",
+      "kind": "warden",
+      "at": "b2",
+      "pattern": null
+     },
+     {
+      "id": "wW2",
+      "side": "w",
+      "kind": "warden",
+      "at": "d2",
+      "pattern": null
+     },
+     {
+      "id": "wW3",
+      "side": "w",
+      "kind": "warden",
+      "at": "f2",
+      "pattern": null
+     },
+     {
+      "id": "wW4",
+      "side": "w",
+      "kind": "warden",
+      "at": "g1",
+      "pattern": null
+     },
+     {
+      "id": "bT1",
+      "side": "b",
+      "kind": "tracer",
+      "at": "b8",
+      "pattern": null
+     },
+     {
+      "id": "bT2",
+      "side": "b",
+      "kind": "tracer",
+      "at": "f8",
+      "pattern": null
+     },
+     {
+      "id": "bT3",
+      "side": "b",
+      "kind": "tracer",
+      "at": "h8",
+      "pattern": null
+     },
+     {
+      "id": "bW1",
+      "side": "b",
+      "kind": "warden",
+      "at": "b7",
+      "pattern": null
+     },
+     {
+      "id": "bW2",
+      "side": "b",
+      "kind": "warden",
+      "at": "d7",
+      "pattern": null
+     },
+     {
+      "id": "bW3",
+      "side": "b",
+      "kind": "warden",
+      "at": "f7",
+      "pattern": null
+     },
+     {
+      "id": "bW4",
+      "side": "b",
+      "kind": "warden",
+      "at": "g5",
+      "pattern": null
+     }
+    ],
+    "library": {
+     "w": [
+      "J:2,5",
+      "J:1,3"
+     ],
+     "b": []
+    },
+    "stepStreak": {
+     "w": 0,
+     "b": 0
+    },
+    "result": {
+     "status": "won",
+     "winner": "w",
+     "reason": "king-capture",
+     "atPly": 8
+    }
+   }
+  },
+  {
+   "seed": 2,
+   "turns": [
+    {
+     "ply": 0,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT3",
+       "from": "h1",
+       "to": "g4",
+       "steps": "797",
+       "pattern": "R:797",
+       "key": "R:979",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 1,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "f7",
+       "to": "e6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 2,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "d1",
+       "to": "c2"
+      },
+      {
+       "kind": "strike",
+       "pieceId": "wT3",
+       "from": "g4",
+       "to": "h3",
+       "via": "R:797",
+       "path": "3",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 3,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT1",
+       "from": "b8",
+       "to": "c6",
+       "steps": "1222967934",
+       "pattern": "R:1222967934",
+       "key": "R:9888143176",
+       "libraryAdded": true
+      },
+      {
+       "kind": "step",
+       "from": "d8",
+       "to": "c7"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 4,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "c2",
+       "to": "c1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 5,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "e6",
+       "to": "d5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 6,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "c1",
+       "to": "c2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 7,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT2",
+       "from": "f8",
+       "to": "h6",
+       "steps": "1763392",
+       "pattern": "J:2,-2",
+       "key": "J:2,2",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 8,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "f2",
+       "to": "e3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 9,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "c7",
+       "to": "e8",
+       "via": "R:9888143176",
+       "path": "96",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 10,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "b2",
+       "to": "c1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 11,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "e8",
+       "to": "f8"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "b7",
+       "to": "a7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 12,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "e3",
+       "to": "f4",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 13,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT2",
+       "from": "h6",
+       "to": "f4",
+       "via": "J:2,-2",
+       "path": null,
+       "captured": {
+        "id": "wW3",
+        "kind": "warden"
+       }
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 14,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "c2",
+       "to": "d3"
+      },
+      {
+       "kind": "chart",
+       "pieceId": "wT2",
+       "from": "f1",
+       "to": "h1",
+       "steps": "683",
+       "pattern": "R:683",
+       "key": "R:867",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 15,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "f8",
+       "to": "e8"
+      },
+      {
+       "kind": "chart",
+       "pieceId": "bT3",
+       "from": "h8",
+       "to": "e7",
+       "steps": "27271",
+       "pattern": "J:-3,-1",
+       "key": "J:1,3",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 16,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "d2",
+       "to": "e2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "d3",
+       "to": "c3"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 17,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "e8",
+       "to": "d8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 18,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "h2",
+       "to": "g2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "c3",
+       "to": "d3"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 19,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "d8",
+       "to": "f6",
+       "via": "J:2,2",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 20,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "e2",
+       "to": "e3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 21,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "f6",
+       "to": "g6"
+      },
+      {
+       "kind": "strike",
+       "pieceId": "bT1",
+       "from": "c6",
+       "to": "c3",
+       "via": "R:1222967934",
+       "path": "12229",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 22,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "c1",
+       "to": "b2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "d3",
+       "to": "e4"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 23,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "g6",
+       "to": "f7"
+      },
+      {
+       "kind": "chart",
+       "pieceId": "bT2",
+       "from": "f4",
+       "to": "h5",
+       "steps": "839",
+       "pattern": "R:839",
+       "key": "R:839",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 24,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "e3",
+       "to": "f4",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "e4",
+       "to": "d4"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 25,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "f7",
+       "to": "g8"
+      },
+      {
+       "kind": "chart",
+       "pieceId": "bT3",
+       "from": "e7",
+       "to": "f3",
+       "steps": "9441321393",
+       "pattern": "J:1,-4",
+       "key": "J:1,4",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 26,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT1",
+       "from": "b1",
+       "to": "c5",
+       "steps": "8794938",
+       "pattern": "J:1,4",
+       "key": "J:1,4",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 27,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT2",
+       "from": "h5",
+       "to": "g5",
+       "via": "R:839",
+       "path": "4",
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "g8",
+       "to": "g7"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 28,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "f4",
+       "to": "e3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 29,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "g7",
+       "to": "d6",
+       "via": "R:9888143176",
+       "path": "144",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 30,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "d4",
+       "to": "e4",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 31,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "d6",
+       "to": "h5",
+       "via": "J:1,4",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 32,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "e4",
+       "to": "h5",
+       "via": "R:979",
+       "path": "939",
+       "captured": {
+        "id": "bK",
+        "kind": "king"
+       }
+      }
+     ],
+     "result": {
+      "status": "won",
+      "winner": "w",
+      "reason": "king-capture",
+      "atPly": 32
+     }
+    }
+   ],
+   "finalState": {
+    "rulesVersion": 1,
+    "ply": 33,
+    "pieces": [
+     {
+      "id": "wK",
+      "side": "w",
+      "kind": "king",
+      "at": "h5",
+      "pattern": null
+     },
+     {
+      "id": "wT1",
+      "side": "w",
+      "kind": "tracer",
+      "at": "c5",
+      "pattern": "J:1,4"
+     },
+     {
+      "id": "wT2",
+      "side": "w",
+      "kind": "tracer",
+      "at": "h1",
+      "pattern": "R:683"
+     },
+     {
+      "id": "wT3",
+      "side": "w",
+      "kind": "tracer",
+      "at": "h3",
+      "pattern": "R:797"
+     },
+     {
+      "id": "wW1",
+      "side": "w",
+      "kind": "warden",
+      "at": "b2",
+      "pattern": null
+     },
+     {
+      "id": "wW2",
+      "side": "w",
+      "kind": "warden",
+      "at": "e3",
+      "pattern": null
+     },
+     {
+      "id": "wW4",
+      "side": "w",
+      "kind": "warden",
+      "at": "g2",
+      "pattern": null
+     },
+     {
+      "id": "bT1",
+      "side": "b",
+      "kind": "tracer",
+      "at": "c3",
+      "pattern": "R:1222967934"
+     },
+     {
+      "id": "bT2",
+      "side": "b",
+      "kind": "tracer",
+      "at": "g5",
+      "pattern": "R:839"
+     },
+     {
+      "id": "bT3",
+      "side": "b",
+      "kind": "tracer",
+      "at": "f3",
+      "pattern": "J:1,-4"
+     },
+     {
+      "id": "bW1",
+      "side": "b",
+      "kind": "warden",
+      "at": "a7",
+      "pattern": null
+     },
+     {
+      "id": "bW2",
+      "side": "b",
+      "kind": "warden",
+      "at": "d7",
+      "pattern": null
+     },
+     {
+      "id": "bW3",
+      "side": "b",
+      "kind": "warden",
+      "at": "d5",
+      "pattern": null
+     },
+     {
+      "id": "bW4",
+      "side": "b",
+      "kind": "warden",
+      "at": "h7",
+      "pattern": null
+     }
+    ],
+    "library": {
+     "w": [
+      "R:979",
+      "R:867",
+      "J:1,4"
+     ],
+     "b": [
+      "R:9888143176",
+      "J:2,2",
+      "J:1,3",
+      "R:839",
+      "J:1,4"
+     ]
+    },
+    "stepStreak": {
+     "w": 0,
+     "b": 0
+    },
+    "result": {
+     "status": "won",
+     "winner": "w",
+     "reason": "king-capture",
+     "atPly": 32
+    }
+   }
+  },
+  {
+   "seed": 3,
+   "turns": [
+    {
+     "ply": 0,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "d1",
+       "to": "c2"
+      },
+      {
+       "kind": "chart",
+       "pieceId": "wT1",
+       "from": "b1",
+       "to": "d1",
+       "steps": "49662",
+       "pattern": "J:2,0",
+       "key": "J:0,2",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 1,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "d8",
+       "to": "c8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 2,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "c2",
+       "to": "c3"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "f2",
+       "to": "g3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 3,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "b7",
+       "to": "c7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 4,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "c3",
+       "to": "c1",
+       "via": "J:0,2",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 5,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "h7",
+       "to": "g8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 6,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT2",
+       "from": "f1",
+       "to": "c2",
+       "steps": "8147",
+       "pattern": "J:-3,1",
+       "key": "J:1,3",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 7,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "d7",
+       "to": "d8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 8,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT1",
+       "from": "d1",
+       "to": "b3",
+       "steps": "944449",
+       "pattern": "J:-2,2",
+       "key": "J:2,2",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 9,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT3",
+       "from": "h8",
+       "to": "h7",
+       "steps": "4274339",
+       "pattern": "R:2",
+       "key": "R:8",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 10,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "c1",
+       "to": "b1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 11,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "g8",
+       "to": "g7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 12,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "b2",
+       "to": "a2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 13,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "f7",
+       "to": "f6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 14,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "b1",
+       "to": "c1"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "g3",
+       "to": "g4",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 15,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "f6",
+       "to": "g6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 16,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "h2",
+       "to": "g3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 17,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "g6",
+       "to": "g5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 18,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT3",
+       "from": "h1",
+       "to": "h2",
+       "steps": "487293",
+       "pattern": "R:8",
+       "key": "R:8",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 19,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "c8",
+       "to": "b7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 20,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT1",
+       "from": "b3",
+       "to": "d1",
+       "via": "J:-2,2",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "c1",
+       "to": "b2"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 21,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "b7",
+       "to": "a6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 22,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "b2",
+       "to": "c5",
+       "via": "J:1,3",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 23,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "g5",
+       "to": "f6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 24,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "c5",
+       "to": "d5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 25,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "a6",
+       "to": "a7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 26,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "d5",
+       "to": "e6"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "d2",
+       "to": "d3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 27,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "a7",
+       "to": "b6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 28,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT3",
+       "from": "h2",
+       "to": "e1",
+       "steps": "8114",
+       "pattern": "R:8114",
+       "key": "R:8336",
+       "libraryAdded": true
+      },
+      {
+       "kind": "step",
+       "from": "e6",
+       "to": "f7"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 29,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT3",
+       "from": "h7",
+       "to": "h8",
+       "via": "R:2",
+       "path": "8",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 30,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "f7",
+       "to": "g8"
+      },
+      {
+       "kind": "chart",
+       "pieceId": "wT3",
+       "from": "e1",
+       "to": "c1",
+       "steps": "814",
+       "pattern": "J:-2,0",
+       "key": "J:0,2",
+       "libraryAdded": false
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 31,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT2",
+       "from": "f8",
+       "to": "b5",
+       "steps": "617111",
+       "pattern": "J:-4,-3",
+       "key": "J:3,4",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 32,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "g3",
+       "to": "f3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 33,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "d8",
+       "to": "e8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 34,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT2",
+       "from": "c2",
+       "to": "b5",
+       "via": "J:-3,1",
+       "path": null,
+       "captured": {
+        "id": "bT2",
+        "kind": "tracer"
+       }
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 35,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "b6",
+       "to": "b5",
+       "via": "base",
+       "path": null,
+       "captured": {
+        "id": "wT2",
+        "kind": "tracer"
+       }
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 36,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT3",
+       "from": "c1",
+       "to": "c3",
+       "via": "J:-2,0",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "g8",
+       "to": "f8"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 37,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT3",
+       "from": "h8",
+       "to": "g8",
+       "via": "R:2",
+       "path": "4",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 38,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "a2",
+       "to": "b3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 39,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "f6",
+       "to": "g5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 40,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "g4",
+       "to": "h4",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 41,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "b5",
+       "to": "b4"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "g7",
+       "to": "f8",
+       "via": "base",
+       "path": null,
+       "captured": {
+        "id": "wK",
+        "kind": "king"
+       }
+      }
+     ],
+     "result": {
+      "status": "won",
+      "winner": "b",
+      "reason": "king-capture",
+      "atPly": 41
+     }
+    }
+   ],
+   "finalState": {
+    "rulesVersion": 1,
+    "ply": 42,
+    "pieces": [
+     {
+      "id": "wT1",
+      "side": "w",
+      "kind": "tracer",
+      "at": "d1",
+      "pattern": "J:-2,2"
+     },
+     {
+      "id": "wT3",
+      "side": "w",
+      "kind": "tracer",
+      "at": "c3",
+      "pattern": "J:-2,0"
+     },
+     {
+      "id": "wW1",
+      "side": "w",
+      "kind": "warden",
+      "at": "b3",
+      "pattern": null
+     },
+     {
+      "id": "wW2",
+      "side": "w",
+      "kind": "warden",
+      "at": "d3",
+      "pattern": null
+     },
+     {
+      "id": "wW3",
+      "side": "w",
+      "kind": "warden",
+      "at": "h4",
+      "pattern": null
+     },
+     {
+      "id": "wW4",
+      "side": "w",
+      "kind": "warden",
+      "at": "f3",
+      "pattern": null
+     },
+     {
+      "id": "bK",
+      "side": "b",
+      "kind": "king",
+      "at": "b4",
+      "pattern": null
+     },
+     {
+      "id": "bT1",
+      "side": "b",
+      "kind": "tracer",
+      "at": "b8",
+      "pattern": null
+     },
+     {
+      "id": "bT3",
+      "side": "b",
+      "kind": "tracer",
+      "at": "g8",
+      "pattern": "R:2"
+     },
+     {
+      "id": "bW1",
+      "side": "b",
+      "kind": "warden",
+      "at": "c7",
+      "pattern": null
+     },
+     {
+      "id": "bW2",
+      "side": "b",
+      "kind": "warden",
+      "at": "e8",
+      "pattern": null
+     },
+     {
+      "id": "bW3",
+      "side": "b",
+      "kind": "warden",
+      "at": "g5",
+      "pattern": null
+     },
+     {
+      "id": "bW4",
+      "side": "b",
+      "kind": "warden",
+      "at": "f8",
+      "pattern": null
+     }
+    ],
+    "library": {
+     "w": [
+      "J:0,2",
+      "J:1,3",
+      "J:2,2",
+      "R:8",
+      "R:8336"
+     ],
+     "b": [
+      "R:8",
+      "J:3,4"
+     ]
+    },
+    "stepStreak": {
+     "w": 0,
+     "b": 0
+    },
+    "result": {
+     "status": "won",
+     "winner": "b",
+     "reason": "king-capture",
+     "atPly": 41
+    }
+   }
+  },
+  {
+   "seed": 4,
+   "turns": [
+    {
+     "ply": 0,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "f2",
+       "to": "e2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 1,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "b7",
+       "to": "a8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 2,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "e2",
+       "to": "f3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 3,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT3",
+       "from": "h8",
+       "to": "c5",
+       "steps": "17423144",
+       "pattern": "J:-5,-3",
+       "key": "J:3,5",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 4,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "d1",
+       "to": "e2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 5,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT3",
+       "from": "c5",
+       "to": "h8",
+       "via": "J:-5,-3",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 6,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "b2",
+       "to": "c1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 7,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "d8",
+       "to": "c8"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "h7",
+       "to": "h6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 8,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "e2",
+       "to": "d3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 9,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT1",
+       "from": "b8",
+       "to": "e7",
+       "steps": "63493",
+       "pattern": "J:3,-1",
+       "key": "J:1,3",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 10,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "c1",
+       "to": "c2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "d3",
+       "to": "e2"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 11,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "f7",
+       "to": "e6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 12,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "h2",
+       "to": "g3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "e2",
+       "to": "d3"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 13,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "c8",
+       "to": "d8"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "h6",
+       "to": "g7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 14,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "d3",
+       "to": "e2"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "g3",
+       "to": "h3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 15,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "d8",
+       "to": "c5",
+       "via": "J:1,3",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 16,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "e2",
+       "to": "e3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 17,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "d7",
+       "to": "c7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "c5",
+       "to": "b6"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 18,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "d2",
+       "to": "c3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 19,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "g7",
+       "to": "h7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "b6",
+       "to": "c6"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 20,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "e3",
+       "to": "e2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 21,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "c6",
+       "to": "b7"
+      },
+      {
+       "kind": "strike",
+       "pieceId": "bT3",
+       "from": "h8",
+       "to": "e3",
+       "via": "J:-5,-3",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 22,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "c2",
+       "to": "c1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 23,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "b7",
+       "to": "c4",
+       "via": "J:1,3",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 24,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "c1",
+       "to": "b2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 25,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT2",
+       "from": "f8",
+       "to": "b8",
+       "steps": "6217174486",
+       "pattern": "J:-4,0",
+       "key": "J:0,4",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 26,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "h3",
+       "to": "g4",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 27,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "c4",
+       "to": "b7",
+       "via": "J:1,3",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 28,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "e2",
+       "to": "f2"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "c3",
+       "to": "d2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 29,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "a8",
+       "to": "a7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 30,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "f2",
+       "to": "g2"
+      },
+      {
+       "kind": "chart",
+       "pieceId": "wT3",
+       "from": "h1",
+       "to": "c3",
+       "steps": "479214487",
+       "pattern": "J:-5,2",
+       "key": "J:2,5",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 31,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "c7",
+       "to": "b6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "b7",
+       "to": "c6"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 32,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT1",
+       "from": "b1",
+       "to": "b3",
+       "steps": "97",
+       "pattern": "R:97",
+       "key": "R:97",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 33,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "h7",
+       "to": "g8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 34,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "f3",
+       "to": "f4",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "g2",
+       "to": "h3"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 35,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "e6",
+       "to": "f6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 36,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "h3",
+       "to": "c1",
+       "via": "J:2,5",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 37,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "b6",
+       "to": "b7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "c6",
+       "to": "c5"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 38,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT3",
+       "from": "c3",
+       "to": "a8",
+       "via": "J:-5,2",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 39,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT3",
+       "from": "e3",
+       "to": "h8",
+       "steps": "7698768629",
+       "pattern": "J:3,5",
+       "key": "J:3,5",
+       "libraryAdded": false
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 40,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "c1",
+       "to": "c2"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "f4",
+       "to": "g5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 41,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT1",
+       "from": "e7",
+       "to": "f4",
+       "steps": "9271723236",
+       "pattern": "R:9271723236",
+       "key": "R:9431347478",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 42,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "c2",
+       "to": "e7",
+       "via": "J:2,5",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 43,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "g8",
+       "to": "h7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 44,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "b2",
+       "to": "c2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 45,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "h7",
+       "to": "g7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 46,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "e7",
+       "to": "g7",
+       "via": "R:97",
+       "path": "93",
+       "captured": {
+        "id": "bW4",
+        "kind": "warden"
+       }
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 47,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "c5",
+       "to": "d7",
+       "via": "R:9431347478",
+       "path": "34979",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 48,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "d2",
+       "to": "e3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 49,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "d7",
+       "to": "c5",
+       "via": "R:9431347478",
+       "path": "76131",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 50,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "g5",
+       "to": "f5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 51,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "a7",
+       "to": "a8",
+       "via": "base",
+       "path": null,
+       "captured": {
+        "id": "wT3",
+        "kind": "tracer"
+       }
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 52,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "c2",
+       "to": "d1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 53,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "c5",
+       "to": "d6"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "a8",
+       "to": "a7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 54,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "g7",
+       "to": "g6"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "g4",
+       "to": "h5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 55,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT1",
+       "from": "f4",
+       "to": "f7",
+       "via": "R:9271723236",
+       "path": "381718989",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 56,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "g6",
+       "to": "h7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 57,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "d6",
+       "to": "e8",
+       "via": "R:9431347478",
+       "path": "34979",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 58,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT2",
+       "from": "f1",
+       "to": "g2",
+       "steps": "667",
+       "pattern": "R:667",
+       "key": "R:883",
+       "libraryAdded": true
+      },
+      {
+       "kind": "step",
+       "from": "h7",
+       "to": "h6"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 59,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT1",
+       "from": "f7",
+       "to": "g4",
+       "via": "R:9271723236",
+       "path": "9271723236",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    }
+   ],
+   "finalState": {
+    "rulesVersion": 1,
+    "ply": 60,
+    "pieces": [
+     {
+      "id": "wK",
+      "side": "w",
+      "kind": "king",
+      "at": "h6",
+      "pattern": null
+     },
+     {
+      "id": "wT1",
+      "side": "w",
+      "kind": "tracer",
+      "at": "b3",
+      "pattern": "R:97"
+     },
+     {
+      "id": "wT2",
+      "side": "w",
+      "kind": "tracer",
+      "at": "g2",
+      "pattern": "R:667"
+     },
+     {
+      "id": "wW1",
+      "side": "w",
+      "kind": "warden",
+      "at": "d1",
+      "pattern": null
+     },
+     {
+      "id": "wW2",
+      "side": "w",
+      "kind": "warden",
+      "at": "e3",
+      "pattern": null
+     },
+     {
+      "id": "wW3",
+      "side": "w",
+      "kind": "warden",
+      "at": "f5",
+      "pattern": null
+     },
+     {
+      "id": "wW4",
+      "side": "w",
+      "kind": "warden",
+      "at": "h5",
+      "pattern": null
+     },
+     {
+      "id": "bK",
+      "side": "b",
+      "kind": "king",
+      "at": "e8",
+      "pattern": null
+     },
+     {
+      "id": "bT1",
+      "side": "b",
+      "kind": "tracer",
+      "at": "g4",
+      "pattern": "R:9271723236"
+     },
+     {
+      "id": "bT2",
+      "side": "b",
+      "kind": "tracer",
+      "at": "b8",
+      "pattern": "J:-4,0"
+     },
+     {
+      "id": "bT3",
+      "side": "b",
+      "kind": "tracer",
+      "at": "h8",
+      "pattern": "J:3,5"
+     },
+     {
+      "id": "bW1",
+      "side": "b",
+      "kind": "warden",
+      "at": "a7",
+      "pattern": null
+     },
+     {
+      "id": "bW2",
+      "side": "b",
+      "kind": "warden",
+      "at": "b7",
+      "pattern": null
+     },
+     {
+      "id": "bW3",
+      "side": "b",
+      "kind": "warden",
+      "at": "f6",
+      "pattern": null
+     }
+    ],
+    "library": {
+     "w": [
+      "J:2,5",
+      "R:97",
+      "R:883"
+     ],
+     "b": [
+      "J:3,5",
+      "J:1,3",
+      "J:0,4",
+      "R:9431347478"
+     ]
+    },
+    "stepStreak": {
+     "w": 1,
+     "b": 0
+    },
+    "result": {
+     "status": "active"
+    }
+   }
+  },
+  {
+   "seed": 5,
+   "turns": [
+    {
+     "ply": 0,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "f2",
+       "to": "g1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 1,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "d8",
+       "to": "c8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 2,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "b2",
+       "to": "c3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "d1",
+       "to": "e2"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 3,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT1",
+       "from": "b8",
+       "to": "d8",
+       "steps": "29268",
+       "pattern": "J:2,0",
+       "key": "J:0,2",
+       "libraryAdded": true
+      },
+      {
+       "kind": "step",
+       "from": "c8",
+       "to": "c7"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 4,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT2",
+       "from": "f1",
+       "to": "f3",
+       "steps": "79",
+       "pattern": "J:0,2",
+       "key": "J:0,2",
+       "libraryAdded": true
+      },
+      {
+       "kind": "step",
+       "from": "e2",
+       "to": "d1"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 5,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT3",
+       "from": "h8",
+       "to": "d6",
+       "steps": "1318794421",
+       "pattern": "J:-4,-2",
+       "key": "J:2,4",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 6,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT3",
+       "from": "h1",
+       "to": "g3",
+       "steps": "71844966",
+       "pattern": "J:-1,2",
+       "key": "J:1,2",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 7,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "c7",
+       "to": "c8"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "h7",
+       "to": "g6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 8,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT1",
+       "from": "b1",
+       "to": "b2",
+       "steps": "8",
+       "pattern": "R:8",
+       "key": "R:8",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 9,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "g6",
+       "to": "f5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 10,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT2",
+       "from": "f3",
+       "to": "h3",
+       "via": "J:0,2",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 11,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "f5",
+       "to": "e6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 12,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "d1",
+       "to": "c2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 13,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT2",
+       "from": "f8",
+       "to": "c6",
+       "steps": "411",
+       "pattern": "J:-3,-2",
+       "key": "J:2,3",
+       "libraryAdded": true
+      },
+      {
+       "kind": "step",
+       "from": "c8",
+       "to": "b8"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 14,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT1",
+       "from": "b2",
+       "to": "a4",
+       "steps": "3883897144",
+       "pattern": "J:-1,2",
+       "key": "J:1,2",
+       "libraryAdded": false
+      },
+      {
+       "kind": "step",
+       "from": "c2",
+       "to": "d1"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 15,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "f7",
+       "to": "f6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 16,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "d1",
+       "to": "b1",
+       "via": "J:0,2",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 17,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "b8",
+       "to": "a8"
+      },
+      {
+       "kind": "strike",
+       "pieceId": "bT2",
+       "from": "c6",
+       "to": "e3",
+       "via": "J:-3,-2",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 18,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT2",
+       "from": "h3",
+       "to": "f3",
+       "steps": "7684871232",
+       "pattern": "J:-2,0",
+       "key": "J:0,2",
+       "libraryAdded": false
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 19,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "d7",
+       "to": "e8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 20,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT1",
+       "from": "a4",
+       "to": "b3",
+       "steps": "3",
+       "pattern": "R:3",
+       "key": "R:9",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 21,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT2",
+       "from": "e3",
+       "to": "f5",
+       "steps": "339278677",
+       "pattern": "J:1,2",
+       "key": "J:1,2",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 22,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "d2",
+       "to": "e2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 23,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "b7",
+       "to": "c6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "a8",
+       "to": "a7"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 24,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "b1",
+       "to": "a1"
+      },
+      {
+       "kind": "chart",
+       "pieceId": "wT3",
+       "from": "g3",
+       "to": "c2",
+       "steps": "13814817",
+       "pattern": "J:-4,-1",
+       "key": "J:1,4",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 25,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT3",
+       "from": "d6",
+       "to": "a8",
+       "steps": "7841297",
+       "pattern": "J:-3,2",
+       "key": "J:2,3",
+       "libraryAdded": false
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 26,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "a1",
+       "to": "c1",
+       "via": "J:0,2",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 27,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT3",
+       "from": "a8",
+       "to": "d6",
+       "steps": "63229",
+       "pattern": "J:3,-2",
+       "key": "J:2,3",
+       "libraryAdded": false
+      },
+      {
+       "kind": "step",
+       "from": "a7",
+       "to": "b8"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 28,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT1",
+       "from": "b3",
+       "to": "g3",
+       "steps": "1888636933",
+       "pattern": "R:1888636933",
+       "key": "R:9444232133",
+       "libraryAdded": true
+      },
+      {
+       "kind": "step",
+       "from": "c1",
+       "to": "d1"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 29,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "f6",
+       "to": "g7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 30,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT1",
+       "from": "g3",
+       "to": "c4",
+       "steps": "677414",
+       "pattern": "J:-4,1",
+       "key": "J:1,4",
+       "libraryAdded": false
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 31,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "b8",
+       "to": "b7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 32,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "h2",
+       "to": "h3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 33,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT1",
+       "from": "d8",
+       "to": "f8",
+       "via": "J:2,0",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 34,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT1",
+       "from": "c4",
+       "to": "b8",
+       "via": "J:-4,1",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 35,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT1",
+       "from": "f8",
+       "to": "d8",
+       "via": "J:2,0",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 36,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "e2",
+       "to": "d2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 37,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT3",
+       "from": "d6",
+       "to": "d3",
+       "steps": "4223",
+       "pattern": "J:0,-3",
+       "key": "J:0,3",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 38,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT2",
+       "from": "f3",
+       "to": "f1",
+       "steps": "3862244",
+       "pattern": "J:0,-2",
+       "key": "J:0,2",
+       "libraryAdded": false
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 39,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "b7",
+       "to": "c8"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "g7",
+       "to": "h7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 40,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "d1",
+       "to": "e2"
+      },
+      {
+       "kind": "chart",
+       "pieceId": "wT1",
+       "from": "b8",
+       "to": "b7",
+       "steps": "624",
+       "pattern": "R:2",
+       "key": "R:8",
+       "libraryAdded": false
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 41,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "c6",
+       "to": "b6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "c8",
+       "to": "c7"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 42,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "e2",
+       "to": "e1"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "d2",
+       "to": "d1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 43,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "h7",
+       "to": "g7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 44,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT2",
+       "from": "f1",
+       "to": "e3",
+       "steps": "481499",
+       "pattern": "J:-1,2",
+       "key": "J:1,2",
+       "libraryAdded": false
+      },
+      {
+       "kind": "step",
+       "from": "e1",
+       "to": "e2"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 45,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT2",
+       "from": "f5",
+       "to": "e3",
+       "via": "J:1,2",
+       "path": null,
+       "captured": {
+        "id": "wT2",
+        "kind": "tracer"
+       }
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 46,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT1",
+       "from": "b7",
+       "to": "b8",
+       "via": "R:2",
+       "path": "8",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 47,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "b6",
+       "to": "a6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "c7",
+       "to": "d6"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 48,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "h3",
+       "to": "g2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 49,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "d6",
+       "to": "c6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 50,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "g2",
+       "to": "f3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 51,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT3",
+       "from": "d3",
+       "to": "a3",
+       "via": "J:0,-3",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "c6",
+       "to": "c5"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 52,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT3",
+       "from": "c2",
+       "to": "d6",
+       "via": "J:-4,-1",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "e2",
+       "to": "f2"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 53,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "g7",
+       "to": "g6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 54,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "f2",
+       "to": "b3",
+       "via": "J:1,4",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 55,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "a6",
+       "to": "b5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "c5",
+       "to": "b4"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 56,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "b3",
+       "to": "b2"
+      },
+      {
+       "kind": "strike",
+       "pieceId": "wT1",
+       "from": "b8",
+       "to": "c8",
+       "via": "R:2",
+       "path": "6",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 57,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT1",
+       "from": "d8",
+       "to": "d7",
+       "steps": "2",
+       "pattern": "R:2",
+       "key": "R:8",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 58,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "c3",
+       "to": "d3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 59,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "e6",
+       "to": "e7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    }
+   ],
+   "finalState": {
+    "rulesVersion": 1,
+    "ply": 60,
+    "pieces": [
+     {
+      "id": "wK",
+      "side": "w",
+      "kind": "king",
+      "at": "b2",
+      "pattern": null
+     },
+     {
+      "id": "wT1",
+      "side": "w",
+      "kind": "tracer",
+      "at": "c8",
+      "pattern": "R:2"
+     },
+     {
+      "id": "wT3",
+      "side": "w",
+      "kind": "tracer",
+      "at": "d6",
+      "pattern": "J:-4,-1"
+     },
+     {
+      "id": "wW1",
+      "side": "w",
+      "kind": "warden",
+      "at": "d3",
+      "pattern": null
+     },
+     {
+      "id": "wW2",
+      "side": "w",
+      "kind": "warden",
+      "at": "d1",
+      "pattern": null
+     },
+     {
+      "id": "wW3",
+      "side": "w",
+      "kind": "warden",
+      "at": "g1",
+      "pattern": null
+     },
+     {
+      "id": "wW4",
+      "side": "w",
+      "kind": "warden",
+      "at": "f3",
+      "pattern": null
+     },
+     {
+      "id": "bK",
+      "side": "b",
+      "kind": "king",
+      "at": "b4",
+      "pattern": null
+     },
+     {
+      "id": "bT1",
+      "side": "b",
+      "kind": "tracer",
+      "at": "d7",
+      "pattern": "R:2"
+     },
+     {
+      "id": "bT2",
+      "side": "b",
+      "kind": "tracer",
+      "at": "e3",
+      "pattern": "J:1,2"
+     },
+     {
+      "id": "bT3",
+      "side": "b",
+      "kind": "tracer",
+      "at": "a3",
+      "pattern": "J:0,-3"
+     },
+     {
+      "id": "bW1",
+      "side": "b",
+      "kind": "warden",
+      "at": "b5",
+      "pattern": null
+     },
+     {
+      "id": "bW2",
+      "side": "b",
+      "kind": "warden",
+      "at": "e8",
+      "pattern": null
+     },
+     {
+      "id": "bW3",
+      "side": "b",
+      "kind": "warden",
+      "at": "g6",
+      "pattern": null
+     },
+     {
+      "id": "bW4",
+      "side": "b",
+      "kind": "warden",
+      "at": "e7",
+      "pattern": null
+     }
+    ],
+    "library": {
+     "w": [
+      "J:0,2",
+      "J:1,2",
+      "R:8",
+      "R:9",
+      "J:1,4",
+      "R:9444232133"
+     ],
+     "b": [
+      "J:0,2",
+      "J:2,4",
+      "J:2,3",
+      "J:1,2",
+      "J:0,3",
+      "R:8"
+     ]
+    },
+    "stepStreak": {
+     "w": 0,
+     "b": 0
+    },
+    "result": {
+     "status": "active"
+    }
+   }
+  },
+  {
+   "seed": 6,
+   "turns": [
+    {
+     "ply": 0,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT1",
+       "from": "b1",
+       "to": "a2",
+       "steps": "7",
+       "pattern": "R:7",
+       "key": "R:9",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 1,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "b7",
+       "to": "c6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "d8",
+       "to": "e8"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 2,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "h2",
+       "to": "h3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 3,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "h7",
+       "to": "g8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 4,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "b2",
+       "to": "b1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "d1",
+       "to": "c1"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 5,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "d7",
+       "to": "e7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 6,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "h3",
+       "to": "g4",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 7,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "e8",
+       "to": "d7"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "f7",
+       "to": "g7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 8,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "c1",
+       "to": "d1"
+      },
+      {
+       "kind": "chart",
+       "pieceId": "wT1",
+       "from": "a2",
+       "to": "b2",
+       "steps": "367",
+       "pattern": "R:6",
+       "key": "R:8",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 9,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "d7",
+       "to": "e8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 10,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT1",
+       "from": "b2",
+       "to": "e1",
+       "steps": "16936",
+       "pattern": "J:3,-1",
+       "key": "J:1,3",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 11,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "e8",
+       "to": "d7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 12,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "d2",
+       "to": "d3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 13,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "d7",
+       "to": "c8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 14,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "d1",
+       "to": "e2"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "f2",
+       "to": "g1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 15,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "c8",
+       "to": "d7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 16,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "g1",
+       "to": "g2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 17,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "d7",
+       "to": "d6"
+      },
+      {
+       "kind": "chart",
+       "pieceId": "bT2",
+       "from": "f8",
+       "to": "g6",
+       "steps": "334",
+       "pattern": "J:1,-2",
+       "key": "J:1,2",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 18,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT2",
+       "from": "f1",
+       "to": "b4",
+       "steps": "81718488",
+       "pattern": "J:-4,3",
+       "key": "J:3,4",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 19,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "d6",
+       "to": "d7"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "e7",
+       "to": "e6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 20,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT1",
+       "from": "e1",
+       "to": "d1",
+       "steps": "4",
+       "pattern": "R:4",
+       "key": "R:8",
+       "libraryAdded": false
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 21,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "c6",
+       "to": "c5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 22,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "b1",
+       "to": "a2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 23,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT2",
+       "from": "g6",
+       "to": "c6",
+       "steps": "781271",
+       "pattern": "J:-4,0",
+       "key": "J:0,4",
+       "libraryAdded": true
+      },
+      {
+       "kind": "step",
+       "from": "d7",
+       "to": "c8"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 24,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT1",
+       "from": "d1",
+       "to": "e1",
+       "via": "R:4",
+       "path": "6",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 25,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT3",
+       "from": "h8",
+       "to": "h5",
+       "steps": "222",
+       "pattern": "R:222",
+       "key": "R:888",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 26,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "g4",
+       "to": "f4",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 27,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "g7",
+       "to": "f6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 28,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "e2",
+       "to": "f3"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "d3",
+       "to": "e3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 29,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "c8",
+       "to": "b6",
+       "via": "J:1,2",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 30,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "f3",
+       "to": "g3"
+      },
+      {
+       "kind": "strike",
+       "pieceId": "wT2",
+       "from": "b4",
+       "to": "f7",
+       "via": "J:-4,3",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 31,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT3",
+       "from": "h5",
+       "to": "h6",
+       "via": "R:222",
+       "path": "8",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 32,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT2",
+       "from": "f7",
+       "to": "c3",
+       "via": "J:-4,3",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 33,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "b6",
+       "to": "c7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 34,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "e3",
+       "to": "e4",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "g3",
+       "to": "f3"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 35,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "f6",
+       "to": "g7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 36,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT1",
+       "from": "e1",
+       "to": "d5",
+       "steps": "8833974748",
+       "pattern": "J:-1,4",
+       "key": "J:1,4",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 37,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "c7",
+       "to": "c8"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "g8",
+       "to": "f8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 38,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "f4",
+       "to": "g3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 39,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "e6",
+       "to": "f6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 40,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "f3",
+       "to": "f2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 41,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT3",
+       "from": "h6",
+       "to": "h3",
+       "via": "R:222",
+       "path": "222",
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "c8",
+       "to": "d8"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 42,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "e4",
+       "to": "d3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "f2",
+       "to": "f1"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 43,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "d8",
+       "to": "c7"
+      },
+      {
+       "kind": "strike",
+       "pieceId": "bT3",
+       "from": "h3",
+       "to": "h5",
+       "via": "R:222",
+       "path": "88",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 44,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT2",
+       "from": "c3",
+       "to": "f7",
+       "via": "J:-4,3",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "f1",
+       "to": "e2"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 45,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "f6",
+       "to": "f7",
+       "via": "base",
+       "path": null,
+       "captured": {
+        "id": "wT2",
+        "kind": "tracer"
+       }
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 46,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "g2",
+       "to": "f2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "e2",
+       "to": "d1"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 47,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "c7",
+       "to": "b7"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "f8",
+       "to": "e7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 48,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "a2",
+       "to": "b3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 49,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT1",
+       "from": "b8",
+       "to": "a6",
+       "steps": "12",
+       "pattern": "R:12",
+       "key": "R:98",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 50,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "d1",
+       "to": "e2"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "f2",
+       "to": "e1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 51,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "g7",
+       "to": "h6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "b7",
+       "to": "a8"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 52,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT1",
+       "from": "d5",
+       "to": "c1",
+       "via": "J:-1,4",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "e2",
+       "to": "d1"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 53,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT2",
+       "from": "c6",
+       "to": "g6",
+       "via": "J:-4,0",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "a8",
+       "to": "b8"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 54,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "g3",
+       "to": "f4",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 55,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "b8",
+       "to": "c8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 56,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "d1",
+       "to": "c5",
+       "via": "J:1,4",
+       "path": null,
+       "captured": {
+        "id": "bW1",
+        "kind": "warden"
+       }
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 57,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "h6",
+       "to": "h7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 58,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "c5",
+       "to": "c4",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 59,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "e7",
+       "to": "d8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    }
+   ],
+   "finalState": {
+    "rulesVersion": 1,
+    "ply": 60,
+    "pieces": [
+     {
+      "id": "wK",
+      "side": "w",
+      "kind": "king",
+      "at": "c4",
+      "pattern": null
+     },
+     {
+      "id": "wT1",
+      "side": "w",
+      "kind": "tracer",
+      "at": "c1",
+      "pattern": "J:-1,4"
+     },
+     {
+      "id": "wT3",
+      "side": "w",
+      "kind": "tracer",
+      "at": "h1",
+      "pattern": null
+     },
+     {
+      "id": "wW1",
+      "side": "w",
+      "kind": "warden",
+      "at": "b3",
+      "pattern": null
+     },
+     {
+      "id": "wW2",
+      "side": "w",
+      "kind": "warden",
+      "at": "d3",
+      "pattern": null
+     },
+     {
+      "id": "wW3",
+      "side": "w",
+      "kind": "warden",
+      "at": "e1",
+      "pattern": null
+     },
+     {
+      "id": "wW4",
+      "side": "w",
+      "kind": "warden",
+      "at": "f4",
+      "pattern": null
+     },
+     {
+      "id": "bK",
+      "side": "b",
+      "kind": "king",
+      "at": "c8",
+      "pattern": null
+     },
+     {
+      "id": "bT1",
+      "side": "b",
+      "kind": "tracer",
+      "at": "a6",
+      "pattern": "R:12"
+     },
+     {
+      "id": "bT2",
+      "side": "b",
+      "kind": "tracer",
+      "at": "g6",
+      "pattern": "J:-4,0"
+     },
+     {
+      "id": "bT3",
+      "side": "b",
+      "kind": "tracer",
+      "at": "h5",
+      "pattern": "R:222"
+     },
+     {
+      "id": "bW2",
+      "side": "b",
+      "kind": "warden",
+      "at": "f7",
+      "pattern": null
+     },
+     {
+      "id": "bW3",
+      "side": "b",
+      "kind": "warden",
+      "at": "h7",
+      "pattern": null
+     },
+     {
+      "id": "bW4",
+      "side": "b",
+      "kind": "warden",
+      "at": "d8",
+      "pattern": null
+     }
+    ],
+    "library": {
+     "w": [
+      "R:9",
+      "R:8",
+      "J:1,3",
+      "J:3,4",
+      "J:1,4"
+     ],
+     "b": [
+      "J:1,2",
+      "J:0,4",
+      "R:888",
+      "R:98"
+     ]
+    },
+    "stepStreak": {
+     "w": 0,
+     "b": 0
+    },
+    "result": {
+     "status": "active"
+    }
+   }
+  },
+  {
+   "seed": 7,
+   "turns": [
+    {
+     "ply": 0,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "d1",
+       "to": "c1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 1,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "d7",
+       "to": "c7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 2,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT2",
+       "from": "f1",
+       "to": "f3",
+       "steps": "836874",
+       "pattern": "J:0,2",
+       "key": "J:0,2",
+       "libraryAdded": true
+      },
+      {
+       "kind": "step",
+       "from": "c1",
+       "to": "d1"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 3,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "h7",
+       "to": "g6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 4,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "d1",
+       "to": "c1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 5,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "d8",
+       "to": "e7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 6,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "f2",
+       "to": "e1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 7,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "c7",
+       "to": "c8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 8,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "c1",
+       "to": "d1"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "h2",
+       "to": "h3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 9,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "e7",
+       "to": "f6"
+      },
+      {
+       "kind": "chart",
+       "pieceId": "bT1",
+       "from": "b8",
+       "to": "a8",
+       "steps": "4",
+       "pattern": "R:4",
+       "key": "R:8",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 10,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "d1",
+       "to": "c2"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "d2",
+       "to": "d3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 11,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "f6",
+       "to": "g7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 12,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT2",
+       "from": "f3",
+       "to": "f5",
+       "via": "J:0,2",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "c2",
+       "to": "b3"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 13,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "f7",
+       "to": "e8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 14,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "b3",
+       "to": "a4",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 15,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "g6",
+       "to": "h7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 16,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "h3",
+       "to": "h4",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 17,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT1",
+       "from": "a8",
+       "to": "a7",
+       "via": "R:4",
+       "path": "2",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 18,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "e1",
+       "to": "f2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 19,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "b7",
+       "to": "c7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 20,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT3",
+       "from": "h1",
+       "to": "g2",
+       "steps": "449",
+       "pattern": "R:449",
+       "key": "R:883",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 21,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT1",
+       "from": "a7",
+       "to": "b7",
+       "via": "R:4",
+       "path": "6",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 22,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT2",
+       "from": "f5",
+       "to": "f3",
+       "via": "J:0,2",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 23,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "e8",
+       "to": "d7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 24,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "b2",
+       "to": "c1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "a4",
+       "to": "b3"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 25,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "d7",
+       "to": "e7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 26,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "f2",
+       "to": "g3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 27,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "c8",
+       "to": "d8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 28,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "b3",
+       "to": "c3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 29,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "g7",
+       "to": "h6"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "c7",
+       "to": "c6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 30,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "c3",
+       "to": "b2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 31,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "h6",
+       "to": "g5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 32,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "b2",
+       "to": "d2",
+       "via": "J:0,2",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 33,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT1",
+       "from": "b7",
+       "to": "c8",
+       "steps": "48638",
+       "pattern": "R:48638",
+       "key": "R:86216",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 34,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "c1",
+       "to": "c2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 35,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "h7",
+       "to": "h6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "g5",
+       "to": "h5"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 36,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "h4",
+       "to": "g5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 37,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "c6",
+       "to": "d5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 38,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "g5",
+       "to": "g6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 39,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "d8",
+       "to": "e8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 40,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT2",
+       "from": "f3",
+       "to": "f1",
+       "via": "J:0,2",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 41,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT3",
+       "from": "h8",
+       "to": "g8",
+       "steps": "167",
+       "pattern": "R:167",
+       "key": "R:943",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 42,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT2",
+       "from": "f1",
+       "to": "e6",
+       "steps": "98892747",
+       "pattern": "J:-1,5",
+       "key": "J:1,5",
+       "libraryAdded": true
+      },
+      {
+       "kind": "step",
+       "from": "d2",
+       "to": "c3"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 43,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "e7",
+       "to": "d7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 44,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "c3",
+       "to": "c4"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "g3",
+       "to": "h3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 45,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "d5",
+       "to": "e6",
+       "via": "base",
+       "path": null,
+       "captured": {
+        "id": "wT2",
+        "kind": "tracer"
+       }
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 46,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "c4",
+       "to": "c3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 47,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "e6",
+       "to": "f5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 48,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "d3",
+       "to": "e4",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "c3",
+       "to": "b3"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 49,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "d7",
+       "to": "e6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 50,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "b3",
+       "to": "b4"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "g6",
+       "to": "f5",
+       "via": "base",
+       "path": null,
+       "captured": {
+        "id": "bW1",
+        "kind": "warden"
+       }
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 51,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "h5",
+       "to": "g6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 52,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "e4",
+       "to": "e3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 53,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT1",
+       "from": "c8",
+       "to": "c6",
+       "steps": "1138786334",
+       "pattern": "R:1138786334",
+       "key": "R:9972324776",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 54,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "b4",
+       "to": "d4",
+       "via": "J:0,2",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 55,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "e6",
+       "to": "e7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "g6",
+       "to": "h5"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 56,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "d4",
+       "to": "c3"
+      },
+      {
+       "kind": "strike",
+       "pieceId": "wT3",
+       "from": "g2",
+       "to": "g3",
+       "via": "R:449",
+       "path": "8",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 57,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "e7",
+       "to": "e6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 58,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "c3",
+       "to": "c5",
+       "via": "J:0,2",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 59,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "e6",
+       "to": "e5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    }
+   ],
+   "finalState": {
+    "rulesVersion": 1,
+    "ply": 60,
+    "pieces": [
+     {
+      "id": "wK",
+      "side": "w",
+      "kind": "king",
+      "at": "c5",
+      "pattern": null
+     },
+     {
+      "id": "wT1",
+      "side": "w",
+      "kind": "tracer",
+      "at": "b1",
+      "pattern": null
+     },
+     {
+      "id": "wT3",
+      "side": "w",
+      "kind": "tracer",
+      "at": "g3",
+      "pattern": "R:449"
+     },
+     {
+      "id": "wW1",
+      "side": "w",
+      "kind": "warden",
+      "at": "c2",
+      "pattern": null
+     },
+     {
+      "id": "wW2",
+      "side": "w",
+      "kind": "warden",
+      "at": "e3",
+      "pattern": null
+     },
+     {
+      "id": "wW3",
+      "side": "w",
+      "kind": "warden",
+      "at": "h3",
+      "pattern": null
+     },
+     {
+      "id": "wW4",
+      "side": "w",
+      "kind": "warden",
+      "at": "f5",
+      "pattern": null
+     },
+     {
+      "id": "bK",
+      "side": "b",
+      "kind": "king",
+      "at": "h5",
+      "pattern": null
+     },
+     {
+      "id": "bT1",
+      "side": "b",
+      "kind": "tracer",
+      "at": "c6",
+      "pattern": "R:1138786334"
+     },
+     {
+      "id": "bT2",
+      "side": "b",
+      "kind": "tracer",
+      "at": "f8",
+      "pattern": null
+     },
+     {
+      "id": "bT3",
+      "side": "b",
+      "kind": "tracer",
+      "at": "g8",
+      "pattern": "R:167"
+     },
+     {
+      "id": "bW2",
+      "side": "b",
+      "kind": "warden",
+      "at": "e8",
+      "pattern": null
+     },
+     {
+      "id": "bW3",
+      "side": "b",
+      "kind": "warden",
+      "at": "e5",
+      "pattern": null
+     },
+     {
+      "id": "bW4",
+      "side": "b",
+      "kind": "warden",
+      "at": "h6",
+      "pattern": null
+     }
+    ],
+    "library": {
+     "w": [
+      "J:0,2",
+      "R:883",
+      "J:1,5"
+     ],
+     "b": [
+      "R:8",
+      "R:86216",
+      "R:943",
+      "R:9972324776"
+     ]
+    },
+    "stepStreak": {
+     "w": 0,
+     "b": 0
+    },
+    "result": {
+     "status": "active"
+    }
+   }
+  },
+  {
+   "seed": 8,
+   "turns": [
+    {
+     "ply": 0,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "d1",
+       "to": "c2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 1,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "d7",
+       "to": "e7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 2,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "f2",
+       "to": "e1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 3,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW1",
+       "from": "b7",
+       "to": "c6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 4,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "c2",
+       "to": "d3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 5,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "f7",
+       "to": "g8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 6,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "h2",
+       "to": "g3",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 7,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "d8",
+       "to": "d7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 8,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "g3",
+       "to": "g2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 9,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "d7",
+       "to": "c8",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 10,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT3",
+       "from": "h1",
+       "to": "c2",
+       "steps": "47471",
+       "pattern": "J:-5,1",
+       "key": "J:1,5",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 11,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT2",
+       "from": "f8",
+       "to": "h3",
+       "steps": "6624421633",
+       "pattern": "J:2,-5",
+       "key": "J:2,5",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 12,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "b2",
+       "to": "c1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 13,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT3",
+       "from": "h8",
+       "to": "c5",
+       "steps": "24722711",
+       "pattern": "J:-5,-3",
+       "key": "J:3,5",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 14,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "g2",
+       "to": "g1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 15,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "e7",
+       "to": "d6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "c8",
+       "to": "c7"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 16,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "d3",
+       "to": "e3"
+      },
+      {
+       "kind": "chart",
+       "pieceId": "wT1",
+       "from": "b1",
+       "to": "d1",
+       "steps": "786362",
+       "pattern": "J:2,0",
+       "key": "J:0,2",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 17,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT1",
+       "from": "b8",
+       "to": "a8",
+       "steps": "4",
+       "pattern": "R:4",
+       "key": "R:8",
+       "libraryAdded": true
+      },
+      {
+       "kind": "step",
+       "from": "c7",
+       "to": "d7"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 18,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT2",
+       "from": "f1",
+       "to": "f5",
+       "steps": "9977",
+       "pattern": "J:0,4",
+       "key": "J:0,4",
+       "libraryAdded": true
+      },
+      {
+       "kind": "step",
+       "from": "e3",
+       "to": "f2"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 19,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "d7",
+       "to": "e8"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "g8",
+       "to": "f7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 20,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT2",
+       "from": "f5",
+       "to": "e5",
+       "steps": "4",
+       "pattern": "R:4",
+       "key": "R:8",
+       "libraryAdded": true
+      },
+      {
+       "kind": "step",
+       "from": "f2",
+       "to": "e2"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 21,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "e8",
+       "to": "d7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 22,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "c1",
+       "to": "b2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 23,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "d7",
+       "to": "e7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 24,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT3",
+       "from": "c2",
+       "to": "b7",
+       "via": "J:-5,1",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "e2",
+       "to": "f2"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 25,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT1",
+       "from": "a8",
+       "to": "c8",
+       "steps": "3676",
+       "pattern": "J:2,0",
+       "key": "J:0,2",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 26,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "f2",
+       "to": "g2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 27,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "h7",
+       "to": "g6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "e7",
+       "to": "d8"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 28,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "g2",
+       "to": "g4",
+       "via": "J:0,2",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 29,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "d8",
+       "to": "e8"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "d6",
+       "to": "e7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 30,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW4",
+       "from": "g1",
+       "to": "g2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 31,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "e7",
+       "to": "d6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 32,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT3",
+       "from": "b7",
+       "to": "g8",
+       "via": "J:-5,1",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "g4",
+       "to": "f5"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 33,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "e8",
+       "to": "e7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 34,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "f5",
+       "to": "e6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 35,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "bT2",
+       "from": "h3",
+       "to": "h7",
+       "steps": "78688",
+       "pattern": "R:78688",
+       "key": "R:98488",
+       "libraryAdded": true
+      },
+      {
+       "kind": "step",
+       "from": "e7",
+       "to": "f6"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 36,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "e6",
+       "to": "c6",
+       "via": "J:0,2",
+       "path": null,
+       "captured": {
+        "id": "bW1",
+        "kind": "warden"
+       }
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 37,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "d6",
+       "to": "d7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 38,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "c6",
+       "to": "d5"
+      },
+      {
+       "kind": "chart",
+       "pieceId": "wT2",
+       "from": "e5",
+       "to": "a7",
+       "steps": "888171761",
+       "pattern": "J:-4,2",
+       "key": "J:2,4",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 39,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT3",
+       "from": "c5",
+       "to": "h8",
+       "via": "J:-5,-3",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 40,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "d5",
+       "to": "c5"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW2",
+       "from": "d2",
+       "to": "c2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 41,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "f6",
+       "to": "c6",
+       "via": "R:98488",
+       "path": "1484",
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 42,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "c5",
+       "to": "c3",
+       "via": "J:0,2",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 43,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "c6",
+       "to": "b7"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "bW3",
+       "from": "f7",
+       "to": "e7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 44,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "c3",
+       "to": "b8",
+       "via": "J:1,5",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 45,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "b7",
+       "to": "c6"
+      },
+      {
+       "kind": "strike",
+       "pieceId": "bT1",
+       "from": "c8",
+       "to": "e8",
+       "via": "J:2,0",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 46,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "chart",
+       "pieceId": "wT2",
+       "from": "a7",
+       "to": "d6",
+       "steps": "83866612",
+       "pattern": "J:3,-1",
+       "key": "J:1,3",
+       "libraryAdded": true
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 47,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT2",
+       "from": "h7",
+       "to": "g8",
+       "via": "R:78688",
+       "path": "7",
+       "captured": {
+        "id": "wT3",
+        "kind": "tracer"
+       }
+      },
+      {
+       "kind": "step",
+       "from": "c6",
+       "to": "c7"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 48,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "wT2",
+       "from": "d6",
+       "to": "g7",
+       "via": "J:3,-1",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "b8",
+       "to": "c8"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 49,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT3",
+       "from": "h8",
+       "to": "e3",
+       "via": "J:-5,-3",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 50,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "step",
+       "from": "c8",
+       "to": "d8"
+      },
+      {
+       "kind": "warden",
+       "pieceId": "wW3",
+       "from": "e1",
+       "to": "d2",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 51,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW2",
+       "from": "d7",
+       "to": "e6",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 52,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "wW1",
+       "from": "b2",
+       "to": "a1",
+       "via": "base",
+       "path": null,
+       "captured": null
+      },
+      {
+       "kind": "step",
+       "from": "d8",
+       "to": "c8"
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 53,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "g6",
+       "to": "h5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 54,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "c8",
+       "to": "g8",
+       "via": "J:0,4",
+       "path": null,
+       "captured": {
+        "id": "bT2",
+        "kind": "tracer"
+       }
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 55,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "strike",
+       "pieceId": "bT3",
+       "from": "e3",
+       "to": "h8",
+       "via": "J:-5,-3",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 56,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "g8",
+       "to": "e4",
+       "via": "J:2,4",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 57,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "bK",
+       "from": "c7",
+       "to": "b7",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 58,
+     "side": "w",
+     "actions": [
+      {
+       "kind": "king",
+       "pieceId": "wK",
+       "from": "e4",
+       "to": "d7",
+       "via": "J:1,3",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    },
+    {
+     "ply": 59,
+     "side": "b",
+     "actions": [
+      {
+       "kind": "warden",
+       "pieceId": "bW4",
+       "from": "h5",
+       "to": "g5",
+       "via": "base",
+       "path": null,
+       "captured": null
+      }
+     ],
+     "result": {
+      "status": "active"
+     }
+    }
+   ],
+   "finalState": {
+    "rulesVersion": 1,
+    "ply": 60,
+    "pieces": [
+     {
+      "id": "wK",
+      "side": "w",
+      "kind": "king",
+      "at": "d7",
+      "pattern": null
+     },
+     {
+      "id": "wT1",
+      "side": "w",
+      "kind": "tracer",
+      "at": "d1",
+      "pattern": "J:2,0"
+     },
+     {
+      "id": "wT2",
+      "side": "w",
+      "kind": "tracer",
+      "at": "g7",
+      "pattern": "J:3,-1"
+     },
+     {
+      "id": "wW1",
+      "side": "w",
+      "kind": "warden",
+      "at": "a1",
+      "pattern": null
+     },
+     {
+      "id": "wW2",
+      "side": "w",
+      "kind": "warden",
+      "at": "c2",
+      "pattern": null
+     },
+     {
+      "id": "wW3",
+      "side": "w",
+      "kind": "warden",
+      "at": "d2",
+      "pattern": null
+     },
+     {
+      "id": "wW4",
+      "side": "w",
+      "kind": "warden",
+      "at": "g2",
+      "pattern": null
+     },
+     {
+      "id": "bK",
+      "side": "b",
+      "kind": "king",
+      "at": "b7",
+      "pattern": null
+     },
+     {
+      "id": "bT1",
+      "side": "b",
+      "kind": "tracer",
+      "at": "e8",
+      "pattern": "J:2,0"
+     },
+     {
+      "id": "bT3",
+      "side": "b",
+      "kind": "tracer",
+      "at": "h8",
+      "pattern": "J:-5,-3"
+     },
+     {
+      "id": "bW2",
+      "side": "b",
+      "kind": "warden",
+      "at": "e6",
+      "pattern": null
+     },
+     {
+      "id": "bW3",
+      "side": "b",
+      "kind": "warden",
+      "at": "e7",
+      "pattern": null
+     },
+     {
+      "id": "bW4",
+      "side": "b",
+      "kind": "warden",
+      "at": "g5",
+      "pattern": null
+     }
+    ],
+    "library": {
+     "w": [
+      "J:1,5",
+      "J:0,2",
+      "J:0,4",
+      "R:8",
+      "J:2,4",
+      "J:1,3"
+     ],
+     "b": [
+      "J:2,5",
+      "J:3,5",
+      "R:8",
+      "J:0,2",
+      "R:98488"
+     ]
+    },
+    "stepStreak": {
+     "w": 0,
+     "b": 0
+    },
+    "result": {
+     "status": "active"
+    }
+   }
+  }
+ ]
+}
