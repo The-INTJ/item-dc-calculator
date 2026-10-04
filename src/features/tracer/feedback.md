@@ -23,6 +23,26 @@ or sign out at `/account`.
 
 ## Done
 
+### 4. Rule variants as a first-class system — 2026-10-04
+
+**What Drew asked.** Keep v1 and v2 as code-defined profiles picked from a
+dropdown before a game (no sign-in needed, friends can send variants), with
+rule toggles adjustable before the game — bespoke where it helps, like a step
+limit per Tracer tier. No mid-game rule changes, but nothing that would rule
+them out: charting kept apart from step limits.
+
+**Done (local only — not merged or deployed).**
+- Every game stores its own rules; the engine reads them only through
+  `engine/rulebook.ts`. *Tiered (v2)* (default) and *Original (v1)* are
+  styles; six toggles cover layout, step limits, the king's patterns, the
+  free step, lone king and the dodge draw.
+- Lobby: style picker, **Customize rules** (changed rules marked, each with a
+  reset), **Share setup link**, and How to play written for the chosen rules.
+  In game: a **Rules:** chip ("Original (v1) · 1 tweak") opening a rules list
+  with "changed" badges; rematch and **New game, same rules** keep them.
+- Saved v1 games (production) and v2 games (local) upgrade on read and keep
+  playing; eight games from production's engine replay identically.
+
 ### 2. The ever-growing king library made the game untactical — 2026-10-03
 
 **What Drew saw.** The king accumulated every pattern ever charted, of any

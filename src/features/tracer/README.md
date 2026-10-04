@@ -1,18 +1,26 @@
 # Tracer
 
 An online two-player board game: **pieces learn their moves from the paths
-you draw, and your king borrows each of its Tracers' current patterns.**
-Lobby at `/tracer`, online games at `/tracer/[gameId]` (send the link, play a
-friend), local games at `/tracer/local/[localId]` (both sides on one device).
+you draw, and your king borrows them.** Lobby at `/tracer`, online games at
+`/tracer/[gameId]` (send the link, play a friend), local games at
+`/tracer/local/[localId]` (both sides on one device).
+
+Every game is played under a **game style** — a named rule set defined in
+code (*Tiered (v2)*, *Original (v1)*) — optionally **tweaked** before it
+starts. The game keeps its own copy of the rules, so a style can never change
+under a game in progress. See [Game styles](#game-styles-and-rule-toggles).
 
 Designed with Drew on 2026-10-03. Treat these rules as the spec: change them
 deliberately, not incidentally. Playtest notes live in [feedback.md](feedback.md).
 
-## Rules (v2)
+## Rules — Tiered (v2), the default style
 
 v1 let the king collect every pattern ever charted; after playtesting that
 turned the game into "tap the king and see what it threatens", so v2 limits
 the king to its Tracers' current patterns and gives each Tracer a step limit.
+*Original (v1)* is still playable as a style: the spaced layout (king d1,
+Tracers b1 f1 h1, Wardens b2 d2 f2 h2), charts of any length, and a king that
+learns every pattern its side ever charts. Everything else is shared.
 
 ### Board and setup
 8×8, White moves first. Black mirrors White, the way chess does.
@@ -28,7 +36,7 @@ the king to its Tracers' current patterns and gives each Tracer a step limit.
 3 / 5 / 8 = Tracers with that step limit, W = Warden, K = King. The 8-step
 Tracer starts on its own colour (d1 light, d8 dark) beside the king, with two
 Wardens in front of them; the other Tracers sit on b and g behind a Warden
-each. The layout is one constant (`engine/setup.ts`).
+each. Layouts live in `variants/layouts.ts`.
 
 ### Pieces
 | Piece | Moves | Captures? |
@@ -126,8 +134,13 @@ components/   lobby · game (online) · local · board · composer · panels · 
 - **Turn submission** carries `clientTurnId` (a retry after a dropped
   connection is acknowledged, not re-applied) and the ply it was built
   against (`STALE_PLY` otherwise).
-- Games saved by v1 (`schemaVersion: 1`) read as `GAME_OUTDATED` and the page
-  explains they cannot be continued.
+- **Creating** takes `{ displayName, seat, styleId, rules }`. The schema
+  requires a published style id and layout id (400 otherwise); the server
+  takes the layout's pieces from its own registry. A rematch keeps the rules.
+- **Older documents are upcast on read** (`lib/storage/upcast/`): a v1 game
+  becomes an *Original (v1)* game and keeps playing, a v2 one *Tiered (v2)*.
+  Writes are always the current shape. Only a document from a *newer* version
+  (mid-deploy) reads as `GAME_OUTDATED`.
 
 ### Local games ("Play both sides on this device")
 - No sign-in, no API, no Firestore: the engine runs in the browser and the
@@ -140,11 +153,13 @@ components/   lobby · game (online) · local · board · composer · panels · 
   same composer, board and panels.
 
 ### Data model
-`tracerGames/{gameId}` holds the whole engine `GameState` (pieces with their
-step limits, each king's borrowed patterns keyed by Tracer id, dodge counts,
-result) plus seats, status (`open` → `active` → `finished`), the last turn,
-any draw offer and rematch links; `turns/{0000…}` holds one immutable
-`TurnRecord` per turn. Paths are numpad-digit strings (8 = north) and squares
+`tracerGames/{gameId}` (`schemaVersion: 3`) holds the style it started from
+(`{ id, name }`) and the whole engine `GameState`: the **rules** in force,
+pieces (Tracers carry a `tier`), each Tracer's last pattern (`lastCharted`,
+kept after capture), every pattern each side has charted (`chartedKeys`,
+canonical keys), dodge counts and the result — plus seats, status (`open` →
+`active` → `finished`), the last turn, any draw offer and rematch links;
+`turns/{0000…}` holds one immutable `TurnRecord` per turn. Paths are numpad-digit strings (8 = north) and squares
 are `"d4"`, so nothing nests arrays (Firestore can't). Timestamps are server
 `Date.now()` numbers.
 
@@ -152,20 +167,65 @@ are `"d4"`, so nothing nests arrays (Firestore can't). Timestamps are server
 | Code | Status | Meaning |
 |---|---|---|
 | `GAME_NOT_FOUND` | 404 | No such game (or a malformed id) |
-| `GAME_OUTDATED` | 410 | Saved under the v1 rules |
+| `GAME_OUTDATED` | 410 | Saved by a newer version of Tracer (mid-deploy) |
 | `NOT_A_PLAYER` | 403 | Caller holds no seat |
 | `GAME_FULL` · `GAME_NOT_ACTIVE` · `NOT_YOUR_TURN` · `STALE_PLY` | 409 | State conflicts |
 | `DRAW_OFFER_PENDING` · `NO_DRAW_OFFER` · `SEAT_NOT_RELEASABLE` · `GAME_NOT_FINISHED` | 409 | Command not valid now |
 | `ILLEGAL_TURN` | 422 | Engine rejected the turn; `reason` holds the engine code |
 | `CORRUPT_GAME` / `STORAGE_UNAVAILABLE` | 500 / 503 | Server-side problems |
 
+## Game styles and rule toggles
+
+```
+variants/   code-only catalogue: profiles (styles) · layouts · toggles · tweaks · share
+   │  lobby: style → tweaks → RuleSetSchema → stored in the game, frozen
+   ▼
+RuleSet (GameState.rules) ──► engine/rulebook.ts ──► rule-agnostic mechanics
+```
+
+- **The rulebook is the only reader of rules** (besides `setup.ts`, which
+  places the layout): `chartLimit`, `kingPatterns`, `stepCombinesWith`,
+  `dodgeLimit`, `loneKingWins`. Charting never sees a rule — it is handed a
+  step limit — so limits could change between turns without touching it.
+- **Positions record facts; rules pick which to use.** Every chart records
+  the Tracer's latest pattern and the pattern's canonical key, whatever the
+  rules, so the king's source is a switch, not a rewrite.
+- **Styles** (`variants/profiles.ts`) are frozen once published: links and
+  saved games name them, and the golden test replays real Original games.
+  Change the game by adding a style.
+- **Toggles** (`variants/toggles/`) — one per `RuleSet` field, a lens that can
+  only change its own field — carry the lobby control, the in-game wording,
+  when the toggle has no effect, and its setup-link parameter.
+- **Setup links**: `/tracer?style=v2-tiered&king=every-chart&dodge=0` — the
+  style plus only what differs from it. The lobby remembers the last setup in
+  the same format; values it can't use are reported, never fatal.
+
+**Add a style:** (1) define it in `variants/profiles.ts` from existing
+layouts and values; (2) add it to `GAME_STYLES`; (3) run `npm test` —
+`variants/profiles.test.ts` and `toggles.test.ts` check it like every other
+style; (4) play it from the lobby; (5) note it in [feedback.md](feedback.md).
+
+**Add a rule:** (1) add the field to `RuleSet` (`engine/types.ts`) and a
+switch function to `engine/rulebook.ts` that mechanics call — never read
+`rules` elsewhere; (2) add it to `RuleSetSchema` with a `.default(…)` equal
+to how games played before it existed, so stored games still parse; (3) set
+it in every style (the compiler insists); (4) add its toggle under
+`variants/toggles/` (the registry type insists) with samples; (5) add a row
+to `engine/rulebook.test.ts` asserting the behaviour, and update How to play
+(`components/panels/content.ts`) if it changes the basics.
+
 ## Working on this feature
 - Engine changes: add a scenario test (ASCII boards via
-  `engine/fixtures/position.ts`) and keep `engine/playout.test.ts` green — it
-  self-plays seeded random games checking invariants and replay determinism.
+  `engine/fixtures/position.ts`, which use the frozen `engine/fixtures/rules.ts`)
+  and keep `engine/playout.test.ts` green — it self-plays seeded random games
+  through the shared harness (`engine/fixtures/self-play.ts`), checking
+  invariants and replay determinism.
+- `lib/storage/upcast/upcast.test.ts` replays games self-played by
+  production's v1 engine under *Original (v1)*: if it fails, a change has
+  altered how Original plays.
 - `npm test`, `npm run lint`, `npm run type-check`, and the Tracer E2E specs
   (`npx playwright test tracer mobile-tracer`) cover it end to end.
 - **Deploying:** rules ship with `npm run deploy:rules` (production Firebase)
   before app code that depends on them; merging to `main` deploys the app to
-  production. Both need explicit approval. v1 is live; **v2 is local-only
-  until Drew says otherwise.**
+  production. Both need explicit approval. v1 is live; **v2 and game styles
+  are local-only until Drew says otherwise.**
