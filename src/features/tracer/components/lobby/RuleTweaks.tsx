@@ -1,9 +1,9 @@
 import { useState } from 'react';
 
 import type { RuleSet } from '../../engine';
-import { setupUrl, type GameSetupControls } from '../../hooks/useGameSetup';
+import type { GameSetupControls } from '../../hooks/useGameSetup';
 import { TOGGLE_KEYS, TOGGLES, type ToggleGroup } from '../../variants';
-import { shareLink } from '../game/shareLink';
+import { setupUrl, shareLink } from '../game/shareLink';
 import { RuleControl } from './RuleControl';
 import styles from './GameSetup.module.scss';
 
