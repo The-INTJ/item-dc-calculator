@@ -1,0 +1,294 @@
+{
+ "_source": {
+  "description": "A game document exactly as schema v3 first wrote it. Frozen: later schema changes must keep reading it (give new fields defaults).",
+  "codeCommit": "c322702 + upcasters",
+  "generatedAt": "2026-10-04"
+ },
+ "id": "GoldenV3Doc00000000a",
+ "doc": {
+  "schemaVersion": 3,
+  "style": {
+   "id": "v1-original",
+   "name": "Original (v1)"
+  },
+  "status": "active",
+  "createdBy": {
+   "uid": "alice-uid",
+   "name": "Alice"
+  },
+  "seats": {
+   "w": {
+    "uid": "alice-uid",
+    "name": "Alice",
+    "joinedAt": 1791200000000
+   },
+   "b": {
+    "uid": "bob-uid",
+    "name": "Bob",
+    "joinedAt": 1791200000001
+   }
+  },
+  "state": {
+   "rules": {
+    "layout": {
+     "id": "spaced",
+     "name": "Spaced",
+     "pieces": [
+      {
+       "id": "K",
+       "kind": "king",
+       "file": "d",
+       "row": 0,
+       "tier": null
+      },
+      {
+       "id": "T1",
+       "kind": "tracer",
+       "file": "b",
+       "row": 0,
+       "tier": 0
+      },
+      {
+       "id": "T2",
+       "kind": "tracer",
+       "file": "f",
+       "row": 0,
+       "tier": 1
+      },
+      {
+       "id": "T3",
+       "kind": "tracer",
+       "file": "h",
+       "row": 0,
+       "tier": 2
+      },
+      {
+       "id": "W1",
+       "kind": "warden",
+       "file": "b",
+       "row": 1,
+       "tier": null
+      },
+      {
+       "id": "W2",
+       "kind": "warden",
+       "file": "d",
+       "row": 1,
+       "tier": null
+      },
+      {
+       "id": "W3",
+       "kind": "warden",
+       "file": "f",
+       "row": 1,
+       "tier": null
+      },
+      {
+       "id": "W4",
+       "kind": "warden",
+       "file": "h",
+       "row": 1,
+       "tier": null
+      }
+     ]
+    },
+    "tracerReach": {
+     "limited": false,
+     "limits": [
+      3,
+      5,
+      8
+     ]
+    },
+    "kingMemory": "every-chart",
+    "freeStep": "with-tracer-or-warden",
+    "loneKingWins": true,
+    "dodgeDraw": 6
+   },
+   "ply": 5,
+   "pieces": [
+    {
+     "id": "wK",
+     "side": "w",
+     "kind": "king",
+     "at": "e1",
+     "pattern": null,
+     "tier": null
+    },
+    {
+     "id": "wT1",
+     "side": "w",
+     "kind": "tracer",
+     "at": "b5",
+     "pattern": "J:0,2",
+     "tier": 0
+    },
+    {
+     "id": "wT2",
+     "side": "w",
+     "kind": "tracer",
+     "at": "f1",
+     "pattern": null,
+     "tier": 1
+    },
+    {
+     "id": "wT3",
+     "side": "w",
+     "kind": "tracer",
+     "at": "h1",
+     "pattern": null,
+     "tier": 2
+    },
+    {
+     "id": "wW1",
+     "side": "w",
+     "kind": "warden",
+     "at": "b2",
+     "pattern": null,
+     "tier": null
+    },
+    {
+     "id": "wW2",
+     "side": "w",
+     "kind": "warden",
+     "at": "d2",
+     "pattern": null,
+     "tier": null
+    },
+    {
+     "id": "wW3",
+     "side": "w",
+     "kind": "warden",
+     "at": "f2",
+     "pattern": null,
+     "tier": null
+    },
+    {
+     "id": "wW4",
+     "side": "w",
+     "kind": "warden",
+     "at": "h3",
+     "pattern": null,
+     "tier": null
+    },
+    {
+     "id": "bK",
+     "side": "b",
+     "kind": "king",
+     "at": "e8",
+     "pattern": null,
+     "tier": null
+    },
+    {
+     "id": "bT1",
+     "side": "b",
+     "kind": "tracer",
+     "at": "b8",
+     "pattern": null,
+     "tier": 0
+    },
+    {
+     "id": "bT2",
+     "side": "b",
+     "kind": "tracer",
+     "at": "f6",
+     "pattern": "J:0,-2",
+     "tier": 1
+    },
+    {
+     "id": "bT3",
+     "side": "b",
+     "kind": "tracer",
+     "at": "g7",
+     "pattern": "R:1",
+     "tier": 2
+    },
+    {
+     "id": "bW1",
+     "side": "b",
+     "kind": "warden",
+     "at": "b7",
+     "pattern": null,
+     "tier": null
+    },
+    {
+     "id": "bW2",
+     "side": "b",
+     "kind": "warden",
+     "at": "d7",
+     "pattern": null,
+     "tier": null
+    },
+    {
+     "id": "bW3",
+     "side": "b",
+     "kind": "warden",
+     "at": "f7",
+     "pattern": null,
+     "tier": null
+    },
+    {
+     "id": "bW4",
+     "side": "b",
+     "kind": "warden",
+     "at": "h7",
+     "pattern": null,
+     "tier": null
+    }
+   ],
+   "lastCharted": {
+    "w": {
+     "wT1": "J:0,2"
+    },
+    "b": {
+     "bT2": "J:0,-2",
+     "bT3": "R:1"
+    }
+   },
+   "chartedKeys": {
+    "w": [
+     "J:0,2"
+    ],
+    "b": [
+     "J:0,2",
+     "R:9"
+    ]
+   },
+   "stepStreak": {
+    "w": 0,
+    "b": 1
+   },
+   "result": {
+    "status": "active"
+   }
+  },
+  "lastTurn": {
+   "ply": 4,
+   "side": "w",
+   "actions": [
+    {
+     "kind": "strike",
+     "pieceId": "wT1",
+     "from": "b3",
+     "to": "b5",
+     "via": "J:0,2",
+     "path": null,
+     "captured": null
+    }
+   ],
+   "result": {
+    "status": "active"
+   },
+   "at": 1791200000014,
+   "clientTurnId": "golden-turn-4"
+  },
+  "drawOffer": null,
+  "rematchOf": null,
+  "rematchGameId": null,
+  "createdAt": 1791200000000,
+  "updatedAt": 1791200000014,
+  "startedAt": 1791200000001,
+  "turnStartedAt": 1791200000014,
+  "finishedAt": null
+ }
+}

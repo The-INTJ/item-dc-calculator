@@ -11,7 +11,7 @@ import { collection, doc, onSnapshot, orderBy, query } from 'firebase/firestore'
 
 import { initializeFirebase } from '@/contest/lib/firebase/config';
 
-import { fromGameDoc, fromTurnDoc } from '../storage/gameDocument';
+import { fromGameDoc, fromTurnDoc, isNewerGameDoc } from '../storage/gameDocument';
 import type { StoredTurn, TracerGame } from '../types';
 
 const GAMES = 'tracerGames';
@@ -38,8 +38,10 @@ export function subscribeToGame(
         onGame(null);
         return;
       }
-      const game = fromGameDoc(snapshot.id, snapshot.data());
+      const data = snapshot.data();
+      const game = fromGameDoc(snapshot.id, data);
       if (game) onGame(game);
+      else if (isNewerGameDoc(data)) onError(new Error('Tracer was updated — reload the page to keep playing.'));
       else onError(new Error('This game could not be read.'));
     },
     onError,

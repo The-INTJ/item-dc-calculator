@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: GamePageProps): Promise<Metad
   const { gameId } = await params;
   const loaded = await loadGameForPage(gameId);
   if (loaded.status === 'missing') return { title: 'Game not found' };
-  if (loaded.status === 'outdated') return { title: 'Game from the first rules' };
+  if (loaded.status === 'outdated') return { title: 'Tracer game' };
   const title = gameTitle(loaded.game);
   return {
     title,
@@ -30,12 +30,13 @@ export async function generateMetadata({ params }: GamePageProps): Promise<Metad
   };
 }
 
+/** The game was saved by a newer Tracer than this server runs — an update is rolling out. */
 function OutdatedGame() {
   return (
     <main style={{ display: 'grid', gap: '0.75rem', padding: '2rem 1rem', maxWidth: '32rem', margin: '0 auto' }}>
-      <h1>This game used the first rules</h1>
-      <p>Tracer has changed since this game was played, so it cannot be continued.</p>
-      <Link href="/tracer">Start a new game</Link>
+      <h1>Tracer is updating</h1>
+      <p>This game was saved by a newer version of Tracer. Reload in a minute to keep playing.</p>
+      <Link href="/tracer">Back to Tracer</Link>
     </main>
   );
 }

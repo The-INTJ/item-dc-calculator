@@ -10,7 +10,7 @@ import { loadGame } from './gameRepository';
 export type PageGame =
   | { status: 'found'; game: TracerGame }
   | { status: 'missing' }
-  /** Saved under an earlier version of the rules; it cannot be continued. */
+  /** Saved by a newer version of Tracer than this server runs (mid-deploy). */
   | { status: 'outdated' };
 
 /**

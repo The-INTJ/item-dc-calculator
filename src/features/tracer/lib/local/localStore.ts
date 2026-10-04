@@ -1,7 +1,8 @@
 /**
  * Where local games live: this browser's localStorage, one key per game.
- * Every read is schema-checked, so a game saved by an older version of the
- * rules (or hand-edited storage) reads as missing rather than breaking.
+ * A game saved by an earlier version of Tracer is upcast on read; every read
+ * is then schema-checked, so hand-edited or unreadable storage reads as
+ * missing rather than breaking.
  * Storage can be unavailable (private windows, blocked site data); writes
  * then report failure and the caller keeps playing in memory.
  */
@@ -11,6 +12,7 @@ import { z } from 'zod';
 
 import { StyleRefSchema } from '../storage/gameDocument';
 import { GameStateSchema, TurnRecordSchema } from '../storage/stateSchema';
+import { upcastLocalRecord } from '../storage/upcast';
 import { LOCAL_GAME_ID, type LocalGameRecord } from './localGame';
 
 const KEY_PREFIX = 'tracer:local:';
@@ -42,7 +44,7 @@ function readRaw(id: string): string | null {
 function parse(raw: string | null): LocalGameRecord | null {
   if (!raw) return null;
   try {
-    const parsed = RecordSchema.safeParse(JSON.parse(raw));
+    const parsed = RecordSchema.safeParse(upcastLocalRecord(JSON.parse(raw)));
     return parsed.success ? parsed.data : null;
   } catch {
     return null;

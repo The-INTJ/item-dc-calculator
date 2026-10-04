@@ -15,7 +15,7 @@ import 'server-only';
 import { getFirebaseAdminFirestore } from '@/contest/lib/firebase/admin';
 
 import { TracerError } from '../errors';
-import { fromGameDoc, isOutdatedGameDoc, toGameDoc, turnDocId } from '../storage/gameDocument';
+import { fromGameDoc, isNewerGameDoc, toGameDoc, turnDocId } from '../storage/gameDocument';
 import type { TracerGame } from '../types';
 import type { CommandResult } from './commands';
 
@@ -29,8 +29,8 @@ function database() {
 }
 
 function parsedOrThrow(id: string, data: unknown): TracerGame {
-  if (isOutdatedGameDoc(data)) {
-    throw new TracerError('GAME_OUTDATED', 'This game was played under an earlier version of the rules.');
+  if (isNewerGameDoc(data)) {
+    throw new TracerError('GAME_OUTDATED', 'This game was saved by a newer version of Tracer.');
   }
   const game = fromGameDoc(id, data);
   if (!game) throw new TracerError('CORRUPT_GAME', 'This game could not be read.');

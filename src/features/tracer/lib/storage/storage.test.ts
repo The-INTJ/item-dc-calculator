@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { activeGame, OPENING_CHART, T0 } from '../fixtures/game';
 import { CreateGameSchema, isGameId, SubmitTurnSchema } from '../schemas';
 import { submitTurn } from '../server/commands';
-import { fromGameDoc, fromTurnDoc, isOutdatedGameDoc, toGameDoc, turnDocId } from './gameDocument';
+import { fromGameDoc, fromTurnDoc, toGameDoc, turnDocId } from './gameDocument';
 
 describe('game documents', () => {
   it('round-trip through the stored shape', () => {
@@ -23,12 +23,6 @@ describe('game documents', () => {
     expect(fromGameDoc('x', { ...doc, state: badPattern })).toBeNull();
     const twoKings = { ...doc.state.rules.layout, pieces: [...doc.state.rules.layout.pieces, { id: 'K2', kind: 'king', file: 'a', row: 0, tier: null }] };
     expect(fromGameDoc('x', { ...doc, state: { ...doc.state, rules: { ...doc.state.rules, layout: twoKings } } })).toBeNull();
-  });
-
-  it('recognise games saved under the first rules', () => {
-    expect(isOutdatedGameDoc({ schemaVersion: 1 })).toBe(true);
-    expect(isOutdatedGameDoc(toGameDoc(activeGame()))).toBe(false);
-    expect(isOutdatedGameDoc(null)).toBe(false);
   });
 
   it('parse stored turns and key them by padded ply', () => {

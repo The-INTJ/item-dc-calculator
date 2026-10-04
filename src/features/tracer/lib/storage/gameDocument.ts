@@ -11,6 +11,7 @@ import { z } from 'zod';
 
 import type { StoredTurn, TracerGame } from '../types';
 import { GameStateSchema, SideSchema, TurnRecordShape } from './stateSchema';
+import { upcastGameDoc } from './upcast';
 
 const SeatSchema = z.object({
   uid: z.string().nullable(),
@@ -63,16 +64,19 @@ export function toGameDoc(game: TracerGame): GameDoc {
   return doc;
 }
 
-/** Parse a stored game. Returns null when the document is malformed. */
+/**
+ * Parse a stored game, upcasting one saved by an earlier version of Tracer.
+ * Returns null when the document is malformed.
+ */
 export function fromGameDoc(id: string, data: unknown): TracerGame | null {
-  const parsed = GameDocSchema.safeParse(data);
+  const parsed = GameDocSchema.safeParse(upcastGameDoc(data));
   return parsed.success ? { id, ...parsed.data } : null;
 }
 
-/** A game saved by an earlier version of the rules, which cannot be continued. */
-export function isOutdatedGameDoc(data: unknown): boolean {
+/** A game saved by a newer version of Tracer than this code, which it cannot read. */
+export function isNewerGameDoc(data: unknown): boolean {
   const version = (data as { schemaVersion?: unknown } | null)?.schemaVersion;
-  return typeof version === 'number' && version < GAME_SCHEMA_VERSION;
+  return typeof version === 'number' && version > GAME_SCHEMA_VERSION;
 }
 
 export function fromTurnDoc(data: unknown): StoredTurn | null {
