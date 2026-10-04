@@ -73,6 +73,7 @@
 
 .quiet {
   @include button-quiet;
+  text-decoration: none;
 }
 
 .link_button {

@@ -13,9 +13,11 @@ import type {
 } from './types';
 import { parseSquare, squareName } from './geometry';
 import { boardOf } from './occupancy';
+import { canonicalKey } from './pattern-codes';
 import { pieceHits } from './piece-reach';
 import { walkChart } from './chart';
 import { hasLegalMainAction } from './legality';
+import { chartLimit, kingPatterns } from './rulebook';
 
 export type MainResult =
   | { ok: true; record: ActionRecord; captured: Piece | null }
@@ -43,7 +45,7 @@ function applyMove(work: GameState, side: Side, from: SquareName, to: SquareName
   if (parseSquare(to) === null) return fail('BAD_SQUARE');
   if (piece.kind === 'tracer' && !piece.pattern) return fail('UNFORMED_TRACER');
   const board = boardOf(work.pieces);
-  const hit = pieceHits(board, piece, work.library[side]).find((h) => squareName(h.sq) === to);
+  const hit = pieceHits(board, piece, kingPatterns(work, side)).find((h) => squareName(h.sq) === to);
   if (!hit) return fail('UNREACHABLE');
   const victim = board[hit.sq];
   if (victim) work.pieces = work.pieces.filter((candidate) => candidate !== victim);
@@ -63,30 +65,32 @@ function applyMove(work: GameState, side: Side, from: SquareName, to: SquareName
   };
 }
 
+/**
+ * Record the facts any rule set might use: this Tracer's latest pattern, and
+ * the pattern's canonical key in the side's list of everything charted.
+ */
+function recordChart(work: GameState, side: Side, tracerId: string, pattern: string): void {
+  work.lastCharted = { ...work.lastCharted, [side]: { ...work.lastCharted[side], [tracerId]: pattern } };
+  const key = canonicalKey(pattern);
+  if (!work.chartedKeys[side].includes(key)) {
+    work.chartedKeys = { ...work.chartedKeys, [side]: [...work.chartedKeys[side], key] };
+  }
+}
+
 function applyChart(work: GameState, side: Side, from: SquareName, steps: string): MainResult {
   const piece = ownPieceAt(work, side, from);
   if (typeof piece === 'string') return fail(piece);
   if (piece.kind !== 'tracer') return fail('NOT_A_TRACER');
-  const walk = walkChart(boardOf(work.pieces), parseSquare(from) as number, steps);
+  const limit = chartLimit(work.rules, piece);
+  const walk = walkChart(boardOf(work.pieces), parseSquare(from) as number, steps, limit);
   if (!walk.ok) return fail(walk.code);
   piece.at = squareName(walk.to);
   piece.pattern = walk.pattern;
-  const library = work.library[side];
-  const libraryAdded = !library.includes(walk.key);
-  if (libraryAdded) work.library = { ...work.library, [side]: [...library, walk.key] };
+  recordChart(work, side, piece.id, walk.pattern);
   return {
     ok: true,
     captured: null,
-    record: {
-      kind: 'chart',
-      pieceId: piece.id,
-      from,
-      to: piece.at,
-      steps,
-      pattern: walk.pattern,
-      key: walk.key,
-      libraryAdded,
-    },
+    record: { kind: 'chart', pieceId: piece.id, from, to: piece.at, steps, pattern: walk.pattern },
   };
 }
 

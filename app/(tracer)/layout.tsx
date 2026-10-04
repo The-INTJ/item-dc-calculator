@@ -23,7 +23,7 @@ export const viewport: Viewport = {
   ],
 };
 
-/** One auth session for the lobby and every game, so a guest stays signed in. */
+/** Shared look for every Tracer page; sign-in is mounted only where online play needs it. */
 export default function TracerLayout({ children }: { children: ReactNode }) {
   return <TracerRoot>{children}</TracerRoot>;
 }

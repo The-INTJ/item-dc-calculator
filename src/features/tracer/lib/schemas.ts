@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 import { MAX_PATH_LENGTH } from '../engine';
 import type { TurnInput } from '../engine';
+import { DEFAULT_STYLE_ID, layoutById, RuleSetSchema, styleById } from '../variants';
 import { SideSchema, SquareSchema } from './storage/stateSchema';
 
 export const DISPLAY_NAME_MAX = 24;
@@ -19,10 +20,19 @@ export const DisplayNameSchema = z
   .max(DISPLAY_NAME_MAX, `Name must be ${DISPLAY_NAME_MAX} characters or fewer`)
   .regex(PRINTABLE_NAME, 'Name contains characters that cannot be shown');
 
+/**
+ * A new game: who, which seat, and the rules — a published style, plus the
+ * player's tweaks (omitted = the style as published). Layouts are only ever
+ * the published ones; the server takes the pieces from its own registry.
+ */
 export const CreateGameSchema = z.object({
   displayName: DisplayNameSchema,
   seat: z.enum(['w', 'b', 'random']),
-  mode: z.enum(['online', 'hotseat']),
+  styleId: z
+    .string()
+    .default(DEFAULT_STYLE_ID)
+    .refine((id) => styleById(id) !== null, 'Unknown game style'),
+  rules: RuleSetSchema.refine((rules) => layoutById(rules.layout.id) !== null, 'Unknown layout').optional(),
 });
 
 export const JoinGameSchema = z.object({

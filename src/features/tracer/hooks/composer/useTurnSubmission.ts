@@ -3,7 +3,11 @@
 import { useState } from 'react';
 
 import { isKingInDanger, type Side, type TurnInput, type TurnOutcome } from '../../engine';
-import { errorCopy, tracerApi } from '../../lib/api/tracerApi';
+import { errorCopy, type ApiResult } from '../../lib/api/tracerApi';
+import type { SubmitTurnInput } from '../../lib/schemas';
+
+/** Delivers a turn: to the server for online games, to the local engine otherwise. */
+export type TurnSender = (input: SubmitTurnInput) => Promise<ApiResult<unknown>>;
 
 export type TurnWarning = 'king-in-danger' | 'streak-draw';
 
@@ -32,7 +36,7 @@ function newTurnId(): string {
  * Sending the staged turn. A retry after a network failure reuses the same
  * turn id, so the server can recognise a turn it already applied.
  */
-export function useTurnSubmission(gameId: string, side: Side | null, onStale: () => void) {
+export function useTurnSubmission(sendTurn: TurnSender, side: Side | null, onStale: () => void) {
   const [phase, setPhase] = useState<SubmitPhase>({ kind: 'idle' });
   const [pending, setPending] = useState<{ key: string; id: string } | null>(null);
 
@@ -41,7 +45,7 @@ export function useTurnSubmission(gameId: string, side: Side | null, onStale: ()
     const id = pending?.key === key ? pending.id : newTurnId();
     setPending({ key, id });
     setPhase({ kind: 'sending' });
-    const result = await tracerApi.submitTurn(gameId, { clientTurnId: id, turn });
+    const result = await sendTurn({ clientTurnId: id, turn });
     if (result.ok) {
       setPhase({ kind: 'sent' });
       return;

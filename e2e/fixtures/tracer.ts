@@ -8,26 +8,55 @@
 import { expect, type Page } from '@playwright/test';
 
 export const GAME_URL = /\/tracer\/[A-Za-z0-9]{20}$/;
+export const LOCAL_GAME_URL = /\/tracer\/local\/local-[a-z0-9]{10}$/;
+
+/** The style specs play unless they say otherwise — named, so a new default can't change them. */
+export const DEFAULT_TEST_STYLE = 'Tiered (v2)';
 
 interface NewGameOptions {
   name: string;
   side?: 'White' | 'Black' | 'Random';
-  hotseat?: boolean;
+  style?: string;
 }
 
-/** Create a game from the lobby and wait for its board. Returns the game URL. */
+/**
+ * Pick a game style in the lobby's new-game form. Gated on the "How to play"
+ * heading naming the style, which only React's handling of the pick changes —
+ * so a pick made before hydration is simply made again.
+ */
+export async function pickStyle(page: Page, style: string = DEFAULT_TEST_STYLE): Promise<void> {
+  await expect(async () => {
+    await page.getByLabel('Game style').selectOption({ label: style });
+    await expect(page.getByRole('heading', { name: `How to play · ${style}` })).toBeVisible({ timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
+}
+
+/** Create an online game from the lobby and wait for its board. Returns the game URL. */
 export async function createGameInLobby(page: Page, options: NewGameOptions): Promise<string> {
   await page.goto('/tracer');
+  await pickStyle(page, options.style);
   await page.getByLabel('Your name').fill(options.name);
-  if (options.hotseat) {
-    await page.getByLabel('Play both sides on this device').check();
-  } else {
-    await page.getByText(options.side ?? 'White', { exact: true }).click();
-  }
-  await page.getByRole('button', { name: options.hotseat ? 'Start game' : /create game/i }).click();
+  await page.getByText(options.side ?? 'White', { exact: true }).click();
+  await page.getByRole('button', { name: /create game/i }).click();
   await expect(page).toHaveURL(GAME_URL, { timeout: 20_000 });
   await expect(page.getByRole('group', { name: 'Tracer board' })).toBeVisible();
   return page.url();
+}
+
+/** Start a game on this device (both sides) from the lobby. Returns its URL. */
+export async function startLocalGameInLobby(page: Page, style: string = DEFAULT_TEST_STYLE): Promise<string> {
+  await page.goto('/tracer');
+  await pickStyle(page, style);
+  await startLocalGame(page);
+  return page.url();
+}
+
+/** With the lobby form filled in: tick "both sides", start, and wait for the board. */
+export async function startLocalGame(page: Page): Promise<void> {
+  await page.getByLabel('Play both sides on this device').check();
+  await page.getByRole('button', { name: 'Start local game' }).click();
+  await expect(page).toHaveURL(LOCAL_GAME_URL, { timeout: 20_000 });
+  await expect(page.getByRole('group', { name: 'Tracer board' })).toBeVisible();
 }
 
 export function square(page: Page, name: string) {

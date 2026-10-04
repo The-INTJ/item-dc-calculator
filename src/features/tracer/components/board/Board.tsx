@@ -17,13 +17,15 @@ interface BoardProps {
   lines: OverlayLine[];
   label: string;
   onTap: (square: SquareName) => void;
+  /** Hover, focus or tap names a square to inspect; null when the mouse leaves. */
+  onProbe?: (square: SquareName | null) => void;
 }
 
 /**
  * The 8×8 board: a grid of real buttons (one tab stop, arrow keys move
  * between squares) with an SVG overlay for paths on top.
  */
-export function Board({ board, orientation, marks, lines, label, onTap }: BoardProps) {
+export function Board({ board, orientation, marks, lines, label, onTap, onProbe = () => {} }: BoardProps) {
   const gridRef = useRef<HTMLDivElement>(null);
   const [focusSquare, setFocusSquare] = useState<SquareName>(orientation === 'w' ? 'd1' : 'd8');
   const pieces = new Map(board.pieces.map((piece) => [piece.at, piece]));
@@ -40,13 +42,20 @@ export function Board({ board, orientation, marks, lines, label, onTap }: BoardP
 
   return (
     <div className={styles.frame}>
-      <div ref={gridRef} className={styles.grid} role="group" aria-label={label}>
+      <div
+        ref={gridRef}
+        className={styles.grid}
+        role="group"
+        aria-label={label}
+        onPointerLeave={(event) => event.pointerType === 'mouse' && onProbe(null)}
+      >
         {displayOrder(orientation).map((square, index) => (
           <BoardSquare
             key={square}
             square={square}
             piece={pieces.get(square) ?? null}
             marks={marksFor(marks, square)}
+            rules={board.rules}
             fileLabel={index >= 56 ? square[0] : null}
             rankLabel={index % 8 === 0 ? square[1] : null}
             focusable={square === focusSquare}
@@ -55,6 +64,7 @@ export function Board({ board, orientation, marks, lines, label, onTap }: BoardP
               onTap(tapped);
             }}
             onArrow={onArrow}
+            onProbe={onProbe}
           />
         ))}
       </div>

@@ -9,7 +9,7 @@ function freshSeat(seat: Seat, now: number): Seat {
 }
 
 /**
- * A rematch swaps colours. Asking twice — or both players asking — returns
+ * A rematch swaps colours and keeps the rules. Asking twice — or both players asking — returns
  * the same new game, so both land in it together.
  */
 export function requestRematch(
@@ -29,12 +29,12 @@ export function requestRematch(
   const requester = game.seats.w.uid === actor.uid ? game.seats.w : game.seats.b;
   const newGame: TracerGame = {
     id: newId,
-    schemaVersion: 1,
+    schemaVersion: 3,
+    style: game.style,
     status: full ? 'active' : 'open',
-    mode: game.mode,
     createdBy: { uid: actor.uid, name: requester.name ?? game.createdBy.name },
     seats,
-    state: initialState(),
+    state: initialState(game.state.rules),
     lastTurn: null,
     drawOffer: null,
     rematchOf: game.id,

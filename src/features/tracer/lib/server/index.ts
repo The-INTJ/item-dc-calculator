@@ -7,4 +7,4 @@ export {
   resignFromGame,
   startRematch,
 } from './gameService';
-export { loadGameForPage } from './loadGameForPage';
+export { loadGameForPage, type PageGame } from './loadGameForPage';

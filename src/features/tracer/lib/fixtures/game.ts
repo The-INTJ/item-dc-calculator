@@ -3,6 +3,7 @@
  */
 
 import { initialState } from '../../engine';
+import { styleRef, TIERED_V2 } from '../../variants';
 import type { Seat, TracerGame } from '../types';
 
 export const ALICE = { uid: 'alice-uid' };
@@ -15,16 +16,16 @@ function seat(uid: string | null, name: string | null): Seat {
   return { uid, name, joinedAt: uid ? T0 : null };
 }
 
-/** An online game: Alice is White, Bob is Black, the game is under way. */
+/** An online game of the Tiered (v2) style: Alice is White, Bob is Black, the game is under way. */
 export function activeGame(overrides: Partial<TracerGame> = {}): TracerGame {
   return {
     id: GAME_ID,
-    schemaVersion: 1,
+    schemaVersion: 3,
+    style: styleRef(TIERED_V2),
     status: 'active',
-    mode: 'online',
     createdBy: { uid: ALICE.uid, name: 'Alice' },
     seats: { w: seat(ALICE.uid, 'Alice'), b: seat(BOB.uid, 'Bob') },
-    state: initialState(),
+    state: initialState(TIERED_V2.rules),
     lastTurn: null,
     drawOffer: null,
     rematchOf: null,
@@ -49,10 +50,9 @@ export function openGame(overrides: Partial<TracerGame> = {}): TracerGame {
   });
 }
 
-/** Alice plays both sides on one device. */
-export function hotseatGame(overrides: Partial<TracerGame> = {}): TracerGame {
+/** Alice holds both seats (how a game reads when one person plays both sides). */
+export function bothSeatsGame(overrides: Partial<TracerGame> = {}): TracerGame {
   return activeGame({
-    mode: 'hotseat',
     seats: { w: seat(ALICE.uid, 'Alice'), b: seat(ALICE.uid, 'Alice') },
     ...overrides,
   });
@@ -60,12 +60,12 @@ export function hotseatGame(overrides: Partial<TracerGame> = {}): TracerGame {
 
 /** A finished game White won by resignation. */
 export function finishedGame(overrides: Partial<TracerGame> = {}): TracerGame {
-  const state = { ...initialState(), result: { status: 'won', winner: 'w', reason: 'resignation', atPly: 0 } as const };
+  const state = { ...initialState(TIERED_V2.rules), result: { status: 'won', winner: 'w', reason: 'resignation', atPly: 0 } as const };
   return activeGame({ status: 'finished', state, finishedAt: T0 + 1, ...overrides });
 }
 
-/** White's opening chart, b1 over both wardens to a8. */
+/** White's opening chart: the 3-step Tracer on b1, over its Warden to b3. */
 export const OPENING_CHART = {
   clientTurnId: 'turn-0001-abc',
-  turn: { ply: 0, main: { kind: 'chart' as const, from: 'b1', steps: '8888887' }, freeStep: null },
+  turn: { ply: 0, main: { kind: 'chart' as const, from: 'b1', steps: '88' }, freeStep: null },
 };

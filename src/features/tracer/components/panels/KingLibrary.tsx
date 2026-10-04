@@ -4,8 +4,9 @@ import type { TracerGame } from '../../lib/types';
 import { PatternDiagram } from './PatternDiagram';
 import styles from './Panels.module.scss';
 
-function LibraryList({ game, side }: { game: TracerGame; side: Side }) {
-  const keys = game.state.library[side];
+/** One king's library: every pattern its side has ever charted, first-charted first. */
+export function KingLibrary({ game, side }: { game: TracerGame; side: Side }) {
+  const keys = game.state.chartedKeys[side];
   return (
     <section className={styles.library}>
       <h3 className={styles.libraryTitle}>
@@ -24,16 +25,5 @@ function LibraryList({ game, side }: { game: TracerGame; side: Side }) {
         </ul>
       )}
     </section>
-  );
-}
-
-/** Both kings' libraries, the viewer's own first. */
-export function KingLibrary({ game, firstSide }: { game: TracerGame; firstSide: Side }) {
-  const second: Side = firstSide === 'w' ? 'b' : 'w';
-  return (
-    <div className={styles.libraries}>
-      <LibraryList game={game} side={firstSide} />
-      <LibraryList game={game} side={second} />
-    </div>
   );
 }

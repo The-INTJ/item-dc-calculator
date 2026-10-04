@@ -1,10 +1,12 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { emptySeat, type Viewer } from '../../lib/policy';
 import { resultText } from '../../lib/presentation/gameText';
 import type { TracerGame } from '../../lib/types';
+import { setupParams } from '../../variants';
 import type { useGameCommands } from '../../hooks/useGameCommands';
 import type { LiveStatus } from '../../hooks/useTracerGame';
 import { DrawCard, InviteCard, JoinCard } from './StatusCards';
@@ -37,6 +39,9 @@ function ResultCard({ game, viewer, commands }: Pick<StatusPanelProps, 'game' | 
           {game.rematchGameId ? 'Go to the rematch' : 'Rematch (colours swap)'}
         </button>
       )}
+      <Link className={styles.quiet} href={`/tracer?${setupParams({ styleId: game.style.id, rules: game.state.rules })}`}>
+        New game with these rules
+      </Link>
     </div>
   );
 }

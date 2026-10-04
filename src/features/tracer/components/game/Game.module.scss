@@ -32,6 +32,24 @@
   text-decoration: none;
 }
 
+.styleRow {
+  display: flex;
+  justify-content: center;
+  margin-top: -0.4rem;
+}
+
+.styleChip {
+  @include button-quiet;
+  font-size: 0.85rem;
+  font-weight: 500;
+  max-width: 100%;
+  min-height: 32px;
+  overflow: hidden;
+  padding: 0 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .table {
   display: grid;
   gap: 0.75rem;
@@ -123,6 +141,14 @@
   display: flex;
   gap: 0.5rem;
   justify-content: center;
+}
+
+.legend {
+  color: var(--tr-muted);
+  font-size: 0.82rem;
+  margin-inline: auto;
+  max-width: 34rem;
+  text-align: center;
 }
 
 .chip {

@@ -87,8 +87,10 @@ describe('gameRepository', () => {
   it('reports missing, corrupt, and unconfigured storage with typed errors', async () => {
     const noop = () => ({ response: null, game: null, turn: null, newGame: null });
     await expect(runGameCommand(GAME_ID, noop)).rejects.toMatchObject({ code: 'GAME_NOT_FOUND' });
-    store.set(`tracerGames/${GAME_ID}`, { schemaVersion: 99 });
+    store.set(`tracerGames/${GAME_ID}`, { schemaVersion: 3 });
     await expect(runGameCommand(GAME_ID, noop)).rejects.toMatchObject({ code: 'CORRUPT_GAME' });
+    store.set(`tracerGames/${GAME_ID}`, { schemaVersion: 99 });
+    await expect(runGameCommand(GAME_ID, noop)).rejects.toMatchObject({ code: 'GAME_OUTDATED' });
     configured = false;
     await expect(loadGame(GAME_ID)).rejects.toMatchObject({ code: 'STORAGE_UNAVAILABLE' });
   });

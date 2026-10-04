@@ -3,7 +3,7 @@
  * the offerer withdraws it, or the opponent makes a move (see submitTurn).
  *
  * The acting side is worked out from the seats held, so the same rules serve
- * online play (one seat) and hotseat play (both seats).
+ * online play (one seat) and one person holding both seats.
  */
 
 import { otherSide, sideToMove, type Side } from '../../engine';

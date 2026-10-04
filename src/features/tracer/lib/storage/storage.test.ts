@@ -19,7 +19,10 @@ describe('game documents', () => {
     expect(fromGameDoc('x', { ...doc, status: 'paused' })).toBeNull();
     const badPiece = { ...doc.state.pieces[0], at: 'z9' };
     expect(fromGameDoc('x', { ...doc, state: { ...doc.state, pieces: [badPiece] } })).toBeNull();
-    expect(fromGameDoc('x', { ...doc, state: { ...doc.state, library: { w: ['R:5'], b: [] } } })).toBeNull();
+    const badPattern = { ...doc.state, lastCharted: { w: { wT3: 'R:5' }, b: {} } };
+    expect(fromGameDoc('x', { ...doc, state: badPattern })).toBeNull();
+    const twoKings = { ...doc.state.rules.layout, pieces: [...doc.state.rules.layout.pieces, { id: 'K2', kind: 'king', file: 'a', row: 0, tier: null }] };
+    expect(fromGameDoc('x', { ...doc, state: { ...doc.state, rules: { ...doc.state.rules, layout: twoKings } } })).toBeNull();
   });
 
   it('parse stored turns and key them by padded ply', () => {
@@ -32,7 +35,7 @@ describe('game documents', () => {
 
 describe('request schemas', () => {
   it('trims names and rejects empty, long, or control-character names', () => {
-    const base = { seat: 'w', mode: 'online' };
+    const base = { seat: 'w' };
     expect(CreateGameSchema.parse({ ...base, displayName: '  Sam  ' }).displayName).toBe('Sam');
     expect(CreateGameSchema.safeParse({ ...base, displayName: '   ' }).success).toBe(false);
     expect(CreateGameSchema.safeParse({ ...base, displayName: 'x'.repeat(25) }).success).toBe(false);

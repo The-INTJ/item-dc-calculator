@@ -1,21 +1,24 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 
-import { BackToExperiments } from '@/components/ui/BackToExperiments';
-
-import { otherSide } from '../../engine';
+import { otherSide, type Side } from '../../engine';
 import { useGameCommands } from '../../hooks/useGameCommands';
 import { useGamePageEffects, useNow } from '../../hooks/useGamePageEffects';
 import { useViewer } from '../../hooks/usePlayerIdentity';
 import { useTracerGame } from '../../hooks/useTracerGame';
+import { tracerApi } from '../../lib/api/tracerApi';
 import type { TracerGame } from '../../lib/types';
 import { GamePanels, type PanelTab } from '../panels/GamePanels';
+import { OnlineTurnHistory } from '../panels/TurnHistory';
+import { GameHeader } from './GameHeader';
 import { GameMenu } from './GameMenu';
-import { BoardToolbar, PlayerBar } from './PlayerBar';
+import { PlayerBar } from './PlayerBar';
 import { StatusPanel } from './StatusPanel';
+import { StyleChip } from './StyleChip';
 import { TurnPlay } from './TurnPlay';
+import { useBoardDisplay } from './useBoardDisplay';
 import styles from './Game.module.scss';
 
 function MissingGame() {
@@ -27,31 +30,16 @@ function MissingGame() {
   );
 }
 
-function GameHeader({ menu }: { menu: ReactNode }) {
-  return (
-    <header className={styles.header}>
-      <BackToExperiments className={styles.backLink} />
-      <Link href="/tracer" className={styles.wordmark}>
-        Tracer
-      </Link>
-      {menu}
-    </header>
-  );
-}
-
-/** The whole game page: live game, identity, layout. */
+/** An online game: live from Firestore, every turn through the server. */
 export function TracerGameView({ initialGame }: { initialGame: TracerGame }) {
   const { game, live, missing } = useTracerGame(initialGame.id, initialGame);
   const { viewer, uid, defaultName, ensurePlayer, loading } = useViewer(game);
   const commands = useGameCommands(game.id);
   const now = useNow();
   const [tab, setTab] = useState<PanelTab>('piece');
-  const [flipped, setFlipped] = useState(false);
-  const [showThreats, setShowThreats] = useState(false);
+  const { orientation, showThreats, toolbar } = useBoardDisplay(viewer.orientation);
   useGamePageEffects(game, viewer.canMove);
-
-  const orientation = flipped ? otherSide(viewer.orientation) : viewer.orientation;
-  const isViewer = (side: 'w' | 'b') => uid !== null && game.seats[side].uid === uid;
+  const isViewer = (side: Side) => uid !== null && game.seats[side].uid === uid;
 
   async function join(name: string) {
     const signedIn = await ensurePlayer(name);
@@ -60,25 +48,27 @@ export function TracerGameView({ initialGame }: { initialGame: TracerGame }) {
   }
 
   if (missing) return <MissingGame />;
+  const openRules = () => {
+    setTab('rules');
+    document.getElementById('tracer-tab-panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
 
   return (
     <main className={styles.page}>
-      <GameHeader menu={<GameMenu game={game} viewer={viewer} commands={commands} now={now} />} />
+      <GameHeader
+        menu={<GameMenu game={game} viewer={viewer} commands={commands} now={now} />}
+        chip={<StyleChip game={game} onOpen={openRules} />}
+      />
       <TurnPlay
         key={game.state.ply}
         game={game}
         viewer={viewer}
         orientation={orientation}
         showThreats={showThreats}
+        sendTurn={(input) => tracerApi.submitTurn(game.id, input)}
         topBar={<PlayerBar game={game} side={otherSide(orientation)} isViewer={isViewer(otherSide(orientation))} />}
         bottomBar={<PlayerBar game={game} side={orientation} isViewer={isViewer(orientation)} />}
-        toolbar={
-          <BoardToolbar
-            showThreats={showThreats}
-            onToggleThreats={() => setShowThreats(!showThreats)}
-            onFlip={() => setFlipped(!flipped)}
-          />
-        }
+        toolbar={toolbar}
         status={
           <StatusPanel
             game={game}
@@ -90,7 +80,16 @@ export function TracerGameView({ initialGame }: { initialGame: TracerGame }) {
             onJoin={(name) => void join(name)}
           />
         }
-        panels={(view) => <GamePanels tab={tab} onTab={setTab} view={view} game={game} ownSide={orientation} />}
+        panels={(view) => (
+          <GamePanels
+            tab={tab}
+            onTab={setTab}
+            view={view}
+            game={game}
+            ownSide={orientation}
+            history={<OnlineTurnHistory game={game} />}
+          />
+        )}
       />
     </main>
   );

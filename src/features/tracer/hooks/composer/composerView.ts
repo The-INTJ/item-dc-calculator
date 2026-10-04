@@ -11,10 +11,12 @@ import {
   patternTargets,
   pieceAt,
   previewChart,
+  stepCombinesWith,
   type ChartPreview,
   type GameState,
   type MoveTarget,
   type Piece,
+  type PieceKind,
   type RiderWalk,
   type Side,
   type SquareName,
@@ -38,6 +40,8 @@ export interface ComposerView {
   outcome: TurnOutcome | null;
   /** The staged main action moves the king, so the turn is complete. */
   kingTurn: boolean;
+  /** The staged main action may take the free king step along (under this game's rules). */
+  stepWithMain: boolean;
 }
 
 /** A piece's reach for inspection, with rider rays when it has a pattern. */
@@ -48,10 +52,16 @@ export function pieceReach(board: GameState, piece: Piece): { targets: MoveTarge
   return { targets: moveTargets(board, piece.at), walks: [] };
 }
 
-function isKingTurn(composer: ComposerState, game: GameState, side: Side | null): boolean {
+/** The kind of piece the staged main action moves, if one is staged. */
+function mainMover(composer: ComposerState, game: GameState): PieceKind | null {
   const main = composer.main;
-  if (!main || main.kind !== 'move' || !side) return false;
-  return pieceAt(game, main.from)?.kind === 'king';
+  if (!main || main.kind === 'pass') return null;
+  return main.kind === 'chart' ? 'tracer' : (pieceAt(game, main.from)?.kind ?? null);
+}
+
+/** With a quiet king step staged first, only pieces that may take it along can still move. */
+function canJoinStep(game: GameState, composer: ComposerState, piece: Piece): boolean {
+  return !composer.stepBefore || piece.kind === 'king' || stepCombinesWith(game.rules, piece.kind);
 }
 
 interface Selection {
@@ -63,9 +73,9 @@ interface Selection {
 
 const NOTHING: Selection = { targets: [], walks: [], chart: null, stepTargets: [] };
 
-function playSelection(board: GameState, piece: Piece, composer: ComposerState, gameOver: boolean): Selection {
+function playSelection(board: GameState, piece: Piece, composer: ComposerState, stepAfterOpen: boolean): Selection {
   if (composer.main) {
-    const canStep = piece.kind === 'king' && !composer.stepBefore && !composer.stepAfter && !gameOver;
+    const canStep = piece.kind === 'king' && stepAfterOpen;
     return canStep ? { ...NOTHING, stepTargets: freeStepSquares(board, piece.side) } : NOTHING;
   }
   if (piece.kind === 'tracer' && composer.tracerMode === 'chart') {
@@ -85,10 +95,14 @@ export function composeView(
   const outcome = turn && side ? applyTurn(game, side, turn) : null;
   const board = outcome?.ok ? outcome.state : game;
   const selectedPiece = composer.selected ? pieceAt(board, composer.selected) : null;
-  const playing = selectedPiece !== null && canMove && selectedPiece.side === side;
-  const gameOver = board.result.status !== 'active';
+  const playing =
+    selectedPiece !== null && canMove && selectedPiece.side === side && canJoinStep(game, composer, selectedPiece);
+  const mover = mainMover(composer, game);
+  const stepWithMain = mover !== null && mover !== 'king' && stepCombinesWith(game.rules, mover);
+  const stepAfterOpen =
+    stepWithMain && !composer.stepBefore && !composer.stepAfter && board.result.status === 'active';
   let selection = NOTHING;
-  if (selectedPiece && playing) selection = playSelection(board, selectedPiece, composer, gameOver);
+  if (selectedPiece && playing) selection = playSelection(board, selectedPiece, composer, stepAfterOpen);
   else if (selectedPiece) selection = { ...NOTHING, ...pieceReach(board, selectedPiece) };
   return {
     board,
@@ -97,6 +111,7 @@ export function composeView(
     ...selection,
     turn,
     outcome,
-    kingTurn: isKingTurn(composer, game, side),
+    kingTurn: side !== null && mover === 'king',
+    stepWithMain,
   };
 }

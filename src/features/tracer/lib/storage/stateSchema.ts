@@ -8,6 +8,7 @@ import { z } from 'zod';
 
 import { isStepString, parsePattern } from '../../engine';
 import type { ActionRecord, GameResult, GameState, Piece, TurnRecord } from '../../engine';
+import { MAX_TIERS, RuleSetSchema } from '../../variants';
 
 export const SideSchema = z.enum(['w', 'b']);
 export const SquareSchema = z.string().regex(/^[a-h][1-8]$/, 'Not a square');
@@ -21,7 +22,11 @@ const PieceSchema: z.ZodType<Piece> = z.object({
   kind: PieceKindSchema,
   at: SquareSchema,
   pattern: PatternSchema.nullable(),
+  tier: z.number().int().min(0).max(MAX_TIERS - 1).nullable(),
 });
+
+const PatternsByTracerSchema = z.record(z.string(), PatternSchema);
+const PatternListSchema = z.array(PatternSchema);
 
 const ResultSchema: z.ZodType<GameResult> = z.union([
   z.object({ status: z.literal('active') }),
@@ -39,10 +44,11 @@ const ResultSchema: z.ZodType<GameResult> = z.union([
 ]);
 
 export const GameStateSchema: z.ZodType<GameState> = z.object({
-  rulesVersion: z.literal(1),
+  rules: RuleSetSchema,
   ply: z.number().int().min(0),
   pieces: z.array(PieceSchema),
-  library: z.object({ w: z.array(PatternSchema), b: z.array(PatternSchema) }),
+  lastCharted: z.object({ w: PatternsByTracerSchema, b: PatternsByTracerSchema }),
+  chartedKeys: z.object({ w: PatternListSchema, b: PatternListSchema }),
   stepStreak: z.object({ w: z.number().int().min(0), b: z.number().int().min(0) }),
   result: ResultSchema,
 });
@@ -69,8 +75,6 @@ const ActionRecordSchema: z.ZodType<ActionRecord> = z.union([
     to: SquareSchema,
     steps: StepsSchema,
     pattern: PatternSchema,
-    key: PatternSchema,
-    libraryAdded: z.boolean(),
   }),
   z.object({ kind: z.literal('pass') }),
 ]);

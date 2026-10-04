@@ -6,7 +6,8 @@
 
 import 'server-only';
 
-import type { Side } from '../../engine';
+import type { RuleSet, Side } from '../../engine';
+import { layoutById, styleById, styleRef, type GameStyle } from '../../variants';
 import type { CreateGameInput, DrawAction, SubmitTurnInput } from '../schemas';
 import type { Actor } from '../types';
 import {
@@ -20,14 +21,17 @@ import {
 } from './commands';
 import { insertGame, newGameId, runGameCommand } from './gameRepository';
 
+/** The schema has vetted the style and layout ids; the pieces come from the registry. */
+function rulesFor(style: GameStyle, rules: RuleSet | undefined): RuleSet {
+  if (!rules) return style.rules;
+  return { ...rules, layout: layoutById(rules.layout.id) ?? style.rules.layout };
+}
+
 export async function createNewGame(actor: Actor, input: CreateGameInput) {
   const seat: Side = input.seat === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : input.seat;
-  const game = createGame(
-    newGameId(),
-    actor,
-    { displayName: input.displayName, seat, mode: input.mode },
-    Date.now(),
-  );
+  const style = styleById(input.styleId) as GameStyle;
+  const rules = rulesFor(style, input.rules);
+  const game = createGame(newGameId(), actor, { displayName: input.displayName, seat, style: styleRef(style), rules }, Date.now());
   await insertGame(game);
   return { gameId: game.id };
 }

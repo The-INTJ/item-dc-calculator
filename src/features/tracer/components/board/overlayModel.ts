@@ -1,13 +1,14 @@
 /**
  * The lines drawn over the board: the path being charted, the staged turn,
  * the last turn played, and faint rays showing a selected rider's reach.
+ * (Threat lines come from threatOverlay.ts.)
  */
 
 import { pathSquares, patternKind, type ActionRecord, type Side, type SquareName, type TurnRecord } from '../../engine';
 import type { ComposerView } from '../../hooks/composer/composerView';
 import { centerOf } from './boardGeometry';
 
-export type LineKind = 'rider' | 'jumper' | 'step' | 'last' | 'ghost';
+export type LineKind = 'rider' | 'jumper' | 'step' | 'last' | 'ghost' | 'threat' | 'threatStep';
 
 export interface OverlayLine {
   key: string;
@@ -16,7 +17,8 @@ export interface OverlayLine {
   arrow: boolean;
 }
 
-function points(squares: SquareName[], orientation: Side): string {
+/** SVG polyline points through the centres of `squares`. */
+export function points(squares: SquareName[], orientation: Side): string {
   return squares
     .map((square) => centerOf(square, orientation))
     .map(({ x, y }) => `${x},${y}`)

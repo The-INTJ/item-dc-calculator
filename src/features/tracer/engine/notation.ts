@@ -3,8 +3,8 @@
  *
  *   Wd2-d3  Wd2xe3          warden step / capture
  *   Tf4-f6  Tf4xc6          tracer strike
- *   Kd1-e2  Kd1xb8 [J1,7]   king move; library pattern in brackets
- *   Tb1~a8 J8888887*        chart: kind letter + path digits, * = new to library
+ *   Ke1-f2  Ke1xb4 [J-1,3]  king move; borrowed pattern in brackets
+ *   Tb1~b3 J88              chart: kind letter + path digits
  *   (Kd8-c7)                free king step
  *   --                      pass
  *   #  #L  =                king captured / lone king / drawn by dodge streak
@@ -26,7 +26,7 @@ export function formatAction(action: ActionRecord): string {
       return `(K${action.from}-${action.to})`;
     case 'chart': {
       const letter = action.pattern.startsWith('J:') ? 'J' : 'R';
-      return `T${action.from}~${action.to} ${letter}${action.steps}${action.libraryAdded ? '*' : ''}`;
+      return `T${action.from}~${action.to} ${letter}${action.steps}`;
     }
     case 'pass':
       return '--';

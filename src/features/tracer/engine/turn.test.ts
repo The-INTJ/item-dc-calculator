@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { GameState, TurnInput } from './types';
 import { positionFrom } from './fixtures/position';
+import { TEST_RULES } from './fixtures/rules';
 import { initialState } from './setup';
 import { applyTurn, sideToMove } from './turn';
 
@@ -15,7 +16,7 @@ function snapshot(state: GameState) {
 }
 
 describe('turn guards', () => {
-  const start = initialState();
+  const start = initialState(TEST_RULES);
 
   it('rejects malformed input without throwing', () => {
     for (const garbage of [null, 7, {}, { ply: 0 }, { ply: 0, main: { kind: 'fly' }, freeStep: null }]) {
@@ -52,21 +53,21 @@ describe('turn guards', () => {
 
   it('leaves the input state untouched, legal or not', () => {
     const before = snapshot(start);
-    applyTurn(start, 'w', move('d2', 'd3', { to: 'c1', when: 'after' }));
+    applyTurn(start, 'w', move('e2', 'e3', { to: 'e2', when: 'after' }));
     applyTurn(start, 'w', move('d2', 'd5'));
     expect(start).toEqual(before);
   });
 });
 
 describe('the free king step', () => {
-  const start = initialState();
+  const start = initialState(TEST_RULES);
 
   it('may come before a warden move', () => {
-    const outcome = applyTurn(start, 'w', move('b2', 'b3', { to: 'c1', when: 'before' }));
+    const outcome = applyTurn(start, 'w', move('b2', 'b3', { to: 'f1', when: 'before' }));
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     expect(outcome.record.actions.map((a) => a.kind)).toEqual(['step', 'warden']);
-    expect(outcome.state.pieces.find((p) => p.id === 'wK')?.at).toBe('c1');
+    expect(outcome.state.pieces.find((p) => p.id === 'wK')?.at).toBe('f1');
     expect(sideToMove(outcome.state)).toBe('b');
   });
 
@@ -85,17 +86,17 @@ describe('the free king step', () => {
   });
 
   it('never comes with a king move', () => {
-    expect(applyTurn(start, 'w', move('d1', 'c1', { to: 'e1', when: 'after' }))).toMatchObject({
+    expect(applyTurn(start, 'w', move('e1', 'f1', { to: 'f2', when: 'after' }))).toMatchObject({
       code: 'STEP_WITH_KING_MOVE',
     });
     // Stepping first and then moving the king from its new square is the same thing.
-    expect(applyTurn(start, 'w', move('c1', 'b1', { to: 'c1', when: 'before' }))).toMatchObject({
+    expect(applyTurn(start, 'w', move('f1', 'f2', { to: 'f1', when: 'before' }))).toMatchObject({
       code: 'STEP_WITH_KING_MOVE',
     });
   });
 
   it('lets the king step alone as a whole king turn', () => {
-    const outcome = applyTurn(start, 'w', move('d1', 'c1'));
+    const outcome = applyTurn(start, 'w', move('e1', 'f1'));
     expect(outcome.ok && outcome.record.actions).toMatchObject([{ kind: 'king', via: 'base' }]);
   });
 });

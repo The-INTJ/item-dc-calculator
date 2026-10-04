@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { positionFrom } from './fixtures/position';
+import { TEST_RULES } from './fixtures/rules';
 import { initialState } from './setup';
 import { moveTargets, patternTargets } from './queries';
 
@@ -79,7 +80,7 @@ describe('jumper reach', () => {
 
 describe('piece reach', () => {
   it('gives an unformed tracer no strike targets', () => {
-    expect(moveTargets(initialState(), 'b1')).toEqual([]);
+    expect(moveTargets(initialState(TEST_RULES), 'b1')).toEqual([]);
   });
 
   it('gives wardens one step in any direction, capturing enemies', () => {
@@ -89,8 +90,8 @@ describe('piece reach', () => {
     );
   });
 
-  it('gives the king its base step first, then library patterns', () => {
-    const state = positionFrom('1 . . . K . . . .', { library: { w: ['J:0,3'] } });
+  it('gives the king its base step first, then the patterns its rules lend it', () => {
+    const state = positionFrom('1 . . . K . . . .', { lastCharted: { w: { wT1: 'J:0,3' } } });
     const targets = moveTargets(state, 'd1');
     expect(targets.find((t) => t.to === 'd2')?.via).toBe('base');
     expect(targets.find((t) => t.to === 'd4')?.via).toBe('J:0,3');

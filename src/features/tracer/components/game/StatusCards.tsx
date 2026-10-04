@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { otherSide, type Side } from '../../engine';
 import { SIDE_NAME, seatName } from '../../lib/presentation/gameText';
+import { gameStyleLabel } from '../../lib/presentation/ruleText';
 import type { TracerGame } from '../../lib/types';
 import { NameField } from '../shared/NameField';
 import { gameUrl, shareLink } from './shareLink';
@@ -14,13 +15,13 @@ export function InviteCard({ game }: { game: TracerGame }) {
   const [note, setNote] = useState<string | null>(null);
   const url = gameUrl(game.id);
   async function share() {
-    const outcome = await shareLink(`${game.createdBy.name} challenged you to Tracer`, url);
+    const outcome = await shareLink(`${game.createdBy.name} challenged you to Tracer (${gameStyleLabel(game)})`, url);
     setNote(outcome === 'copied' ? 'Link copied — paste it to a friend.' : null);
   }
   return (
     <div className={styles.card}>
       <p className={styles.eyebrow}>Waiting for an opponent</p>
-      <p>Send this link to a friend. The game starts as soon as they join.</p>
+      <p>Send this link to a friend. The game starts as soon as they join. Rules: {gameStyleLabel(game)}.</p>
       <input className={styles.link} readOnly value={url} aria-label="Game link" onFocus={(e) => e.currentTarget.select()} />
       <button type="button" className={styles.primary} onClick={() => void share()}>
         Share invite link
@@ -52,7 +53,7 @@ export function JoinCard({ game, side, defaultName, busy, onJoin }: JoinCardProp
     >
       <p className={styles.eyebrow}>You are invited</p>
       <p>
-        {host} wants a game. You would play <strong>{SIDE_NAME[side]}</strong>.
+        {host} wants a game of Tracer — {gameStyleLabel(game)}. You would play <strong>{SIDE_NAME[side]}</strong>.
       </p>
       <NameField value={name} onChange={setName} />
       <button type="submit" className={styles.primary} disabled={busy || name.trim() === ''}>

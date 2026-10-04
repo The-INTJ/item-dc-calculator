@@ -3,7 +3,7 @@
  *
  *   - a piece turn: one tracer or warden move, plus an optional free king
  *     step before or after it;
- *   - a king turn: one king move (base step or library pattern), alone.
+ *   - a king turn: one king move (base step or a borrowed pattern), alone.
  *
  * `applyTurn` is pure: it validates against `state`, works on a clone, and
  * returns the next state with a record of what happened — or the first
@@ -11,23 +11,41 @@
  * previews and on the server as the authority.
  */
 
-import type { ActionRecord, FreeStep, GameState, MainAction, Side, TurnInput, TurnOutcome } from './types';
+import type {
+  ActionRecord,
+  EngineErrorCode,
+  FreeStep,
+  GameState,
+  MainAction,
+  Piece,
+  Side,
+  TurnInput,
+  TurnOutcome,
+} from './types';
 import { findKing } from './occupancy';
 import { applyFreeStep } from './free-step';
 import { applyMainAction } from './main-action';
 import { captureResult, nextStepStreak, streakResult } from './outcome';
 import { turnFailure } from './engine-error';
 import { isTurnInput } from './turn-input';
+import { isDodge, stepCombinesWith } from './rulebook';
+import { isKingInDanger } from './threats';
+
+function pieceAt(state: GameState, at: string): Piece | undefined {
+  return state.pieces.find((piece) => piece.at === at);
+}
 
 export function sideToMove(state: GameState): Side {
   return state.ply % 2 === 0 ? 'w' : 'b';
 }
 
+/** A copy safe to mutate. The rules are frozen for the game, so they are shared. */
 export function cloneState(state: GameState): GameState {
   return {
     ...state,
     pieces: state.pieces.map((piece) => ({ ...piece })),
-    library: { w: [...state.library.w], b: [...state.library.b] },
+    lastCharted: { w: { ...state.lastCharted.w }, b: { ...state.lastCharted.b } },
+    chartedKeys: { w: [...state.chartedKeys.w], b: [...state.chartedKeys.b] },
     stepStreak: { ...state.stepStreak },
     result: { ...state.result },
   };
@@ -41,15 +59,20 @@ function movesKing(state: GameState, side: Side, main: MainAction, step: FreeSte
   return main.from === king.at || (step.when === 'before' && main.from === step.to);
 }
 
+/** Why a free step can't come with `main`, if it can't. */
+function freeStepProblem(state: GameState, side: Side, main: MainAction, step: FreeStep): EngineErrorCode | null {
+  if (movesKing(state, side, main, step)) return 'STEP_WITH_KING_MOVE';
+  const kind = main.kind === 'chart' ? 'tracer' : main.kind === 'move' ? pieceAt(state, main.from)?.kind : null;
+  return kind && stepCombinesWith(state.rules, kind) ? null : 'STEP_NOT_ALLOWED';
+}
+
 function guard(state: GameState, side: Side, input: unknown): TurnOutcome | null {
   if (!isTurnInput(input)) return turnFailure('BAD_INPUT', 'turn');
   if (state.result.status !== 'active') return turnFailure('GAME_OVER', 'turn');
   if (side !== sideToMove(state)) return turnFailure('NOT_YOUR_TURN', 'turn');
   if (input.ply !== state.ply) return turnFailure('STALE_PLY', 'turn');
-  if (input.freeStep && movesKing(state, side, input.main, input.freeStep)) {
-    return turnFailure('STEP_WITH_KING_MOVE', 'turn');
-  }
-  return null;
+  const stepProblem = input.freeStep && freeStepProblem(state, side, input.main, input.freeStep);
+  return stepProblem ? turnFailure(stepProblem, 'turn') : null;
 }
 
 export function applyTurn(state: GameState, side: Side, input: TurnInput): TurnOutcome {
@@ -77,8 +100,9 @@ export function applyTurn(state: GameState, side: Side, input: TurnInput): TurnO
     actions.push(stepped);
   }
 
-  work.stepStreak = nextStepStreak(state.stepStreak, side, step !== null, main.captured !== null);
-  work.result = won ?? streakResult(work.stepStreak, side, state.ply) ?? { status: 'active' };
+  const dodged = isDodge(state.rules, step !== null, () => isKingInDanger(state, side));
+  work.stepStreak = nextStepStreak(state.stepStreak, side, dodged, main.captured !== null);
+  work.result = won ?? streakResult(state.rules, work.stepStreak, side, state.ply) ?? { status: 'active' };
   work.ply = state.ply + 1;
   return { ok: true, state: work, record: { ply: state.ply, side, actions, result: work.result } };
 }

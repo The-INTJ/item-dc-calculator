@@ -31,6 +31,7 @@ The contest app is the active area. The DC calculator is intentionally stable an
 - `/grass-manager`: weather-aware lawn care and clickable yard model
 - `/tracer`: Tracer lobby (new game, recent games, rules)
 - `/tracer/[gameId]`: a live Tracer game — players, guests and spectators share the same link
+- `/tracer/local/[localId]`: a Tracer game played on one device (both sides), stored in the browser only
 
 Route groups:
 
@@ -38,7 +39,7 @@ Route groups:
 - `app/(pilates-mentors)/`: standalone Pilates Mentors design-preview layout and page
 - `app/(moriah)/`: both Moriah previews; `moriah-2/layout.tsx` adds the Caslon faces the Portico sets in
 - `app/(dc-calculator)/`: legacy calculator layout and page
-- `app/(tracer)/`: Tracer lobby and game pages; the layout mounts `TracerRoot` (design tokens + one shared `AuthProvider`)
+- `app/(tracer)/`: Tracer lobby and game pages; the layout mounts `TracerRoot` (design tokens). The lobby and online game pages add `TracerAuth` (the contest `AuthProvider`); local games deliberately do not
 
 ## Provider and shell structure
 
@@ -175,6 +176,9 @@ in `src/features/tracer/README.md`.
 
 Rules deploy separately from the app: `npm run deploy:rules` must ship the
 `tracerGames` rules before a Tracer build reaches production.
+
+Local games (`/tracer/local/[localId]`) never touch this path: the engine runs
+in the browser and the game lives in `localStorage` (`src/features/tracer/lib/local/`).
 
 ## Contest, Round, Matchup hierarchy
 

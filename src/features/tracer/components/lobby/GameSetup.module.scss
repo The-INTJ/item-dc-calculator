@@ -1,0 +1,154 @@
+@use '../styles/controls' as *;
+
+.field {
+  display: grid;
+  gap: 0.3rem;
+
+  > label {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+}
+
+.select,
+.number {
+  @include field;
+}
+
+.number {
+  max-width: 6.5rem;
+}
+
+.summary,
+.help {
+  color: var(--tr-muted);
+  font-size: 0.9rem;
+}
+
+.tweaks {
+  border: 1px solid var(--tr-line);
+  border-radius: 12px;
+  display: grid;
+  gap: 0.9rem;
+  padding: 0 0.9rem;
+
+  &[open] {
+    padding-bottom: 0.9rem;
+  }
+
+  > summary {
+    @include focus-ring;
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    font-weight: 600;
+    min-height: 44px;
+  }
+}
+
+.group {
+  border: 0;
+  border-top: 1px solid var(--tr-line);
+  display: grid;
+  gap: 0.9rem;
+  margin: 0;
+  min-width: 0;
+  padding: 0.8rem 0 0;
+
+  > legend {
+    @include eyebrow;
+    float: left;
+    margin-bottom: 0.2rem;
+    width: 100%;
+  }
+}
+
+.rule {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.ruleHead {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+  min-height: 32px;
+
+  label {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+}
+
+.changedDot {
+  background: var(--tr-accent);
+  border-radius: 50%;
+  display: inline-block;
+  height: 0.5rem;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+  width: 0.5rem;
+}
+
+.reset {
+  @include focus-ring;
+  background: none;
+  border: 0;
+  color: var(--tr-accent);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-height: 32px;
+  padding: 0 0.25rem;
+}
+
+.switch {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+  min-height: 44px;
+
+  input {
+    height: 1.2rem;
+    width: 1.2rem;
+  }
+}
+
+.tiers {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+
+  label {
+    color: var(--tr-muted);
+    display: grid;
+    font-size: 0.8rem;
+    gap: 0.2rem;
+  }
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.quiet {
+  @include button-quiet;
+  flex: 1 1 auto;
+}
+
+.note {
+  color: var(--tr-muted);
+  font-size: 0.9rem;
+}
+
+.notice {
+  background: var(--tr-danger-soft);
+  border-radius: 8px;
+  color: var(--tr-danger);
+  font-size: 0.9rem;
+  padding: 0.5rem 0.7rem;
+}

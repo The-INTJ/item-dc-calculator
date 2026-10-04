@@ -3,7 +3,7 @@
  * whole interaction can be tested without rendering a board.
  */
 
-import { pieceAt, stepDigit, type SquareName } from '../../engine';
+import { pieceAt, stepCombinesWith, stepDigit, type RuleSet, type SquareName } from '../../engine';
 import type { ComposerAction, ComposerState, TracerMode } from './composerState';
 import type { ComposerView } from './composerView';
 
@@ -34,12 +34,26 @@ function chartTap(ctx: TapContext, square: SquareName): ComposerAction | null {
   return null;
 }
 
+/** Whether any piece move may take a free king step along under these rules. */
+function freeStepsExist(rules: RuleSet): boolean {
+  return stepCombinesWith(rules, 'tracer') || stepCombinesWith(rules, 'warden');
+}
+
+/**
+ * A quiet one-square king step stays "undecided" — a king turn if submitted
+ * alone, the free step of a piece move if one follows — wherever the rules
+ * allow free steps at all. Anything else is the main action.
+ */
 function targetTap(ctx: TapContext, square: SquareName): ComposerAction | null {
   const piece = ctx.view.selectedPiece;
   const target = ctx.view.targets.find((t) => t.to === square);
   if (!piece || !target) return null;
   const quietKingStep =
-    piece.kind === 'king' && target.via === 'base' && !target.capture && !ctx.composer.stepBefore;
+    piece.kind === 'king' &&
+    target.via === 'base' &&
+    !target.capture &&
+    !ctx.composer.stepBefore &&
+    freeStepsExist(ctx.view.board.rules);
   if (quietKingStep) return { type: 'stepBefore', to: square };
   return { type: 'stageMain', main: { kind: 'move', from: piece.at, to: square } };
 }

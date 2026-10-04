@@ -1,15 +1,15 @@
 /**
  * Tracer on a phone (Pixel 7): no sideways scrolling, board squares big
  * enough to tap, and the turn controls reachable once a piece is chosen.
- * Starts signed out, so it also covers creating a game as a brand-new guest.
+ * Starts signed out and plays a local game, so nothing needs a server.
  */
 
 import { test, expect } from '@playwright/test';
 
-import { createGameInLobby, tap } from '../fixtures/tracer';
+import { startLocalGameInLobby, tap } from '../fixtures/tracer';
 
 test('a phone can start and play a game comfortably', async ({ page }) => {
-  await createGameInLobby(page, { name: 'Phone', hotseat: true });
+  await startLocalGameInLobby(page);
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(1);

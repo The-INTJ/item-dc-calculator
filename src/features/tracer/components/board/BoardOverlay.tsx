@@ -1,7 +1,7 @@
 import type { LineKind, OverlayLine } from './overlayModel';
 import styles from './Board.module.scss';
 
-const ARROW_KINDS: readonly LineKind[] = ['rider', 'jumper', 'step', 'last'];
+const ARROW_KINDS: readonly LineKind[] = ['rider', 'jumper', 'step', 'last', 'threat', 'threatStep'];
 
 const COLOR: Record<LineKind, string> = {
   rider: 'var(--tr-rider)',
@@ -9,6 +9,8 @@ const COLOR: Record<LineKind, string> = {
   step: 'var(--tr-step)',
   last: 'var(--tr-last-line)',
   ghost: 'var(--tr-rider)',
+  threat: 'var(--tr-capture)',
+  threatStep: 'var(--tr-capture)',
 };
 
 /** One SVG over the whole board, one unit per square; never takes taps. */

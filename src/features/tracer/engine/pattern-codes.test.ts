@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
-import { chartedPattern, libraryKey, parsePattern } from './pattern-codes';
+import { canonicalKey, chartedPattern, parsePattern } from './pattern-codes';
 
 describe('parsePattern', () => {
   it('reads riders and jumpers', () => {
@@ -17,28 +17,6 @@ describe('parsePattern', () => {
   );
 });
 
-describe('libraryKey', () => {
-  it('keys riders by their largest orientation', () => {
-    expect(libraryKey('R:221')).toBe('R:889');
-    expect(libraryKey('R:966')).toBe('R:988');
-    expect(libraryKey('R:2')).toBe('R:8');
-  });
-
-  it('keeps step order significant', () => {
-    expect(libraryKey('R:89')).not.toBe(libraryKey('R:98'));
-  });
-
-  it('keys jumpers by their sorted absolute offset', () => {
-    expect(libraryKey('J:-2,1')).toBe('J:1,2');
-    expect(libraryKey('J:0,-3')).toBe('J:0,3');
-    expect(libraryKey('J:-1,7')).toBe('J:1,7');
-  });
-
-  it('never merges a rider with a jumper', () => {
-    expect(libraryKey('R:88')).not.toBe(libraryKey('J:0,2'));
-  });
-});
-
 describe('chartedPattern', () => {
   it('keeps a clean path as a rider in charted orientation', () => {
     expect(chartedPattern('966', false)).toBe('R:966');
@@ -52,5 +30,18 @@ describe('chartedPattern', () => {
     // N, W, S: three distinct squares that end one step west of the start.
     expect(chartedPattern('842', true)).toBe('R:4');
     expect(chartedPattern('86', true)).toBe('R:9');
+  });
+});
+
+describe('canonicalKey', () => {
+  it('gives every rotation and mirror image of a pattern one key', () => {
+    const images = ['R:966', 'R:322', 'R:144', 'R:788', 'R:744', 'R:988', 'R:366', 'R:122'];
+    expect(new Set(images.map(canonicalKey))).toEqual(new Set(['R:988']));
+    expect(['J:-1,7', 'J:7,1', 'J:1,-7', 'J:-7,-1'].map(canonicalKey)).toEqual(Array(4).fill('J:1,7'));
+  });
+
+  it('keeps different shapes apart', () => {
+    expect(canonicalKey('R:966')).not.toBe(canonicalKey('R:996'));
+    expect(canonicalKey('J:1,2')).not.toBe(canonicalKey('J:2,2'));
   });
 });

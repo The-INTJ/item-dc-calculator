@@ -4,7 +4,8 @@ import Link from 'next/link';
 
 import { BackToExperiments } from '@/components/ui/BackToExperiments';
 
-import { useRecentGames } from '../../lib/recentGames';
+import { useGameSetup } from '../../hooks/useGameSetup';
+import { recentGameHref, useRecentGames } from '../../lib/recentGames';
 import { RulesList } from '../panels/GamePanels';
 import { NewGameForm } from './NewGameForm';
 import styles from './Lobby.module.scss';
@@ -20,7 +21,7 @@ function RecentGames() {
       <ul className={styles.recent}>
         {recent.map((game) => (
           <li key={game.id}>
-            <Link href={`/tracer/${game.id}`}>{game.title}</Link>
+            <Link href={recentGameHref(game)}>{game.title}</Link>
           </li>
         ))}
       </ul>
@@ -28,27 +29,30 @@ function RecentGames() {
   );
 }
 
-export function TracerLobby() {
+/** `setupQuery`: the page's query string — a setup link prefills the new-game form. */
+export function TracerLobby({ setupQuery = '' }: { setupQuery?: string }) {
+  const setup = useGameSetup(setupQuery);
   return (
     <main className={styles.lobby}>
       <BackToExperiments className={styles.back} />
       <header className={styles.hero}>
         <h1>Tracer</h1>
         <p>
-          Chess where pieces learn their moves from the paths you draw — and your king learns every
-          one of them. Make a game, send the link, play a friend.
+          Chess where pieces learn their moves from the paths you draw — and your king borrows them.
+          Pick a style, make a game, send the link, play a friend.
         </p>
       </header>
       <div className={styles.columns}>
         <div className={styles.stack}>
-          <NewGameForm />
+          <NewGameForm controls={setup} />
           <RecentGames />
         </div>
         <section className={styles.card} aria-labelledby="tracer-rules">
           <h2 id="tracer-rules" className={styles.cardTitle}>
-            How to play
+            How to play · {setup.style.name}
+            {setup.tweaks.length > 0 && ' (tweaked)'}
           </h2>
-          <RulesList />
+          <RulesList rules={setup.setup.rules} />
         </section>
       </div>
     </main>

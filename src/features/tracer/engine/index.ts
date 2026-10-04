@@ -4,12 +4,23 @@
  */
 
 export type * from './types';
-export { initialState, RULES_VERSION, STARTING_LAYOUT } from './setup';
+export { initialState } from './setup';
 export { applyTurn, sideToMove } from './turn';
-export { agreeDraw, resign, STEP_STREAK_LIMIT } from './outcome';
+export { agreeDraw, resign } from './outcome';
+export {
+  chartLimit,
+  dodgeLimit,
+  FREE_STEP,
+  hasChartLimit,
+  isDodge,
+  KING_MEMORY,
+  kingPatterns,
+  loneKingWins,
+  stepCombinesWith,
+} from './rulebook';
 export { previewChart, type ChartPreview } from './chart';
 export { freeStepSquares } from './free-step';
-export { attackedSquares, isKingInDanger } from './threats';
+export { attackedSquares, controlMap, defenders, isKingInDanger, threatMap, type Threat, type ThreatMap } from './threats';
 export { hasLegalMainAction } from './legality';
 export {
   moveTargets,
@@ -21,8 +32,9 @@ export {
   stepDigit,
   withKingAt,
 } from './queries';
-export { libraryKey, parsePattern, patternKind, type ParsedPattern } from './pattern-codes';
+export { canonicalKey, parsePattern, patternKind, type ParsedPattern } from './pattern-codes';
 export { formatAction, formatTurn, turnNumberLabel } from './notation';
+export { replayTurns, turnInputFromRecord } from './replay';
 export { engineMessage } from './engine-error';
 export { otherSide } from './occupancy';
 export {

@@ -1,36 +1,30 @@
 'use client';
 
-import type { Side } from '../../engine';
+import type { ReactNode } from 'react';
+
+import type { RuleSet, Side } from '../../engine';
 import type { ComposerView } from '../../hooks/composer/composerView';
 import type { TracerGame } from '../../lib/types';
-import { RULES } from './content';
-import { KingLibrary } from './KingLibrary';
+import { GameRules } from './GameRules';
+import { KingPatterns } from './KingPatterns';
 import { PieceInspector } from './PieceInspector';
-import { TurnHistory } from './TurnHistory';
+import { RuleSections } from './RuleSections';
 import styles from './Panels.module.scss';
 
-export type PanelTab = 'piece' | 'library' | 'history' | 'rules';
+export type PanelTab = 'piece' | 'kings' | 'history' | 'rules';
 
 const TABS: { id: PanelTab; label: string }[] = [
   { id: 'piece', label: 'Piece' },
-  { id: 'library', label: 'Libraries' },
+  { id: 'kings', label: 'Kings' },
   { id: 'history', label: 'Moves' },
   { id: 'rules', label: 'Rules' },
 ];
 
-export function RulesList() {
+/** How to play under `rules`. */
+export function RulesList({ rules }: { rules: RuleSet }) {
   return (
     <div className={styles.rules}>
-      {RULES.map((section) => (
-        <section key={section.title}>
-          <h3>{section.title}</h3>
-          <ul>
-            {section.points.map((point) => (
-              <li key={point}>{point}</li>
-            ))}
-          </ul>
-        </section>
-      ))}
+      <RuleSections rules={rules} />
     </div>
   );
 }
@@ -41,9 +35,11 @@ interface GamePanelsProps {
   view: ComposerView;
   game: TracerGame;
   ownSide: Side;
+  /** The move list for this kind of game — only mounted while its tab is open. */
+  history: ReactNode;
 }
 
-export function GamePanels({ tab, onTab, view, game, ownSide }: GamePanelsProps) {
+export function GamePanels({ tab, onTab, view, game, ownSide, history }: GamePanelsProps) {
   return (
     <section className={styles.panels} aria-label="Game details">
       <div className={styles.tabs} role="tablist">
@@ -64,9 +60,9 @@ export function GamePanels({ tab, onTab, view, game, ownSide }: GamePanelsProps)
       </div>
       <div className={styles.panelBody} role="tabpanel" id="tracer-tab-panel" aria-labelledby={`tracer-tab-${tab}`}>
         {tab === 'piece' && <PieceInspector view={view} game={game} />}
-        {tab === 'library' && <KingLibrary game={game} firstSide={ownSide} />}
-        {tab === 'history' && <TurnHistory game={game} />}
-        {tab === 'rules' && <RulesList />}
+        {tab === 'kings' && <KingPatterns game={game} firstSide={ownSide} />}
+        {tab === 'history' && history}
+        {tab === 'rules' && <GameRules game={game} />}
       </div>
     </section>
   );

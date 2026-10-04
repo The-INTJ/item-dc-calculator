@@ -3,7 +3,8 @@
  * the player can do next.
  */
 
-import { describeAction, KIND_NAME, SIDE_NAME } from '../../lib/presentation/gameText';
+import { describeAction, SIDE_NAME } from '../../lib/presentation/gameText';
+import { pieceName, stepCompanions } from '../../lib/presentation/ruleText';
 import type { ComposerState } from '../../hooks/composer/composerState';
 import type { ComposerView } from '../../hooks/composer/composerView';
 import type { SubmitPhase } from '../../hooks/composer/useTurnSubmission';
@@ -13,12 +14,12 @@ function stagedHint(view: ComposerView, composer: ComposerState): string | null 
   const summary = actions.map(describeAction).join(', then ');
   if (view.kingTurn) return `${summary}. A king move is the whole turn — submit when ready.`;
   if (composer.main) {
-    return composer.stepBefore || composer.stepAfter
-      ? `${summary}. Submit when ready.`
-      : `${summary}. Tap your king for a free step, or submit.`;
+    const open = view.stepWithMain && !composer.stepBefore && !composer.stepAfter;
+    return open ? `${summary}. Tap your king for a free step, or submit.` : `${summary}. Submit when ready.`;
   }
   if (composer.stepBefore) {
-    return `King steps to ${composer.stepBefore}. Submit that as your turn, or also move a Tracer or Warden.`;
+    const companions = stepCompanions(view.board.rules) ?? 'piece';
+    return `King steps to ${composer.stepBefore}. Submit that as your turn, or also move a ${companions}.`;
   }
   return null;
 }
@@ -26,11 +27,23 @@ function stagedHint(view: ComposerView, composer: ComposerState): string | null 
 function chartHint(view: ComposerView, origin: string): string {
   const chart = view.chart;
   if (!chart || chart.squares.length === 0) {
-    return `Charting from ${origin}: tap neighbouring squares to draw a path — through pieces makes a jumper.`;
+    const limit = chart?.limit ? ` up to ${chart.limit} squares` : '';
+    return `Charting from ${origin}: tap neighbouring squares to draw a path${limit} — through pieces makes a jumper.`;
   }
-  const steps = `${chart.squares.length} step${chart.squares.length === 1 ? '' : 's'}`;
-  if (!chart.canFinish) return `${steps} — a path cannot end on a piece, keep going.`;
-  return `${steps} · ${chart.kind === 'jumper' ? 'Jumper' : 'Rider'} — tap Done, or keep drawing.`;
+  const drawn = chart.squares.length;
+  const steps = chart.limit ? `${drawn} of ${chart.limit} steps` : `${drawn} ${drawn === 1 ? 'step' : 'steps'}`;
+  const stuck = chart.next.length === 0;
+  if (!chart.canFinish) {
+    return stuck ? `${steps} — this ends on a piece. Back up a step.` : `${steps} — a path cannot end on a piece, keep going.`;
+  }
+  const kind = chart.kind === 'jumper' ? 'Jumper' : 'Rider';
+  return stuck ? `${steps} · ${kind} — tap Done.` : `${steps} · ${kind} — tap Done, or keep drawing.`;
+}
+
+function kingHint(view: ComposerView): string {
+  return view.board.rules.kingMemory === 'none'
+    ? 'Step one square in any direction.'
+    : 'Step one square, or move by one of the king’s patterns (see Kings).';
 }
 
 export function actionHint(view: ComposerView, composer: ComposerState, phase: SubmitPhase): string {
@@ -40,10 +53,10 @@ export function actionHint(view: ComposerView, composer: ComposerState, phase: S
   if (staged && !composer.selected) return staged;
   const piece = view.selectedPiece;
   if (!piece) return staged ?? 'Tap one of your pieces to start your turn.';
-  if (view.inspecting) return `Looking at the ${SIDE_NAME[piece.side]} ${KIND_NAME[piece.kind]}.`;
+  if (view.inspecting) return `Looking at the ${SIDE_NAME[piece.side]} ${pieceName(piece, view.board.rules)}.`;
   if (piece.kind === 'tracer' && composer.tracerMode === 'chart') return chartHint(view, piece.at);
   if (view.stepTargets.length > 0) return 'Tap a marked square for the free king step.';
-  if (piece.kind === 'king') return 'Step one square, or use a pattern from the king’s library.';
+  if (piece.kind === 'king') return kingHint(view);
   if (piece.kind === 'tracer') return 'Strike: tap a highlighted square — or switch to Chart.';
   return 'Tap a highlighted square to move.';
 }
