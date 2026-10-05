@@ -5,7 +5,9 @@
  * game style must never break an engine scenario test. TEST_RULES is the
  * tiered game as first built: classic layout, 3/5/8-step Tracers, the king
  * keeping each Tracer's last pattern, free steps with Tracer or Warden moves,
- * and six free steps in a row (threatened or not) to draw.
+ * and six free steps in a row (threatened or not) to draw. Patterns turn and
+ * mirror freely, charts end at the path's end, Tracers don't step, and the
+ * king borrows without declaring.
  */
 
 import type { Placement, RuleSet } from '../types';
@@ -36,6 +38,10 @@ export const TEST_RULES: RuleSet = {
   loneKingWins: true,
   dodgeDraw: 6,
   dodgeNeedsThreat: false,
+  patternOrientations: 'all',
+  chartLanding: 'end',
+  tracerStep: false,
+  kingBorrow: 'any-time',
 };
 
 export function rulesWith(patch: Partial<RuleSet>): RuleSet {

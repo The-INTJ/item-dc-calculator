@@ -8,15 +8,22 @@ export { initialState } from './setup';
 export { applyTurn, sideToMove } from './turn';
 export { agreeDraw, resign } from './outcome';
 export {
+  CHART_LANDING,
   chartLimit,
   dodgeLimit,
   FREE_STEP,
   hasChartLimit,
   isDodge,
+  KING_BORROW,
   KING_MEMORY,
+  kingDeclares,
+  kingMoves,
   kingPatterns,
+  landsAnywhere,
   loneKingWins,
+  PATTERN_ORIENTATIONS,
   stepCombinesWith,
+  tracedOnly,
 } from './rulebook';
 export { previewChart, type ChartPreview } from './chart';
 export { freeStepSquares } from './free-step';
@@ -36,7 +43,7 @@ export { canonicalKey, parsePattern, patternKind, type ParsedPattern } from './p
 export { formatAction, formatTurn, turnNumberLabel } from './notation';
 export { replayTurns, turnInputFromRecord } from './replay';
 export { engineMessage } from './engine-error';
-export { otherSide } from './occupancy';
+export { findKingOf, otherSide } from './occupancy';
 export {
   ALL_SQUARE_NAMES,
   digitVector,

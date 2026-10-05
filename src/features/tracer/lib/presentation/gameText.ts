@@ -45,8 +45,14 @@ export function describeAction(action: ActionRecord): string {
   switch (action.kind) {
     case 'step':
       return `King steps ${action.from} → ${action.to}`;
-    case 'chart':
-      return `Tracer charts a ${patternKind(action.pattern) ?? 'rider'} ${action.from} → ${action.to}`;
+    case 'chart': {
+      const kind = patternKind(action.pattern) ?? 'rider';
+      return action.to === action.from
+        ? `Tracer on ${action.from} traces a ${kind} and stays`
+        : `Tracer charts a ${kind} ${action.from} → ${action.to}`;
+    }
+    case 'declare':
+      return `King declares a ${patternKind(action.pattern) ?? 'rider'} route`;
     case 'pass':
       return 'Pass';
     default: {

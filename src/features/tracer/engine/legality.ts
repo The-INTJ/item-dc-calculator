@@ -10,7 +10,7 @@ import type { GameState, Side } from './types';
 import { neighbours, parseSquare } from './geometry';
 import { boardOf, type Board } from './occupancy';
 import { pieceHits } from './piece-reach';
-import { chartLimit, kingPatterns } from './rulebook';
+import { chartLimit, kingDeclares, kingPatterns, reachFor } from './rulebook';
 
 /**
  * True when some path of at most `limit` king steps from `from` can end on an
@@ -36,12 +36,14 @@ export function canChart(board: Board, from: number, limit: number): boolean {
 
 export function hasLegalMainAction(state: GameState, side: Side): boolean {
   const board = boardOf(state.pieces);
+  const reach = reachFor(state, side);
   return state.pieces.some((piece) => {
     if (piece.side !== side) return false;
     const from = parseSquare(piece.at);
     if (piece.kind === 'tracer' && from !== null && canChart(board, from, chartLimit(state.rules, piece))) {
       return true;
     }
-    return pieceHits(board, piece, kingPatterns(state, side)).length > 0;
+    if (piece.kind === 'king' && kingDeclares(state.rules) && kingPatterns(state, side).length > 0) return true;
+    return pieceHits(board, piece, reach).length > 0;
   });
 }

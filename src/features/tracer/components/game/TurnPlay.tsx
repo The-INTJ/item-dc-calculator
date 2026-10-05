@@ -12,6 +12,7 @@ import type { TracerGame } from '../../lib/types';
 import { Board } from '../board/Board';
 import { boardMarks } from '../board/boardMarks';
 import { overlayLines } from '../board/overlayModel';
+import { routeLines } from '../board/routeOverlay';
 import { NO_THREATS, threatView } from '../board/threatOverlay';
 import { ActionBar } from '../composer/ActionBar';
 import { ConfirmSheet } from '../shared/Sheet';
@@ -57,7 +58,11 @@ export function TurnPlay({ game, viewer, orientation, showThreats, sendTurn, ...
   const [probe, setProbe] = useState<SquareName | null>(null);
   const threats = showThreats ? threatView(view.board, orientation, probe) : NO_THREATS;
   const marks = boardMarks(view, view.outcome?.ok ? null : game.lastTurn, threats);
-  const lines = [...threats.lines, ...overlayLines(view, composer.selected, game.lastTurn, orientation)];
+  const lines = [
+    ...routeLines(view.board, orientation),
+    ...threats.lines,
+    ...overlayLines(view, composer.selected, game.lastTurn, orientation),
+  ];
   const warning = phase.kind === 'confirm' ? warningCopy(phase.warnings[0], game.state.rules) : null;
 
   return (
@@ -89,6 +94,7 @@ export function TurnPlay({ game, viewer, orientation, showThreats, sendTurn, ...
             onTracerMode={(mode) => dispatch({ type: 'setTracerMode', mode })}
             onUndo={() => dispatch({ type: 'undo' })}
             onFinishChart={finishChart}
+            onDeclare={(pattern) => dispatch({ type: 'stageMain', main: { kind: 'declare', pattern } })}
             onSubmit={() => submission.submit(view.turn, view.outcome)}
           />
         )}

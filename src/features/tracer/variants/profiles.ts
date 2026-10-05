@@ -9,7 +9,7 @@
  */
 
 import type { RuleSet } from '../engine';
-import { CLASSIC_LAYOUT, SPACED_LAYOUT } from './layouts';
+import { CLASSIC_LAYOUT, SPACED_LAYOUT, WALL_LAYOUT } from './layouts';
 
 export interface GameStyle {
   id: string;
@@ -45,6 +45,10 @@ export const ORIGINAL_V1: GameStyle = deepFreeze({
     loneKingWins: true,
     dodgeDraw: 6,
     dodgeNeedsThreat: false,
+    patternOrientations: 'all',
+    chartLanding: 'end',
+    tracerStep: false,
+    kingBorrow: 'any-time',
   },
 });
 
@@ -60,13 +64,37 @@ export const TIERED_V2: GameStyle = deepFreeze({
     loneKingWins: true,
     dodgeDraw: 3,
     dodgeNeedsThreat: true,
+    patternOrientations: 'all',
+    chartLanding: 'end',
+    tracerStep: false,
+    kingBorrow: 'any-time',
+  },
+});
+
+export const ROUTES_V3: GameStyle = deepFreeze({
+  id: 'v3-routes',
+  name: 'Routes (v3)',
+  summary:
+    'A traced route works only the way it was drawn, from wherever its Tracer stops; Tracers can also step a square, and the king declares a borrowed route a turn before using it.',
+  rules: {
+    layout: WALL_LAYOUT,
+    tracerReach: { limited: true, limits: [3, 5, 8] },
+    kingMemory: 'current-kept',
+    freeStep: 'with-tracer-or-warden',
+    loneKingWins: true,
+    dodgeDraw: 3,
+    dodgeNeedsThreat: true,
+    patternOrientations: 'as-traced',
+    chartLanding: 'any',
+    tracerStep: true,
+    kingBorrow: 'declared',
   },
 });
 
 /** In picker order. */
-export const GAME_STYLES: readonly GameStyle[] = [TIERED_V2, ORIGINAL_V1];
+export const GAME_STYLES: readonly GameStyle[] = [ROUTES_V3, TIERED_V2, ORIGINAL_V1];
 
-export const DEFAULT_STYLE_ID = TIERED_V2.id;
+export const DEFAULT_STYLE_ID = ROUTES_V3.id;
 
 export function styleById(id: string): GameStyle | null {
   return GAME_STYLES.find((style) => style.id === id) ?? null;

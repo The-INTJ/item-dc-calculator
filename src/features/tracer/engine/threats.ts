@@ -20,7 +20,7 @@ import { parseSquare, squareName } from './geometry';
 import { boardOf, findKing, otherSide } from './occupancy';
 import { pieceHits } from './piece-reach';
 import { freeStepSquares } from './free-step';
-import { kingPatterns, stepCombinesWith } from './rulebook';
+import { reachFor, stepCombinesWith } from './rulebook';
 
 /** One piece's hold on one square. */
 export interface Threat {
@@ -53,7 +53,8 @@ function launchPositions(state: GameState, side: Side): Launch[] {
 }
 
 function addReach(found: Map<number, Threat[]>, launch: Launch, piece: Piece, state: GameState) {
-  for (const hit of pieceHits(boardOf(launch.pieces), piece, kingPatterns(state, piece.side))) {
+  for (const hit of pieceHits(boardOf(launch.pieces), piece, reachFor(state, piece.side))) {
+    if (hit.quiet) continue;
     const threats = found.get(hit.sq) ?? [];
     if (threats.some((threat) => threat.pieceId === piece.id)) continue;
     threats.push({ pieceId: piece.id, from: piece.at, via: hit.via, path: hit.path, afterStep: launch.afterStep });

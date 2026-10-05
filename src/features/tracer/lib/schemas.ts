@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 
-import { MAX_PATH_LENGTH } from '../engine';
+import { MAX_PATH_LENGTH, parsePattern } from '../engine';
 import type { TurnInput } from '../engine';
 import { DEFAULT_STYLE_ID, layoutById, RuleSetSchema, styleById } from '../variants';
 import { SideSchema, SquareSchema } from './storage/stateSchema';
@@ -45,7 +45,16 @@ const StepsSchema = z
 
 const MainActionSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('move'), from: SquareSchema, to: SquareSchema }),
-  z.object({ kind: z.literal('chart'), from: SquareSchema, steps: StepsSchema }),
+  z.object({
+    kind: z.literal('chart'),
+    from: SquareSchema,
+    steps: StepsSchema,
+    land: z.number().int().min(0).max(MAX_PATH_LENGTH).optional(),
+  }),
+  z.object({
+    kind: z.literal('declare'),
+    pattern: z.string().refine((code) => parsePattern(code) !== null, 'Not a pattern'),
+  }),
   z.object({ kind: z.literal('pass') }),
 ]);
 

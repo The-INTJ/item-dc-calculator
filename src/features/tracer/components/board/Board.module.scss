@@ -219,6 +219,16 @@
   stroke-width: 0.07;
 }
 
+.line_routeRider,
+.line_routeJumper {
+  opacity: 0.6;
+  stroke-width: 0.06;
+}
+
+.line_routeJumper {
+  stroke-dasharray: 0.16 0.12;
+}
+
 .line_threat {
   opacity: 0.9;
   stroke-width: 0.06;

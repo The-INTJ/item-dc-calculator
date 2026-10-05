@@ -31,3 +31,8 @@ export function relation(board: Board, sq: number, side: Side): Relation {
 export function findKing(pieces: readonly Piece[], side: Side): Piece | null {
   return pieces.find((piece) => piece.side === side && piece.kind === 'king') ?? null;
 }
+
+/** `side`'s king in a position, if it is still on the board. */
+export function findKingOf(state: { pieces: readonly Piece[] }, side: Side): Piece | null {
+  return findKing(state.pieces, side);
+}

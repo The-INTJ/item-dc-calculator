@@ -1,4 +1,4 @@
-import { otherSide, type PatternCode, type Placement, type Side } from '../../engine';
+import { findKingOf, kingDeclares, otherSide, type PatternCode, type Placement, type Side } from '../../engine';
 import { patternLabel, seatName } from '../../lib/presentation/gameText';
 import { shownLimit } from '../../lib/presentation/ruleText';
 import type { TracerGame } from '../../lib/types';
@@ -27,11 +27,25 @@ function SlotLabel({ game, slot, side }: { game: TracerGame; slot: Placement; si
   return <span className={styles.strong}>{limit !== null ? `${limit}-step` : `Tracer from ${square}`}</span>;
 }
 
+/** Where kings declare: the route this king declared, which it may move by. */
+function Declared({ game, side }: { game: TracerGame; side: Side }) {
+  if (!kingDeclares(game.state.rules)) return null;
+  const declared = findKingOf(game.state, side)?.pattern ?? null;
+  return (
+    <p className={styles.muted}>
+      {declared ? `Declared: ${patternLabel(declared)} — it may move by this route.` : 'Nothing declared yet.'}
+    </p>
+  );
+}
+
 /** One king's borrowed patterns: a slot per Tracer of the layout. */
 function KingSlots({ game, side }: { game: TracerGame; side: Side }) {
   return (
     <section className={styles.library}>
-      <h3 className={styles.libraryTitle}>{seatName(game, side)}’s king borrows</h3>
+      <h3 className={styles.libraryTitle}>
+        {seatName(game, side)}’s king {kingDeclares(game.state.rules) ? 'can declare' : 'borrows'}
+      </h3>
+      <Declared game={game} side={side} />
       <ul className={styles.libraryGrid}>
         {tracerSlots(game).map((slot) => {
           const id = `${side}${slot.id}`;

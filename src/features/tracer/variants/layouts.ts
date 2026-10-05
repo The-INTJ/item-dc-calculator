@@ -62,7 +62,33 @@ export const CLASSIC_LAYOUT: Layout = {
   ],
 };
 
-export const LAYOUTS: readonly Layout[] = [CLASSIC_LAYOUT, SPACED_LAYOUT];
+/**
+ *       a b c d e f g h
+ *    8  . T . T K . T .
+ *    7  . W W W W W W .
+ *    2  . W W W W W W .
+ *    1  . T . T K . T .      Tracer tiers: b 0, g 1, d 2
+ *
+ * Classic with the Warden line closed: b through g, the a and h files open.
+ */
+export const WALL_LAYOUT: Layout = {
+  id: 'wall',
+  name: 'Wall',
+  pieces: [
+    king('e'),
+    tracer('T3', 'b', 0),
+    tracer('T8', 'd', 2),
+    tracer('T5', 'g', 1),
+    warden('W1', 'b'),
+    warden('W2', 'c'),
+    warden('W3', 'd'),
+    warden('W4', 'e'),
+    warden('W5', 'f'),
+    warden('W6', 'g'),
+  ],
+};
+
+export const LAYOUTS: readonly Layout[] = [WALL_LAYOUT, CLASSIC_LAYOUT, SPACED_LAYOUT];
 
 export function layoutById(id: string): Layout | null {
   return LAYOUTS.find((layout) => layout.id === id) ?? null;

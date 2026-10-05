@@ -6,14 +6,37 @@ you draw, and your king borrows them.** Lobby at `/tracer`, online games at
 `/tracer/local/[localId]` (both sides on one device).
 
 Every game is played under a **game style** — a named rule set defined in
-code (*Tiered (v2)*, *Original (v1)*) — optionally **tweaked** before it
-starts. The game keeps its own copy of the rules, so a style can never change
+code (*Routes (v3)*, the default; *Tiered (v2)*; *Original (v1)*) — optionally
+**tweaked** before it starts. The game keeps its own copy of the rules, so a style can never change
 under a game in progress. See [Game styles](#game-styles-and-rule-toggles).
 
 Designed with Drew on 2026-10-03. Treat these rules as the spec: change them
 deliberately, not incidentally. Playtest notes live in [feedback.md](feedback.md).
 
-## Rules — Tiered (v2), the default style
+## Routes (v3), the default style
+
+v3 keeps everything below from Tiered (v2) except where it says otherwise.
+Drew's aim: one route per Tracer, in plain sight, instead of patterns working
+in eight directions at once (too much to calculate).
+
+- **Layout — Wall:** Tiered's layout with Wardens added on c2 and f2 (f7 and
+  c7 for Black), a solid line b–g.
+- **Tracing:** draw a route as before (up to the Tracer's step limit, last
+  square empty, never a capture), then choose where the Tracer stops —
+  anywhere along the route, or where it started.
+- **One direction only:** the route works exactly as traced — out from
+  wherever the Tracer stands, never turned or mirrored — on every later turn
+  until it traces again. Riders and jumpers work as before. Every route is
+  drawn on the board, for both players.
+- **Tracer step:** a Tracer may instead step one square in any direction,
+  never capturing (unformed Tracers too). It counts as a Tracer move, so the
+  free king step can come with it.
+- **The king declares:** a king turn is a one-square step, declaring one of
+  its Tracers' routes (the opponent sees it), or moving by the route declared
+  on an earlier turn. A declared route stays until the king declares another.
+- Dodges, lone king, free king step: as in Tiered.
+
+## Rules — Tiered (v2)
 
 v1 let the king collect every pattern ever charted; after playtesting that
 turned the game into "tap the king and see what it threatens", so v2 limits
