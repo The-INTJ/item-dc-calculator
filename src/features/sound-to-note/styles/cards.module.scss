@@ -1,0 +1,252 @@
+// Content cards: project, quote, trait, gear row, social link.
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-card);
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  transition: all var(--dur-base) var(--ease-out);
+}
+
+.project {
+  composes: card;
+  gap: 14px;
+  padding: 12px;
+
+  &:hover {
+    background: var(--surface-card-hover);
+    border-color: var(--stn-orange);
+    transform: translateY(-2px);
+  }
+}
+
+.projectBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 8px 8px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.credits {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 14px;
+
+  dt {
+    color: var(--text-muted);
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+// "Behind the scenes" — a native disclosure, so it works without JS.
+.story {
+  summary {
+    list-style: none;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--accent-highlight-text);
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  p {
+    margin: 8px 0 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+}
+
+.storyOpen {
+  display: none;
+}
+
+.story[open] .storyOpen {
+  display: inline;
+}
+
+.story[open] .storyClosed {
+  display: none;
+}
+
+.quote {
+  composes: card;
+  gap: 18px;
+  margin: 0;
+  padding: 28px;
+}
+
+.quoteLg {
+  padding: 40px;
+}
+
+.quoteMark {
+  height: 30px;
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 900;
+  font-size: 64px;
+  line-height: 0.6;
+  color: var(--tone);
+}
+
+.quoteLg .quoteMark {
+  height: 44px;
+  font-size: 96px;
+}
+
+.quoteText {
+  margin: 0;
+  font-weight: 500;
+  font-size: 19px;
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+
+.quoteLg .quoteText {
+  font-size: clamp(22px, 2.6vw, 28px);
+}
+
+.quoteBy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    font-weight: 700;
+  }
+}
+
+.trait {
+  composes: card;
+  gap: 12px;
+  padding: 24px;
+  border-width: 1px;
+
+  h3 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 20px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 15px;
+    color: var(--text-secondary);
+  }
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--tone);
+  color: var(--ink-0);
+}
+
+.gearRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.gearName {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.gearCount {
+  font-size: 12px;
+  color: var(--accent-primary-text);
+}
+
+.gearCategory {
+  font-size: 10px;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.gearPlain {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.social {
+  composes: card;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+
+  &:hover {
+    background: var(--surface-card-hover);
+    border-color: var(--tone);
+    transform: translateX(2px);
+  }
+
+  .chip {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+.socialText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  color: var(--text-primary);
+}
+
+.socialLabel {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.socialHandle {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.socialArrow {
+  font-size: 20px;
+  color: var(--tone);
+  transition: transform var(--dur-fast);
+
+  .social:hover & {
+    transform: translateX(4px);
+  }
+}

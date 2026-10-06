@@ -1,0 +1,66 @@
+// CheckChip — Work filters (cyan, links) and booking services (orange, checkboxes).
+
+.chip {
+  --tone: var(--stn-orange);
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-bounce);
+
+  &:hover {
+    border-color: var(--tone);
+    color: var(--text-primary);
+  }
+}
+
+.cyan {
+  --tone: var(--stn-cyan);
+}
+
+.checked,
+.checked:hover {
+  border-color: var(--tone);
+  background: var(--tone);
+  color: var(--ink-0);
+  transform: scale(1.03);
+}
+
+.box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 2px solid var(--check-border);
+  font-size: 11px;
+  line-height: 1;
+
+  .checked & {
+    border-color: var(--ink-0);
+  }
+}
+
+// Booking services are real checkboxes, visually hidden behind the chip.
+.input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.chip:has(.input:focus-visible) {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}

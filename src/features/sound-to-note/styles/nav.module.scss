@@ -1,0 +1,165 @@
+// Sticky nav — the only fixed element, and the only place blur is allowed.
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 14px var(--gutter);
+  background: var(--nav-bg);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  white-space: nowrap;
+
+  &,
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+
+.brandName {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 900;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.brandSub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--accent-secondary-text);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.link {
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 15px;
+  white-space: nowrap;
+  color: var(--text-primary);
+  transition: background var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    color: var(--text-primary);
+    background: var(--hover-wash);
+  }
+}
+
+.linkActive,
+.linkActive:hover {
+  background: var(--stn-cyan);
+  color: var(--ink-0);
+}
+
+.cta {
+  margin-left: 8px;
+}
+
+.round {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-left: 4px;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color var(--dur-fast);
+
+  &:hover {
+    border-color: var(--stn-cyan);
+  }
+}
+
+// Sun shows in dark mode (switch to light), moon in light mode.
+.moon,
+:global([data-theme='light']) .sun {
+  display: none;
+}
+
+:global([data-theme='light']) .moon {
+  display: flex;
+}
+
+.menuButton {
+  composes: round;
+  display: none;
+}
+
+.sheet {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px var(--gutter) 20px;
+  background: var(--bg-page);
+  border-bottom: 1px solid var(--border-subtle);
+  box-shadow: 0 24px 40px -24px rgb(0 0 0 / 60%);
+
+  .link {
+    padding: 12px 16px;
+    font-size: 17px;
+  }
+}
+
+@media (width <= 820px) {
+  // `.actions .cta` outranks the Button's own display rule.
+  .links,
+  .actions .cta {
+    display: none;
+  }
+
+  .menuButton {
+    display: flex;
+  }
+}
+
+@media (width > 820px) {
+  .sheet {
+    display: none;
+  }
+}
+
+@media (width <= 420px) {
+  .brandSub {
+    display: none;
+  }
+}

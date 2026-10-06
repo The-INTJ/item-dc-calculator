@@ -26,6 +26,7 @@ The contest app is the active area. The DC calculator is intentionally stable an
 - `/pilates-mentors`: Pilates Mentors design preview (noindex, single static page)
 - `/moriah`: Moriah Primitive Baptist Church design preview (noindex; `?page=` selects the body)
 - `/moriah-2`: Moriah "Portico" preview — the same church, redrawn as its own porch (noindex; `?page=` selects the body)
+- `/sound-to-note`: Alex Ferré / Sound To Note resume-site mock (noindex; `?page=` selects the body, `&type=` filters Work, `&service=` pre-checks booking services)
 - `/plants`: plant tracker
 - `/dc-calculator`: legacy calculator
 - `/grass-manager`: weather-aware lawn care and clickable yard model
@@ -38,6 +39,7 @@ Route groups:
 - `app/(contest)/`: contest layouts and pages
 - `app/(pilates-mentors)/`: standalone Pilates Mentors design-preview layout and page
 - `app/(moriah)/`: both Moriah previews; `moriah-2/layout.tsx` adds the Caslon faces the Portico sets in
+- `app/(sound-to-note)/`: Sound To Note mock; metadata only — its fonts load through `next/font` inside the feature
 - `app/(dc-calculator)/`: legacy calculator layout and page
 - `app/(tracer)/`: Tracer lobby and game pages; the layout mounts `TracerRoot` (design tokens). The lobby and online game pages add `TracerAuth` (the contest `AuthProvider`); local games deliberately do not
 
@@ -56,6 +58,7 @@ Active global providers:
 Contest routes load contest feature SCSS and providers through `app/(contest)/layout.tsx` and `ContestShell`.
 The Pilates Mentors route loads Fraunces and Inter through `app/(pilates-mentors)/layout.tsx` and renders a fully static server component with zero client JS; its design tokens live as CSS custom properties in the feature's SCSS module. Photography ships from `public/pilates-mentors/`. Feature context and constraints live in `src/features/pilates-mentors/README.md`.
 The two Moriah previews share one audited copy file, `src/features/moriah/content.ts`; the Portico's own components, scroll driver and copy live under `src/features/moriah/portico/`. The copy rule — nothing on either preview is invented prose about the church — is in `src/features/moriah/README.md`, and the Portico's design notes in `src/features/moriah/portico/README.md`.
+The Sound To Note mock is built from Alex Ferré's Claude Design system; its tokens are scoped to the site wrapper and its light/dark theme is a `data-theme` attribute owned by a boot script and the toggle, never React state. Placeholder rules and the design-system source are in `src/features/sound-to-note/README.md`.
 
 ## Contest data path
 

@@ -1,0 +1,169 @@
+// Sound To Note tokens, scoped to the site wrapper so nothing leaks into the
+// rest of the app. Dark is the default; `data-theme="light"` on the wrapper
+// (set by ThemeToggle and the no-flash script) swaps the semantic layer.
+
+.site {
+  // Brand — sampled from the logo
+  --stn-violet: #7a1ce6;
+  --stn-magenta: #b23fb0;
+  --stn-pink: #e2557d;
+  --stn-orange: #ff8a1e;
+  --stn-gold: #ffd45c;
+  --stn-cyan: #22d6e6;
+  --stn-blue: #3e8fea;
+  --ink-0: #000;
+  --ink-1: #0b0a0f;
+  --ink-2: #15131c;
+  --ink-3: #221f2c;
+  --ink-4: #3a3646;
+  --ink-5: #6e6880;
+  --ink-6: #a9a3b8;
+  --paper-1: #f4f0fa;
+  --paper-0: #fff;
+  --grad-headphones: linear-gradient(180deg, #7a1ce6 0%, #b23fb0 45%, #e2557d 100%);
+  --grad-wordmark: linear-gradient(180deg, #22d6e6 0%, #3e8fea 100%);
+  --grad-full: linear-gradient(90deg, #7a1ce6 0%, #e2557d 40%, #ff8a1e 70%, #ffd45c 100%);
+
+  // Semantic (dark)
+  --bg-page: var(--ink-0);
+  --bg-sunken: var(--ink-1);
+  --surface-card: var(--ink-2);
+  --surface-card-hover: var(--ink-3);
+  --border-subtle: var(--ink-3);
+  --border-strong: var(--ink-4);
+  --text-primary: var(--paper-1);
+  --text-secondary: var(--ink-6);
+  --text-muted: var(--ink-5);
+  --link: var(--stn-cyan);
+  --link-hover: var(--stn-gold);
+  --focus-ring: var(--stn-cyan);
+  --status-live: #ff3b4e;
+  --accent-primary-text: var(--stn-orange);
+  --accent-secondary-text: var(--stn-cyan);
+  --accent-highlight-text: var(--stn-gold);
+  --placeholder-a: var(--ink-2);
+  --placeholder-b: var(--ink-3);
+  --hover-wash: var(--ink-3);
+  --check-border: var(--ink-5);
+  --nav-bg: rgb(0 0 0 / 72%);
+  --grad-cta: var(--grad-full);
+  --grad-text-warm: var(--grad-full);
+  --grad-text-cool: var(--grad-wordmark);
+
+  // Type
+  --font-display: var(--stn-font-display), system-ui, sans-serif;
+  --font-body: var(--stn-font-body), system-ui, sans-serif;
+  --font-mono: var(--stn-font-mono), ui-monospace, monospace;
+  --tracking-wordmark: 0.32em;
+  --tracking-label: 0.14em;
+  --fs-hero: clamp(48px, 8vw, 112px);
+  --fs-h1: clamp(40px, 5.5vw, 72px);
+  --fs-lead: 20px;
+  --fs-label: 12px;
+  --lh-display: 0.95;
+
+  // Spacing, radii, shadow, motion
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --container-max: 1200px;
+  --gutter: clamp(20px, 4vw, 48px);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+  --shadow-pop: 6px 6px 0 var(--ink-0);
+  --glow-orange: 0 0 0 1px rgb(255 138 30 / 40%), 0 10px 40px -10px rgb(255 138 30 / 55%);
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 140ms;
+  --dur-base: 240ms;
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  transition:
+    background var(--dur-base),
+    color var(--dur-base);
+
+  ::selection {
+    background: var(--stn-orange);
+    color: var(--ink-0);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 3px;
+  }
+}
+
+// Zero-specificity link base, so component classes (buttons, nav pills)
+// always win without !important.
+:where(.site) a {
+  color: var(--link);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out);
+
+  &:where(:hover) {
+    color: var(--link-hover);
+  }
+}
+
+// Light — same brand ramps, paper ground, deepened text accents for contrast
+.site[data-theme='light'] {
+  --bg-page: #faf8fd;
+  --bg-sunken: #f2eef8;
+  --surface-card: #fff;
+  --surface-card-hover: #f7f3fc;
+  --border-subtle: #e6e0ef;
+  --border-strong: #cbc2da;
+  --text-primary: #0b0a0f;
+  --text-secondary: #4a4458;
+  --text-muted: #6e6880;
+  --link: #1f5fc0;
+  --link-hover: #7a1ce6;
+  --focus-ring: #1f5fc0;
+  --accent-primary-text: #c2410c;
+  --accent-secondary-text: #087a8c;
+  --accent-highlight-text: #9a3412;
+  --placeholder-a: #eee9f5;
+  --placeholder-b: #e4ddee;
+  --hover-wash: #eee9f5;
+  --check-border: #a9a3b8;
+  --nav-bg: rgb(250 248 253 / 80%);
+  --grad-text-warm: linear-gradient(90deg, #7a1ce6 0%, #c0307a 50%, #e0600a 100%);
+  --grad-text-cool: linear-gradient(180deg, #0a9fb5 0%, #1f5fc0 100%);
+}
+
+.main {
+  flex: 1;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  padding: var(--space-7) var(--gutter);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.footerMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  color: var(--text-muted);
+
+  a {
+    color: inherit;
+  }
+}
