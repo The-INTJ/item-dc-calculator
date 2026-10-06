@@ -1,0 +1,66 @@
+// The four type voices: wide display, brand wordmark, mono label, gradient text.
+
+.display {
+  margin: 0;
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: var(--lh-display);
+}
+
+.hero {
+  font-size: var(--fs-hero);
+}
+
+.h1 {
+  font-size: var(--fs-h1);
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wordmark);
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.gradCool,
+.gradWarm {
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gradCool {
+  background-image: var(--grad-text-cool);
+}
+
+.gradWarm {
+  background-image: var(--grad-text-warm);
+}
+
+.lead {
+  margin: 0;
+  font-size: var(--fs-lead);
+  color: var(--text-secondary);
+  max-width: 56ch;
+  text-wrap: pretty;
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 22px;
+  line-height: 1.05;
+}

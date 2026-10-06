@@ -1,0 +1,183 @@
+// Core primitives: Button, Tag, Sticker, PhotoFrame, SectionHeader.
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 2px solid transparent;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.sm {
+  padding: 8px 14px;
+  font-size: 13px;
+}
+
+.md {
+  padding: 12px 20px;
+  font-size: 15px;
+}
+
+.lg {
+  padding: 16px 28px;
+  font-size: 17px;
+}
+
+// Full logo gradient = the booking action; hover slides it toward gold.
+.primary {
+  background: var(--grad-cta);
+  background-size: 200% 100%;
+  background-origin: border-box;
+  background-position: 0 0;
+  color: var(--paper-0);
+
+  &:hover {
+    background-position: 100% 0;
+    box-shadow: var(--glow-orange);
+    color: var(--paper-0);
+  }
+}
+
+.secondary {
+  background: transparent;
+  color: var(--accent-secondary-text);
+  border-color: var(--accent-secondary-text);
+
+  &:hover {
+    background: var(--stn-cyan);
+    border-color: var(--stn-cyan);
+    color: var(--ink-0);
+  }
+}
+
+.ghost {
+  background: transparent;
+  color: var(--text-primary);
+
+  &:hover {
+    background: var(--hover-wash);
+    color: var(--text-primary);
+  }
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--tone);
+  background: var(--tone);
+  color: var(--ink-0);
+  white-space: nowrap;
+}
+
+.tagOutline {
+  background: transparent;
+  color: var(--tone);
+}
+
+.tagNeutral {
+  --tone: var(--border-strong);
+
+  color: var(--text-secondary);
+}
+
+.sticker {
+  display: inline-block;
+  max-width: 260px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--tone, var(--stn-gold));
+  color: var(--ink-0);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.3;
+  box-shadow: var(--shadow-pop);
+}
+
+// Striped stand-in until Alex's on-set photos arrive.
+.photo {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: repeating-linear-gradient(
+    135deg,
+    var(--placeholder-a) 0 12px,
+    var(--placeholder-b) 12px 24px
+  );
+}
+
+.photoLabel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.photoCaption {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.headerCenter {
+  align-items: center;
+  text-align: center;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--accent-primary-text);
+}
+
+.icon {
+  display: inline-block;
+  flex-shrink: 0;
+  background: currentcolor;
+  mask: var(--icon) center / contain no-repeat;
+}

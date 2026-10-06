@@ -1,0 +1,229 @@
+// Page layouts. Structure says professional: one container, aligned columns,
+// 64–96px between sections. Every two-column split stacks at phone width.
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--space-8) var(--gutter);
+}
+
+.page {
+  composes: section;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-7);
+  align-items: center;
+}
+
+.hero {
+  composes: split;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--space-9) var(--gutter) var(--space-8);
+}
+
+.heroCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.live {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--status-live);
+
+  span {
+    white-space: nowrap;
+  }
+}
+
+.recDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--status-live);
+  animation: rec 1.6s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recDot {
+    animation: none;
+  }
+}
+
+@keyframes rec {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin: 8px 0 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-subtle);
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  dt {
+    color: var(--text-muted);
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.35;
+  }
+}
+
+.headRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.quotes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: 20px;
+}
+
+.band {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: var(--space-9) var(--gutter);
+  text-align: center;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.empty {
+  color: var(--text-secondary);
+}
+
+.gearGroups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
+  gap: var(--space-6) var(--space-7);
+}
+
+.gearHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--stn-orange);
+
+  h3 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-stretch: 125%;
+    font-weight: 900;
+    font-size: 20px;
+    line-height: 1.1;
+    text-transform: uppercase;
+  }
+}
+
+.about {
+  composes: split;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+}
+
+.aboutCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  p {
+    margin: 0;
+    color: var(--text-secondary);
+  }
+
+  .aboutLead {
+    font-size: var(--fs-lead);
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+}
+
+.traits {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: 16px;
+}
+
+.narrow {
+  composes: section;
+  max-width: 720px;
+}
+
+.linksHead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (width <= 820px) {
+  .split,
+  .hero,
+  .about {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero {
+    padding-top: var(--space-8);
+  }
+
+  .facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+}
