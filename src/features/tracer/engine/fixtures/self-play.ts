@@ -8,14 +8,14 @@
 
 import { expect } from 'vitest';
 
-import type { ActionRecord, GameState, MainAction, PieceKind, RuleSet, Side, TurnInput, TurnRecord } from '../types';
+import type { ActionRecord, GameState, MainAction, Piece, PieceKind, RuleSet, Side, TurnInput, TurnRecord } from '../types';
 import { previewChart } from '../chart';
 import { freeStepSquares } from '../free-step';
 import { hasLegalMainAction } from '../legality';
 import { parsePattern } from '../pattern-codes';
 import { moveTargets, stepDigit } from '../queries';
 import { replayTurns } from '../replay';
-import { chartLimit, dodgeLimit, stepCombinesWith } from '../rulebook';
+import { chartLimit, dodgeLimit, kingDeclares, kingPatterns, landsAnywhere, stepCombinesWith } from '../rulebook';
 import { initialState } from '../setup';
 import { applyTurn, sideToMove } from '../turn';
 
@@ -35,7 +35,7 @@ export function pick<T>(rng: Rng, items: readonly T[]): T {
   return items[Math.floor(rng() * items.length)];
 }
 
-function randomChart(rng: Rng, state: GameState, from: string): string {
+function randomChart(rng: Rng, state: GameState, from: string): MainAction {
   let steps = '';
   const length = 1 + Math.floor(rng() * 10);
   for (let i = 0; i < length; i += 1) {
@@ -44,7 +44,18 @@ function randomChart(rng: Rng, state: GameState, from: string): string {
     const last = preview.squares.length > 0 ? preview.squares[preview.squares.length - 1] : from;
     steps += stepDigit(last, pick(rng, preview.next)) ?? '';
   }
-  return steps;
+  if (!landsAnywhere(state.rules)) return { kind: 'chart', from, steps };
+  // Stop anywhere legal along the path: where it started, or any empty square on it.
+  const squares = previewChart(state, from, steps).squares;
+  const stops = [0, ...squares.flatMap((square, index) => (state.pieces.some((p) => p.at === square) ? [] : [index + 1]))];
+  return { kind: 'chart', from, steps, land: pick(rng, stops) };
+}
+
+function randomKingAction(rng: Rng, state: GameState, king: Piece): MainAction {
+  const pool = kingDeclares(state.rules) ? kingPatterns(state, king.side) : [];
+  if (pool.length > 0 && rng() < 0.4) return { kind: 'declare', pattern: pick(rng, pool) };
+  const targets = moveTargets(state, king.at);
+  return targets.length ? { kind: 'move', from: king.at, to: pick(rng, targets).to } : { kind: 'pass' };
 }
 
 export function randomTurn(rng: Rng, state: GameState, side: Side): TurnInput {
@@ -52,8 +63,10 @@ export function randomTurn(rng: Rng, state: GameState, side: Side): TurnInput {
   const others = mine.filter((p) => p.kind !== 'king');
   const piece = rng() < 0.2 || others.length === 0 ? mine.find((p) => p.kind === 'king')! : pick(rng, others);
   let main: MainAction;
-  if (piece.kind === 'tracer' && (!piece.pattern || rng() < 0.5)) {
-    main = { kind: 'chart', from: piece.at, steps: randomChart(rng, state, piece.at) };
+  if (piece.kind === 'king') {
+    main = randomKingAction(rng, state, piece);
+  } else if (piece.kind === 'tracer' && (!piece.pattern || rng() < 0.5)) {
+    main = randomChart(rng, state, piece.at);
   } else {
     const targets = moveTargets(state, piece.at);
     main = targets.length ? { kind: 'move', from: piece.at, to: pick(rng, targets).to } : { kind: 'pass' };
@@ -73,7 +86,13 @@ export function assertFirestoreSafe(value: unknown, insideArray = false): void {
   }
 }
 
-const MOVER: Partial<Record<ActionRecord['kind'], PieceKind>> = { chart: 'tracer', strike: 'tracer', warden: 'warden', king: 'king' };
+const MOVER: Partial<Record<ActionRecord['kind'], PieceKind>> = {
+  chart: 'tracer',
+  strike: 'tracer',
+  warden: 'warden',
+  king: 'king',
+  declare: 'king',
+};
 
 /** A recorded free step only ever rides along with a move the rules allow it with. */
 function assertStepAllowed(rules: RuleSet, record: TurnRecord): void {
@@ -89,9 +108,15 @@ export function assertInvariants(state: GameState): void {
   for (const side of ['w', 'b'] as const) {
     expect(state.pieces.filter((p) => p.side === side && p.kind === 'king').length).toBeLessThanOrEqual(1);
     expect(new Set(state.chartedKeys[side]).size).toBe(state.chartedKeys[side].length);
-    [...state.chartedKeys[side], ...Object.values(state.lastCharted[side])].forEach((code) =>
+    expect(new Set(state.chartedCodes[side]).size).toBe(state.chartedCodes[side].length);
+    [...state.chartedKeys[side], ...state.chartedCodes[side], ...Object.values(state.lastCharted[side])].forEach((code) =>
       expect(parsePattern(code)).not.toBeNull(),
     );
+    // Kings hold a pattern only where they declare one.
+    for (const king of state.pieces.filter((p) => p.side === side && p.kind === 'king')) {
+      if (!kingDeclares(state.rules)) expect(king.pattern).toBeNull();
+      else if (king.pattern) expect(parsePattern(king.pattern)).not.toBeNull();
+    }
     for (const tracer of state.pieces.filter((p) => p.side === side && p.kind === 'tracer')) {
       expect(state.lastCharted[side][tracer.id] ?? null).toBe(tracer.pattern);
       const steps = tracer.pattern?.startsWith('R:') ? tracer.pattern.length - 2 : 0;

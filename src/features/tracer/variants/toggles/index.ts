@@ -6,16 +6,21 @@
 
 import type { RuleSet } from '../../engine';
 import { DODGE_DRAW_TOGGLE, DODGE_THREAT_TOGGLE, LONE_KING_TOGGLE } from './endings';
-import { KING_MEMORY_TOGGLE } from './king';
+import { KING_BORROW_TOGGLE, KING_MEMORY_TOGGLE } from './king';
 import { LAYOUT_TOGGLE } from './layout';
 import { TRACER_REACH_TOGGLE } from './tracer-reach';
+import { LANDING_TOGGLE, ORIENTATIONS_TOGGLE, TRACER_STEP_TOGGLE } from './tracers';
 import { FREE_STEP_TOGGLE } from './turn';
 import type { Toggle } from './types';
 
 export const TOGGLES: { [K in keyof RuleSet]: Toggle<K> } = {
   layout: LAYOUT_TOGGLE,
   tracerReach: TRACER_REACH_TOGGLE,
+  patternOrientations: ORIENTATIONS_TOGGLE,
+  chartLanding: LANDING_TOGGLE,
+  tracerStep: TRACER_STEP_TOGGLE,
   kingMemory: KING_MEMORY_TOGGLE,
+  kingBorrow: KING_BORROW_TOGGLE,
   freeStep: FREE_STEP_TOGGLE,
   loneKingWins: LONE_KING_TOGGLE,
   dodgeDraw: DODGE_DRAW_TOGGLE,

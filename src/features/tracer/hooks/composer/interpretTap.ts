@@ -21,7 +21,17 @@ function selectAction(ctx: TapContext, square: SquareName): ComposerAction {
   return { type: 'select', square, tracerMode: mode };
 }
 
+/** Picking where a finished chart stops: its origin (stay) or an empty square along it. */
+function landingTap(ctx: TapContext, square: SquareName): ComposerAction | null {
+  const { chart, landTargets } = ctx.view;
+  const origin = ctx.composer.selected;
+  if (!chart || !origin || !landTargets.includes(square)) return null;
+  const land = square === origin ? 0 : chart.squares.indexOf(square) + 1;
+  return { type: 'stageMain', main: { kind: 'chart', from: origin, steps: ctx.composer.chart, land } };
+}
+
 function chartTap(ctx: TapContext, square: SquareName): ComposerAction | null {
+  if (ctx.composer.tracerMode === 'land') return landingTap(ctx, square);
   const { chart } = ctx.view;
   const origin = ctx.composer.selected;
   if (!chart || !origin) return null;
@@ -75,6 +85,8 @@ export function interpretTap(ctx: TapContext, square: SquareName): ComposerActio
   if (view.selectedPiece && !view.inspecting) {
     const action = chartTap(ctx, square) ?? targetTap(ctx, square);
     if (action) return action;
+    // While picking where a chart stops, other squares do nothing.
+    if (composer.tracerMode === 'land' && view.chart) return null;
   }
   return selectAction(ctx, square);
 }

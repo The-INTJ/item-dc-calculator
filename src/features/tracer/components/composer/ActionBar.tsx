@@ -1,7 +1,9 @@
+import type { PatternCode } from '../../engine';
 import type { TracerMode, ComposerState } from '../../hooks/composer/composerState';
 import type { ComposerView } from '../../hooks/composer/composerView';
 import type { SubmitPhase } from '../../hooks/composer/useTurnSubmission';
 import { actionHint } from './actionHint';
+import { DeclarePicker } from './DeclarePicker';
 import styles from './ActionBar.module.scss';
 
 interface ActionBarProps {
@@ -11,10 +13,18 @@ interface ActionBarProps {
   onTracerMode: (mode: TracerMode) => void;
   onUndo: () => void;
   onFinishChart: () => void;
+  onDeclare: (pattern: PatternCode) => void;
   onSubmit: () => void;
 }
 
-function ModeToggle({ mode, onChange }: { mode: TracerMode; onChange: (mode: TracerMode) => void }) {
+interface ModeToggleProps {
+  mode: TracerMode;
+  /** Where Tracers can also step, the move mode is "Move", not just "Strike". */
+  canStep: boolean;
+  onChange: (mode: TracerMode) => void;
+}
+
+function ModeToggle({ mode, canStep, onChange }: ModeToggleProps) {
   return (
     <div className={styles.toggle} role="radiogroup" aria-label="Tracer action">
       {(['strike', 'chart'] as const).map((option) => (
@@ -26,7 +36,7 @@ function ModeToggle({ mode, onChange }: { mode: TracerMode; onChange: (mode: Tra
           className={mode === option ? styles.toggleOn : styles.toggleOff}
           onClick={() => onChange(option)}
         >
-          {option === 'strike' ? 'Strike' : 'Chart'}
+          {option === 'chart' ? 'Chart' : canStep ? 'Move' : 'Strike'}
         </button>
       ))}
     </div>
@@ -37,7 +47,10 @@ function ModeToggle({ mode, onChange }: { mode: TracerMode; onChange: (mode: Tra
 export function ActionBar({ view, composer, phase, ...on }: ActionBarProps) {
   const busy = phase.kind === 'sending' || phase.kind === 'sent';
   const piece = view.selectedPiece;
-  const canToggle = !composer.main && !view.inspecting && piece?.kind === 'tracer' && piece.pattern !== null;
+  const canStep = view.board.rules.tracerStep;
+  const picking = composer.tracerMode === 'land';
+  const canToggle =
+    !composer.main && !view.inspecting && !picking && piece?.kind === 'tracer' && (piece.pattern !== null || canStep);
   const hasDraft = Boolean(composer.main || composer.stepBefore || composer.selected || composer.chart);
   return (
     <section className={styles.bar} aria-label="Your turn">
@@ -45,12 +58,13 @@ export function ActionBar({ view, composer, phase, ...on }: ActionBarProps) {
         {actionHint(view, composer, phase)}
       </p>
       {phase.kind === 'failed' && <p className={styles.error}>{phase.message}</p>}
+      {!composer.main && !view.inspecting && <DeclarePicker view={view} onDeclare={on.onDeclare} />}
       <div className={styles.buttons}>
-        {canToggle && <ModeToggle mode={composer.tracerMode} onChange={on.onTracerMode} />}
+        {canToggle && <ModeToggle mode={composer.tracerMode} canStep={canStep} onChange={on.onTracerMode} />}
         <button type="button" className={styles.quiet} onClick={on.onUndo} disabled={busy || !hasDraft}>
           Undo
         </button>
-        {view.chart && (
+        {view.chart && !picking && (
           <button type="button" className={styles.quiet} onClick={on.onFinishChart} disabled={!view.chart.canFinish}>
             Done
           </button>

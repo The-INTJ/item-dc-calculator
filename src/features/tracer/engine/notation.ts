@@ -4,7 +4,8 @@
  *   Wd2-d3  Wd2xe3          warden step / capture
  *   Tf4-f6  Tf4xc6          tracer strike
  *   Ke1-f2  Ke1xb4 [J-1,3]  king move; borrowed pattern in brackets
- *   Tb1~b3 J88              chart: kind letter + path digits
+ *   Tb1~b3 J88              chart: kind letter + path digits (Tb1~b1: traced, stayed)
+ *   Ke1!R88                 king declares a borrowed pattern
  *   (Kd8-c7)                free king step
  *   --                      pass
  *   #  #L  =                king captured / lone king / drawn by dodge streak
@@ -28,6 +29,8 @@ export function formatAction(action: ActionRecord): string {
       const letter = action.pattern.startsWith('J:') ? 'J' : 'R';
       return `T${action.from}~${action.to} ${letter}${action.steps}`;
     }
+    case 'declare':
+      return `K${action.at}!${patternLabel(action.pattern)}`;
     case 'pass':
       return '--';
     default: {

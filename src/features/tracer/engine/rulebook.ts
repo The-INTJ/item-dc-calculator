@@ -7,15 +7,34 @@
  * be honoured in one place and forgotten in another.
  */
 
-import type { FreeStepRule, GameState, KingMemory, PatternCode, Piece, PieceKind, RuleSet, Side } from './types';
+import type {
+  ChartLanding,
+  FreeStepRule,
+  GameState,
+  KingBorrow,
+  KingMemory,
+  PatternCode,
+  PatternOrientations,
+  Piece,
+  PieceKind,
+  RuleSet,
+  Side,
+} from './types';
 import { MAX_PATH_LENGTH } from './geometry';
+import { findKing } from './occupancy';
 
 // Every value of each choice rule. Built from records, so a value added to
 // the type must be listed here — and the switches below must handle it.
 const KING_MEMORY_VALUES: Record<KingMemory, true> = { none: true, current: true, 'current-kept': true, 'every-chart': true };
 const FREE_STEP_VALUES: Record<FreeStepRule, true> = { off: true, 'with-tracer': true, 'with-tracer-or-warden': true };
+const ORIENTATION_VALUES: Record<PatternOrientations, true> = { all: true, 'as-traced': true };
+const LANDING_VALUES: Record<ChartLanding, true> = { end: true, any: true };
+const KING_BORROW_VALUES: Record<KingBorrow, true> = { 'any-time': true, declared: true };
 export const KING_MEMORY = Object.keys(KING_MEMORY_VALUES) as readonly KingMemory[];
 export const FREE_STEP = Object.keys(FREE_STEP_VALUES) as readonly FreeStepRule[];
+export const PATTERN_ORIENTATIONS = Object.keys(ORIENTATION_VALUES) as readonly PatternOrientations[];
+export const CHART_LANDING = Object.keys(LANDING_VALUES) as readonly ChartLanding[];
+export const KING_BORROW = Object.keys(KING_BORROW_VALUES) as readonly KingBorrow[];
 
 function unhandled(value: never): never {
   throw new Error(`Unhandled rule value: ${String(value)}`);
@@ -32,14 +51,32 @@ export function hasChartLimit(rules: RuleSet, piece: Pick<Piece, 'kind' | 'tier'
   return chartLimit(rules, piece) < MAX_PATH_LENGTH;
 }
 
-/** The patterns `side`'s king may use besides its one-square step. */
+/** Patterns apply only exactly as traced, never turned or mirrored. */
+export function tracedOnly(rules: RuleSet): boolean {
+  return rules.patternOrientations === 'as-traced';
+}
+
+/** A charting Tracer may stop anywhere along its path, or stay put. */
+export function landsAnywhere(rules: RuleSet): boolean {
+  return rules.chartLanding === 'any';
+}
+
+/** The king must declare a borrowed pattern on one turn to move by it on later ones. */
+export function kingDeclares(rules: RuleSet): boolean {
+  return rules.kingBorrow === 'declared';
+}
+
+/**
+ * The patterns `side`'s king may borrow besides its one-square step: move by
+ * any time, or — where kings declare — pick one from to declare.
+ */
 export function kingPatterns(state: GameState, side: Side): PatternCode[] {
   const memory = state.rules.kingMemory;
   switch (memory) {
     case 'none':
       return [];
     case 'every-chart':
-      return state.chartedKeys[side];
+      return tracedOnly(state.rules) ? state.chartedCodes[side] : state.chartedKeys[side];
     case 'current':
       return state.pieces
         .filter((piece) => piece.side === side && piece.kind === 'tracer' && piece.pattern !== null)
@@ -54,6 +91,24 @@ export function kingPatterns(state: GameState, side: Side): PatternCode[] {
     default:
       return unhandled(memory);
   }
+}
+
+/** The patterns `side`'s king may move by right now. */
+export function kingMoves(state: GameState, side: Side): PatternCode[] {
+  if (!kingDeclares(state.rules)) return kingPatterns(state, side);
+  const declared = findKing(state.pieces, side)?.pattern ?? null;
+  return declared ? [declared] : [];
+}
+
+/** Everything that shapes where `side`'s pieces can move this turn. */
+export interface Reach {
+  kingPatterns: readonly PatternCode[];
+  tracedOnly: boolean;
+  tracerStep: boolean;
+}
+
+export function reachFor(state: GameState, side: Side): Reach {
+  return { kingPatterns: kingMoves(state, side), tracedOnly: tracedOnly(state.rules), tracerStep: state.rules.tracerStep };
 }
 
 /** May a main move by a `kind` piece take the free king step along? */

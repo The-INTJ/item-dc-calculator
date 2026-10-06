@@ -7,13 +7,14 @@ export {
   DEFAULT_STYLE_ID,
   GAME_STYLES,
   ORIGINAL_V1,
+  ROUTES_V3,
   styleById,
   styleRef,
   TIERED_V2,
   type GameStyle,
   type StyleRef,
 } from './profiles';
-export { CLASSIC_LAYOUT, layoutById, LAYOUTS, SPACED_LAYOUT } from './layouts';
+export { CLASSIC_LAYOUT, layoutById, LAYOUTS, SPACED_LAYOUT, WALL_LAYOUT } from './layouts';
 export { LayoutSchema, layoutProblems, MAX_TIERS, RuleSetSchema } from './rule-schema';
 export {
   describeRule,

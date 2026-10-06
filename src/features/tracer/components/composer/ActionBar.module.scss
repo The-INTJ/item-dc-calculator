@@ -65,6 +65,33 @@
   color: var(--tr-muted);
 }
 
+.declare {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.declareTitle {
+  color: var(--tr-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-right: 0.2rem;
+}
+
+.declareChip {
+  @include button-quiet;
+  font-size: 0.85rem;
+  font-weight: 500;
+  min-height: 36px;
+  padding: 0 0.8rem;
+
+  &[aria-pressed='true'] {
+    border-color: var(--tr-accent);
+    color: var(--tr-accent);
+  }
+}
+
 @media (min-width: 900px) {
   .bar {
     position: static;

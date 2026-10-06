@@ -23,6 +23,22 @@ or sign out at `/account`.
 
 ## Done
 
+### 7. A v3: one-direction routes, Tracer steps, a declaring king — 2026-10-04
+
+**What Drew asked.** Fill the Warden line; Tracers trace a route without
+having to move along it, and the route works only in the exact direction
+traced; Tracers may step one square (no capture) any time; the king may pick
+any Tracer's route but must declare it a turn ahead, in view of the
+opponent. Clarified by Drew: after tracing, *pick where along the route to
+be*; the route is then active every later turn, only in that direction, out
+from where the Tracer landed. Executing works like riders/jumpers do now;
+declaring is the king's turn; the new Wardens are c2 and f2.
+
+**Done** as the style *Routes (v3)* — now the default — built from four new
+rules (each a toggle): pattern directions (all / as traced), where a chart
+stops (end / anywhere or stay), Tracers can step, and the king's borrowed
+moves (any time / declared). *Tiered* and *Original* play exactly as before.
+
 ### 6. Invite links didn't work for friends — 2026-10-04
 
 **What happened.** Links were built from the address the sender was on.

@@ -3,7 +3,7 @@
  * between moves. The full spec lives in src/features/tracer/README.md.
  */
 
-import { chartLimit, dodgeLimit, hasChartLimit, type RuleSet } from '../../engine';
+import { chartLimit, dodgeLimit, hasChartLimit, kingDeclares, landsAnywhere, tracedOnly, type RuleSet } from '../../engine';
 import { countWord, stepCompanions } from '../../lib/presentation/ruleText';
 
 export interface RuleSection {
@@ -46,30 +46,43 @@ function pieces(rules: RuleSet, numbers: string | null): string[] {
   const tracer = numbers
     ? `Tracer (diamond, numbered ${numbers}): Strike with its current pattern, or Chart a new one of up to that many squares.`
     : 'Tracer (diamond): Strike with its current pattern, or Chart a new one of any length.';
-  const king = rules.kingMemory === 'none' ? 'one step any direction.' : 'one step any direction, or any of its patterns.';
-  return [
-    'Warden (shield): one step any direction; always captures.',
-    `${tracer} Tracers start unformed (dashed outline), so their first move is a chart.`,
-    `King (crown): ${king}`,
-  ];
+  const start = rules.tracerStep
+    ? 'It may instead step one square in any direction, never capturing. Tracers start unformed (dashed outline).'
+    : 'Tracers start unformed (dashed outline), so their first move is a chart.';
+  const king = rules.kingMemory === 'none' ? 'one step any direction.' : 'one step any direction, or a borrowed pattern.';
+  return ['Warden (shield): one step any direction; always captures.', `${tracer} ${start}`, `King (crown): ${king}`];
 }
 
 function charting(rules: RuleSet, numbers: string | null): string[] {
   const length = numbers ? ', at most the Tracer’s number' : ', as long as you like';
+  const stop = landsAnywhere(rules)
+    ? ' Then choose where the Tracer stops: anywhere along the path, or where it started.'
+    : ' The Tracer moves to the end of the path.';
   const replaces = rules.kingMemory === 'none' || rules.kingMemory === 'every-chart' ? '' : ', for the Tracer and for its king';
+  const turns = tracedOnly(rules)
+    ? 'A pattern works only exactly as traced — out from wherever its piece stands, never turned or mirrored. Both players see every route on the board.'
+    : 'Patterns work in all 8 orientations — rotated and mirrored.';
   return [
-    `Tap a chain of neighbouring squares (straight or diagonal)${length}. No square twice, never back to the start, and the last square must be empty — charting never captures.`,
+    `Tap a chain of neighbouring squares (straight or diagonal)${length}. No square twice, never back to the start, and the last square must be empty — charting never captures.${stop}`,
     'If the path passes over any piece, the pattern is a Jumper: from then on it lands exactly on that start-to-finish offset, ignoring pieces in between.',
     'Otherwise it is a Rider: it walks the path and may stop on any square along it, but pieces block it (an enemy in the way can be captured).',
-    `Patterns work in all 8 orientations — rotated and mirrored. A new pattern replaces the Tracer’s old one${replaces}.`,
+    `${turns} A new pattern replaces the Tracer’s old one${replaces}.`,
   ];
+}
+
+function kingPoints(rules: RuleSet): string[] {
+  const declare = kingDeclares(rules) && rules.kingMemory !== 'none'
+    ? ['The king never uses a borrowed route straight away: it spends a turn declaring one (the opponent sees it), then may move by it on any later turn, until it declares another.']
+    : [];
+  return [...KING_POINTS[rules.kingMemory], ...declare];
 }
 
 function turn(rules: RuleSet): string[] {
   const companions = stepCompanions(rules);
-  const kingMove = rules.kingMemory === 'none' ? 'one step' : 'a step, or one of its patterns';
+  const borrowed = kingDeclares(rules) ? 'a step, its declared route, or declaring a route' : 'a step, or one of its patterns';
+  const kingMove = rules.kingMemory === 'none' ? 'one step' : borrowed;
   return [
-    `Move one Tracer or Warden, or move the king (${kingMove}). A king move is the whole turn.`,
+    `Move one Tracer or Warden, or play the king (${kingMove}). A king turn is the whole turn.`,
     ...(companions
       ? [`With a ${companions} move you may also take one free king step — to an empty neighbouring square, no capture — before or after it.`]
       : []),
@@ -107,7 +120,7 @@ export function howToPlay(rules: RuleSet): RuleSection[] {
     },
     { title: 'Pieces', points: pieces(rules, numbers) },
     { title: 'Charting', points: charting(rules, numbers) },
-    { title: 'The king', points: KING_POINTS[rules.kingMemory] },
+    { title: 'The king', points: kingPoints(rules) },
     { title: 'Your turn', points: turn(rules) },
     { title: 'Ending', points: ending(rules) },
   ];

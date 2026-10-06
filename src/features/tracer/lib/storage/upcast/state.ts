@@ -60,21 +60,24 @@ function livingPatterns(pieces: unknown, side: Side): Record<string, PatternCode
   return patterns;
 }
 
+/** The readable codes in `codes`, first occurrence first. */
+function codesOf(codes: unknown[]): PatternCode[] {
+  return [...new Set(codes.filter((code): code is string => parsePattern(code) !== null))];
+}
+
 /** Canonical keys of `codes`, first occurrence first, skipping anything unreadable. */
 function keysOf(codes: unknown[]): PatternCode[] {
-  const keys = codes.filter((code): code is string => parsePattern(code) !== null).map(canonicalKey);
-  return [...new Set(keys)];
+  return [...new Set(codesOf(codes).map(canonicalKey))];
 }
 
 /** Every pattern each side charted, in order, read from a list of turn records. */
-function chartedFromTurns(turns: unknown[]): Record<Side, PatternCode[]> {
-  return perSide((side) => {
-    const charted = turns.flatMap((turn) => {
+function chartedFromTurns(turns: unknown[]): Record<Side, unknown[]> {
+  return perSide((side) =>
+    turns.flatMap((turn) => {
       if (!isJson(turn) || turn.side !== side || !Array.isArray(turn.actions)) return [];
       return turn.actions.filter((action) => isJson(action) && action.kind === 'chart').map((action) => action.pattern);
-    });
-    return keysOf(charted);
-  });
+    }),
+  );
 }
 
 function upcastV1(state: Json): Json {
@@ -93,17 +96,17 @@ function upcastV2(state: Json, turns: unknown[] | null): Json {
   const { rulesVersion: _version, kingPatterns, ...rest } = state;
   const rules = TIERED_V2_AS_PLAYED;
   const lent = isJson(kingPatterns) ? kingPatterns : {};
-  const fromLent = () =>
-    perSide((side) => {
-      const held = isJson(lent[side]) ? (lent[side] as Json) : {};
-      return keysOf(Object.keys(held).sort().map((id) => held[id]));
-    });
+  const held = (side: Side) => (isJson(lent[side]) ? (lent[side] as Json) : {});
+  const charted = turns
+    ? chartedFromTurns(turns)
+    : perSide((side) => Object.keys(held(side)).sort().map((id) => held(side)[id]));
   return {
     ...rest,
     rules,
     pieces: withTiers(state.pieces, rules.layout),
     lastCharted: kingPatterns,
-    chartedKeys: turns ? chartedFromTurns(turns) : fromLent(),
+    chartedKeys: perSide((side) => keysOf(charted[side])),
+    chartedCodes: perSide((side) => codesOf(charted[side])),
   };
 }
 

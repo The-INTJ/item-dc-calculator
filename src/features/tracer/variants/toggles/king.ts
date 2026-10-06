@@ -1,4 +1,4 @@
-import { KING_MEMORY, type KingMemory } from '../../engine';
+import { KING_BORROW, KING_MEMORY, type KingBorrow, type KingMemory } from '../../engine';
 import type { Toggle } from './types';
 
 const DESCRIPTIONS: Record<KingMemory, string> = {
@@ -28,4 +28,24 @@ export const KING_MEMORY_TOGGLE: Toggle<'kingMemory'> = {
   encode: (value) => value,
   decode: (text) => KING_MEMORY.find((value) => value === text) ?? null,
   samples: [...KING_MEMORY],
+};
+
+const BORROW_TEXT: Record<KingBorrow, string> = {
+  'any-time': 'The king may move by any pattern it borrows, on any turn.',
+  declared:
+    'The king spends a turn declaring one borrowed pattern (the opponent sees it); from its next turn it may move by that one, until it declares another.',
+};
+
+export const KING_BORROW_TOGGLE: Toggle<'kingBorrow'> = {
+  key: 'kingBorrow',
+  group: 'King',
+  label: 'Using borrowed moves',
+  help: 'Whether the king uses borrowed patterns at once, or must declare one a turn ahead.',
+  control: { kind: 'choice', options: { 'any-time': 'Any time', declared: 'Declared a turn ahead' } },
+  describe: (value) => BORROW_TEXT[value],
+  inert: (rules) => (rules.kingMemory === 'none' ? 'The king borrows no patterns under these rules.' : null),
+  param: 'borrow',
+  encode: (value) => value,
+  decode: (text) => KING_BORROW.find((value) => value === text) ?? null,
+  samples: [...KING_BORROW],
 };

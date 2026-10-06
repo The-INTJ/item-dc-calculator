@@ -41,9 +41,19 @@ function chartHint(view: ComposerView, origin: string): string {
 }
 
 function kingHint(view: ComposerView): string {
-  return view.board.rules.kingMemory === 'none'
-    ? 'Step one square in any direction.'
-    : 'Step one square, or move by one of the king’s patterns (see Kings).';
+  const rules = view.board.rules;
+  if (rules.kingMemory === 'none') return 'Step one square in any direction.';
+  if (rules.kingBorrow !== 'declared') return 'Step one square, or move by one of the king’s patterns (see Kings).';
+  return view.selectedPiece?.pattern
+    ? 'Step one square, move by the declared route, or declare another below (that is your whole turn).'
+    : 'Step one square — or declare one of your Tracers’ routes below to move by it from next turn.';
+}
+
+function tracerMoveHint(view: ComposerView): string {
+  if (!view.board.rules.tracerStep) return 'Strike: tap a highlighted square — or switch to Chart.';
+  return view.selectedPiece?.pattern
+    ? 'Step to a neighbouring square (no capture), or strike along its route — or switch to Chart.'
+    : 'Step to a neighbouring square (no capture) — or switch to Chart to trace its route.';
 }
 
 export function actionHint(view: ComposerView, composer: ComposerState, phase: SubmitPhase): string {
@@ -54,9 +64,12 @@ export function actionHint(view: ComposerView, composer: ComposerState, phase: S
   const piece = view.selectedPiece;
   if (!piece) return staged ?? 'Tap one of your pieces to start your turn.';
   if (view.inspecting) return `Looking at the ${SIDE_NAME[piece.side]} ${pieceName(piece, view.board.rules)}.`;
+  if (piece.kind === 'tracer' && composer.tracerMode === 'land') {
+    return 'Where does the Tracer stop? Tap it to stay, or tap a marked square along the path.';
+  }
   if (piece.kind === 'tracer' && composer.tracerMode === 'chart') return chartHint(view, piece.at);
   if (view.stepTargets.length > 0) return 'Tap a marked square for the free king step.';
   if (piece.kind === 'king') return kingHint(view);
-  if (piece.kind === 'tracer') return 'Strike: tap a highlighted square — or switch to Chart.';
+  if (piece.kind === 'tracer') return tracerMoveHint(view);
   return 'Tap a highlighted square to move.';
 }

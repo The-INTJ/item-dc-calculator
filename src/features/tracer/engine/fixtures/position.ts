@@ -26,6 +26,7 @@ export interface PositionOptions {
   tiers?: Record<string, number>;
   lastCharted?: Partial<Record<Side, Record<string, PatternCode>>>;
   chartedKeys?: Partial<Record<Side, PatternCode[]>>;
+  chartedCodes?: Partial<Record<Side, PatternCode[]>>;
   stepStreak?: Partial<Record<Side, number>>;
 }
 
@@ -70,6 +71,7 @@ export function positionFrom(diagram: string, options: PositionOptions = {}): Ga
     pieces,
     lastCharted: { w: options.lastCharted?.w ?? {}, b: options.lastCharted?.b ?? {} },
     chartedKeys: { w: options.chartedKeys?.w ?? [], b: options.chartedKeys?.b ?? [] },
+    chartedCodes: { w: options.chartedCodes?.w ?? [], b: options.chartedCodes?.b ?? [] },
     stepStreak: { w: options.stepStreak?.w ?? 0, b: options.stepStreak?.b ?? 0 },
     result: { status: 'active' },
   };

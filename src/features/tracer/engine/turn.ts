@@ -46,13 +46,15 @@ export function cloneState(state: GameState): GameState {
     pieces: state.pieces.map((piece) => ({ ...piece })),
     lastCharted: { w: { ...state.lastCharted.w }, b: { ...state.lastCharted.b } },
     chartedKeys: { w: [...state.chartedKeys.w], b: [...state.chartedKeys.b] },
+    chartedCodes: { w: [...state.chartedCodes.w], b: [...state.chartedCodes.b] },
     stepStreak: { ...state.stepStreak },
     result: { ...state.result },
   };
 }
 
-/** Would `main` move the king (counting a free step taken just before it)? */
+/** Is `main` a king turn — a declaration, or a move of the king (counting a free step taken just before it)? */
 function movesKing(state: GameState, side: Side, main: MainAction, step: FreeStep): boolean {
+  if (main.kind === 'declare') return true;
   if (main.kind !== 'move') return false;
   const king = findKing(state.pieces, side);
   if (!king) return false;

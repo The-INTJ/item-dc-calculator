@@ -2,7 +2,7 @@
 
 import { useReducer } from 'react';
 
-import type { SquareName } from '../../engine';
+import { landsAnywhere, type SquareName } from '../../engine';
 import type { Viewer } from '../../lib/policy';
 import type { TracerGame } from '../../lib/types';
 import { composerReducer, EMPTY_COMPOSER } from './composerState';
@@ -22,9 +22,11 @@ export function useTurnComposer(game: TracerGame, viewer: Viewer) {
     if (action) dispatch(action);
   }
 
+  /** Done drawing: stage the chart — or, where charts may stop anywhere, ask where. */
   function finishChart() {
     if (!view.chart?.canFinish || !composer.selected) return;
-    dispatch({ type: 'stageMain', main: { kind: 'chart', from: composer.selected, steps: composer.chart } });
+    if (landsAnywhere(game.state.rules)) dispatch({ type: 'pickLanding' });
+    else dispatch({ type: 'stageMain', main: { kind: 'chart', from: composer.selected, steps: composer.chart } });
   }
 
   return { composer, view, dispatch, tap, finishChart };

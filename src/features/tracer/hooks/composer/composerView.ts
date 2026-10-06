@@ -7,6 +7,8 @@
 import {
   applyTurn,
   freeStepSquares,
+  kingDeclares,
+  kingPatterns,
   moveTargets,
   patternTargets,
   pieceAt,
@@ -15,6 +17,7 @@ import {
   type ChartPreview,
   type GameState,
   type MoveTarget,
+  type PatternCode,
   type Piece,
   type PieceKind,
   type RiderWalk,
@@ -36,6 +39,10 @@ export interface ComposerView {
   chart: ChartPreview | null;
   /** Squares the king may take its free step to, once a piece move is staged. */
   stepTargets: SquareName[];
+  /** Where a drawn chart may stop (its origin = stay put), once the player is picking. */
+  landTargets: SquareName[];
+  /** Patterns the selected king may declare this turn. */
+  declarable: PatternCode[];
   turn: TurnInput | null;
   outcome: TurnOutcome | null;
   /** The staged main action moves the king, so the turn is complete. */
@@ -44,18 +51,18 @@ export interface ComposerView {
   stepWithMain: boolean;
 }
 
-/** A piece's reach for inspection, with rider rays when it has a pattern. */
+/** A piece's reach — every square it can move to — with rider rays when a Tracer has a pattern. */
 export function pieceReach(board: GameState, piece: Piece): { targets: MoveTarget[]; walks: RiderWalk[] } {
-  if (piece.kind === 'tracer') {
-    return piece.pattern ? patternTargets(board, piece.at, piece.side, piece.pattern) : { targets: [], walks: [] };
-  }
-  return { targets: moveTargets(board, piece.at), walks: [] };
+  const walks =
+    piece.kind === 'tracer' && piece.pattern ? patternTargets(board, piece.at, piece.side, piece.pattern).walks : [];
+  return { targets: moveTargets(board, piece.at), walks };
 }
 
 /** The kind of piece the staged main action moves, if one is staged. */
 function mainMover(composer: ComposerState, game: GameState): PieceKind | null {
   const main = composer.main;
   if (!main || main.kind === 'pass') return null;
+  if (main.kind === 'declare') return 'king';
   return main.kind === 'chart' ? 'tracer' : (pieceAt(game, main.from)?.kind ?? null);
 }
 
@@ -69,9 +76,18 @@ interface Selection {
   walks: RiderWalk[];
   chart: ChartPreview | null;
   stepTargets: SquareName[];
+  landTargets: SquareName[];
+  declarable: PatternCode[];
 }
 
-const NOTHING: Selection = { targets: [], walks: [], chart: null, stepTargets: [] };
+const NOTHING: Selection = { targets: [], walks: [], chart: null, stepTargets: [], landTargets: [], declarable: [] };
+
+/** A finished chart, frozen while the player picks where its Tracer stops. */
+function landingSelection(board: GameState, piece: Piece, steps: string): Selection {
+  const chart = previewChart(board, piece.at, steps);
+  const empty = chart.squares.filter((square) => !pieceAt(board, square));
+  return { ...NOTHING, chart: { ...chart, next: [] }, landTargets: [piece.at, ...empty] };
+}
 
 function playSelection(board: GameState, piece: Piece, composer: ComposerState, stepAfterOpen: boolean): Selection {
   if (composer.main) {
@@ -81,8 +97,10 @@ function playSelection(board: GameState, piece: Piece, composer: ComposerState, 
   if (piece.kind === 'tracer' && composer.tracerMode === 'chart') {
     return { ...NOTHING, chart: previewChart(board, piece.at, composer.chart) };
   }
+  if (piece.kind === 'tracer' && composer.tracerMode === 'land') return landingSelection(board, piece, composer.chart);
   if (piece.kind === 'king' && composer.stepBefore) return NOTHING;
-  return { ...NOTHING, ...pieceReach(board, piece) };
+  const declarable = piece.kind === 'king' && kingDeclares(board.rules) ? kingPatterns(board, piece.side) : [];
+  return { ...NOTHING, ...pieceReach(board, piece), declarable: [...new Set(declarable)] };
 }
 
 export function composeView(
