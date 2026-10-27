@@ -21,9 +21,11 @@ function Hero() {
           <br />
           <span className={typo.gradWarm}>Good hang.</span>
         </h1>
-        <p className={typo.lead} style={{ maxWidth: '44ch' }}>
-          I&apos;m Alex Ferré. For 7 years I&apos;ve made sure people can actually hear your actors,
-          as part of a sound team or as a one-man band who wires, booms and mixes all at once.
+        <p className={typo.lead} style={{ maxWidth: '50ch' }}>
+          I&apos;m Alex Ferré, your one-man band for all things audio. On set, I mix, boom and wire
+          to catch every sound your story makes. Off set, I make your post-production audio clean
+          and balanced, build sound effects to bring the story to life, and now and then add a tune
+          or two (with your permission, of course).
         </p>
         <div className={s.buttons}>
           <Button size="lg" href={stnHref('contact')}>

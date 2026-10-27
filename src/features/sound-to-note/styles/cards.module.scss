@@ -1,4 +1,4 @@
-// Content cards: project, quote, trait, gear row, social link.
+// Content cards: project, quote, quote-with-photo, gear row, social link.
 
 .card {
   display: flex;
@@ -134,24 +134,22 @@
   }
 }
 
-.trait {
-  composes: card;
-  gap: 12px;
-  padding: 24px;
-  border-width: 1px;
+// The photo on top, its quote card pulled up over the photo's bottom edge.
+.quotePhoto {
+  display: flex;
+  flex-direction: column;
 
-  h3 {
-    margin: 0;
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 20px;
+  > figure:last-child {
+    position: relative;
+    margin: -32px 14px 0;
   }
+}
 
-  p {
-    margin: 0;
-    font-size: 15px;
-    color: var(--text-secondary);
-  }
+.gearNote {
+  margin: 14px 0 0;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--text-secondary);
 }
 
 .chip {

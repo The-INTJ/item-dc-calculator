@@ -187,10 +187,10 @@
   }
 }
 
-.traits {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
-  gap: 16px;
+.quoteWall {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
 }
 
 .narrow {

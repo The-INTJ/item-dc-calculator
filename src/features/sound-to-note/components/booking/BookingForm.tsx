@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 
-import { contact, rates } from '../../content';
+import { bookingTypes, contact, rates, teamSizes } from '../../content';
 import f from '../../styles/form.module.scss';
 import typo from '../../styles/type.module.scss';
 import { Button } from '../ui/Button';
@@ -57,39 +57,42 @@ export function BookingForm({ initialServices }: { initialServices: string[] }) 
   return (
     <form onSubmit={submit} className={f.grid}>
       <TextField
+        label="Shoot dates"
+        placeholder="Mar 3–7, 6am calls"
+        required
+        {...bind('dates')}
+      />
+      <TextField
         label="Filming location(s)"
         placeholder="Atlanta, GA + one day in Savannah"
         required
         {...bind('location')}
       />
-      <TextField
-        label="Dates / times"
-        placeholder="Mar 3–7, 6am calls"
-        required
-        {...bind('dates')}
-      />
-      <SelectField label="Rate" options={rates} {...bind('rate')} />
+      <SelectField label="Project type" options={bookingTypes} required {...bind('type')} />
+      <SelectField label="Sound team" options={teamSizes} required {...bind('team')} />
+      <SelectField label="Rate" options={rates} required {...bind('rate')} />
       <div className={f.spacer} />
       <div className={f.full}>
         <TextField
           label="About the project"
           multiline
-          placeholder="Feature, commercial, doc? How big is the crew? Anything tricky (rain, boats, 40 extras)?"
-          required
+          placeholder="Production, schedule, call times, special requirements: anything that helps me plan."
           {...bind('description')}
         />
       </div>
       <ServicesPicker picked={picked} onChange={setPicked} />
       <TextField label="Your name" required {...bind('name')} />
       <TextField label="Email" type="email" required {...bind('email')} />
-      <TextField label="Phone" type="tel" {...bind('phone')} />
+      <TextField label="Phone (for texts)" type="tel" {...bind('phone')} />
       <div className={`${f.full} ${f.sendRow}`}>
         <Button size="lg" type="submit" icon={<Icon name="send" size={18} />}>
           Send to Alex
         </Button>
         <span className={f.aside}>
-          Or email <a href={`mailto:${contact.email}`}>{contact.email}</a> · call{' '}
-          <a href={contact.phoneHref}>{contact.phone}</a>
+          Or email <a href={`mailto:${contact.email}`}>{contact.email}</a> · DM{' '}
+          <a href={contact.instagramHref} target="_blank" rel="noreferrer">
+            {contact.instagram}
+          </a>
         </span>
       </div>
     </form>

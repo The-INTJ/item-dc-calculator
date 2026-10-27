@@ -54,7 +54,9 @@ function SiteFooter() {
       <span className={`${typo.label} ${site.footerMeta}`}>
         <span>© {contact.name}</span>
         <a href={`mailto:${contact.email}`}>{contact.email}</a>
-        <a href={contact.phoneHref}>{contact.phone}</a>
+        <a href={contact.instagramHref} target="_blank" rel="noreferrer">
+          {contact.instagram}
+        </a>
       </span>
     </footer>
   );

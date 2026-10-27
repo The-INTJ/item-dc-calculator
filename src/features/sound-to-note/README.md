@@ -13,22 +13,25 @@ the URL too:
 | Param | Effect |
 | --- | --- |
 | `?page=work&type=series` | Work filtered to one project type (chips are links) |
-| `?page=contact&service=post,boom` | Booking form with those services pre-checked |
+| `?page=contact&service=post,consultant` | Booking form with those services pre-checked |
 
 An unknown `?page=` falls back to home. The whole mock is `noindex`.
 
 ## What is real and what is a placeholder
 
-- **Real, from Alex's brief:** his name, the brand, email, phone, location,
-  "7 years", the "haven't sent out a resume in 5 years" line, the service
-  list, ShugahMunny and the trombone. The voice (first person, plain English,
-  dry stickers) is the design system's.
+- **Real, from Alex's brief:** his name, the brand, email, location, "7 years"
+  and the trombone. The voice (first person, plain English, dry stickers) is
+  the design system's.
+- **Real, from Alex's notes (Oct 2026):** the home intro, the whole gear list,
+  the About copy, his Instagram, IMDb and Shugah Munny links, the service list
+  (production mixer, post sound, consultant, other: **no equipment rental**)
+  and the booking questions (dates first, project type, sound team, rate).
+  He asked for **no phone number anywhere**; email and Instagram only.
 - **Placeholders, carried over from the design:** every project credit
-  ("Project Title One"), every testimonial, every gear model name, and the
-  Instagram/IMDb destinations (generic site homepages until Alex sends his
-  handles). Swap them in `content.ts`, which marks each list.
-- **No photos yet.** Alex's on-set photos never arrived, so every image is the
-  design's striped `PhotoFrame` with a label saying what belongs there.
+  ("Project Title One") and every testimonial. Alex is collecting real quotes;
+  on the About page each one sits on a photo of him working that job.
+- **No photos yet**, so every image is the design's striped `PhotoFrame`
+  with a label saying what belongs there.
 
 ## How it works
 

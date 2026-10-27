@@ -1,10 +1,11 @@
 import Image from 'next/image';
 
-import { GearItem, QuoteCard, SocialLink, TraitCard } from '../components/cards/cards';
+import { GearItem, QuotePhotoCard, SocialLink } from '../components/cards/cards';
 import { Button } from '../components/ui/Button';
 import { PhotoFrame, SectionHeader, Sticker, Tag } from '../components/ui/primitives';
-import { gear, quotes, socials, traits } from '../content';
+import { gear, quotes, socials } from '../content';
 import { stnHref } from '../routes';
+import cards from '../styles/cards.module.scss';
 import s from '../styles/screens.module.scss';
 
 export function GearScreen() {
@@ -28,6 +29,7 @@ export function GearScreen() {
             {group.items.map((item) => (
               <GearItem key={item.name} item={item} />
             ))}
+            {group.note && <p className={cards.gearNote}>{group.note}</p>}
           </section>
         ))}
       </div>
@@ -51,25 +53,36 @@ export function AboutScreen() {
         <div className={s.aboutCopy}>
           <SectionHeader eyebrow="About" title="The guy you want on set" />
           <p className={s.aboutLead}>
-            Hi, I&apos;m Alex. I&apos;m a production audio mixer with 7 years on features, series,
-            commercials and docs.
+            Hi, I&apos;m Alex, your friendly international production sound mixer. Sound is my
+            passion.
           </p>
           <p>
-            My job is to capture clean, organized audio so your editor never has to say
-            &ldquo;we&apos;ll fix it in post.&rdquo; I work fast and I work hard, and directors tell
-            me I&apos;m easy to be around for a 14-hour day.
+            I hold a master&apos;s in music composition and audio technology, with a minor in
+            physics, but the degree isn&apos;t the point. I love this job: capturing performances,
+            and the unique places every project takes me.
+          </p>
+          <p>
+            Beyond capturing the moment, my biggest focus is organization. I move with the flow of
+            production and post, and I work with crew and producers so it&apos;s always clear what
+            sound needs. Streamlined and easy, for everyone.
+          </p>
+          <p>
+            Off the clock, I play in the disco-funk band Shugah Munny (find us on Spotify) and run
+            sound on the YouTube series <em>Elder Eye Hooligans</em>.
           </p>
           <div>
             <Button href={stnHref('contact')}>Book Alex</Button>
           </div>
         </div>
       </div>
-      <div className={s.traits}>
-        {traits.map((trait) => (
-          <TraitCard key={trait.title} trait={trait} />
-        ))}
-      </div>
-      <QuoteCard quote={quotes[0]} size="lg" />
+      <section className={s.quoteWall}>
+        <SectionHeader eyebrow="Word on set" title="From the people I work with" />
+        <div className={s.quotes}>
+          {quotes.map((quote, i) => (
+            <QuotePhotoCard key={i} quote={quote} />
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
