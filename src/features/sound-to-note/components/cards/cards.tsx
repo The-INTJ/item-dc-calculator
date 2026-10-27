@@ -1,9 +1,7 @@
-import Link from 'next/link';
-
-import type { GearPiece, Quote, SocialEntry, Trait } from '../../content';
+import type { GearPiece, Quote, SocialEntry } from '../../content';
 import styles from '../../styles/cards.module.scss';
 import typo from '../../styles/type.module.scss';
-import { Icon, toneStyle } from '../ui/primitives';
+import { Icon, PhotoFrame, toneStyle } from '../ui/primitives';
 
 export function QuoteCard({ quote, size = 'md' }: { quote: Quote; size?: 'md' | 'lg' }) {
   return (
@@ -25,14 +23,12 @@ export function QuoteCard({ quote, size = 'md' }: { quote: Quote; size?: 'md' | 
   );
 }
 
-export function TraitCard({ trait }: { trait: Trait }) {
+/** A testimonial over a photo of Alex working that job — the About page's wall. */
+export function QuotePhotoCard({ quote }: { quote: Quote }) {
   return (
-    <div className={styles.trait} style={toneStyle(trait.accent)}>
-      <span className={styles.chip}>
-        <Icon name={trait.icon} size={22} />
-      </span>
-      <h3>{trait.title}</h3>
-      <p>{trait.body}</p>
+    <div className={styles.quotePhoto}>
+      <PhotoFrame label={quote.photo} ratio="4/3" />
+      <QuoteCard quote={quote} />
     </div>
   );
 }
@@ -51,9 +47,17 @@ export function GearItem({ item }: { item: GearPiece }) {
   );
 }
 
+/** Web links open in a new tab; `mailto:` stays put and hands off to the mail app. */
 export function SocialLink({ entry }: { entry: SocialEntry }) {
-  const inner = (
-    <>
+  const web = entry.href.startsWith('http');
+  return (
+    <a
+      href={entry.href}
+      target={web ? '_blank' : undefined}
+      rel={web ? 'noreferrer' : undefined}
+      className={styles.social}
+      style={toneStyle(entry.accent)}
+    >
       <span className={styles.chip}>
         <Icon name={entry.icon} size={22} />
       </span>
@@ -64,25 +68,6 @@ export function SocialLink({ entry }: { entry: SocialEntry }) {
       <span className={styles.socialArrow} aria-hidden="true">
         →
       </span>
-    </>
-  );
-
-  if (!entry.external) {
-    return (
-      <Link href={entry.href} className={styles.social} style={toneStyle(entry.accent)}>
-        {inner}
-      </Link>
-    );
-  }
-  return (
-    <a
-      href={entry.href}
-      target="_blank"
-      rel="noreferrer"
-      className={styles.social}
-      style={toneStyle(entry.accent)}
-    >
-      {inner}
     </a>
   );
 }
