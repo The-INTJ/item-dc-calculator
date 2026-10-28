@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { BibleReadingCard } from '@/features/bible-reading/components';
 import { PlantExperienceCard } from '@/plants/components';
 import styles from './page.module.scss';
 
@@ -74,6 +75,15 @@ export default function PortalPage() {
             </Link>
           </li>
         ))}
+        <li>
+          <BibleReadingCard
+            classNames={{
+              card: `${styles.card} ${styles.widget}`,
+              title: styles.cardTitle,
+              description: styles.cardDescription,
+            }}
+          />
+        </li>
       </ul>
     </div>
   );

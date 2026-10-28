@@ -1,0 +1,1 @@
+export { BibleReadingCard } from './BibleReadingCard';

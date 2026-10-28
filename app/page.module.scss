@@ -64,6 +64,13 @@
     }
 }
 
+// A card that shows something instead of linking somewhere: no hover lift.
+.widget:hover {
+    border-color: rgba(0, 0, 0, 0.12);
+    background-color: rgba(255, 255, 255, 0.6);
+    transform: none;
+}
+
 .cardTitle {
     font-size: 1.125rem;
     font-weight: 600;
