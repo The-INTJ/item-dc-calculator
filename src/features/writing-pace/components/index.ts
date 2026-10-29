@@ -1,0 +1,1 @@
+export { WritingPaceCard } from './WritingPaceCard';

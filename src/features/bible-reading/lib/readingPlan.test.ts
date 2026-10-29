@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import { BOOKS } from './books';
-import { daysBetween, formatRange, readingForDate, readingForDay } from './readingPlan';
+import { daysBetween } from '@/lib/dates/calendarDays';
+
+import { formatRange, readingForDate, readingForDay } from './readingPlan';
 
 const sum = (values: readonly number[]) => values.reduce((total, value) => total + value, 0);
 

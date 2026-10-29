@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { BibleReadingCard } from '@/features/bible-reading/components';
+import { WritingPaceCard } from '@/features/writing-pace/components';
 import { PlantExperienceCard } from '@/plants/components';
 import styles from './page.module.scss';
 
@@ -48,6 +49,13 @@ const experiences: Experience[] = [
   },
 ];
 
+/** Cards that show something instead of linking somewhere. */
+const widgetClassNames = {
+  card: `${styles.card} ${styles.widget}`,
+  title: styles.cardTitle,
+  description: styles.cardDescription,
+};
+
 export default function PortalPage() {
   return (
     <div className={styles.portal}>
@@ -76,13 +84,10 @@ export default function PortalPage() {
           </li>
         ))}
         <li>
-          <BibleReadingCard
-            classNames={{
-              card: `${styles.card} ${styles.widget}`,
-              title: styles.cardTitle,
-              description: styles.cardDescription,
-            }}
-          />
+          <BibleReadingCard classNames={widgetClassNames} />
+        </li>
+        <li>
+          <WritingPaceCard classNames={widgetClassNames} />
         </li>
       </ul>
     </div>
