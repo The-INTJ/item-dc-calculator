@@ -7,6 +7,8 @@
  * instead of being paid back.
  */
 
+import { daysBetween } from '@/lib/dates/calendarDays';
+
 import { BOOKS } from './books';
 
 /** Hard-coded for now: started 2026-10-27, 86 verses a day. */
@@ -53,15 +55,6 @@ function ref({ book, chapter }: FlatChapter): ChapterRef {
 function chapterHolding(verse: number) {
   const index = CHAPTERS.findIndex((chapter) => chapter.endsAt >= verse);
   return index === -1 ? LAST : index;
-}
-
-/** Whole calendar days from one `YYYY-MM-DD` date to another. */
-export function daysBetween(fromIso: string, toIso: string) {
-  const toUtc = (iso: string) => {
-    const [year, month, day] = iso.split('-').map(Number);
-    return Date.UTC(year, month - 1, day);
-  };
-  return Math.round((toUtc(toIso) - toUtc(fromIso)) / 86_400_000);
 }
 
 /** The reading for plan day `day` (clamped to day 1). */
