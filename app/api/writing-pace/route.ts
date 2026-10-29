@@ -6,10 +6,13 @@ export const dynamic = 'force-dynamic';
 
 const ONE_DAY_SECONDS = 86_400;
 const CACHE_TAG = 'writing-pace';
+/** The doc's first tab, the manuscript; later tabs hold notes and ideas. */
+const MANUSCRIPT_TAB = 't.0';
 
 /**
  * Words-per-day for the doc named by WRITING_DOC_ID (kept out of the repo,
  * which is public). The doc must be readable by anyone with the link.
+ * Without a tab, the export runs every tab together.
  */
 async function readPace(init: RequestInit) {
   const docId = process.env.WRITING_DOC_ID;
@@ -18,7 +21,7 @@ async function readPace(init: RequestInit) {
   }
 
   const snapshot = snapshotDate(new Date());
-  const url = `https://docs.google.com/document/d/${encodeURIComponent(docId)}/export?format=txt&snapshot=${snapshot}`;
+  const url = `https://docs.google.com/document/d/${encodeURIComponent(docId)}/export?format=txt&tab=${MANUSCRIPT_TAB}&snapshot=${snapshot}`;
   const response = await fetch(url, init);
   if (!response.ok) {
     return Response.json({ error: `Doc export failed (${response.status})` }, { status: 502 });
