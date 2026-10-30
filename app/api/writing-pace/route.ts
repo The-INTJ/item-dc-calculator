@@ -1,6 +1,7 @@
 import { revalidateTag } from 'next/cache';
 
-import { countWords, paceFor, snapshotDate } from '@/features/writing-pace/lib/pace';
+import { countWords, paceFor, snapshotDate, windowStart } from '@/features/writing-pace/lib/pace';
+import { oldestSnapshotBetween, recordSnapshot } from '@/features/writing-pace/lib/server/snapshotStore';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +28,25 @@ async function readPace(init: RequestInit) {
     return Response.json({ error: `Doc export failed (${response.status})` }, { status: 502 });
   }
 
-  return Response.json(paceFor(countWords(await response.text()), snapshot));
+  const words = countWords(await response.text());
+  return Response.json(paceFor(words, snapshot, await weekBaseline(words, snapshot)));
+}
+
+/**
+ * Stores today's count and finds the one that starts the rolling week. The
+ * history is a nice-to-have: if Firestore fails, the overall pace still shows.
+ */
+async function weekBaseline(words: number, snapshot: string) {
+  try {
+    const [baseline] = await Promise.all([
+      oldestSnapshotBetween(windowStart(snapshot), snapshot),
+      recordSnapshot({ date: snapshot, words }),
+    ]);
+    return baseline;
+  } catch (error) {
+    console.error('[writing-pace] Snapshot history unavailable.', error);
+    return null;
+  }
 }
 
 /**
