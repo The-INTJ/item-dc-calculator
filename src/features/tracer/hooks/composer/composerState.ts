@@ -10,7 +10,8 @@
 
 import type { FreeStep, GameState, MainAction, Side, SquareName, TurnInput } from '../../engine';
 
-export type TracerMode = 'strike' | 'chart';
+/** What a selected Tracer is doing: moving, drawing a chart, or picking where a drawn chart stops. */
+export type TracerMode = 'strike' | 'chart' | 'land';
 
 export interface ComposerState {
   stepBefore: SquareName | null;
@@ -38,6 +39,7 @@ export type ComposerAction =
   | { type: 'setTracerMode'; mode: TracerMode }
   | { type: 'chartStep'; digit: string }
   | { type: 'chartBack' }
+  | { type: 'pickLanding' }
   | { type: 'stageMain'; main: MainAction }
   | { type: 'stepBefore'; to: SquareName }
   | { type: 'stepAfter'; to: SquareName }
@@ -45,6 +47,7 @@ export type ComposerAction =
   | { type: 'reset' };
 
 function undo(state: ComposerState): ComposerState {
+  if (state.tracerMode === 'land' && state.selected) return { ...state, tracerMode: 'chart' };
   if (state.chart) return { ...state, chart: state.chart.slice(0, -1) };
   if (state.selected) return { ...state, selected: null };
   if (state.stepAfter) return { ...state, stepAfter: null };
@@ -65,6 +68,8 @@ export function composerReducer(state: ComposerState, action: ComposerAction): C
       return { ...state, chart: state.chart + action.digit };
     case 'chartBack':
       return { ...state, chart: state.chart.slice(0, -1) };
+    case 'pickLanding':
+      return { ...state, tracerMode: 'land' };
     case 'stageMain':
       return { ...state, main: action.main, selected: null, chart: '' };
     case 'stepBefore':

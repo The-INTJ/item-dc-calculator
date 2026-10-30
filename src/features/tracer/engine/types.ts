@@ -36,7 +36,10 @@ export interface Piece {
   side: Side;
   kind: PieceKind;
   at: SquareName;
-  /** Tracers only: the current pattern, or null while unformed. */
+  /**
+   * Tracers: the current pattern, or null while unformed. Kings, when the
+   * rules make them declare borrowed routes: the declared one (else null).
+   */
   pattern: PatternCode | null;
   /** Tracers only: which tier this Tracer is (its step limit comes from the rules). */
   tier: number | null;
@@ -52,6 +55,15 @@ export type KingMemory = 'none' | 'current' | 'current-kept' | 'every-chart';
 
 /** Which main moves may take the free king step along. */
 export type FreeStepRule = 'off' | 'with-tracer' | 'with-tracer-or-warden';
+
+/** Patterns work in all eight orientations, or only exactly as traced. */
+export type PatternOrientations = 'all' | 'as-traced';
+
+/** Where a charting Tracer ends up: its path's end, or any square along it (or where it started). */
+export type ChartLanding = 'end' | 'any';
+
+/** The king moves by borrowed patterns any time, or only by one it declared on an earlier turn. */
+export type KingBorrow = 'any-time' | 'declared';
 
 /** One of White's starting pieces; Black's mirror it across the board. */
 export interface Placement {
@@ -83,6 +95,11 @@ export interface RuleSet {
   dodgeDraw: number;
   /** A free king step counts as a dodge only if the king was threatened as the turn began. */
   dodgeNeedsThreat: boolean;
+  patternOrientations: PatternOrientations;
+  chartLanding: ChartLanding;
+  /** Tracers may step one square in any direction, never capturing. */
+  tracerStep: boolean;
+  kingBorrow: KingBorrow;
 }
 
 export type WinReason = 'king-capture' | 'lone-king' | 'resignation';
@@ -107,6 +124,8 @@ export interface GameState {
   lastCharted: Record<Side, Record<string, PatternCode>>;
   /** Canonical keys of every pattern each side has charted, first-charted first. */
   chartedKeys: Record<Side, PatternCode[]>;
+  /** The same, exactly as charted (orientation kept), first-charted first. */
+  chartedCodes: Record<Side, PatternCode[]>;
   /** Consecutive own turns that were dodges (see rulebook `isDodge`), with no capture meanwhile. */
   stepStreak: Record<Side, number>;
   result: GameResult;
@@ -114,13 +133,16 @@ export interface GameState {
 
 /**
  * The one main action of a turn. `move` covers a warden step, a tracer
- * strike, and a king move (base step or a borrowed pattern): the piece standing
- * on `from` decides which. `pass` exists for future variants and is never
- * legal in v1, because a legal main action always exists.
+ * strike or step, and a king move (base step or a borrowed pattern): the
+ * piece standing on `from` decides which. A chart's `land` is how many of its
+ * steps the Tracer walks before stopping (0 = stays put); left out, it walks
+ * them all. `declare` has the king pick a borrowed pattern to move by on later
+ * turns, where the rules ask for that. `pass` is only legal with no legal move.
  */
 export type MainAction =
   | { kind: 'move'; from: SquareName; to: SquareName }
-  | { kind: 'chart'; from: SquareName; steps: StepString }
+  | { kind: 'chart'; from: SquareName; steps: StepString; land?: number }
+  | { kind: 'declare'; pattern: PatternCode }
   | { kind: 'pass' };
 
 /** The optional free king step: one square, to an empty square, no capture. */
@@ -161,11 +183,13 @@ export type ActionRecord =
       kind: 'chart';
       pieceId: string;
       from: SquareName;
+      /** Where the Tracer stopped: the path's end, a square along it, or `from`. */
       to: SquareName;
       steps: StepString;
       /** The tracer's new pattern, in charted orientation (also lent to its king). */
       pattern: PatternCode;
     }
+  | { kind: 'declare'; pieceId: string; at: SquareName; pattern: PatternCode }
   | { kind: 'pass' };
 
 export interface TurnRecord {
@@ -192,6 +216,11 @@ export type EngineErrorCode =
   | 'CHART_REVISIT'
   | 'CHART_END_OCCUPIED'
   | 'CHART_TOO_LONG'
+  | 'LANDING_OFF_PATH'
+  | 'LANDING_NOT_ALLOWED'
+  | 'LANDING_OCCUPIED'
+  | 'DECLARE_NOT_ALLOWED'
+  | 'NOT_DECLARABLE'
   | 'STEP_NOT_ADJACENT'
   | 'STEP_NOT_EMPTY'
   | 'STEP_WITH_KING_MOVE'

@@ -25,6 +25,7 @@ export function initialState(rules: RuleSet): GameState {
     pieces: [...pieces.map((p) => place('w', p)), ...pieces.map((p) => place('b', p))],
     lastCharted: { w: {}, b: {} },
     chartedKeys: { w: [], b: [] },
+    chartedCodes: { w: [], b: [] },
     stepStreak: { w: 0, b: 0 },
     result: { status: 'active' },
   };

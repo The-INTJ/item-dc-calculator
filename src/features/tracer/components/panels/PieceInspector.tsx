@@ -1,4 +1,4 @@
-import { kingPatterns, patternKind, type Piece, type RuleSet } from '../../engine';
+import { kingDeclares, kingPatterns, landsAnywhere, patternKind, tracedOnly, type Piece, type RuleSet } from '../../engine';
 import { patternLabel, SIDE_NAME } from '../../lib/presentation/gameText';
 import { pieceName, shownLimit } from '../../lib/presentation/ruleText';
 import type { TracerGame } from '../../lib/types';
@@ -6,39 +6,55 @@ import type { ComposerView } from '../../hooks/composer/composerView';
 import { PatternDiagram } from './PatternDiagram';
 import styles from './Panels.module.scss';
 
+function tracerHelp(piece: Piece, rules: RuleSet): string {
+  const limit = shownLimit(rules, piece);
+  const reach = limit === null ? 'any length' : `up to ${limit} squares`;
+  const stop = landsAnywhere(rules) ? ', stopping anywhere along it or staying put' : '';
+  const step = rules.tracerStep ? ' It may instead step one square (no capture).' : '';
+  const lends = rules.kingMemory !== 'none' ? ' Its king can borrow the pattern too.' : '';
+  return `Strikes with its pattern, or charts a new one of ${reach}${stop} (charting never captures).${step}${lends}`;
+}
+
+function kingHelp(rules: RuleSet): string {
+  if (rules.kingMemory === 'none') return 'Steps one square in any direction. Lose it and you lose.';
+  if (kingDeclares(rules)) {
+    return 'Steps one square, or spends a turn declaring one of its Tracers’ routes — then moves by it on later turns. Lose it and you lose.';
+  }
+  return 'Steps one square, or moves by any of its patterns. Lose it and you lose.';
+}
+
 function kindHelp(piece: Piece, rules: RuleSet): string {
-  const learns = rules.kingMemory !== 'none';
   switch (piece.kind) {
     case 'warden':
       return 'Moves one square in any direction and always captures.';
-    case 'tracer': {
-      const limit = shownLimit(rules, piece);
-      const reach = limit === null ? 'any length' : `up to ${limit} squares`;
-      const lends = learns ? ' Its king learns the pattern too.' : '';
-      return `Strikes with its pattern, or charts a new one of ${reach} (charting never captures).${lends}`;
-    }
+    case 'tracer':
+      return tracerHelp(piece, rules);
     case 'king':
-      return learns
-        ? 'Steps one square, or moves by any of its patterns. Lose it and you lose.'
-        : 'Steps one square in any direction. Lose it and you lose.';
+      return kingHelp(rules);
   }
 }
 
-function TracerDetail({ piece }: { piece: Piece }) {
+function patternUse(code: string, rules: RuleSet): string {
+  const turns = tracedOnly(rules) ? 'exactly as traced, from where it stands' : 'in any of 8 orientations';
+  return patternKind(code) === 'jumper'
+    ? `Lands exactly on this offset, ${turns}, ignoring pieces in between.`
+    : `Walks this path ${turns}, stopping anywhere along it; pieces block it.`;
+}
+
+function PatternDetail({ piece, rules }: { piece: Piece; rules: RuleSet }) {
   if (!piece.pattern) {
-    return <p className={styles.muted}>Unformed — its first move must be a chart.</p>;
+    const first = rules.tracerStep ? 'It can step a square, or chart one.' : 'Its first move must be a chart.';
+    return <p className={styles.muted}>{piece.kind === 'king' ? 'No route declared yet.' : `Unformed — ${first}`}</p>;
   }
-  const kind = patternKind(piece.pattern);
   return (
     <div className={styles.patternRow}>
       <PatternDiagram code={piece.pattern} label={patternLabel(piece.pattern)} />
       <div>
-        <p className={styles.strong}>{patternLabel(piece.pattern)}</p>
-        <p className={styles.muted}>
-          {kind === 'jumper'
-            ? 'Lands exactly on this offset, in any of 8 orientations, ignoring pieces in between.'
-            : 'Walks this path in any of 8 orientations, stopping anywhere along it; pieces block it.'}
+        <p className={styles.strong}>
+          {piece.kind === 'king' ? 'Declared: ' : ''}
+          {patternLabel(piece.pattern)}
         </p>
+        <p className={styles.muted}>{patternUse(piece.pattern, rules)}</p>
       </div>
     </div>
   );
@@ -58,10 +74,11 @@ export function PieceInspector({ view, game }: { view: ComposerView; game: Trace
         {SIDE_NAME[piece.side]} {pieceName(piece, rules)} on {piece.at}
       </p>
       <p className={styles.muted}>{kindHelp(piece, rules)}</p>
-      {piece.kind === 'tracer' && <TracerDetail piece={piece} />}
+      {piece.kind === 'tracer' && <PatternDetail piece={piece} rules={rules} />}
+      {piece.kind === 'king' && kingDeclares(rules) && <PatternDetail piece={piece} rules={rules} />}
       {piece.kind === 'king' && (
         <p className={styles.muted}>
-          {rules.kingMemory === 'none' ? '' : `Knows ${known} pattern${known === 1 ? '' : 's'} (see Kings). `}
+          {rules.kingMemory === 'none' ? '' : `Can borrow ${known} pattern${known === 1 ? '' : 's'} (see Kings). `}
           It can reach {view.targets.length} squares now.
         </p>
       )}

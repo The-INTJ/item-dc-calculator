@@ -49,6 +49,8 @@ export const GameStateSchema: z.ZodType<GameState> = z.object({
   pieces: z.array(PieceSchema),
   lastCharted: z.object({ w: PatternsByTracerSchema, b: PatternsByTracerSchema }),
   chartedKeys: z.object({ w: PatternListSchema, b: PatternListSchema }),
+  // Added 2026-10-04 (exact codes, for patterns that work only as traced).
+  chartedCodes: z.object({ w: PatternListSchema, b: PatternListSchema }).default({ w: [], b: [] }),
   stepStreak: z.object({ w: z.number().int().min(0), b: z.number().int().min(0) }),
   result: ResultSchema,
 });
@@ -76,6 +78,7 @@ const ActionRecordSchema: z.ZodType<ActionRecord> = z.union([
     steps: StepsSchema,
     pattern: PatternSchema,
   }),
+  z.object({ kind: z.literal('declare'), pieceId: z.string(), at: SquareSchema, pattern: PatternSchema }),
   z.object({ kind: z.literal('pass') }),
 ]);
 

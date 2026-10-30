@@ -9,7 +9,7 @@
 
 import { z } from 'zod';
 
-import { FREE_STEP, KING_MEMORY, MAX_PATH_LENGTH } from '../engine';
+import { CHART_LANDING, FREE_STEP, KING_BORROW, KING_MEMORY, MAX_PATH_LENGTH, PATTERN_ORIENTATIONS } from '../engine';
 import type { Layout, PieceKind, RuleSet } from '../engine';
 
 const ID_LETTER: Record<PieceKind, string> = { king: 'K', tracer: 'T', warden: 'W' };
@@ -61,4 +61,9 @@ export const RuleSetSchema = z.object({
   dodgeDraw: z.number().int().min(0).max(99),
   // Added 2026-10-04. Games saved before it counted every free step as a dodge.
   dodgeNeedsThreat: z.boolean().default(false),
+  // Added 2026-10-04 for Routes (v3); the defaults are how every earlier game played.
+  patternOrientations: z.enum(PATTERN_ORIENTATIONS).default('all'),
+  chartLanding: z.enum(CHART_LANDING).default('end'),
+  tracerStep: z.boolean().default(false),
+  kingBorrow: z.enum(KING_BORROW).default('any-time'),
 }) satisfies z.ZodType<RuleSet>;

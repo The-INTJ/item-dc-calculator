@@ -16,7 +16,13 @@ function isMainAction(value: unknown): boolean {
     case 'move':
       return typeof value.from === 'string' && typeof value.to === 'string';
     case 'chart':
-      return typeof value.from === 'string' && typeof value.steps === 'string';
+      return (
+        typeof value.from === 'string' &&
+        typeof value.steps === 'string' &&
+        (value.land === undefined || Number.isInteger(value.land))
+      );
+    case 'declare':
+      return typeof value.pattern === 'string';
     case 'pass':
       return true;
     default:

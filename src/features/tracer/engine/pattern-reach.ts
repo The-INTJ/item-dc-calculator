@@ -9,6 +9,9 @@
  *
  * Jumper: for each image of the net offset, land there unless it is off the
  * board or holds an own piece. Everything in between is ignored.
+ *
+ * `tracedOnly`: the pattern works in its charted orientation alone, so there
+ * is one walk (or one landing square) instead of eight.
  */
 
 import type { PatternCode, RiderWalk, Side, StepString } from './types';
@@ -55,9 +58,11 @@ export function riderReach(
   from: number,
   side: Side,
   steps: StepString,
+  tracedOnly = false,
 ): PatternReach {
   const hits = new Map<number, PatternHit>();
-  const walks = orientations(steps).map((path) => walkOrientation(board, from, side, path, hits));
+  const paths = tracedOnly ? [steps] : orientations(steps);
+  const walks = paths.map((path) => walkOrientation(board, from, side, path, hits));
   return { hits: [...hits.values()], walks };
 }
 
@@ -67,9 +72,10 @@ export function jumperReach(
   side: Side,
   dx: number,
   dy: number,
+  tracedOnly = false,
 ): PatternHit[] {
   const hits: PatternHit[] = [];
-  for (const image of images({ dx, dy })) {
+  for (const image of tracedOnly ? [{ dx, dy }] : images({ dx, dy })) {
     const to = offsetSquare(from, image.dx, image.dy);
     if (to === null || relation(board, to, side) === 'own') continue;
     hits.push({ sq: to, capture: relation(board, to, side) === 'enemy', path: null });
@@ -82,9 +88,10 @@ export function patternReach(
   from: number,
   side: Side,
   code: PatternCode,
+  tracedOnly = false,
 ): PatternReach {
   const parsed = parsePattern(code);
   if (!parsed) return { hits: [], walks: [] };
-  if (parsed.kind === 'rider') return riderReach(board, from, side, parsed.steps);
-  return { hits: jumperReach(board, from, side, parsed.dx, parsed.dy), walks: [] };
+  if (parsed.kind === 'rider') return riderReach(board, from, side, parsed.steps, tracedOnly);
+  return { hits: jumperReach(board, from, side, parsed.dx, parsed.dy, tracedOnly), walks: [] };
 }

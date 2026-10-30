@@ -7,7 +7,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import type { FreeStepRule, KingMemory, MainAction, RuleSet } from './types';
+import type { FreeStepRule, KingMemory, MainAction, RuleSet, TurnInput } from './types';
 import { positionFrom } from './fixtures/position';
 import { previewChart } from './chart';
 import { canonicalKey } from './pattern-codes';
@@ -159,5 +159,84 @@ describe('dodgeDraw', () => {
       ply: 0, main: { kind: 'move', from: 'b2', to: 'b3' }, freeStep: { to: 'c1', when: 'before' },
     });
     expect(outcome.ok && outcome.state.result.status).toBe(status);
+  });
+});
+
+describe('patternOrientations: turned and mirrored, or only as traced', () => {
+  it.each([
+    ['all', ['b4', 'c4', 'd2', 'd3', 'd5', 'd6', 'e4', 'f4']],
+    ['as-traced', ['d5', 'd6']],
+  ] as const)('%s', (patternOrientations, squares) => {
+    const state = positionFrom('8 . . . . . . . k\n4 . . . T . . . .\n1 K . . . . . . .', {
+      rules: { patternOrientations },
+      patterns: { d4: 'R:88' },
+    });
+    expect(moveTargets(state, 'd4').map((t) => t.to).sort()).toEqual(squares);
+  });
+});
+
+describe('chartLanding: where a charting Tracer stops', () => {
+  // b1 charts 8-8-8 (b2, b3, b4); a black Warden sits on b3.
+  const board = '8 . . . . . . . k\n3 . w . . . . . .\n1 K T . . . . . .';
+  const chart = (chartLanding: 'end' | 'any', land?: number) =>
+    applyTurn(positionFrom(board, { rules: { chartLanding } }), 'w', {
+      ply: 0, main: { kind: 'chart', from: 'b1', steps: '888', land }, freeStep: null,
+    });
+  it.each([
+    ['end', undefined, { ok: true }, 'b4'],
+    ['end', 0, { ok: false, code: 'LANDING_NOT_ALLOWED' }, null],
+    ['any', 0, { ok: true }, 'b1'],
+    ['any', 1, { ok: true }, 'b2'],
+    ['any', 2, { ok: false, code: 'LANDING_OCCUPIED' }, null],
+    ['any', 4, { ok: false, code: 'LANDING_OFF_PATH' }, null],
+  ] as const)('%s, land %s', (chartLanding, land, verdict, at) => {
+    const outcome = chart(chartLanding, land);
+    expect(outcome).toMatchObject(verdict);
+    if (outcome.ok) {
+      expect(outcome.state.pieces.find((p) => p.id === 'wT1')).toMatchObject({ at, pattern: 'J:0,3' });
+    }
+  });
+});
+
+describe('tracerStep: a quiet one-square Tracer move', () => {
+  const board = '8 . . . . . . . k\n5 . . . . w . . .\n4 . . . T . . . .\n1 K . . . . . . .';
+  it.each([
+    [false, { ok: false, code: 'UNFORMED_TRACER' }],
+    [true, { ok: true }],
+  ] as const)('%s', (tracerStep, verdict) => {
+    const state = positionFrom(board, { rules: { tracerStep } });
+    const step = (to: string) => applyTurn(state, 'w', { ply: 0, main: { kind: 'move', from: 'd4', to }, freeStep: null });
+    expect(step('d5')).toMatchObject(verdict);
+    // Never a capture, so never a threat.
+    expect(step('e5')).toMatchObject({ ok: false });
+    expect(attackedSquares(state, 'w')).not.toContain('e5');
+  });
+});
+
+describe('kingBorrow: borrowed moves any time, or declared a turn ahead', () => {
+  // White's Tracer lends R:888 (north); the king on a1 could ride it to a4.
+  const board = '8 . . . . . . . k\n2 . . . . . . . w\n1 K . . . . . T .';
+  const options = { patterns: { g1: 'R:888' }, lastCharted: { w: { wT1: 'R:888' } } };
+  const turn = (main: MainAction, ply = 0, freeStep: TurnInput['freeStep'] = null): TurnInput => ({ ply, main, freeStep });
+
+  it('any-time: the king rides a lent pattern straight away, and cannot declare', () => {
+    const state = positionFrom(board, { ...options, rules: { kingBorrow: 'any-time' } });
+    expect(applyTurn(state, 'w', turn({ kind: 'move', from: 'a1', to: 'a4' }))).toMatchObject({ ok: true });
+    expect(applyTurn(state, 'w', turn({ kind: 'declare', pattern: 'R:888' }))).toMatchObject({ code: 'DECLARE_NOT_ALLOWED' });
+  });
+
+  it('declared: only after a declaring turn, which takes no free step', () => {
+    const state = positionFrom(board, { ...options, rules: { kingBorrow: 'declared' } });
+    expect(applyTurn(state, 'w', turn({ kind: 'move', from: 'a1', to: 'a4' }))).toMatchObject({ code: 'UNREACHABLE' });
+    expect(applyTurn(state, 'w', turn({ kind: 'declare', pattern: 'R:88' }))).toMatchObject({ code: 'NOT_DECLARABLE' });
+    expect(applyTurn(state, 'w', turn({ kind: 'declare', pattern: 'R:888' }, 0, { to: 'b1', when: 'after' }))).toMatchObject({
+      code: 'STEP_WITH_KING_MOVE',
+    });
+    const declared = applyTurn(state, 'w', turn({ kind: 'declare', pattern: 'R:888' }));
+    if (!declared.ok) throw new Error(declared.code);
+    expect(declared.record.actions).toEqual([{ kind: 'declare', pieceId: 'wK', at: 'a1', pattern: 'R:888' }]);
+    const black = applyTurn(declared.state, 'b', turn({ kind: 'move', from: 'h2', to: 'h3' }, 1));
+    if (!black.ok) throw new Error(black.code);
+    expect(applyTurn(black.state, 'w', turn({ kind: 'move', from: 'a1', to: 'a4' }, 2))).toMatchObject({ ok: true });
   });
 });

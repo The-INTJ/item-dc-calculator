@@ -34,11 +34,19 @@ function withoutV1Extras(record: unknown): TurnRecord {
   return { ...(record as TurnRecord), actions } as unknown as TurnRecord;
 }
 
-/** v1 never stored a captured Tracer's last pattern, so the upcast knows only the living ones. */
-function livingOnly(state: GameState): GameState {
+/**
+ * What v1 could have stored of a position: it never kept a captured Tracer's
+ * last pattern, nor patterns exactly as charted (Original rules never use
+ * either), so the upcast knows only the living Tracers' patterns.
+ */
+function asV1Kept(state: GameState): GameState {
   const living = new Set(state.pieces.map((piece) => piece.id));
   const keep = (lent: Record<string, string>) => Object.fromEntries(Object.entries(lent).filter(([id]) => living.has(id)));
-  return { ...state, lastCharted: { w: keep(state.lastCharted.w), b: keep(state.lastCharted.b) } };
+  return {
+    ...state,
+    lastCharted: { w: keep(state.lastCharted.w), b: keep(state.lastCharted.b) },
+    chartedCodes: { w: [], b: [] },
+  };
 }
 
 function replayGolden(game: GoldenGame): GameState {
@@ -91,7 +99,7 @@ describe('Original (v1) games saved by production', () => {
   it.each(golden.games.map((game) => [game.seed, game] as const))('seed %i replays turn for turn', (_seed, game) => {
     const replayed = replayGolden(game);
     const upcast = GameStateSchema.parse(upcastState(game.finalState));
-    expect(livingOnly(replayed)).toEqual(upcast);
+    expect(asV1Kept(replayed)).toEqual(upcast);
   });
 
   it('keeps an active game playable: it reads as Original (v1) and takes its next turn', () => {

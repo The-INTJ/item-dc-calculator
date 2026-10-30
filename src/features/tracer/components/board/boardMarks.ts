@@ -36,7 +36,8 @@ const BLANK: SquareMarks = {
 };
 
 function touchedSquares(action: ActionRecord): SquareName[] {
-  return action.kind === 'pass' ? [] : [action.from, action.to];
+  if (action.kind === 'pass') return [];
+  return action.kind === 'declare' ? [action.at] : [action.from, action.to];
 }
 
 export function boardMarks(
@@ -59,6 +60,7 @@ export function boardMarks(
   view.chart?.squares.forEach((square, index) => mark(square, { chartIndex: index + 1 }));
   view.chart?.next.forEach((square) => mark(square, { chartNext: true }));
   view.stepTargets.forEach((square) => mark(square, { step: true }));
+  view.landTargets.forEach((square) => mark(square, { target: 'move' }));
   return marks;
 }
 

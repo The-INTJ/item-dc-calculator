@@ -17,7 +17,7 @@ import { boardOf, findKing } from './occupancy';
 import { pieceHits } from './piece-reach';
 import { patternReach } from './pattern-reach';
 import { cloneState } from './turn';
-import { kingPatterns } from './rulebook';
+import { reachFor, tracedOnly } from './rulebook';
 
 export function pieceAt(state: GameState, at: SquareName) {
   return state.pieces.find((piece) => piece.at === at) ?? null;
@@ -28,7 +28,7 @@ export function moveTargets(state: GameState, from: SquareName): MoveTarget[] {
   const piece = pieceAt(state, from);
   if (!piece) return [];
   const board = boardOf(state.pieces);
-  return pieceHits(board, piece, kingPatterns(state, piece.side)).map((hit) => ({
+  return pieceHits(board, piece, reachFor(state, piece.side)).map((hit) => ({
     to: squareName(hit.sq),
     capture: hit.capture,
     via: hit.via,
@@ -45,7 +45,7 @@ export function patternTargets(
 ): { targets: MoveTarget[]; walks: RiderWalk[] } {
   const sq = parseSquare(from);
   if (sq === null) return { targets: [], walks: [] };
-  const reach = patternReach(boardOf(state.pieces), sq, side, pattern);
+  const reach = patternReach(boardOf(state.pieces), sq, side, pattern, tracedOnly(state.rules));
   return {
     targets: reach.hits.map((hit) => ({
       to: squareName(hit.sq),

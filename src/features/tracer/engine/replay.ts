@@ -5,6 +5,7 @@
  */
 
 import type { GameState, MainAction, RuleSet, TurnInput, TurnRecord } from './types';
+import { pathSquares } from './queries';
 import { initialState } from './setup';
 import { applyTurn } from './turn';
 
@@ -16,7 +17,10 @@ export function turnInputFromRecord(record: TurnRecord): TurnInput | null {
   const stepIndex = record.actions.findIndex((action) => action.kind === 'step');
   const step = record.actions[stepIndex];
   let action: MainAction;
-  if (main.kind === 'chart') action = { kind: 'chart', from: main.from, steps: main.steps };
+  if (main.kind === 'chart') {
+    const land = main.to === main.from ? 0 : pathSquares(main.from, main.steps).indexOf(main.to) + 1;
+    action = { kind: 'chart', from: main.from, steps: main.steps, land };
+  } else if (main.kind === 'declare') action = { kind: 'declare', pattern: main.pattern };
   else if (main.kind === 'pass') action = { kind: 'pass' };
   else action = { kind: 'move', from: main.from, to: main.to };
   const freeStep =

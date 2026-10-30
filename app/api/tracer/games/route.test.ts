@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ORIGINAL_V1 } from '@/features/tracer/variants';
+import { DEFAULT_STYLE_ID, ORIGINAL_V1 } from '@/features/tracer/variants';
 
 import { POST } from './route';
 
@@ -39,7 +39,7 @@ describe('POST /api/tracer/games', () => {
     expect(await response.json()).toEqual({ gameId: 'AbCdEfGhIjKlMnOpQrSt' });
     expect(createNewGameMock).toHaveBeenCalledWith(
       { uid: 'alice-uid' },
-      { displayName: 'Alice', seat: 'random', styleId: 'v2-tiered' },
+      { displayName: 'Alice', seat: 'random', styleId: DEFAULT_STYLE_ID },
     );
   });
 

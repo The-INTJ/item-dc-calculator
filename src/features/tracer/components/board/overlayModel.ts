@@ -8,7 +8,7 @@ import { pathSquares, patternKind, type ActionRecord, type Side, type SquareName
 import type { ComposerView } from '../../hooks/composer/composerView';
 import { centerOf } from './boardGeometry';
 
-export type LineKind = 'rider' | 'jumper' | 'step' | 'last' | 'ghost' | 'threat' | 'threatStep';
+export type LineKind = 'rider' | 'jumper' | 'step' | 'last' | 'ghost' | 'threat' | 'threatStep' | 'routeRider' | 'routeJumper';
 
 export interface OverlayLine {
   key: string;
@@ -26,20 +26,24 @@ export function points(squares: SquareName[], orientation: Side): string {
 }
 
 function actionLine(action: ActionRecord, orientation: Side, key: string, faded: boolean): OverlayLine | null {
-  if (action.kind === 'pass') return null;
+  if (action.kind === 'pass' || action.kind === 'declare') return null;
   let squares: SquareName[];
   let kind: LineKind;
+  // A chart's Tracer may stop short of its path's end (or stay put): then the
+  // path is drawn as traced, without an arrowhead claiming it went all the way.
+  let arrow = true;
   if (action.kind === 'step') {
     squares = [action.from, action.to];
     kind = 'step';
   } else if (action.kind === 'chart') {
     squares = [action.from, ...pathSquares(action.from, action.steps)];
     kind = patternKind(action.pattern) === 'jumper' ? 'jumper' : 'rider';
+    arrow = squares[squares.length - 1] === action.to;
   } else {
     squares = action.path ? [action.from, ...pathSquares(action.from, action.path)] : [action.from, action.to];
     kind = action.path ? 'rider' : action.via === 'base' ? 'step' : 'jumper';
   }
-  return { key, points: points(squares, orientation), kind: faded ? 'last' : kind, arrow: true };
+  return { key, points: points(squares, orientation), kind: faded ? 'last' : kind, arrow };
 }
 
 export function overlayLines(
