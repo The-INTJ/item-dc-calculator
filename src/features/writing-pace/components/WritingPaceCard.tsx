@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import type { WritingPace } from '../lib/pace';
+import type { RecentPace, WritingPace } from '../lib/pace';
 
 import styles from './WritingPaceCard.module.scss';
 
@@ -14,15 +14,23 @@ type PaceState = { status: 'loading' } | { status: 'ready'; pace: WritingPace } 
 
 const number = new Intl.NumberFormat('en-US');
 
+const plural = (count: number, unit: string) => `${count} ${count === 1 ? unit : `${unit}s`}`;
+
+function describeRecent({ perDay, days }: RecentPace) {
+  return `${number.format(perDay)} a day over the last ${plural(days, 'day')}`;
+}
+
 function describe(state: PaceState) {
   if (state.status === 'ready') {
-    const { perDay, words, days } = state.pace;
+    const { perDay, words, days, recent } = state.pace;
     return {
       title: `${number.format(perDay)} words a day`,
-      description: `Wick · ${number.format(words)} words in ${days} ${days === 1 ? 'day' : 'days'}`,
+      description: `Wick · ${number.format(words)} words in ${plural(days, 'day')}`,
+      recent: recent ? describeRecent(recent) : null,
     };
   }
   return {
+    recent: null,
     title: 'Words a day',
     description: state.status === 'loading' ? ' ' : 'Not connected yet',
   };
@@ -38,7 +46,8 @@ async function loadPace(init?: RequestInit): Promise<WritingPace> {
 
 /**
  * The portal's writing-pace widget: no page of its own, just the words-per-day
- * average from the manuscript's 6am snapshot, with a button to recount now.
+ * average from the manuscript's 6am snapshot and the rolling week's average
+ * once a past count is stored, with a button to recount now.
  */
 export function WritingPaceCard({ classNames }: WritingPaceCardProps) {
   const [state, setState] = useState<PaceState>({ status: 'loading' });
@@ -63,11 +72,12 @@ export function WritingPaceCard({ classNames }: WritingPaceCardProps) {
       .finally(() => setRefreshing(false));
   };
 
-  const { title, description } = describe(state);
+  const { title, description, recent } = describe(state);
   return (
     <div className={`${classNames.card} ${styles.host}`} aria-live="polite">
       <span className={classNames.title}>{title}</span>
       <span className={classNames.description}>{description}</span>
+      {recent && <span className={classNames.description}>{recent}</span>}
       {state.status === 'ready' && (
         <button
           type="button"
